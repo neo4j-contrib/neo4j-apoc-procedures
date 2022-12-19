@@ -6,16 +6,19 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestContainerUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TTLMultiDbTest {
 
@@ -117,6 +120,15 @@ public class TTLMultiDbTest {
                 tx.run("CREATE DATABASE " + DB_FOO + " WAIT;");
                 return tx.run("CREATE DATABASE " + DB_BAR + " WAIT;");
             });
+        }
+
+        try(Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
+            assertEventually(() -> {
+                final List<Record> list = systemSession.run("SHOW DATABASES YIELD name, currentStatus")
+                        .list();
+                return list.stream().allMatch(i -> i.get("currentStatus").asString().equals("online"))
+                        && list.stream().map(i -> i.get("name").asString()).toList().containsAll(List.of(DB_TEST , DB_FOO , DB_BAR));
+            }, value -> value, 30L, TimeUnit.SECONDS);
         }
     }
 

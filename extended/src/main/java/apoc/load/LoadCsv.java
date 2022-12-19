@@ -8,6 +8,7 @@ import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -51,7 +52,7 @@ public class LoadCsv {
             }
             reader = FileUtils.readerFor(urlOrBinary, httpHeaders, payload, config.getCompressionAlgo());
             return streamCsv(url, config, reader);
-        } catch (IOException e) {
+        } catch (IOException | CsvValidationException e) {
             closeReaderSafely(reader);
             if(!config.isFailOnError())
                 return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
@@ -60,7 +61,7 @@ public class LoadCsv {
         }
     }
 
-    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException {
+    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException, CsvValidationException {
 
         CSVReader csv = new CSVReaderBuilder(reader)
                 .withCSVParser(new CSVParserBuilder()
@@ -78,7 +79,7 @@ public class LoadCsv {
                 .onClose(() -> closeReaderSafely(reader));
     }
 
-    private String[] getHeader(CSVReader csv, LoadCsvConfig config) throws IOException {
+    private String[] getHeader(CSVReader csv, LoadCsvConfig config) throws IOException, CsvValidationException {
         if (!config.isHasHeader()) return null;
         String[] headers = csv.readNext();
         List<String> ignore = config.getIgnore();
@@ -106,7 +107,7 @@ public class LoadCsv {
         private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException, CsvValidationException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -133,8 +134,10 @@ public class LoadCsv {
                     return true;
                 }
                 return false;
-            } catch (IOException e) {
+            } catch (IOException | CsvValidationException e) {
                 throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo, e);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo + ". Please check whether you included a delimiter before a column separator or forgot a column separator.");
             }
         }
     }

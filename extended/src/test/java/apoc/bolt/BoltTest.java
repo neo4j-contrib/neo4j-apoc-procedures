@@ -3,6 +3,7 @@ package apoc.bolt;
 import apoc.cypher.Cypher;
 import apoc.export.cypher.ExportCypher;
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -430,6 +431,9 @@ public class BoltTest {
     }
 
     private String getBoltUrl() {
-        return "'" + "bolt://neo4j:apoc@" + neo4jContainer.getContainerIpAddress() + ":" + neo4jContainer.getMappedPort(7687) + "'";
+        return String.format("'bolt://neo4j:%s@%s:%s'",
+                TestContainerUtil.password,
+                neo4jContainer.getContainerIpAddress(),
+                neo4jContainer.getMappedPort(7687));
     }
 }

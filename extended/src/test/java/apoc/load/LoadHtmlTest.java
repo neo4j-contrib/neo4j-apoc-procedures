@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadHtml.KEY_ERROR;
+import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LIST;
+import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LOG;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -62,6 +64,7 @@ public class LoadHtmlTest {
             "<p class='thirdClass'>My third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p> " +
             "<ul><li>Coffee</li><li>Tea</li><li>Milk</li></ul>  " +
             "</body> </html>";
+    private static final String INVALID_CONFIG_ERR = "Invalid config";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -85,11 +88,10 @@ public class LoadHtmlTest {
 
     @Test
     public void testParseGeneratedJsWrongConfigs() {
-        String errorInvalidConfig = "Invalid config";
-        assertWrongConfig(errorInvalidConfig,
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", CHROME, "operatingSystem", "dunno"));
 
-        assertWrongConfig(errorInvalidConfig,
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", FIREFOX, "architecture", "dunno"));
 
         assertWrongConfig("Error HTTP 401 executing",
@@ -110,22 +112,24 @@ public class LoadHtmlTest {
 
     @Test
     public void testWithWaitUntilAndOneElementNotFound() {
-        testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url", URL_HTML_JS,
-                        "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
-                        "config", map("browser", "CHROME", "wait", 5)),
-                result -> {
-                    Map<String, Object> value = (Map<String, Object>) result.get("value");
-                    List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
-                    List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
-                    assertTrue(notExistent.isEmpty());
-                    assertEquals(1, existent.size());
-                    final Map<String, Object> tag = existent.get(0);
-                    assertEquals("This is a new text node", tag.get("text"));
-                    assertEquals("strong", tag.get("tagName"));
-                });
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                    map("url", URL_HTML_JS,
+                            "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
+                            "config", map("browser", "CHROME", "wait", 5)),
+                    result -> {
+                        Map<String, Object> value = (Map<String, Object>) result.get("value");
+                        List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
+                        List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
+                        assertTrue(notExistent.isEmpty());
+                        assertEquals(1, existent.size());
+                        final Map<String, Object> tag = existent.get(0);
+                        assertEquals("This is a new text node", tag.get("text"));
+                        assertEquals("strong", tag.get("tagName"));
+                    });
+        });
     }
-
+    
     @Test
     public void testWithBaseUriConfig() {
         Map<String, Object> query = map("urlTest", ".urlTest");
@@ -181,7 +185,7 @@ public class LoadHtmlTest {
                     assertEquals(expected, actual);
                 });
     }
-    
+
     @Test
     public void shouldEmulateJsoupFunctions() {
         // getElementsByTag
@@ -429,19 +433,22 @@ public class LoadHtmlTest {
         testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST'})");
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("charset", INVALID_CHARSET));
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG', charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("failSilently", WITH_LOG.name(), "charset", INVALID_CHARSET));
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testQueryWithFailsSilentlyWithListWithExceptionIfIncorrectCharset() {
-        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST', charset: '" + INVALID_CHARSET + "'})");
+        assertWrongConfig(INVALID_CONFIG_ERR,
+                Map.of("failSilently", WITH_LIST.name(), "charset", INVALID_CHARSET));
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -453,17 +460,6 @@ public class LoadHtmlTest {
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             String expectedMessage = "No enum constant " + LoadHtmlConfig.Browser.class.getCanonicalName() + "." + invalidValue;
-            assertEquals(expectedMessage, except.getMessage());
-            throw e;
-        }
-    }
-
-    private void testIncorrectCharset(String query) {
-        try {
-            testCall(db, query, (r) -> {});
-        } catch (Exception e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            String expectedMessage = "Unsupported charset: " + INVALID_CHARSET;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -482,25 +478,39 @@ public class LoadHtmlTest {
     }
 
     private void testCallGeneratedJsWithBrowser(String browser) {
-        testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                map("url", URL_HTML_JS,
-                        "query", map("td", "td", "strong", "strong"),
-                        "config", map("browser", browser, "driverVersion", "0.30.0")),
-                result -> {
-                    Map<String, Object> value = (Map<String, Object>) result.get("value");
-                    List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
-                    List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
-                    assertEquals(4, tdList.size());
-                    final String templateString = "foo bar - baz";
-                    AtomicInteger integer = new AtomicInteger();
-                    tdList.forEach(tag -> {
-                        assertEquals("td", tag.get("tagName"));
-                        assertEquals(integer.getAndIncrement() + templateString, tag.get("text"));
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            testCall(db, "CALL apoc.load.html($url,$query,$config)",
+                    map("url", URL_HTML_JS,
+                            "query", map("td", "td", "strong", "strong"),
+                            "config", map("browser", browser, "driverVersion", "0.30.0")),
+                    result -> {
+                        Map<String, Object> value = (Map<String, Object>) result.get("value");
+                        List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
+                        List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
+                        assertEquals(4, tdList.size());
+                        final String templateString = "foo bar - baz";
+                        AtomicInteger integer = new AtomicInteger();
+                        tdList.forEach(tag -> {
+                            assertEquals("td", tag.get("tagName"));
+                            assertEquals(integer.getAndIncrement() + templateString, tag.get("text"));
+                        });
+                        assertEquals(1, strongList.size());
+                        final Map<String, Object> tagStrong = strongList.get(0);
+                        assertEquals("This is a new text node", tagStrong.get("text"));
+                        assertEquals("strong", tagStrong.get("tagName"));
                     });
-                    assertEquals(1, strongList.size());
-                    final Map<String, Object> tagStrong = strongList.get(0);
-                    assertEquals("This is a new text node", tagStrong.get("text"));
-                    assertEquals("strong", tagStrong.get("tagName"));
-                });
+        });
+    }
+    
+    public static void skipIfBrowserNotPresentOrCompatible(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (RuntimeException e) {
+            // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
+            final String msg = e.getMessage();
+            if (!msg.contains("cannot find Chrome binary") && !msg.contains("Cannot find firefox binary")) {
+                throw e;
+            }
+        }
     }
 }
