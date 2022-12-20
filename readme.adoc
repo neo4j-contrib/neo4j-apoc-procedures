@@ -179,7 +179,6 @@ You _can_ also allow procedures and functions in general to be loaded using: `+d
 ====
 
 
-
 // tag::version-matrix[]
 === Version Compatibility Matrix
 
