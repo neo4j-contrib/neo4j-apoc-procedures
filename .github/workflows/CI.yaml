@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "5.3" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "5.3" ]
 
 jobs:
   build:
@@ -25,14 +25,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
-
-      - name: Download neo4j dev docker container
-        run: |
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
-          wait
-          docker load --input ${ENTERPRISE_TAR}
-          docker load --input ${COMMUNITY_TAR}
 
       - uses: actions/cache@v2
         with:

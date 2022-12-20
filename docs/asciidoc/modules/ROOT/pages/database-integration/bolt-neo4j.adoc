@@ -74,14 +74,6 @@ In addition, the `apoc.bolt.load.fromLocal` can have:
 * `readOnly`: default false. To execute or not, read-only statements.  
 * `localParams`: to put optional parameters to local cypher statement
 
-== Install Dependencies
-
-The Bolt procedures have dependencies on a client library that is not included in the APOC Extended library.
-
-You can download it from https://repo1.maven.org/maven2/org/neo4j/driver/neo4j-java-driver-slim/4.4.5/neo4j-java-driver-slim-4.4.5.jar[mvnrepository]
-or https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-bolt-dependencies-{apoc-release}.jar[apoc repository].
-Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
-
 
 
 == Driver configuration

@@ -21,8 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadHtml.KEY_ERROR;
-import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LIST;
-import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LOG;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -433,22 +431,19 @@ public class LoadHtmlTest {
         testIncorrectUrl("CALL apoc.load.html('" + INVALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST'})");
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
-                Map.of("charset", INVALID_CHARSET));
+        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {charset: '" + INVALID_CHARSET + "'})");
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
-                Map.of("failSilently", WITH_LOG.name(), "charset", INVALID_CHARSET));
+        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LOG', charset: '" + INVALID_CHARSET + "'})");
     }
 
-    @Test
+    @Test(expected = QueryExecutionException.class)
     public void testQueryWithFailsSilentlyWithListWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
-                Map.of("failSilently", WITH_LIST.name(), "charset", INVALID_CHARSET));
+        testIncorrectCharset("CALL apoc.load.html('" + VALID_PATH + "',{a:'a'}, {failSilently: 'WITH_LIST', charset: '" + INVALID_CHARSET + "'})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -460,6 +455,17 @@ public class LoadHtmlTest {
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             String expectedMessage = "No enum constant " + LoadHtmlConfig.Browser.class.getCanonicalName() + "." + invalidValue;
+            assertEquals(expectedMessage, except.getMessage());
+            throw e;
+        }
+    }
+
+    private void testIncorrectCharset(String query) {
+        try {
+            testCall(db, query, (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            String expectedMessage = "Unsupported charset: " + INVALID_CHARSET;
             assertEquals(expectedMessage, except.getMessage());
             throw e;
         }
@@ -501,7 +507,7 @@ public class LoadHtmlTest {
                     });
         });
     }
-    
+
     public static void skipIfBrowserNotPresentOrCompatible(Runnable runnable) {
         try {
             runnable.run();
