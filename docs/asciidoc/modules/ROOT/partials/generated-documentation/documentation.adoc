@@ -3404,7 +3404,7 @@ CALL apoc.trigger.show(databaseName) \| it lists all eventually installed trigge
 
 |xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list icon:book[]]
 
-CALL apoc.trigger.list() \| it lists all currently working triggers for all databases for the session database
+CALL apoc.trigger.list() \| it lists all currently installed triggers for the session database
 |label:procedure[]
 |label:apoc-core[]
 
