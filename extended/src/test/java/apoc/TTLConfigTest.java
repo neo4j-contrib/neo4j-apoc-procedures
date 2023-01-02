@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -16,8 +17,11 @@ public class TTLConfigTest
     @Test
     public void ttlDisabled() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
-        when(apocConfig.getBoolean("apoc.ttl.enabled.foo")).thenReturn(false);
+        Configuration config = mock(Configuration.class);
+
+        when(apocConfig.getConfig()).thenReturn(config);
+        when(config.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED, false)).thenReturn(false);
+        when(config.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(false);
 
         GraphDatabaseAPI db = mock(GraphDatabaseAPI.class);
         when(db.databaseName()).thenReturn("foo");
@@ -30,8 +34,11 @@ public class TTLConfigTest
     @Test
     public void ttlDisabledForOurDatabase() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(true);
-        when(apocConfig.getBoolean("apoc.ttl.enabled.foo")).thenReturn(false);
+        Configuration config = mock(Configuration.class);
+
+        when(apocConfig.getConfig()).thenReturn(config);
+        when(config.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED, false)).thenReturn(true);
+        when(config.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(false);
 
         GraphDatabaseAPI db = mock(GraphDatabaseAPI.class);
         when(db.databaseName()).thenReturn("foo");
@@ -44,10 +51,11 @@ public class TTLConfigTest
     @Test
     public void ttlEnabledForOurDatabaseOverridesGlobalSettings() {
         ApocConfig apocConfig = mock(ApocConfig.class);
-        ExtendedApocConfig extendedApocConfig = mock(ExtendedApocConfig.class);
+        Configuration config = mock(Configuration.class);
 
-        when(apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED)).thenReturn(false);
-        when(extendedApocConfig.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(true);
+        when(apocConfig.getConfig()).thenReturn(config);
+        when(config.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED, false)).thenReturn(false);
+        when(config.getBoolean("apoc.ttl.enabled.foo", false)).thenReturn(true);
 
         when(apocConfig.getInt(ExtendedApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE)).thenReturn(300);
         when(apocConfig.getInt("apoc.ttl.schedule.foo", 300)).thenReturn(500);

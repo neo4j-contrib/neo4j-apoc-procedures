@@ -68,7 +68,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     private boolean isEnabled() {
         String apocUUIDEnabledDb = String.format(APOC_UUID_ENABLED_DB, this.db.databaseName());
-        final boolean enabled = apocConfig.getBoolean(APOC_UUID_ENABLED, false);
+        final boolean enabled = apocConfig.getConfig().getBoolean(APOC_UUID_ENABLED, false);
         return apocConfig.getConfig().getBoolean(apocUUIDEnabledDb, enabled);
     }
 
