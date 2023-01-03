@@ -21,8 +21,10 @@ import org.neo4j.internal.kernel.api.connectioninfo.ClientConnectionInfo;
 import org.neo4j.internal.kernel.api.security.LoginContext;
 import org.neo4j.io.layout.DatabaseLayout;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.database.NamedDatabaseId;
 import org.neo4j.kernel.impl.coreapi.InternalTransaction;
+import org.neo4j.kernel.impl.coreapi.TransactionExceptionMapper;
 import org.neo4j.kernel.impl.factory.DbmsInfo;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
@@ -138,6 +140,19 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
     public InternalTransaction beginTransaction( KernelTransaction.Type type, LoginContext loginContext )
     {
         return getGraphDatabaseAPI().beginTransaction( type, loginContext );
+    }
+
+    @Override
+    public InternalTransaction beginTransaction(
+            KernelTransaction.Type type,
+            LoginContext loginContext,
+            ClientConnectionInfo clientInfo,
+            long timeout,
+            TimeUnit unit,
+            Consumer<Status> terminationCallback,
+            TransactionExceptionMapper transactionExceptionMapper)
+    {
+        return getGraphDatabaseAPI().beginTransaction( type, loginContext, clientInfo, timeout, unit, terminationCallback, transactionExceptionMapper );
     }
 
     @Override
