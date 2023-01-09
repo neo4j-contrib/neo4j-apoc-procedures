@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.trigger.TriggerNewProcedures.TriggerInfo;
 /**
  * @author mh
  * @since 20.09.16

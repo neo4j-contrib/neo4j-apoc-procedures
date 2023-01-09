@@ -15,7 +15,7 @@ removes all previously added trigger, returns trigger information
 This procedure is not intended to be used in a cluster environment, and may act unpredictably.
 ====
 
-include::partial$triggers/deprecated.adoc
+include::partial$triggers/deprecated.adoc[]
 
 == Signature
 

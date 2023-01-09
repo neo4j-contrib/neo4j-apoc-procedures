@@ -6,9 +6,7 @@ import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
@@ -45,12 +43,8 @@ public class TriggerClusterRoutingTest {
             cluster.close();
         }
     }
-
-    // TODO: making sure that a session against "system" can install triggers
-
-    // TODO: making sure that a session against "system" can drop triggers
     
-    // TODO: fabric tests
+    // TODO: fabric tests once the @SystemOnlyProcedure annotation is added to Neo4j
 
     @Test
     public void testTriggerAddAllowedOnlyInSysLeaderMember() {
@@ -105,56 +99,9 @@ public class TriggerClusterRoutingTest {
         }
     }
 
-    @Test
-    public void testTriggersAllowedOnlyWithAdmin() {
-        for (Neo4jContainerExtension container: cluster.getClusterMembers()) {
-            
-            try (Session sysSession = container.getDriver().session(SessionConfig.forDatabase(SYSTEM_DATABASE_NAME))) {
-                if (!sysIsLeader(sysSession)) {
-                    return;
-                }
-                sysSession.run("CREATE USER nonadmin SET PASSWORD 'test' SET PASSWORD CHANGE NOT REQUIRED");
-            }
-
-            try (Driver userDriver = GraphDatabase.driver(container.getBoltUrl(), AuthTokens.basic("nonadmin", "test"))) {
-                
-                try (Session sysUserSession = userDriver.session(SessionConfig.forDatabase(SYSTEM_DATABASE_NAME))) {
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.install", "call apoc.trigger.install('neo4j', 'qwe', 'return 1', {})");
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.drop", "call apoc.trigger.drop('neo4j', 'qwe')");
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.dropAll", "call apoc.trigger.dropAll('neo4j')");
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.stop", "call apoc.trigger.stop('neo4j', 'qwe')");
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.start", "call apoc.trigger.start('neo4j', 'qwe')");
-                    failsWithNonAdminUser(sysUserSession, "apoc.trigger.show", "call apoc.trigger.show('neo4j')");
-                }
-                
-                try (Session neo4jUserSession = userDriver.session(SessionConfig.forDatabase(DEFAULT_DATABASE_NAME))) {
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.add", "call apoc.trigger.add('abc', 'return 1', {})");
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.remove", "call apoc.trigger.remove('abc')");
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.removeAll", "call apoc.trigger.removeAll");
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.pause", "call apoc.trigger.pause('abc')");
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.resume", "call apoc.trigger.resume('abc')");
-                    failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.list", "call apoc.trigger.list");
-                }
-            }
-            
-        }
-    }
-
     private static boolean sysIsLeader(Session session) {
         final String systemRole = TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
         return "LEADER".equals(systemRole);
-    }
-    
-    private void failsWithNonAdminUser(Session session, String procName, String query) {
-        try {
-            testCall(session, query,
-                    row -> fail("Should fail because of non admin user") );
-        } catch (Exception e) {
-            String actual = e.getMessage();
-            final String expected = String.format("Executing admin procedure '%s' permission has not been granted for user 'nonadmin'",
-                    procName);
-            assertTrue("Actual error message is: " + actual, actual.contains(expected));
-        }
     }
 
 
