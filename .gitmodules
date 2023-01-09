@@ -1,4 +1,7 @@
 [submodule "apoc-core"]
 	path = apoc-core
 	url = https://github.com/neo4j/apoc
-	branch = dev-fix-trigger-procedures
+	branch = dev
+[submodule "apoc"]
+	path = apoc
+	url = https://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@github.com/neo4j/apoc.git
