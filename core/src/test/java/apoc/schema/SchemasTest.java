@@ -347,7 +347,8 @@ public class SchemasTest {
         testCall(db, "CALL apoc.schema.relationships()", row -> {
             assertEquals(":KNOWS(id,since)", row.get("name"));
             assertEquals("ONLINE", row.get("status"));
-            assertEquals("KNOWS", row.get("type"));
+            assertEquals("KNOWS", row.get("relationshipType"));
+            assertEquals("INDEX", row.get("type"));
             assertEquals(List.of("id", "since"), row.get("properties"));
         });
     }
@@ -710,7 +711,8 @@ public class SchemasTest {
         testCall(db, "CALL apoc.schema.relationships()", (row) -> {
             assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
             assertEquals("ONLINE", row.get("status"));
-            assertEquals(TOKEN_REL_TYPE, row.get("type"));
+            assertEquals("INDEX", row.get("type"));
+            assertEquals(TOKEN_REL_TYPE, row.get("relationshipType"));
             assertTrue(((List)row.get("properties")).isEmpty());
         });
     }
@@ -753,8 +755,9 @@ public class SchemasTest {
             Map<String, Object> r = result.next();
             assertEquals(":[TYPE_1, TYPE_2],(alpha,beta)", r.get("name"));
             assertEquals("ONLINE", r.get("status"));
-            assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("type"));
+            assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("relationshipType"));
             assertEquals(List.of("alpha", "beta"), r.get("properties"));
+            assertEquals("INDEX", r.get("type"));
             assertFalse(result.hasNext());
         });
     }

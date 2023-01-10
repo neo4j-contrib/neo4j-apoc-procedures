@@ -34,18 +34,18 @@ public class IndexConstraintNodeInfo {
      * @param label
      * @param properties
      * @param status status of the index, if it's a constraint it will be empty
-     * @param type if it is an index type will be "INDEX" otherwise it will be the type of constraint
+     * @param schemaType if it is an index type will be "INDEX" otherwise it will be the type of constraint
      * @param failure
      * @param populationProgress
      * @param size
      * @param userDescription
      */
-    public IndexConstraintNodeInfo(String name, Object label, List<String> properties, String status, String type, String failure, float populationProgress, long size, double valuesSelectivity, String userDescription) {
+    public IndexConstraintNodeInfo(String name, Object label, List<String> properties, String status, String schemaType, String failure, float populationProgress, long size, double valuesSelectivity, String userDescription) {
         this.name = name;
         this.label = label;
         this.properties = properties;
         this.status = status;
-        this.type = type;
+        this.type = schemaType;
         this.failure = failure;
         this.populationProgress = populationProgress;
         this.size = size;
