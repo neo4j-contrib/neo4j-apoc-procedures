@@ -11,7 +11,6 @@ import org.neo4j.internal.helpers.collection.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -35,7 +34,7 @@ public class TriggerHandlerNewProcedures {
     }
 
     public static TriggerInfo install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        AtomicReference<TriggerInfo> previous = new AtomicReference<>();
+        final TriggerInfo[] previous = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
@@ -43,7 +42,7 @@ public class TriggerHandlerNewProcedures {
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
             // we'll return previous trigger info
-            previous.set( fromNode(node, true) );
+            previous[0] = fromNode(node, true);
             
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
@@ -53,27 +52,27 @@ public class TriggerHandlerNewProcedures {
             setLastUpdate(databaseName, tx);
         });
 
-        return previous.get();
+        return previous[0];
     }
 
     public static TriggerInfo drop(String databaseName, String triggerName) {
-        AtomicReference<TriggerInfo> previous = new AtomicReference<>();
+        final TriggerInfo[] previous = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, triggerName)
                     .forEachRemaining(node -> {
-                                previous.set( fromNode(node, false) );
+                                previous[0] = fromNode(node, false);
                                 node.delete();
                             });
             
             setLastUpdate(databaseName, tx);
         });
 
-        return previous.get();
+        return previous[0];
     }
 
     public static TriggerInfo updatePaused(String databaseName, String name, boolean paused) {
-        AtomicReference<TriggerInfo> result = new AtomicReference<>();
+        final TriggerInfo[] result = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, name)
@@ -81,13 +80,13 @@ public class TriggerHandlerNewProcedures {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
                         // we'll return previous trigger info
-                        result.set( fromNode(node, true) );
+                        result[0] = fromNode(node, true);
                     });
 
             setLastUpdate(databaseName, tx);
         });
 
-        return result.get();
+        return result[0];
     }
 
     public static List<TriggerInfo> dropAll(String databaseName) {
