@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,6 +40,8 @@ import java.util.stream.StreamSupport;
 
 @Extended
 public class SystemDb {
+    public static final String REMOTE_SENSITIVE_PROP = "password";
+    public static final String USER_SENSITIVE_PROP = "credentials";
 
     @Context
     public ApocConfig apocConfig;
@@ -98,7 +101,11 @@ public class SystemDb {
         return withSystemDbTransaction(tx -> {
             Map<Long, Node> virtualNodes = new HashMap<>();
             for (Node node: tx.getAllNodes())  {
-                virtualNodes.put(-node.getId(), new VirtualNode(-node.getId(), Iterables.asArray(Label.class, node.getLabels()), node.getAllProperties()));
+                final Map<String, Object> props = node.getAllProperties();
+                props.keySet()
+                        .removeAll(Set.of(REMOTE_SENSITIVE_PROP, USER_SENSITIVE_PROP));
+                
+                virtualNodes.put(-node.getId(), new VirtualNode(-node.getId(), Iterables.asArray(Label.class, node.getLabels()), props));
             }
 
             List<Relationship> relationships = tx.getAllRelationships().stream().map(rel -> new VirtualRelationship(
