@@ -42,10 +42,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
-/**
- * Test class for non-deprecated procedures, 
- * i.e. `apoc.trigger.install`, `apoc.trigger.drop`, `apoc.trigger.dropAll`, `apoc.trigger.stop`, and `apoc.trigger.start`
- */
+
 public class TriggerNewProceduresTest {
     private static final File directory = new File("target/conf");
     static { //noinspection ResultOfMethodCallIgnored
@@ -102,7 +99,7 @@ public class TriggerNewProceduresTest {
     public void testListTriggers() {
         String name = "count-removals";
         String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])";
-        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query,{}) YIELD name RETURN name",
+        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query,{})",
                 map("query", query, "name", name),
                 1);
 
@@ -163,7 +160,7 @@ public class TriggerNewProceduresTest {
 
     @Test
     public void testRemoveTrigger() throws Exception {
-        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed','RETURN 1',{}) YIELD name RETURN name", 1);
+        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed','RETURN 1',{})", 1);
         testCallEventually(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("to-be-removed", row.get("name"));
             assertEquals("RETURN 1", row.get("query"));
@@ -189,8 +186,8 @@ public class TriggerNewProceduresTest {
         testCallCount(sysDb, "CALL apoc.trigger.dropAll('neo4j')", 0);
         testCallCountEventually(db, "call apoc.trigger.list", 0, TIMEOUT);
 
-        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed-1','RETURN 1',{}) YIELD name RETURN name", 1);
-        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed-2','RETURN 2',{}) YIELD name RETURN name", 1);
+        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed-1','RETURN 1',{})", 1);
+        testCallCount(sysDb, "CALL apoc.trigger.install('neo4j', 'to-be-removed-2','RETURN 2',{})", 1);
 
         testCallCountEventually(db, "call apoc.trigger.list", 2, TIMEOUT);
         
@@ -464,7 +461,6 @@ public class TriggerNewProceduresTest {
                                 result -> {
                                     final ResourceIterator<Relationship> relIterator = result.columnAs("r");
                                     return relIterator.hasNext();
-//                                            && relIterator.next().getAllProperties().equals(expectedProps);
                                 })
                 , (value) -> value, 30L, TimeUnit.SECONDS);
     }

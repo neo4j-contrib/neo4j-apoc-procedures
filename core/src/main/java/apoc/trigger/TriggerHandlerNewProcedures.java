@@ -8,32 +8,20 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.trigger.TriggerInfo.fromNode;
 
 public class TriggerHandlerNewProcedures {
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    private static Map<String, Object> toTriggerInfo(Node node) {
-        return node.getAllProperties()
-                .entrySet().stream()
-                .filter(e -> !SystemPropertyKeys.database.name().equals(e.getKey()))
-                .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
-                        (mapAccumulator, e) -> {
-                            Object value = List.of(SystemPropertyKeys.selector.name(), SystemPropertyKeys.params.name()).contains(e.getKey()) 
-                                    ? Util.fromJson((String) e.getValue(), Map.class) 
-                                    : e.getValue();
-                            
-                            mapAccumulator.put(e.getKey(), value);
-                    }, HashMap::putAll);
-    }
 
     private static boolean isEnabled() {
         return apocConfig().getBoolean(APOC_TRIGGER_ENABLED);
@@ -45,8 +33,8 @@ public class TriggerHandlerNewProcedures {
         }
     }
 
-    public static Map<String, Object> install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        final HashMap<String, Object> previous = new HashMap<>();
+    public static TriggerInfo install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
+        final TriggerInfo[] previous = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
@@ -54,7 +42,7 @@ public class TriggerHandlerNewProcedures {
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
             // we'll return previous trigger info
-            previous.putAll(toTriggerInfo(node));
+            previous[0] = fromNode(node, true);
             
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
@@ -62,31 +50,29 @@ public class TriggerHandlerNewProcedures {
             node.setProperty(SystemPropertyKeys.paused.name(), false);
 
             setLastUpdate(databaseName, tx);
-            return null;
         });
 
-        return previous;
+        return previous[0];
     }
 
-    public static Map<String, Object> drop(String databaseName, String triggerName) {
-        final HashMap<String, Object> previous = new HashMap<>();
+    public static TriggerInfo drop(String databaseName, String triggerName) {
+        final TriggerInfo[] previous = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, triggerName)
                     .forEachRemaining(node -> {
-                                previous.putAll(toTriggerInfo(node));
+                                previous[0] = fromNode(node, false);
                                 node.delete();
                             });
             
             setLastUpdate(databaseName, tx);
-            return null;
         });
 
-        return previous;
+        return previous[0];
     }
 
-    public static Map<String, Object> updatePaused(String databaseName, String name, boolean paused) {
-        HashMap<String, Object> result = new HashMap<>();
+    public static TriggerInfo updatePaused(String databaseName, String name, boolean paused) {
+        final TriggerInfo[] result = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx, name)
@@ -94,18 +80,17 @@ public class TriggerHandlerNewProcedures {
                         node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
                         // we'll return previous trigger info
-                        result.putAll(toTriggerInfo(node));
+                        result[0] = fromNode(node, true);
                     });
 
             setLastUpdate(databaseName, tx);
-            return null;
         });
 
-        return result;
+        return result[0];
     }
 
-    public static Map<String, Object> dropAll(String databaseName) {
-        HashMap<String, Object> previous = new HashMap<>();
+    public static List<TriggerInfo> dropAll(String databaseName) {
+        final List<TriggerInfo> previous = new ArrayList<>();
 
         withSystemDb(tx -> {
             getTriggerNodes(databaseName, tx)
@@ -113,21 +98,19 @@ public class TriggerHandlerNewProcedures {
                         String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
 
                         // we'll return previous trigger info
-                        previous.put(triggerName, toTriggerInfo(node));
+                        previous.add( fromNode(node, false) );
                         node.delete();
                     });
             setLastUpdate(databaseName, tx);
-            return null;
         });
 
         return previous;
     }
 
-    public static List<Map<String, Object>> getTriggerNodesList(String databaseName, Transaction tx) {
+    public static Stream<TriggerInfo> getTriggerNodesList(String databaseName, Transaction tx) {
         return getTriggerNodes(databaseName, tx)
                 .stream()
-                .map(TriggerHandlerNewProcedures::toTriggerInfo)
-                .collect(Collectors.toList());
+                .map(trigger -> fromNode(trigger, true));
     }
 
     public static ResourceIterator<Node> getTriggerNodes(String databaseName, Transaction tx) {
@@ -144,11 +127,10 @@ public class TriggerHandlerNewProcedures {
                 SystemPropertyKeys.name.name(), name);
     }
 
-    public static <T> T withSystemDb(Function<Transaction, T> action) {
+    public static void withSystemDb(Consumer<Transaction> consumer) {
         try (Transaction tx = apocConfig().getSystemDb().beginTx()) {
-            T result = action.apply(tx);
+            consumer.accept(tx);
             tx.commit();
-            return result;
         }
     }
 
@@ -158,7 +140,8 @@ public class TriggerHandlerNewProcedures {
             node = tx.createNode(SystemLabels.ApocTriggerMeta);
             node.setProperty(SystemPropertyKeys.database.name(), databaseName);
         }
-        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
+        final long value = System.currentTimeMillis();
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), value);
     }
     
 }

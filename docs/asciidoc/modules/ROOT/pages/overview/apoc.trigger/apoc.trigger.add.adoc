@@ -15,7 +15,7 @@ add a trigger kernelTransaction under a name, in the kernelTransaction you can u
 This procedure is not intended to be used in a cluster environment, and may act unpredictably.
 ====
 
-include::partial$triggers/deprecated.adoc
+include::partial$triggers/deprecated.adoc[]
 
 == Signature
 
