@@ -73,6 +73,6 @@ See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to
 include::partial$docker.adoc[tags=docker,leveloffset=1]
 
 [[restricted]]
-== Restricted procedures/functions
+== Load and unrestrict procedures/function
 
 include::partial$restricted.adoc[tags=warnings,leveloffset=1]
