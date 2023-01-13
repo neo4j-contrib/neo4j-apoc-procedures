@@ -29,10 +29,9 @@ import static org.junit.Assert.*;
 public class
 SchemaIndexTest {
 
-    private static final String SCHEMA_DISTINCT_COUNT_ORDERED = """
-            CALL apoc.schema.properties.distinctCount($label, $key)
-            YIELD label, key, value, count
-            RETURN * ORDER BY label, key, value""";
+    private static final String SCHEMA_DISTINCT_COUNT_ORDERED = "CALL apoc.schema.properties.distinctCount($label, $key)\n" +
+            "YIELD label, key, value, count\n" +
+            "RETURN * ORDER BY label, key, value";
     private static final String FULL_TEXT_LABEL = "FullTextOne";
     private static final String SCHEMA_LABEL = "SchemaTest";
     private static final String FULL_TEXT_TWO_LABEL = "FullTextTwo";
@@ -53,21 +52,19 @@ SchemaIndexTest {
         db.executeTransactionally("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)");
         
         // dataset for fulltext / composite indexes
-        db.executeTransactionally("""
-                CREATE (:FullTextOne {prop1: "Michael", prop2: 111}),
-                    (:FullTextOne {prop1: "AA", prop2: 1}),
-                    (:FullTextOne {prop1: "EE", prop2: 111}),
-                    (:FullTextOne {prop1: "Ryan", prop2: 1}),
-                    (:FullTextOne {prop1: "UU", prop2: "Ryan"}),
-                    (:FullTextOne {prop1: "Ryan", prop2: 1}),
-                    (:FullTextOne {prop1: "Ryan", prop3: 'qwerty'}),
-                    (:FullTextTwo {prop1: "Ryan"}),
-                    (:FullTextTwo {prop1: "omega"}),
-                    (:FullTextTwo {prop1: "Ryan", prop3: 'abcde'}),
-                    (:SchemaTest {prop1: 'a', prop2: 'bar'}),
-                    (:SchemaTest {prop1: 'b', prop2: 'foo'}),
-                    (:SchemaTest {prop1: 'c', prop2: 'bar'})
-                    """);
+        db.executeTransactionally("CREATE (:FullTextOne {prop1: 'Michael', prop2: 111}),\n" +
+                    "(:FullTextOne {prop1: 'AA', prop2: 1}),\n" +
+                    "(:FullTextOne {prop1: 'EE', prop2: 111}),\n" +
+                    "(:FullTextOne {prop1: 'Ryan', prop2: 1}),\n" +
+                    "(:FullTextOne {prop1: 'UU', prop2: 'Ryan'}),\n" +
+                    "(:FullTextOne {prop1: 'Ryan', prop2: 1}),\n" +
+                    "(:FullTextOne {prop1: 'Ryan', prop3: 'qwerty'}),\n" +
+                    "(:FullTextTwo {prop1: 'Ryan'}),\n" +
+                    "(:FullTextTwo {prop1: 'omega'}),\n" +
+                    "(:FullTextTwo {prop1: 'Ryan', prop3: 'abcde'}),\n" +
+                    "(:SchemaTest {prop1: 'a', prop2: 'bar'}),\n" +
+                    "(:SchemaTest {prop1: 'b', prop2: 'foo'}),\n" +
+                    "(:SchemaTest {prop1: 'c', prop2: 'bar'})");
         //
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Person(age)");
@@ -263,11 +260,10 @@ SchemaIndexTest {
     public void testDistinctWithNoPreviousNodesShouldNotHangs() {
         db.executeTransactionally("CREATE INDEX LabelNotExistent FOR (n:LabelNotExistent) ON n.prop");
         
-        testCall(db, """
-                        CREATE (:LabelNotExistent {prop:2})
-                        WITH *
-                        CALL apoc.schema.properties.distinct("LabelNotExistent", "prop")
-                        YIELD value RETURN *""", 
+        testCall(db, "CREATE (:LabelNotExistent {prop:2}) " +
+                        "WITH * " +
+                        "CALL apoc.schema.properties.distinct(\"LabelNotExistent\", \"prop\") " +
+                        "YIELD value RETURN *", 
                 r -> assertEquals(emptyList(), r.get("value"))
         );
 
