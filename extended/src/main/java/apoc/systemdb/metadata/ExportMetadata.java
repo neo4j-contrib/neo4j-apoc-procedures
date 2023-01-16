@@ -1,5 +1,6 @@
 package apoc.systemdb.metadata;
 
+import apoc.ExtendedSystemLabels;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
@@ -34,15 +35,15 @@ public interface ExportMetadata {
 
         public static Optional<Type> from(Label label, SystemDbConfig config) {
             final String name = label.name();
-            if (name.equalsIgnoreCase(SystemLabels.Procedure.name())) {
+            if (name.equalsIgnoreCase( ExtendedSystemLabels.Procedure.name())) {
                 return get(CypherProcedure, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.Function.name())) {
+            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.Function.name())) {
                 return get(CypherFunction, config);
             } else if(name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
                 return get(Trigger, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.ApocUuid.name())) {
+            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.ApocUuid.name())) {
                 return get(Uuid, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.DataVirtualizationCatalog.name())) {
+            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.DataVirtualizationCatalog.name())) {
                 return get(DataVirtualizationCatalog, config);
             }
             return Optional.empty();

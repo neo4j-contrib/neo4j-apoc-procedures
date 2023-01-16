@@ -170,6 +170,14 @@ public class ExtendedApocConfig extends LifecycleAdapter
         return config.getKeys(prefix);
     }
 
+    public boolean containsKey(String key) {
+        return config.containsKey(key);
+    }
+
+    public boolean getBoolean(String key, boolean defaultValue) {
+        return getConfig().getBoolean(key, defaultValue);
+    }
+
     public <T extends Enum<T>> T getEnumProperty(String key, Class<T> cls, T defaultValue) {
         var value = config.getString(key, defaultValue.toString()).trim();
         try {

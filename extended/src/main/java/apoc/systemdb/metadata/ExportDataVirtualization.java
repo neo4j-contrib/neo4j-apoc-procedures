@@ -1,5 +1,6 @@
 package apoc.systemdb.metadata;
 
+import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
 import apoc.util.JsonUtil;
@@ -10,7 +11,7 @@ import org.neo4j.graphdb.Node;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.Util.toCypherMap;
+import static apoc.util.ExtendedUtil.toCypherMap;
 
 public class ExportDataVirtualization implements ExportMetadata {
 
@@ -18,7 +19,7 @@ public class ExportDataVirtualization implements ExportMetadata {
     public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
         final String dvName = (String) node.getProperty(SystemPropertyKeys.name.name());
         try {
-            final String data = toCypherMap(JsonUtil.OBJECT_MAPPER.readValue((String) node.getProperty(SystemPropertyKeys.data.name()), Map.class));
+            final String data = toCypherMap(JsonUtil.OBJECT_MAPPER.readValue((String) node.getProperty( ExtendedSystemPropertyKeys.data.name()), Map.class));
             final String statement = String.format("CALL apoc.dv.catalog.add('%s', %s)", dvName, data);
             progressReporter.nextRow();
             return List.of(Pair.of(getFileName(node, Type.DataVirtualizationCatalog.name()), statement));

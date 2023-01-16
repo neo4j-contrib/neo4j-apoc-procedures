@@ -3,6 +3,7 @@ package apoc.cypher;
 import apoc.Extended;
 import apoc.Pools;
 import apoc.result.MapResult;
+import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
@@ -55,8 +56,7 @@ import static org.neo4j.procedure.Mode.WRITE;
  */
 @Extended
 public class CypherExtended {
-
-    public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
+    public static final String COMPILED_PREFIX = "CYPHER runtime=interpreted"; // todo handle enterprise properly
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;
 
@@ -259,7 +259,7 @@ public class CypherExtended {
     }
     private Reader readerForFile(@Name("file") String fileName) {
         try {
-            return FileUtils.readerFor(fileName);
+            return FileUtils.readerFor(fileName, CompressionAlgo.NONE.name());
         } catch (IOException ioe) {
             throw new RuntimeException("Error accessing file "+fileName,ioe);
         }

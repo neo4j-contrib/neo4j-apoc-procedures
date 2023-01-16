@@ -13,6 +13,10 @@ import apoc.util.TestUtil;
 import apoc.util.collection.Iterables;
 import apoc.util.collection.Iterators;
 import apoc.uuid.Uuid;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +39,6 @@ import java.util.stream.Collectors;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
-import static apoc.util.TestUtil.readFileLines;
 import static org.junit.Assert.assertEquals;
 
 public class SystemDbTest {
@@ -163,5 +166,14 @@ public class SystemDbTest {
 
         assertEquals(Set.of(constraintForUuid), readFileLines("custom.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("custom.Uuid.neo4j.cypher", directory));
+    }
+
+    private static Set<String> readFileLines(String fileName, File directory) {
+        try {
+            final List<String> fileLines = FileUtils.readLines(new File(directory, fileName), StandardCharsets.UTF_8);
+            return new HashSet<>(fileLines);
+        } catch ( IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

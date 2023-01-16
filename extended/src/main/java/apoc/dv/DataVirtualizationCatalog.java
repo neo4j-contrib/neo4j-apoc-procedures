@@ -90,5 +90,4 @@ public class DataVirtualizationCatalog {
                 .map(r -> new VirtualPath.Builder(r.getStartNode()).push(r).build())
                 .map(PathResult::new);
     }
-
 }

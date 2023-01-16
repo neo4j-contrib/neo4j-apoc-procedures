@@ -3,6 +3,7 @@ package apoc.ttl;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
+import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -70,7 +71,7 @@ public class TTLTest {
     }
 
     private static void restartAndRegister(DbmsRule db) throws Exception {
-        db.restartDatabase();
+        db.restartDatabase(Map.of());
         TestUtil.registerProcedure(db, TTL.class, Periodic.class);
     }
 }

@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
+import apoc.util.ExtendedUtil;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
@@ -22,7 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import apoc.load.util.Results;
-import static apoc.util.FileUtils.closeReaderSafely;
+import static apoc.util.ExtendedFileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
 
@@ -79,6 +80,8 @@ public class LoadCsv {
                 .onClose(() -> closeReaderSafely(reader));
     }
 
+    private static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
+
     private String[] getHeader(CSVReader csv, LoadCsvConfig config) throws IOException, CsvValidationException {
         if (!config.isHasHeader()) return null;
         String[] headers = csv.readNext();
@@ -88,7 +91,7 @@ public class LoadCsv {
         Map<String, Mapping> mappings = config.getMappings();
         for (int i = 0; i < headers.length; i++) {
             String header = headers[i];
-            if (ignore.contains(header) || mappings.getOrDefault(header, Mapping.EMPTY).ignore) {
+            if (ignore.contains(header) || mappings.getOrDefault(header, EMPTY).ignore) {
                 headers[i] = null;
             }
         }
@@ -117,7 +120,7 @@ public class LoadCsv {
             this.nullValues = nullValues;
             this.results = results;
             this.ignoreErrors = ignoreErrors;
-            this.limit = Util.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
+            this.limit = ExtendedUtil.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
             lineNo = skip;
             while (skip-- > 0) {
                 csv.readNext();

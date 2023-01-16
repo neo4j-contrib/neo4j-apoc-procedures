@@ -1,7 +1,7 @@
 package apoc.custom;
 
+import apoc.ExtendedSystemLabels;
 import apoc.RegisterComponentFactory;
-import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
@@ -440,7 +440,7 @@ public class CypherProceduresTest  {
         // remove the node in systemdb
         GraphDatabaseService systemDb = db.getManagementService().database("system");
         try (Transaction tx = systemDb.beginTx()) {
-            Node node = tx.findNode(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            Node node = tx.findNode( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
             node.delete();
             tx.commit();
         }

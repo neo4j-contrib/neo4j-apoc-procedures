@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.getPathFromUrlString;
+import static apoc.util.ExtendedFileUtils.getPathFromUrlString;
 import static apoc.util.FileUtils.isImportUsingNeo4jConfig;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;

@@ -2,7 +2,8 @@ package apoc.uuid;
 
 import apoc.ApocConfig;
 import apoc.ExtendedApocConfig;
-import apoc.SystemLabels;
+import apoc.ExtendedSystemLabels;
+import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.apache.commons.collections4.IterableUtils;
@@ -67,7 +68,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     private boolean isEnabled() {
         String apocUUIDEnabledDb = String.format(APOC_UUID_ENABLED_DB, this.db.databaseName());
-        final boolean enabled = apocConfig.getBoolean(APOC_UUID_ENABLED, false);
+        final boolean enabled = apocConfig.getConfig().getBoolean(APOC_UUID_ENABLED, false);
         return apocConfig.getConfig().getBoolean(apocUUIDEnabledDb, enabled);
     }
 
@@ -176,12 +177,12 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         configuredLabelAndPropertyNames.put(label, config);
 
         try (Transaction sysTx = apocConfig.getSystemDb().beginTx()) {
-            Node node = Util.mergeNode(sysTx, SystemLabels.ApocUuid, null,
+            Node node = Util.mergeNode(sysTx, ExtendedSystemLabels.ApocUuid, null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
-                    Pair.of(SystemPropertyKeys.label.name(), label),
-                    Pair.of(SystemPropertyKeys.propertyName.name(), propertyName)
+                    Pair.of(ExtendedSystemPropertyKeys.label.name(), label),
+                    Pair.of(ExtendedSystemPropertyKeys.propertyName.name(), propertyName)
                     );
-            node.setProperty(SystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
+            node.setProperty(ExtendedSystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
             sysTx.commit();
         }
     }
@@ -194,12 +195,12 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     public void refresh() {
         configuredLabelAndPropertyNames.clear();
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
+            tx.findNodes(ExtendedSystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
                     .forEachRemaining(node -> {
                         final UuidConfig config =  new UuidConfig(Map.of(
-                                "uuidProperty", node.getProperty(SystemPropertyKeys.propertyName.name()),
-                                "addToSetLabels", node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false)));
-                        configuredLabelAndPropertyNames.put((String)node.getProperty(SystemPropertyKeys.label.name()), config);
+                                "uuidProperty", node.getProperty(ExtendedSystemPropertyKeys.propertyName.name()),
+                                "addToSetLabels", node.getProperty(ExtendedSystemPropertyKeys.addToSetLabel.name(), false)));
+                        configuredLabelAndPropertyNames.put((String)node.getProperty(ExtendedSystemPropertyKeys.label.name()), config);
                     });
             tx.commit();
         }
@@ -207,8 +208,8 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     public synchronized UuidConfig remove(String label) {
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.label.name(), label)
+            tx.findNodes(ExtendedSystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName(),
+                    ExtendedSystemPropertyKeys.label.name(), label)
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }
@@ -219,7 +220,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         Map<String, UuidConfig> retval = new HashMap<>(configuredLabelAndPropertyNames);
         configuredLabelAndPropertyNames.clear();
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName() )
+            tx.findNodes(ExtendedSystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName() )
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }

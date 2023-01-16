@@ -23,8 +23,8 @@ public class TTLConfig extends LifecycleAdapter {
         String apocTTLEnabledDb = String.format(ExtendedApocConfig.APOC_TTL_ENABLED_DB, db.databaseName());
         String apocTTLScheduleDb = String.format(ExtendedApocConfig.APOC_TTL_SCHEDULE_DB, db.databaseName());
         String apocTTLLimitDb = String.format(ExtendedApocConfig.APOC_TTL_LIMIT_DB, db.databaseName());
-        boolean enabled = apocConfig.getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED, false);
-        boolean dbEnabled = apocConfig.getBoolean(apocTTLEnabledDb, enabled);
+        boolean enabled = apocConfig.getConfig().getBoolean(ExtendedApocConfig.APOC_TTL_ENABLED, false);
+        boolean dbEnabled = apocConfig.getConfig().getBoolean(apocTTLEnabledDb, enabled);
 
         if (dbEnabled) {
             long ttlSchedule = apocConfig.getInt(ExtendedApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);

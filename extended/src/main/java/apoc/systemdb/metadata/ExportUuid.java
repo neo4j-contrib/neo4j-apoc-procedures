@@ -1,6 +1,6 @@
 package apoc.systemdb.metadata;
 
-import apoc.SystemPropertyKeys;
+import apoc.ExtendedSystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
@@ -9,16 +9,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.Util.toCypherMap;
+import static apoc.util.ExtendedUtil.toCypherMap;
 
 public class ExportUuid implements ExportMetadata {
 
     @Override
     public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
         Map<String, Object> map = new HashMap<>();
-        final String labelName = (String) node.getProperty(SystemPropertyKeys.label.name());
-        final String property = (String) node.getProperty(SystemPropertyKeys.propertyName.name());
-        map.put("addToSetLabels", node.getProperty(SystemPropertyKeys.addToSetLabel.name(), null));
+        final String labelName = (String) node.getProperty( ExtendedSystemPropertyKeys.label.name());
+        final String property = (String) node.getProperty(ExtendedSystemPropertyKeys.propertyName.name());
+        map.put("addToSetLabels", node.getProperty(ExtendedSystemPropertyKeys.addToSetLabel.name(), null));
         map.put("uuidProperty", property);
         final String uuidConfig = toCypherMap(map);
         // add constraint - TODO: might be worth add config to export or not this file

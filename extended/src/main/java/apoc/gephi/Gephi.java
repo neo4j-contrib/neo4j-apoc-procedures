@@ -3,6 +3,7 @@ package apoc.gephi;
 import apoc.Extended;
 import apoc.graph.GraphsUtils;
 import apoc.result.ProgressInfo;
+import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
 import apoc.util.UrlResolver;
 import apoc.util.Util;
@@ -56,7 +57,7 @@ public class Gephi {
         propertyNames.removeAll(RESERVED);
         if (GraphsUtils.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
-            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload).count();
+            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload, "", true, null, null).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
@@ -85,7 +86,7 @@ public class Gephi {
             Relationship r = (Relationship) pc;
             String type = r.getType().name();
             Map<String, Object> attributes = map("label", type, "TYPE", type);
-            Double weight = Util.doubleValue(r,weightproperty,1.0);
+            Double weight = ExtendedUtil.doubleValue(r,weightproperty,1.0);
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true,"weight",weight));
             attributes.putAll(color(type, colors));
             if (exportproperties.length > 0) attributes.putAll(r.getProperties(exportproperties));

@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
-import static apoc.util.FileUtils.getPathFromUrlString;
+import static apoc.util.ExtendedFileUtils.getPathFromUrlString;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 

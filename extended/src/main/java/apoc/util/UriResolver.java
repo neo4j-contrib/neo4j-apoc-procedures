@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 
 /**
  * @author AgileLARUS
@@ -35,9 +36,9 @@ public class UriResolver {
 
     private String getConfiguredUri(String key) {
         String keyUrl = "apoc." + this.prefix + "." + key + ".url";
-        if (apocConfig().containsKey("apoc.bolt.url")) {
+        if (extendedApocConfig().containsKey("apoc.bolt.url")) {
             key = apocConfig().getString("apoc.bolt.url");
-        } else if (apocConfig().containsKey(keyUrl)) {
+        } else if (extendedApocConfig().containsKey(keyUrl)) {
             key = apocConfig().getString(keyUrl, key);
         }
         return key;

@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
+import static apoc.util.ExtendedFileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertTrue;
