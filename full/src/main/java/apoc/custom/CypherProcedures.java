@@ -203,14 +203,16 @@ public class CypherProcedures {
     private void checkMode(QueryExecutionType.QueryType queryType, Mode mode) {
         Map<QueryExecutionType.QueryType, Mode> map = Map.of(QueryExecutionType.QueryType.WRITE, Mode.WRITE,
                 QueryExecutionType.QueryType.READ_ONLY, Mode.READ,
-                QueryExecutionType.QueryType.READ_WRITE, Mode.WRITE);
+                QueryExecutionType.QueryType.READ_WRITE, Mode.WRITE,
+                QueryExecutionType.QueryType.DBMS, Mode.DBMS,
+                QueryExecutionType.QueryType.SCHEMA_WRITE, Mode.SCHEMA);
         
         if (!map.get(queryType).equals(mode)) {
             throw new RuntimeException(String.format("The query execution type is %s, but you provided mode %s.\n" +
                             "Supported modes are %s",
                     queryType.name(), 
                     mode.name(), 
-                    map.values().stream().sorted().collect(Collectors.toList()).toString()));
+                    map.values().stream().sorted().collect(Collectors.toList())));
         }
     }
 

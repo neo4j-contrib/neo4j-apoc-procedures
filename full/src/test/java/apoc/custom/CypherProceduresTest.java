@@ -3,9 +3,12 @@ package apoc.custom;
 import apoc.RegisterComponentFactory;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
+import apoc.log.Logging;
+import apoc.result.MapResult;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,6 +19,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.builtin.BuiltInDbmsProcedures;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -23,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_OUTPUTS;
@@ -49,9 +56,10 @@ public class CypherProceduresTest  {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+
     @Before
     public void setup() {
-        TestUtil.registerProcedure(db, CypherProcedures.class);
+        TestUtil.registerProcedure(db, CypherProcedures.class, BuiltInDbmsProcedures.class);
     }
 
     @Test
@@ -838,6 +846,37 @@ public class CypherProceduresTest  {
         String procedureSignature = "testFail(first::INT, s::INT) :: (answer::INT)";
         assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignature), 
                 "call apoc.custom.declareProcedure('" + procedureSignature + "','RETURN $first + $s AS answer')");
+    }
+
+    @Test
+    public void testIssue3349() {
+        String procedure = "CALL apoc.custom.declareProcedure(\n" +
+                "  'retFunctionNames() :: (name :: STRING)',\n" +
+                "  '\n" +
+                "      CALL dbms.functions() YIELD name RETURN name" +
+                "  ',\n" +
+                "  'DBMS'\n" +
+                ");";
+        db.executeTransactionally(procedure);
+        List<String> functions = db.executeTransactionally("CALL custom.retFunctionNames()", Map.of(), result -> result
+                .stream()
+                .map(m -> (String) m.get("name"))
+                .collect(Collectors.toList()));
+        assertFalse(functions.isEmpty());
+
+
+        String procedureVoid = "CALL apoc.custom.declareProcedure(\n" +
+                "  'setTxMetadata(meta :: MAP) :: VOID',\n" +
+                "  '\n" +
+                "      CALL tx.setMetaData($meta)" +
+                "  ',\n" +
+                "  'DBMS'\n" +
+                ");";
+        db.executeTransactionally(procedureVoid);
+        // This should run without exception
+        db.executeTransactionally("CALL custom.setTxMetadata($meta)", Map.of(
+                "meta", Map.of("foo", "bar")
+        ));
     }
     
 
