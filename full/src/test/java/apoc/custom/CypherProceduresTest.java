@@ -3,12 +3,9 @@ package apoc.custom;
 import apoc.RegisterComponentFactory;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
-import apoc.log.Logging;
-import apoc.result.MapResult;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +16,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.builtin.BuiltInDbmsProcedures;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -29,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_INPUTS;
 import static apoc.custom.CypherProcedures.ERROR_MISMATCHED_OUTPUTS;
@@ -258,7 +253,7 @@ public class CypherProceduresTest  {
     @Test
     public void testWrongMode() {
         assertProcedureFails("The query execution type is READ_WRITE, but you provided mode READ.\n" +
-                        "Supported modes are [READ, WRITE, WRITE]",
+                        "Supported modes are [READ, WRITE, WRITE, SCHEMA, DBMS]",
                 "call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','read', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
     }
 
