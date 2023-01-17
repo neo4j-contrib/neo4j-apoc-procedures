@@ -83,6 +83,7 @@ public class TestContainerUtil {
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
                 .withCreateContainerCmdModifier(cmd -> cmd.withMemory(2024 * 1024 * 1024l))
 
+                .withStartupAttempts(3)
                 // set uid if possible - export tests do write to "/import"
                 .withCreateContainerCmdModifier(cmd -> {
                     try {
