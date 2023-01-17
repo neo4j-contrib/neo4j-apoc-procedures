@@ -128,17 +128,17 @@ dependencies {
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.2', withoutJacksons
+    testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
     testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testCompile 'org.mock-server:mockserver-netty:5.13.0'
     testCompile 'org.mock-server:mockserver-client-java:5.13.0'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
 
     compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
