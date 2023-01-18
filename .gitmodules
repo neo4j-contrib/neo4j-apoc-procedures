@@ -1,4 +1,5 @@
 [submodule "apoc-core"]
 	path = apoc-core
 	url = https://github.com/neo4j/apoc
-	branch = dev
+	branch = 5.4
+	ignore = all
