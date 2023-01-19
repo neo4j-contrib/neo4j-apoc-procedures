@@ -6,7 +6,6 @@ classes
 dependency-reduced-pom.xml
 derby*
 .gradle
-apoc-core
 gradle.properties
 build/
 *~
