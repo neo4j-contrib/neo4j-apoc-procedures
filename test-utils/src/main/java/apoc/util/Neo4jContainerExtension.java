@@ -58,7 +58,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         setWaitStrategy(new WaitAllStrategy()
                 .withStrategy(waitForBolt)
                 .withStrategy(waitForHttp)
-                .withStartupTimeout(Duration.ofMinutes(2)));
+                .withStartupTimeout(Duration.ofMinutes(5)));
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
