@@ -1,5 +1,6 @@
 initscript {
-    def execute = ["bash", "-c", "rm -r apoc-core && git submodule update --init apoc-core"]
+    def execute = ["bash", "-c", "rm -r apoc-core && git submodule update --init apoc-core; " +
+            "git update-index --assume-unchanged apoc-core"]
             .execute()
     execute.waitForProcessOutput(System.out, System.err)
 }
