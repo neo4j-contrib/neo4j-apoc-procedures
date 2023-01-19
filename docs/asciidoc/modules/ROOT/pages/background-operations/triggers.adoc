@@ -54,7 +54,11 @@ The parameters available are:
 [options="header"]
 |===
 |Statement | Description
-|transactionId | returns the id of the transaction
+|transactionId | returns the id of the transaction.
+
+Note that this value only works with the 'after' and 'afterAsync' phases (see the link:#phase_table[Trigger Phase Table]).
+Otherwise, it has the value `-1`.
+
 |commitTime | return the date of the transaction in milliseconds
 |createdNodes | when a node is created our trigger fires (list of nodes)
 |createdRelationships | when a relationship is created our trigger fires (list of relationships)
@@ -82,6 +86,7 @@ You can use these helper functions to extract nodes or relationships by label/re
 
 The 3rd parameter of the `apoc.trigger.install()` is a map `{phase: PHASE}`, where `PHASE` is a string which can have one of the following values:
 
+[#phase_table]
 .Trigger Phase Table
 [cols="1m,5"]
 |===
