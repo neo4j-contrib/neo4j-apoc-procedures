@@ -118,8 +118,8 @@ dependencies {
     testCompile 'org.mock-server:mockserver-netty:5.13.0'
     testCompile 'org.mock-server:mockserver-client-java:5.13.0'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.214' , withoutJacksons
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
 
     compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
