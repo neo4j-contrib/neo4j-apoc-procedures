@@ -490,6 +490,219 @@ public class CypherProceduresTest  {
     }
 
     @Test
+    public void shouldDeclareProcedureWithDefaultListAndMaps() {
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithFloatList(minScore = [1.1,2.2,3.3] :: LIST OF FLOAT) :: (res :: BOOLEAN, first :: FLOAT)',\n" +
+                "    'return size($minScore) < 4 as res, $minScore[0] as first')");
+        testCall(db, "call custom.procWithFloatList", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals(1.1D, (double) row.get("first"), 0.1D);
+        });
+        testCall(db, "call custom.procWithFloatList([9.1, 2.6, 3.1, 4.3, 5.5])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals(9.1D, (double) row.get("first"), 0.1D);
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithIntList(minScore = [1,2,3] :: LIST OF INT) :: (res :: BOOLEAN, first :: FLOAT)',\n" +
+                "    'return size($minScore) < 4 as res, toInteger($minScore[0]) as first')");
+        testCall(db, "call custom.procWithIntList", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals(1L, row.get("first"));
+        });
+        testCall(db, "call custom.procWithIntList([9,2,3,4,5])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals(9L, row.get("first"));
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithListString(minScore = [\"1\",\"2\",\"3\"] :: LIST OF STRING) :: (res :: BOOLEAN, first :: FLOAT)',\n" +
+                "    'return size($minScore) < 4 as res, $minScore[0] + \" - suffix\" as first ')");
+        testCall(db, "call custom.procWithListString", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals("1 - suffix", row.get("first"));
+        });
+        testCall(db, "call custom.procWithListString(['aaa','bbb','ccc','ddd','eee'])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals("aaa - suffix", row.get("first"));
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithListPlainString(minScore = [1, 2, 3] :: LIST OF STRING) :: (res :: BOOLEAN, first :: FLOAT)',\n" +
+                "    'return size($minScore) < 4 as res, $minScore[0] + \" - suffix\" as first ')");
+        testCall(db, "call custom.procWithListPlainString", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals("1 - suffix", row.get("first"));
+        });
+        testCall(db, "call custom.procWithListPlainString(['aaa','bbb','ccc','ddd','eee'])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals("aaa - suffix", row.get("first"));
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure(\"procWithListStringQuoted(minScore = ['1','2','3'] :: LIST OF STRING) :: (res :: BOOLEAN, first :: FLOAT)\",\n" +
+                "    'return size($minScore) < 4 as res, $minScore[0] + \" - suffix\" as first ')");
+        testCall(db, "call custom.procWithListStringQuoted", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals("1 - suffix", row.get("first"));
+        });
+        testCall(db, "call custom.procWithListStringQuoted(['aaa','bbb','ccc','ddd','eee'])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals("aaa - suffix", row.get("first"));
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithListStringVars(minScore = [true,false,null] :: LIST OF STRING) :: (res :: BOOLEAN, first :: STRING)',\n" +
+                "    'return size($minScore) < 4 as res, $minScore[0] as first ')");
+        testCall(db, "call custom.procWithListStringVars", (row) -> {
+            assertEquals(true, row.get("res"));
+            assertEquals("true", row.get("first"));
+        });
+        testCall(db, "call custom.procWithListStringVars(['aaa','bbb','ccc','ddd','eee'])", (row) -> {
+            assertEquals(false, row.get("res"));
+            assertEquals("aaa", row.get("first"));
+        });
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithMapList(minScore = {aa: 1, bb: \"2\"} :: MAP) :: (res :: MAP, first :: ANY)',\n" +
+                "    'return $minScore as res, $minScore[\"a\"] as first ')");
+        testCall(db, "call custom.procWithMapList", (row) -> {
+            assertEquals(Map.of("aa", 1L, "bb", "2"), row.get("res"));
+        });
+        testCall(db, "call custom.procWithMapList({c: true})", (row) -> {
+            assertEquals(Map.of("c", true), row.get("res"));
+        });
+    }
+
+    @Test
+    public void shouldDeclareFunctionWithDefaultListAndMaps() {
+        db.executeTransactionally("call apoc.custom.declareFunction('funWithFloatList(minScore = [1.1,2.2,3.3] :: LIST OF FLOAT) :: FLOAT',\n" +
+                "    'return $minScore[0]')");
+        testCall(db, "RETURN custom.funWithFloatList() AS res",
+                (row) -> assertEquals(1.1D, (double) row.get("res"), 0.1D));
+        testCall(db, "RETURN custom.funWithFloatList([9.1, 2.6, 3.1, 4.3, 5.5]) AS res",
+                (row) -> assertEquals(9.1D, (double) row.get("res"), 0.1D));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithIntList(minScore = [1,2,3] :: LIST OF INT) :: BOOLEAN',\n" +
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithIntList() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithIntList([9,2,3,4,5]) AS res",
+                (row) -> assertEquals(false, row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListString(minScore = [\"1\",\"2\",\"3\"] :: LIST OF STRING) :: BOOLEAN',\n" +
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListString() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListString(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListStringPlain(minScore = [1, 2, 3] :: LIST OF STRING) :: BOOLEAN',\n" +
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringPlain() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringPlain(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction(\"funWithListStringQuoted(minScore = ['1','2','3'] :: LIST OF STRING) :: BOOLEAN\",\n" +
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringQuoted() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringQuoted(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithListStringVars(minScore = [true,false,null] :: LIST OF STRING) :: BOOLEAN',\n" +
+                "    'return size($minScore) < 4')");
+        testCall(db, "RETURN custom.funWithListStringVars() AS res",
+                (row) -> assertEquals(true, row.get("res")));
+        testCall(db, "RETURN custom.funWithListStringVars(['aaa','bbb','ccc','ddd','eee']) AS res",
+                (row) -> assertEquals(false, row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithMapList(minScore = {aa: 1, bb: \"2\"} :: MAP) :: MAP',\n" +
+                "    'return $minScore AS mapRes')");
+        testCall(db, "RETURN custom.funWithMapList() AS res",
+                (row) -> assertEquals(Map.of("mapRes", Map.of("aa", 1L, "bb", "2")), row.get("res")));
+        testCall(db, "RETURN custom.funWithMapList({c: true}) AS res",
+                (row) -> assertEquals(Map.of("mapRes", Map.of("c", true)), row.get("res")));
+    }
+
+    @Test
+    public void shouldDeclareProcedureWithDefaultString() {
+        String query = "RETURN $minScore + ' - suffix' as res";
+        db.executeTransactionally("CALL apoc.custom.declareProcedure(\"procWithSingleQuotedText(minScore=' foo \\\" bar '::STRING)::(res::STRING)\", $query)",
+                Map.of("query", query));
+        testCall(db, "CALL custom.procWithSingleQuotedText", (row) -> {
+            assertEquals(" foo \" bar  - suffix", row.get("res"));
+        });
+
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('procWithDoubleQuotedText(minScore=\" foo \\' bar \"::STRING) :: (res::STRING)', $query)",
+                Map.of("query", query));
+        testCall(db, "CALL custom.procWithDoubleQuotedText", (row) -> {
+            assertEquals(" foo ' bar  - suffix", row.get("res"));
+        });
+        testCall(db, "CALL custom.procWithDoubleQuotedText('myText')", (row) -> assertEquals("myText - suffix", row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('procWithPlainText(minScore = plainText :: STRING) :: (res::STRING)', $query)",
+                Map.of("query", query));
+        testCall(db, "CALL custom.procWithPlainText", (row) -> assertEquals("plainText - suffix", row.get("res")));
+        testCall(db, "CALL custom.procWithPlainText('myText')", (row) -> assertEquals("myText - suffix", row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('procWithStringNull(minScore = null :: STRING) :: (res :: STRING)', $query)",
+                Map.of("query", query));
+        testCall(db, "CALL custom.procWithStringNull", (row) -> assertNull(row.get("res")));
+        testCall(db, "CALL custom.procWithStringNull('other')", (row) -> assertEquals("other - suffix", row.get("res")));
+    }
+
+    @Test
+    public void shouldDeclareFunctionWithDefaultString() {
+        String query = "RETURN $minScore + ' - suffix' as res";
+        db.executeTransactionally("CALL apoc.custom.declareFunction(\"funWithSingleQuotedText(minScore=' foo \\\" bar '::STRING):: STRING\", $query)",
+                Map.of("query", query));
+        testCall(db, "RETURN custom.funWithSingleQuotedText() AS res", (row) -> {
+            assertEquals(" foo \" bar  - suffix", row.get("res"));
+        });
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithDoubleQuotedText(minScore=\" foo \\' bar \"::STRING) :: STRING', $query)",
+                Map.of("query", query));
+        testCall(db, "RETURN custom.funWithDoubleQuotedText() AS res", (row) -> {
+            assertEquals(" foo ' bar  - suffix", row.get("res"));
+        });
+        testCall(db, "RETURN custom.funWithDoubleQuotedText('myText') AS res", (row) -> assertEquals("myText - suffix", row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithPlainText(minScore = plainText :: STRING) :: STRING', $query)",
+                Map.of("query", query));
+        testCall(db, "RETURN custom.funWithPlainText() AS res", (row) -> assertEquals("plainText - suffix", row.get("res")));
+        testCall(db, "RETURN custom.funWithPlainText('myText') AS res", (row) -> assertEquals("myText - suffix", row.get("res")));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('funWithStringNull(minScore = null :: STRING) :: STRING', $query)",
+                Map.of("query", query));
+        testCall(db, "RETURN custom.funWithStringNull() AS res", (row) -> assertNull(row.get("res")));
+        testCall(db, "RETURN custom.funWithStringNull('other') AS res", (row) -> assertEquals("other - suffix", row.get("res")));
+    }
+
+    @Test
+    public void shouldDeclareProcedureWithDefaultBooleanOrNull() {
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithBool(minScore = true :: BOOLEAN) :: (res :: INT)',\n" +
+                "    'RETURN case when $minScore then 1 else 2 end as res')");
+        testCall(db, "call custom.procWithBool", (row) -> assertEquals(1L, row.get("res")));
+        testCall(db, "call custom.procWithBool(true)", (row) -> assertEquals(1L, row.get("res")));
+        testCall(db, "call custom.procWithBool(false)", (row) -> assertEquals(2L, row.get("res")));
+
+        db.executeTransactionally("call apoc.custom.declareProcedure('procWithNull(minScore = null :: INT) :: (res :: INT)',\n" +
+                "    'RETURN $minScore as res')");
+        testCall(db, "call custom.procWithNull", (row) -> assertNull(row.get("res")));
+        testCall(db, "call custom.procWithNull(1)", (row) -> assertEquals(1L, row.get("res")));
+    }
+
+    @Test
+    public void shouldDeclareFunctionWithDefaultBooleanOrNull() {
+        db.executeTransactionally("call apoc.custom.declareFunction('funWithBool(minScore = true :: BOOLEAN) :: INT',\n" +
+                "    'RETURN case when $minScore then 1 else 2 end as res')");
+        testCall(db, "RETURN custom.funWithBool() AS res", (row) -> assertEquals(1L, row.get("res")));
+        testCall(db, "RETURN custom.funWithBool(true) AS res", (row) -> assertEquals(1L, row.get("res")));
+        testCall(db, "RETURN custom.funWithBool(false) AS res", (row) -> assertEquals(2L, row.get("res")));
+
+        db.executeTransactionally("call apoc.custom.declareFunction('funWithNull(minScore = null :: INT) :: INT',\n" +
+                "    'RETURN $minScore as res')");
+        testCall(db, "RETURN custom.funWithNull() AS res", (row) -> assertNull(row.get("res")));
+        testCall(db, "RETURN custom.funWithNull(1) AS res", (row) -> assertEquals(1L, row.get("res")));
+
+    }
+
+    @Test
     public void shouldFailDeclareFunctionWithDefaultNumberParameters() {
         final String query = "RETURN $base * $exp AS res";
         db.executeTransactionally("CALL apoc.custom.declareFunction('defaultFloatFun(base=2.4::FLOAT,exp=1.2::FLOAT):: INT', $query)",
