@@ -138,11 +138,11 @@ public class Signatures {
         }
         if (v.INT_VALUE() != null) {
             final String text = v.INT_VALUE().getText();
-            return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntInteger(Integer.parseInt(text)));
+            return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntInteger(Long.parseLong(text)));
         }
         if (v.FLOAT_VALUE() != null) {
             final String text = v.FLOAT_VALUE().getText();
-            return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntFloat(Float.parseFloat(text)));
+            return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntFloat(Double.parseDouble(text)));
         }
         if (v.mapValue() != null) {
             Map map = JsonUtil.parse(v.mapValue().getText(), null, Map.class);
