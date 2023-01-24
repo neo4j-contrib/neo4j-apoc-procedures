@@ -24,6 +24,30 @@ that is:
 Note that, for both procedures and functions, the `= defaultValue` are optionals.
 
 
+NOTE: If you want to create a procedure/function with a default `String` parameter with whitespaces, quotes (for example: `"my text ' with ' quote"`) or `"null"` (as a string) you have to quote the result, e.g `CALL apoc.custom.declareProcedure("procWithNullString(param='null'::STRING)::(output::STRING)", 'return $param as output')`
+
+== Custom Procedures with `apoc.custom.asProcedure`
+
+Given statement will be registered as a procedure, the results will be turned into a stream of records.
+
+.Parameters
+[%autowidth,opts=header,cols="m,m,a"]
+|===
+| name
+| default
+| description
+
+| name | none | dot-separated name, will be prefixed with `custom`
+| statement | none | cypher statement to run, can use $parameters
+| mode | read | execution mode of the procedure: read, write, or schema
+| outputs | [["row","MAP"]] | List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map
+| inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
+| description | "" | A general description about the business rules implemented into the procedure
+|===
+
+The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
+The default values are parsed as JSON.
+
 .Type Names
 The `typeParam` and `typeResult` in the signature parameter are what you would expect to see in outputs of `SHOW PROCEDURES`, `SHOW FUNCTIONS` or `CALL apoc.help('')`, just without the final `?`.
 The following values are supported:

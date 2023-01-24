@@ -22,9 +22,10 @@ value: nullValue | INT_VALUE | FLOAT_VALUE | boolValue | mapValue | listValue | 
 INT_VALUE: [0-9]+;
 FLOAT_VALUE: ([0-9]+'.'[0-9]+) | 'NaN';
 boolValue: 'true'|'false';
-stringValue: QUOTED_STRING_VALUE | PLAIN_STRING_VALUE;
-QUOTED_STRING_VALUE: '"'[^"]+?'"';
-PLAIN_STRING_VALUE: .+?;
+stringValue: SINGLE_QUOTED_STRING_VALUE | QUOTED_STRING_VALUE | plainStringValue;
+SINGLE_QUOTED_STRING_VALUE: '\'' (~'\'')+ '\'';
+QUOTED_STRING_VALUE: '"' (~'"')+ '"';
+plainStringValue: (~'{' | ~'}' |  ~'[' | ~']' | ~':')+?;
 nullValue: 'null';
 listValue: '[' ((value',')*value)?']';
 mapValue: '{' (((name ':' value)',')*(name ':' value) | ((name '=' value)',')*(name '=' value))? '}';
