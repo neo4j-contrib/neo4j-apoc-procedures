@@ -1,7 +1,7 @@
 For loading XLS we're using the Apache POI library, which works well with old and new Excel formats, but is quite large.
 That's why we decided not to include it into the apoc jar, but make it an optional dependency.
 
-These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-xls-dependencies-{apoc-release}.jar[apoc-xls-dependencies-{apoc-release}.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-xls-dependencies-{apoc-release}-all.jar[apoc-xls-dependencies-{apoc-release}-all.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
 Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
 
 Alternatively, you can download these jars from Maven Repository (putting them into `plugins` directory as well):
