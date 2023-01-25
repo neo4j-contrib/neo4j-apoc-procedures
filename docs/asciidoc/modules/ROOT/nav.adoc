@@ -7,6 +7,7 @@
         ** xref::installation/index.adoc#neo4j-server[Neo4j Server]
         ** xref::installation/index.adoc#docker[Docker]
         ** xref::installation/index.adoc#restricted[Load and unrestrict procedures/functions]
+        ** xref::installation/index.adoc#dependencies[Additional dependencies excluded from the APOC Core jar]
 
 * xref::usage/index.adoc[]
 * xref::help/index.adoc[]

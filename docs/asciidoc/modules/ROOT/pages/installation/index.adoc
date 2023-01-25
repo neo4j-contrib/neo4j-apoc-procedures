@@ -76,3 +76,22 @@ include::partial$docker.adoc[tags=docker,leveloffset=1]
 == Load and unrestrict procedures/function
 
 include::partial$restricted.adoc[tags=warnings,leveloffset=1]
+
+[[dependencies]]
+== Additional dependencies excluded from the APOC Core jar
+Some functionalities require additional jars in order to be used.
+This includes xref::import/index.adoc[loading] and xref:export/index.adoc[exporting] data when using services such as:
+
+* Amazon S3 (`s3://<path>`)
+* Apache Hadoop (`hdfs://<path>`)
+* Google Cloud Storage (`gs://<path>`)
+
+
+These dependencies are specifically not included in the APOC Core jar, but
+can be added as separate jars as described xref::import/web-apis.adoc[here].
+If the extra dependencies are not included, warnings will show in the debug log file (debug.log)
+that can be ignored if the respective functionality is not needed.
+An example of such a warning would be:
+```
+ Failed to load `apoc.util.s3.S3URLConnection`
+```
