@@ -1014,14 +1014,24 @@ public class Util {
         validateQuery(db, statement, Collections.emptySet(), supportedQueryTypes);
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement, Set<Mode> supportedModes , QueryExecutionType.QueryType... supportedQueryTypes) {
+    public static void validateQuery(GraphDatabaseService db, String statement, Set<Mode> supportedModes, QueryExecutionType.QueryType... supportedQueryTypes) {
+        validateQuery(db, statement,
+                "Supported inner procedure modes for the operation are " + new TreeSet<>(supportedModes),
+                supportedModes,
+                "Supported query types for the operation are " + Arrays.toString(supportedQueryTypes),
+                supportedQueryTypes);
+    }
+
+    public static void validateQuery(GraphDatabaseService db, String statement,
+                                     String supportedModesError, Set<Mode> supportedModes ,
+                                     String supportedQueryTypesError, QueryExecutionType.QueryType... supportedQueryTypes) {
         db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result -> {
             if (!isQueryTypeValid(result, supportedQueryTypes)) {
-                throw new RuntimeException("Supported query types for the operation are " + Arrays.toString(supportedQueryTypes));
+                throw new RuntimeException(supportedQueryTypesError);
             }
             
             if (!procsAreValid(db, supportedModes, result)) {
-                throw new RuntimeException("Supported inner procedure modes for the operation are " + new TreeSet<>(supportedModes));
+                throw new RuntimeException(supportedModesError);
             }
             
             return null;
