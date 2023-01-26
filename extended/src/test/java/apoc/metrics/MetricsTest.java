@@ -3,6 +3,7 @@ package apoc.metrics;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil.ApocPackage;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -16,9 +17,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.metrics.Metrics.OUTSIDE_DIR_ERR_MSG;
 import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.Util.map;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
@@ -48,7 +51,18 @@ public class MetricsTest {
     public static void afterAll() {
         neo4jContainer.close();
     }
+    
 
+    @Test
+    public void shouldNotGetFileOutsideMetricsDir() {
+        try {
+            testCall(session, "CALL apoc.metrics.get('../external')",
+                    (r) -> Assert.fail("Should fail because the path is outside the dir "));
+        } catch (RuntimeException e) {
+            assertEquals("Failed to invoke procedure `apoc.metrics.get`: Caused by: java.lang.RuntimeException: " + OUTSIDE_DIR_ERR_MSG, e.getMessage());
+        }
+    }
+    
     // TODO: Investigate broken test. It hangs for more than 30 seconds for no reason.
     @Test
     @Ignore
