@@ -1,6 +1,7 @@
 package apoc.trigger;
 
 import apoc.nodes.Nodes;
+import apoc.schema.Schemas;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,7 +32,9 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_BAD_TARGET_ERROR;
+import static apoc.trigger.TriggerNewProcedures.TRIGGER_MODES_ERROR;
 import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
+import static apoc.trigger.TriggerNewProcedures.TRIGGER_QUERY_TYPES_ERROR;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
@@ -74,8 +77,8 @@ public class TriggerNewProceduresTest {
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
         waitDbsAvailable(db, sysDb);
-        TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Nodes.class);
-        TestUtil.registerProcedure(db, Trigger.class, Nodes.class);
+        TestUtil.registerProcedure(sysDb, TriggerNewProcedures.class, Nodes.class, Schemas.class);
+        TestUtil.registerProcedure(db, Trigger.class, Nodes.class, Schemas.class);
         
     }
 
@@ -581,6 +584,34 @@ public class TriggerNewProceduresTest {
         // this does nothing, just to test consistency with multiple triggers
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, 'return 1', {phase: 'after'})",
                 map("name", UUID.randomUUID().toString()) );
+    }
+
+    @Test
+    public void testTriggerInstallWithSchemaCommand() {
+        String query = "CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)";
+        try {
+            testCall(sysDb, "CALL apoc.trigger.install('neo4j', 'triggerSchema', 'CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)', {phase: 'before'})",
+                    Map.of("query", query),
+                    (row) -> fail("Should fail because of unsupported schema command"));
+        } catch (RuntimeException e) {
+            final String expected = "Failed to invoke procedure `apoc.trigger.install`: " +
+                    "Caused by: java.lang.RuntimeException: " + TRIGGER_QUERY_TYPES_ERROR;
+            assertEquals(expected, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testTriggerInstallWithSchemaProcedure() {
+        String query = "CREATE INDEX periodicIdx FOR (n:Bar) ON (n.first_name, n.last_name)";
+        try {
+            testCall(sysDb, "CALL apoc.trigger.install('neo4j', 'triggerSchemaProc', 'CALL apoc.schema.assert({}, {})', {phase: 'before'})",
+                    Map.of("query", query),
+                    (row) -> fail("Should fail because of unsupported schema procedure"));
+        } catch (RuntimeException e) {
+            final String expected = "Failed to invoke procedure `apoc.trigger.install`: " +
+                    "Caused by: java.lang.RuntimeException: " + TRIGGER_MODES_ERROR;
+            assertEquals(expected, e.getMessage());
+        }
     }
 
 }

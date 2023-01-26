@@ -15,15 +15,21 @@ import org.neo4j.procedure.Procedure;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_ONLY;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 
 
 public class TriggerNewProcedures {
     // public for testing purpose
     public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against the LEADER system database";
     public static final String TRIGGER_BAD_TARGET_ERROR = "Triggers can only be installed on user databases.";
+    public static final String TRIGGER_QUERY_TYPES_ERROR = "The trigger statement must contain READ_ONLY, WRITE, or READ_WRITE query.";
+    public static final String TRIGGER_MODES_ERROR = "The trigger statement cannot contain procedures that are not in WRITE, READ, or DEFAULT mode.";
 
     @Context public GraphDatabaseService db;
     
@@ -54,7 +60,11 @@ public class TriggerNewProcedures {
 
         // TODO - to be deleted in 5.x, because in a cluster, not all DBMS host all the databases on them,
         // so we have to assume that the leader of the system database doesn't have access to this user database
-        Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement);
+        Util.validateQuery(ApocConfig.apocConfig().getDatabase(databaseName), statement,
+                TRIGGER_MODES_ERROR,
+                Set.of(Mode.WRITE, Mode.READ, Mode.DEFAULT),
+                TRIGGER_QUERY_TYPES_ERROR,
+                READ_ONLY, WRITE, READ_WRITE);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         TriggerInfo removed = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
