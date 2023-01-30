@@ -289,6 +289,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public static List<FieldSignature> deserializeSignatures(String s) {
         List<Map<String, Object>> mapped = Util.fromJson(s, List.class);
+        if (mapped.isEmpty()) return ProcedureSignature.VOID;
         return mapped.stream().map(map -> {
             String typeString = (String) map.get("type");
             if (typeString.endsWith("?")) {
