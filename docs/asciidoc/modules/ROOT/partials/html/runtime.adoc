@@ -25,4 +25,4 @@ If we have a `test.html` file with a jQuery script like:
 
 we can read the generated js through the `browser` config.
 Note that to use the `browser` config (except with `"NONE"` value), you have to install additional dependencies
-which can be downloaded  https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-selenium-dependencies-{apoc-release}.jar[from this link].
+which can be downloaded  https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-selenium-dependencies-{apoc-release}-all.jar[from this link].
