@@ -643,5 +643,15 @@
         "sha1": "b0f75ba904f7ab7fcdc9e69b5b090f980e17d53f",
         "sha256": "d1b86a0d8b797143d9061c3b37614fbd0e25d81bd89e432c3e8311401032b89e",
         "md5": "eb7c97328e44009c649e3875bf97e34e"
+    },
+    "5.4.0": {
+        "sha1": "aa4b7b151ec3136797ffb78d9cc236216d8e9e5a",
+        "sha256": "41f7603bf91f9bdd63edeab2bfbfbc254b97396c7a781d81c49c4e235d7a2e2d",
+        "md5": "cb18199c23c1d2d009b0d45e4774ca75"
+    },
+    "4.4.0.13": {
+        "sha1": "8e7d6a19fbe0256bec7d1951a4f48341e0f875f8",
+        "sha256": "9d6b1a1cff60594ad140eca3d057c963265be3d9a3c2b3c27c427c88cd6e30b1",
+        "md5": "0c433be75f7c9faf10ee5c58f02bc89c"
     }
 }
