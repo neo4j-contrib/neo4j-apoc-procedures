@@ -17,6 +17,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.procedure.builtin.BuiltInDbmsProcedures;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
@@ -48,9 +50,10 @@ public class CypherProceduresTest  {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+
     @Before
     public void setup() {
-        TestUtil.registerProcedure(db, CypherProcedures.class);
+        TestUtil.registerProcedure(db, CypherProcedures.class, BuiltInDbmsProcedures.class);
     }
 
     @AfterAll
@@ -583,6 +586,36 @@ public class CypherProceduresTest  {
         String procedureSignature = "testFail(first::INT, s::INT) :: (answer::INT)";
         assertProcedureFails(String.format(SIGNATURE_SYNTAX_ERROR, procedureSignature), 
                 "call apoc.custom.declareProcedure('" + procedureSignature + "','RETURN $first + $s AS answer')");
+    }
+
+    @Test
+    public void testIssue3349() {
+        String procedure = """
+                CALL apoc.custom.declareProcedure(
+                  'retFunctionNames() :: (name :: STRING)',
+                  'call dbms.listConfig() YIELD name RETURN name',
+                  'DBMS'
+                );""";
+        db.executeTransactionally(procedure);
+        List<String> functions = db.executeTransactionally("CALL custom.retFunctionNames()", Map.of(), result -> result
+                .stream()
+                .map(m -> (String) m.get("name"))
+                .collect(Collectors.toList()));
+        assertFalse(functions.isEmpty());
+
+
+        String procedureVoid = "CALL apoc.custom.declareProcedure(\n" +
+                "  'setTxMetadata(meta :: MAP) :: VOID',\n" +
+                "  '\n" +
+                "      CALL tx.setMetaData($meta)" +
+                "  ',\n" +
+                "  'DBMS'\n" +
+                ");";
+        db.executeTransactionally(procedureVoid);
+        // This should run without exception
+        db.executeTransactionally("CALL custom.setTxMetadata($meta)", Map.of(
+                "meta", Map.of("foo", "bar")
+        ));
     }
     
 
