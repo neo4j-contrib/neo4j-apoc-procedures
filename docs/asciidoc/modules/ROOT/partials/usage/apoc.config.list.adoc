@@ -22,3 +22,5 @@ RETURN key, value;
 | "apoc.trigger.enabled"                        | "false"
 | "apoc.uuid.enabled"                           | "false"
 |===
+
+include::partial$usage/allowed.configs.adoc[]
