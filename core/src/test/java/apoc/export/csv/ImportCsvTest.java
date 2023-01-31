@@ -232,7 +232,7 @@ public class ImportCsvTest {
     @Test
     public void issue2826WithImportCsv() {
         db.executeTransactionally("CREATE (n:Person {name: 'John'})");
-        db.executeTransactionally("CREATE CONSTRAINT unique_person ON (n:Person) ASSERT n.name IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT unique_person FOR (n:Person) REQUIRE n.name IS UNIQUE");
         try {
             TestUtil.testCall(db,
                     "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",

@@ -1336,7 +1336,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     }
     
     private void issue2797Common(String extractQuery) {
-        db.executeTransactionally(("CREATE CONSTRAINT unique_book ON (book:MyBook) ASSERT book.name IS UNIQUE"));
+        db.executeTransactionally(("CREATE CONSTRAINT unique_book FOR (book:MyBook) REQUIRE book.name IS UNIQUE"));
 
         db.executeTransactionally(("CREATE (n:MyBook {name: 1})"));
         

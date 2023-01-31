@@ -34,7 +34,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s FOR (node:%s) REQUIRE (%s) %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";

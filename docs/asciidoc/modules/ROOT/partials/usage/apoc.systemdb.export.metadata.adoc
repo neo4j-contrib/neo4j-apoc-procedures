@@ -17,7 +17,7 @@ CALL apoc.custom.declareFunction('funNameOne(val = 2 :: INTEGER) :: NODE ', 'MAT
 CALL apoc.custom.declareProcedure('procNameOne(one = 2 ::INTEGER?, two = 3 :: INTEGER?) :: (sum :: INTEGER) ', 'RETURN $one + $two as sum');
 CALL apoc.custom.asProcedure('procName','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything');
 CALL apoc.custom.asFunction('funName','RETURN $input as answer','long', [['input','number']], false);
-CREATE CONSTRAINT person_cons ON (p:Person) ASSERT p.alpha IS UNIQUE;
+CREATE CONSTRAINT person_cons FOR (p:Person) REQUIRE p.alpha IS UNIQUE;
 CALL apoc.uuid.install('Person', {addToSetLabels: true, uuidProperty: 'alpha'});
 CALL apoc.dv.catalog.add("dvName", {type: 'CSV', url: 'file://myUrl', query: 'map.name = $name and map.age = $age', desc: "person's details", labels: ['Person']});
 ----
@@ -71,8 +71,8 @@ CALL apoc.uuid.install('Person', {uuidProperty:"beta",addToSetLabels:null}) YIEL
 .metadata.uuids.schema.neo4j.cypher
 [source,cypher]
 ----
-CREATE CONSTRAINT IF NOT EXISTS ON (n:Person) ASSERT n.alpha IS UNIQUE;
-CREATE CONSTRAINT IF NOT EXISTS ON (n:Person) ASSERT n.beta IS UNIQUE;
+CREATE CONSTRAINT IF NOT EXISTS FOR (n:Person) REQUIRE n.alpha IS UNIQUE;
+CREATE CONSTRAINT IF NOT EXISTS FOR (n:Person) REQUIRE n.beta IS UNIQUE;
 ----
 
 

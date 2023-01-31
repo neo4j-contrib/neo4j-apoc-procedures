@@ -65,7 +65,7 @@ public class ExportCypherTest {
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.executeTransactionally("CREATE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
         db.executeTransactionally("CREATE INDEX fooIndex FOR (n:Foo) ON (n.name)");
-        db.executeTransactionally("CREATE CONSTRAINT consBar ON (n:Bar) ASSERT (n.name) IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT consBar FOR (n:Bar) REQUIRE (n.name) IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
@@ -929,7 +929,7 @@ public class ExportCypherTest {
         static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES = "BEGIN\n" +
                 "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
                 "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
-                "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;\n" +
+                "CREATE CONSTRAINT consBar FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;\n" +
                 "COMMIT\n" +
                 "SCHEMA AWAIT\n";
 
@@ -1040,7 +1040,7 @@ public class ExportCypherTest {
                 "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
-                "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT consBar FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1049,8 +1049,8 @@ public class ExportCypherTest {
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -1065,8 +1065,8 @@ public class ExportCypherTest {
         static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_IF_NOT_EXISTS = String.format("BEGIN%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -1074,8 +1074,8 @@ public class ExportCypherTest {
                 "CREATE INDEX barIndex IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX fooIndex IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
-                "CREATE CONSTRAINT consBar IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT consBar IF NOT EXISTS FOR (node:Bar) REQUIRE (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 

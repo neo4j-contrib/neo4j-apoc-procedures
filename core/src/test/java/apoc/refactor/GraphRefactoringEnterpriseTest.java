@@ -80,15 +80,15 @@ public class GraphRefactoringEnterpriseTest {
     }
 
     private void nodeKeyCommons(String query) {
-        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT nodeKey ON (p:MyBook) ASSERT (p.name, p.surname) IS NODE KEY"));
+        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT nodeKey FOR (p:MyBook) REQUIRE (p.name, p.surname) IS NODE KEY"));
         cloneNodesAssertions(query, "already exists with label `MyBook` and properties `name` = 'foobar', `surname` = 'baz'");
         session.writeTransaction(tx -> tx.run("DROP CONSTRAINT nodeKey"));
         
     }
 
     private void uniqueNotNullCommons(String query) {
-        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT unique ON (p:MyBook) ASSERT (p.name) IS UNIQUE"));
-        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT notNull ON (p:MyBook) ASSERT (p.name) IS NOT NULL"));
+        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT unique FOR (p:MyBook) REQUIRE (p.name) IS UNIQUE"));
+        session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT notNull FOR (p:MyBook) REQUIRE (p.name) IS NOT NULL"));
 
         cloneNodesAssertions(query, "already exists with label `MyBook` and property `name` = 'foobar'");
         session.writeTransaction(tx -> tx.run("DROP CONSTRAINT unique"));
