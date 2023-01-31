@@ -99,7 +99,7 @@ public class ExportJsonTest {
             assertEquals(42L, third.getProperty("age"));
             assertEquals("Jim", third.getProperty("name"));
             assertEquals(List.of(Label.label("User")), third.getLabels());
-            
+
             assertFalse(iterator.hasNext());
         });
 
