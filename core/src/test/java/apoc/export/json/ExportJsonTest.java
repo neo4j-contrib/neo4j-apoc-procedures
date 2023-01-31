@@ -71,7 +71,7 @@ public class ExportJsonTest {
 
     @Test
     public void testJsonRoundtrip() {
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE;");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE n.neo4jImportId IS UNIQUE;");
         String filename = "all.json.gzip";
         final Map<String, Object> params = map("file", filename, "config", map(COMPRESSION, CompressionAlgo.GZIP.name()));
         TestUtil.testCall(db, "CALL apoc.export.json.all($file, $config)", params,

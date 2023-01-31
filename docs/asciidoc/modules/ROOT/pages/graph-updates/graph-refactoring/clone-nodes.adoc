@@ -46,7 +46,7 @@ image::apoc.refactor.cloneNodes.png[scaledwidth="100%"]
 In case of an error, the message will be thrown in the `error` result, for example with this constraint:
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (n:UniqueLabel) ASSERT n.key IS UNIQUE
+CREATE CONSTRAINT FOR (n:UniqueLabel) REQUIRE n.key IS UNIQUE
 ----
 
 We can create this node:

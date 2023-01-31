@@ -62,7 +62,7 @@ public class ExportStreamsStatementsTest {
     @Test
     public void shouldStreamCypherStatements() {
         String expected = String.format(":begin%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n" +
                 "CALL db.awaitIndexes(300);%n" +
                 ":begin%n" +

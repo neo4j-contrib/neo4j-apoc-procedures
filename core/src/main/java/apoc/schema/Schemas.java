@@ -159,7 +159,7 @@ public class Schemas {
         String keyProperties = keys.stream()
                 .map( property -> String.format("n.`%s`", Util.sanitize(property.toString())))
                 .collect( Collectors.joining( "," ) );
-        tx.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", Util.sanitize(lbl), keyProperties)).close();
+        tx.execute(String.format("CREATE CONSTRAINT FOR (n:`%s`) REQUIRE (%s) IS NODE KEY", Util.sanitize(lbl), keyProperties)).close();
         List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
         return new AssertSchemaResult(lbl, keysToSting).unique().created();
     }

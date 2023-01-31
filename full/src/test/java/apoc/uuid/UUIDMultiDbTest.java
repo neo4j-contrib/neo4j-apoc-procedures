@@ -68,7 +68,7 @@ public class UUIDMultiDbTest {
             );
 
             session.writeTransaction(tx -> tx.run(
-                    "CREATE CONSTRAINT ON (foo:Foo) ASSERT foo.uuid IS UNIQUE")
+                    "CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE")
             );
 
             session.writeTransaction(tx -> tx.run(
@@ -88,7 +88,7 @@ public class UUIDMultiDbTest {
         try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
 
             session.writeTransaction(tx -> tx.run(
-                    "CREATE CONSTRAINT ON (foo:Foo) ASSERT foo.uuid IS UNIQUE")
+                    "CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE")
             );
 
             session.writeTransaction(tx -> tx.run(

@@ -69,7 +69,7 @@ SchemaIndexTest {
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Person(age)");
         db.executeTransactionally("CREATE INDEX ON :Person(address)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.id IS UNIQUE");
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         db.executeTransactionally("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})");
         personIds = LongStream.range(firstPerson, lastPerson+1).boxed().collect(Collectors.toList());

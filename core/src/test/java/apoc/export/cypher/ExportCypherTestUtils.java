@@ -50,7 +50,7 @@ public class ExportCypherTestUtils {
             ":commit\n";
 
     protected final static String SCHEMA_WITH_UNIQUE_IMPORT_ID = ":begin\n" +
-            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;\n" +
+            "CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;\n" +
             ":commit\n" +
             "CALL db.awaitIndexes(300);\n";
 

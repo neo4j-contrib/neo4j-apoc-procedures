@@ -145,7 +145,7 @@ The contents of `all.cypher`, with extra lines added for readability, are shown 
 [source,cypher]
 ----
 :begin
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 
 :begin
@@ -258,7 +258,7 @@ RETURN nodes, relationships, properties, cypherStatements;
 |===
 | nodes | relationships | properties | cypherStatements
 | 16    | 0             | 34         a| ":begin
-  CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+  CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
   :commit
   :begin
   UNWIND [{_id:0, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}, {_id:1, properties:{tagline:\"Welcome to the Real World\", title:\"The Matrix\", released:1999}}] AS row
@@ -351,7 +351,7 @@ The contents of `all-plain.cypher`, with extra lines added for readability, are 
 .all-plain.cypher
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 
 UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
 CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
@@ -426,7 +426,7 @@ RETURN file, batches, source, format, nodes, relationships, properties, time, ro
 .export-cypher-format-create.cypher
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
 CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
 
@@ -475,7 +475,7 @@ RETURN file, batches, source, format, nodes, relationships, properties, time, ro
 .export-cypher-format-updateAll.cypher
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 UNWIND [{_id:0, properties:{tagline:"Welcome to the Real World", title:"The Matrix", released:1999}}] AS row
 MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Movie;
 
@@ -654,7 +654,7 @@ CREATE (start)-[r:ACTED_IN]->(end) SET r += row.properties;
 [source,cypher]
 ----
 :begin
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 :commit
 ----
 
@@ -699,7 +699,7 @@ RETURN nodes, relationships, properties, nodeStatements, relationshipStatements,
   DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
   :commit
   " | ":begin
-  CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+  CREATE CONSTRAINT FOR (node:`UNIQUE IMPORT LABEL`) REQUIRE (node.`UNIQUE IMPORT ID`) IS UNIQUE;
   :commit
   "
 |===
@@ -740,7 +740,7 @@ CALL apoc.export.cypher.all(null, {stream: true, multipleRelationshipsWithType: 
 |===
 | cypherStatements
 | ":begin
-CREATE CONSTRAINT ON (node:&#96;UNIQUE IMPORT LABEL&#96;) ASSERT (node.&#96;UNIQUE IMPORT ID&#96;) IS UNIQUE;
+CREATE CONSTRAINT FOR (node:&#96;UNIQUE IMPORT LABEL&#96;) REQUIRE (node.&#96;UNIQUE IMPORT ID&#96;) IS UNIQUE;
 :commit
 CALL db.awaitIndexes(300);
 :begin

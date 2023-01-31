@@ -41,7 +41,7 @@ public class ExportCypherS3Test extends S3BaseTest {
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
         db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (b:Bar) REQUIRE b.name IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");

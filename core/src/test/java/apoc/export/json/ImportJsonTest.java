@@ -82,7 +82,7 @@ public class ImportJsonTest {
     }
 
     private void shouldImportAllCommon(Map<String, Object> config, int expectedPropSize, long relCount) {
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE n.neo4jImportId IS UNIQUE");
 
         // given
         String filename = "all.json";
@@ -98,7 +98,7 @@ public class ImportJsonTest {
 
     @Test
     public void shouldImportAllJsonWithPropertyMappings() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE n.neo4jImportId IS UNIQUE");
         // given
         String filename = "all.json";
 
@@ -326,7 +326,7 @@ public class ImportJsonTest {
 
     private void createConstraints(List<String> labels, String customId) {
         labels.forEach(
-                label -> db.executeTransactionally(format("CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;", Util.quote(label), customId)));
+                label -> db.executeTransactionally(format("CREATE CONSTRAINT FOR (n:%s) REQUIRE n.%s IS UNIQUE;", Util.quote(label), customId)));
     }
 
     private void createConstraints(List<String> labels) {
@@ -354,7 +354,7 @@ public class ImportJsonTest {
 
     @Test
     public void shouldImportAllJsonFromBinary()  {
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:User) assert n.neo4jImportId IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE n.neo4jImportId IS UNIQUE");
         
         TestUtil.testCall(db, "CALL apoc.import.json($file, $config)",
                 map("config", map(COMPRESSION, CompressionAlgo.DEFLATE.name()),

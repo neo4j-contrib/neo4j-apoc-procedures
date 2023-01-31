@@ -198,7 +198,7 @@ public class SchemasTest {
 
     @Test
     public void testDropSchemaWhenUsingDropExisting() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (f:Foo) REQUIRE f.bar IS UNIQUE");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -213,7 +213,7 @@ public class SchemasTest {
 
     @Test
     public void testDropSchemaAndCreateSchemaWhenUsingDropExisting() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (f:Foo) REQUIRE f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -235,7 +235,7 @@ public class SchemasTest {
 
     @Test
     public void testRetainSchemaWhenNotUsingDropExisting() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (f:Foo) REQUIRE f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo', 'bar']}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -297,7 +297,7 @@ public class SchemasTest {
 
     @Test
     public void testKeepSchema() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (f:Foo) REQUIRE f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null,{Foo:['bar', 'foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -386,7 +386,7 @@ public class SchemasTest {
 
     @Test
     public void testUniquenessConstraintOnNode() {
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.foo IS UNIQUE");
         awaitIndexesOnline();
 
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
@@ -404,7 +404,7 @@ public class SchemasTest {
     @Test
     public void testIndexAndUniquenessConstraintOnNode() {
         db.executeTransactionally("CREATE INDEX ON :Foo(foo)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.bar IS UNIQUE");
         awaitIndexesOnline();
 
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
@@ -640,7 +640,7 @@ public class SchemasTest {
     @Test
     public void testSchemaRelationshipsExclude() {
         ignoreException(() -> {
-            db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+            db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE exists(like.day)");
             testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> assertFalse(result.hasNext()));
         }, QueryExecutionException.class);
     }
@@ -648,7 +648,7 @@ public class SchemasTest {
     @Test
     public void testSchemaNodesExclude() {
         ignoreException(() -> {
-            db.executeTransactionally("CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE");
+            db.executeTransactionally("CREATE CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE");
             testResult(db, "CALL apoc.schema.nodes({excludeLabels:['Book']})", (result) -> assertFalse(result.hasNext()));
 
         }, QueryExecutionException.class);
@@ -676,8 +676,8 @@ public class SchemasTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail() {
-        db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-        db.executeTransactionally("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)");
+        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE exists(like.day)");
+        db.executeTransactionally("CREATE CONSTRAINT FOR ()-[knows:SINCE]-() REQUIRE exists(since.year)");
         awaitIndexesOnline();
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);

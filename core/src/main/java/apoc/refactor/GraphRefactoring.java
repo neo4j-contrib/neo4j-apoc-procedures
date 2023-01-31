@@ -449,7 +449,7 @@ public class GraphRefactoring {
 
         if (!isUniqueConstraintDefinedFor(label, targetKey)) {
             throw new IllegalArgumentException("Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
-                    + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
+                    + String.format("CREATE CONSTRAINT FOR (n:`%s`) REQUIRE n.`%s` IS UNIQUE", label, targetKey));
         }
 
         // Create batches of nodes

@@ -402,15 +402,15 @@ public class GraphRefactoringTest {
     @Test
     public void testMergeNodesIndexConflict() throws Exception {
         /*
-        CREATE CONSTRAINT ON (a:A) ASSERT a.prop1 IS UNIQUE;
-CREATE CONSTRAINT ON (a:B) ASSERT a.prop2 IS UNIQUE;
+        CREATE CONSTRAINT FOR (a:A) REQUIRE a.prop1 IS UNIQUE;
+CREATE CONSTRAINT FOR (a:B) REQUIRE a.prop2 IS UNIQUE;
 CREATE (a:A) SET a.prop1 = 1;
 CREATE (b:B) SET b.prop2 = 99;
 
 MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b]) YIELD node RETURN node;
          */
-        db.executeTransactionally("CREATE CONSTRAINT ON (a:A) ASSERT a.prop1 IS UNIQUE;");
-        db.executeTransactionally("CREATE CONSTRAINT ON (b:B) ASSERT b.prop2 IS UNIQUE;");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (a:A) REQUIRE a.prop1 IS UNIQUE;");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (b:B) REQUIRE b.prop2 IS UNIQUE;");
         db.executeTransactionally("CALL db.awaitIndexes()");
         long id = db.executeTransactionally("CREATE (a:A) SET a.prop1 = 1 CREATE (b:B) SET b.prop2 = 99 RETURN id(a) as id ", emptyMap(), result -> Iterators.single(result.columnAs("id")));
         testCall(db, "MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b]) YIELD node RETURN node",
@@ -592,7 +592,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         final boolean outgoing = direction == Direction.OUTGOING ? true : false;
         final String label = "Letter";
         final String targetKey = "name";
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
 
         testCallEmpty(
                 db,
@@ -691,7 +691,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
 
     @Test
     public void testMergeNodesWithConstraints() throws Exception {
-        db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.name IS UNIQUE");
         long id = db.executeTransactionally("CREATE (p1:Person {name:'Foo'}), (p2:Person {surname:'Bar'}) RETURN id(p1) as id",
                 emptyMap(),
                 result -> Iterators.single(result.columnAs("id"))
@@ -1021,7 +1021,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         } catch (QueryExecutionException e) {
             // then
             String expectedMessage = "Before execute this procedure you must define an unique constraint for the label and the targetKey:\n" +
-                    "CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE";
+                    "CREATE CONSTRAINT FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE";
             assertEquals(expectedMessage, ExceptionUtils.getRootCause(e).getMessage());
             throw e;
         }
@@ -1032,7 +1032,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         // given
         final String label = "Country";
         final String targetKey = "name";
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:`" + label + "`) REQUIRE n.`" + targetKey + "` IS UNIQUE");
         db.executeTransactionally("with [\"IT\", \"DE\"] as countries\n" +
                 "unwind countries as country\n" +
                 "foreach (no in RANGE(1, 4) |\n" +

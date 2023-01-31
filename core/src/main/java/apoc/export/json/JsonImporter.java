@@ -41,7 +41,7 @@ public class JsonImporter implements Closeable {
             "MATCH (e%s {%2$s: row.end.id}) " +
             "CREATE (s)-[r:%s]->(e) SET r += row.properties";
     public static final String MISSING_CONSTRAINT_ERROR_MSG = "Missing constraint required for import. Execute this query: \n" +
-            "CREATE CONSTRAINT ON (n:%s) assert n.%s IS UNIQUE;";
+            "CREATE CONSTRAINT FOR (n:%s) REQUIRE n.%s IS UNIQUE;";
 
     private final List<Map<String, Object>> paramList;
     private final int unwindBatchSize;

@@ -9,7 +9,7 @@ CALL apoc.uuid.install("Person");
 
 .Results
 |===
-| Failed to invoke procedure `apoc.uuid.install`: Caused by: java.lang.RuntimeException: No constraint found for label: Person, please add the constraint with the following : `CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE`
+| Failed to invoke procedure `apoc.uuid.install`: Caused by: java.lang.RuntimeException: No constraint found for label: Person, please add the constraint with the following : `CREATE CONSTRAINT FOR (person:Person) REQUIRE person.uuid IS UNIQUE`
 |===
 
 We can create a constraint on the `(Person, uuid)` label/property pair by running the following query:

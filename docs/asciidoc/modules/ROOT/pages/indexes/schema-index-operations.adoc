@@ -158,8 +158,8 @@ Given the following cypher statements:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)
-CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE
+CREATE CONSTRAINT FOR (bar:Bar) REQUIRE exists(bar.foobar)
+CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.foo IS UNIQUE
 CREATE INDEX ON :Person(name)
 CREATE INDEX ON :Publication(name)
 CREATE INDEX ON :Source(name)
@@ -183,8 +183,8 @@ Given the following cypher statements:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)
-CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)
+CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE exists(like.day)
+CREATE CONSTRAINT FOR ()-[starred:STARRED]-() REQUIRE exists(starred.month)
 ----
 
 When you
