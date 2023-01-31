@@ -131,6 +131,42 @@ public class TriggerNewProceduresTest {
     }
 
     @Test
+    public void testDropStopAndStartNotExistentTrigger() {
+        testCallEmpty( sysDb, "CALL apoc.trigger.stop('neo4j', $name)",
+                map("name", UUID.randomUUID().toString()) );
+
+        testCallEmpty( sysDb, "CALL apoc.trigger.start('neo4j', $name)",
+                map("name", UUID.randomUUID().toString()) );
+
+
+        testCallEmpty( sysDb, "CALL apoc.trigger.drop('neo4j', $name)",
+                map( "name", UUID.randomUUID().toString()) );
+    }
+    
+    @Test
+    public void testOverwriteTrigger() {
+        final String name = UUID.randomUUID().toString();
+        
+        String queryOne = "RETURN 111";
+        testCall(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query, {})",
+                map("name", name, "query", queryOne),
+                r -> {
+                    assertEquals(name, r.get("name"));
+                    assertEquals(queryOne, r.get("query"));
+                }
+        );
+
+        String queryTwo = "RETURN 999";
+        testCall(sysDb, "CALL apoc.trigger.install('neo4j', $name, $query, {})",
+                map("name", name, "query", queryTwo),
+                r -> {
+                    assertEquals(name, r.get("name"));
+                    assertEquals(queryTwo, r.get("query"));
+                }
+        );
+    }
+
+    @Test
     public void testIssue2247() {
         db.executeTransactionally("CREATE (n:ToBeDeleted)");
         final String name = "myTrig";
@@ -177,11 +213,7 @@ public class TriggerNewProceduresTest {
         });
         testCallCountEventually(db, "CALL apoc.trigger.list()", 0, TIMEOUT);
 
-        testCall(sysDb, "CALL apoc.trigger.drop('neo4j', 'to-be-removed')", (row) -> {
-            assertEquals("to-be-removed", row.get("name"));
-            assertNull(row.get("query"));
-            assertEquals(false, row.get("installed"));
-        });
+        testCallEmpty(sysDb, "CALL apoc.trigger.drop('neo4j', 'to-be-removed')", Collections.emptyMap());
     }
 
     @Test

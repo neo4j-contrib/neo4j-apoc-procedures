@@ -165,6 +165,10 @@ public class TestContainerUtil {
         });
     }
 
+    public static void testCallEmpty(Session session, String call, Map<String,Object> params) {
+        testResult(session, call, params, (res) -> assertFalse("Expected no results", res.hasNext()) );
+    }
+    
     public static void testCallInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer) {
         testCallInReadTransaction(session, call, null, consumer);
     }

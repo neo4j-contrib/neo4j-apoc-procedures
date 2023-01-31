@@ -34,25 +34,25 @@ public class TriggerHandlerNewProcedures {
     }
 
     public static TriggerInfo install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        final TriggerInfo[] previous = new TriggerInfo[1];
+        final TriggerInfo[] result = new TriggerInfo[1];
 
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
                     Pair.of(SystemPropertyKeys.database.name(), databaseName),
                     Pair.of(SystemPropertyKeys.name.name(), triggerName));
             
-            // we'll return previous trigger info
-            previous[0] = fromNode(node, true);
-            
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
             node.setProperty(SystemPropertyKeys.paused.name(), false);
+            
+            // we'll the return current trigger info
+            result[0] = fromNode(node, true);
 
             setLastUpdate(databaseName, tx);
         });
 
-        return previous[0];
+        return result[0];
     }
 
     public static TriggerInfo drop(String databaseName, String triggerName) {

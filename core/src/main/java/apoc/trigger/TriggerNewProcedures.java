@@ -67,11 +67,8 @@ public class TriggerNewProcedures {
                 READ_ONLY, WRITE, READ_WRITE);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        TriggerInfo removed = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
-        final TriggerInfo triggerInfo = new TriggerInfo(name, statement, selector, params, true, false);
-        if (removed.query != null) {
-            return Stream.of( removed, triggerInfo);
-        }
+        
+        TriggerInfo triggerInfo = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
         return Stream.of(triggerInfo);
     }
 
@@ -84,10 +81,7 @@ public class TriggerNewProcedures {
     public Stream<TriggerInfo> drop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
         final TriggerInfo removed = TriggerHandlerNewProcedures.drop(databaseName, name);
-        if (removed == null) {
-            return Stream.of(new TriggerInfo(name, null, null, false, false));
-        }
-        return Stream.of(removed);
+        return Stream.ofNullable(removed);
     }
     
     
@@ -110,8 +104,8 @@ public class TriggerNewProcedures {
     public Stream<TriggerInfo> stop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
 
-        return Stream.of(
-                TriggerHandlerNewProcedures.updatePaused(databaseName, name, true));
+        final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, true);
+        return Stream.ofNullable(triggerInfo);
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -121,9 +115,9 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.start(databaseName, name) | eventually unpauses the paused trigger")
     public Stream<TriggerInfo> start(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
+        
         final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, false);
-
-        return Stream.of(triggerInfo);
+        return Stream.ofNullable(triggerInfo);
     }
 
     // TODO - change with @SystemOnlyProcedure
