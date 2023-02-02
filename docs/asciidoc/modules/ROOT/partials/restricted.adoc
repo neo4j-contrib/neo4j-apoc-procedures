@@ -1,23 +1,44 @@
-[WARNING]
+// tag::restricted[]
+
+The APOC library contains hundreds of procedures and functions.
+It is not recommended to load all of these into the dbms, but instead use the principle of least privilege.
+This principle dictates that only the procedures and functions necessary to execute the user's workload should be
+loaded.
+
+The procedures and functions that should be loaded can be specified using the database configuration setting
+link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_dbms.security.procedures.allowlist[dbms.security.procedures.allowlist]
+located in the `conf/neo4j.conf` file.
+For example, to load `apoc.math.maxInt` and all functions in the `apoc.rel` package, use:
+
+- `+dbms.security.procedures.allowlist=apoc.math.maxInt,apoc.rel.*+`.
+
+[NOTE]
 ====
-// tag::warnings[]
-The APOC library contains over 450 functions and procedures.
-It is *not* recommended to load all of these into the dbms, but instead use the principle of least privilege.
-This principle dictates that you only load the functions and procedures necessary to execute your queries.
-
-The procedures and functions that should be loaded can be specified using the Neo4j configuration setting `+dbms.security.procedures.allowlist+` in `$NEO4J_HOME/conf/neo4j.conf`.
-For example, to load `apoc.math.maxInt` and all functions in the `apoc.rel` package, use `+dbms.security.procedures.allowlist=apoc.math.maxInt,apoc.rel.*+`.
-
-The default of the setting is `*`.
-This means that if you do not explicitly give it a value (or no value), all APOC procedures and functions, as well as other potential libraries in the plugins directory will be loaded.
+The default value of `dbms.security.procedures.allowlist` is to load all procedures and functions.
+It is therefore recommended to override the setting with a minimum list of procedures required.
+If no APOC functionality is required, then it is recommended to remove the APOC plugin altogether.
+====
 
 For security reasons, procedures and functions that use internal APIs are disabled by default.
-In this case, it is also recommended to use the principle of least privilege and only unrestrict those procedures and functions which you are certain to use.
-Procedures and functions can be unrestricted using the Neo4j configuration setting `+dbms.security.procedures.unrestricted+` in `$NEO4J_HOME/conf/neo4j.conf`.
-For example, if you need to unrestrict `apoc.cypher.runFirstColumn` and `apoc.cypher.doIt`, use: `+dbms.security.procedures.unrestricted=apoc.cypher.runFirstColumn,apoc.cypher.doIt+`.
+In this case, it is also recommended to use the principle of least privilege and to only unrestrict those procedures and
+functions which are certain to be used.
 
-To unrestrict a whole package of APOC functions and procedures when using the Neo4j Docker container, you need to amend the Docker environment variables.
-For example, if you need to add the full `apoc.cypher` package, add `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.cypher.\\\*+` to your `docker run ...` command.
-The three backslashes are necessary to prevent wildcard expansions.
-// end::warnings[]
-====
+The procedures and functions that should be unrestricted can be specified using the database configuration setting
+link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_dbms.security.procedures.unrestricted[dbms.security.procedures.unrestricted]
+located in the `conf/neo4j.conf` file.
+For example, to unrestrict `apoc.cypher.runFirstColumn` and all procedures and functions in the `apoc.cypher` package,
+use:
+
+- `+dbms.security.procedures.unrestricted=apoc.cypher.runFirstColumn,apoc.cypher.*+`.
+
+To unrestrict a whole package of APOC procedures and functions when using the Neo4j Docker container, it is possible
+to do so via environment variables.
+For example, to load all functions in the `apoc.cypher` package, users must add the following argument to the Docker run
+command:
+
+- `+-e NEO4J_dbms_security_procedures_unrestricted="apoc.cypher.*"+`
+
+More information about loading and unrestricting procedures and functions can be found in the Neo4j
+link:https://neo4j.com/docs/operations-manual/4.4/security/securing-extensions/[Securing Extensions] guidelines.
+
+// end::restricted[]

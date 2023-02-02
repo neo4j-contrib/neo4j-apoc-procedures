@@ -64,7 +64,7 @@ As the functionality provided by APOC is built on top of the database, installat
 database is secure.
 The first point of order is therefore to ensure the database installation is secure, which can be achieved by following
 the existing database
-link:https://neo4j.com/docs/operations-manual/current/security/checklist/[Security Checklist].
+link:https://neo4j.com/docs/operations-manual/4.4/security/checklist/[Security Checklist].
 This guide will revisit some steps that are covered by the checklist again in more detail.
 
 [#_securing_neo4j_extensions]
@@ -78,7 +78,7 @@ and procedures are installed onto the database.
 ==== Securing Neo4j Extensions via Configuration Settings
 
 The database exposes
-link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/[Configuration Settings]
+link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/[Configuration Settings]
 which can be configured in the `conf/neo4j.conf` configuration file.
 The configuration file controls which procedures and functions can be loaded into the database and then unrestricted.
 The configuration settings that control this behavior are shown below.
@@ -86,10 +86,10 @@ The configuration settings that control this behavior are shown below.
 [options="header",cols="2,3,1"]
 |===
 |Setting |Description |Default
-|link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.security.procedures.allowlist[dbms.security.procedures.allowlist]
+|link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_dbms.security.procedures.allowlist[dbms.security.procedures.allowlist]
 |A list of functions and procedure names to be loaded.
 m| +++"*"+++
-|link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.security.procedures.unrestricted[dbms.security.procedures.unrestricted]
+|link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_dbms.security.procedures.unrestricted[dbms.security.procedures.unrestricted]
 |A list of functions and procedure names that are allowed full access to the database.
 m| +++""+++
 |===
@@ -101,28 +101,28 @@ dictate how to load and unrestrict the minimal set of procedures that a workload
 ==== Securing Neo4j Extensions via RBAC
 
 The database exposes a
-link:https://neo4j.com/docs/operations-manual/current/authentication-authorization/built-in-roles/[Role-Based Access Control]
+link:https://neo4j.com/docs/operations-manual/4.4/authentication-authorization/built-in-roles/[Role-Based Access Control]
 mechanism to fine-tune which user roles are allowed to carry out a given operation.
 This is a Neo4j Enterprise Edition feature which is not available to Community Edition users.
 
 There are
-link:https://neo4j.com/docs/operations-manual/current/authentication-authorization/manage-execute-permissions/[Execute Procedure]
+link:https://neo4j.com/docs/operations-manual/4.4/authentication-authorization/manage-execute-permissions/[Execute Procedure]
 privileges concerning the ability users have to execute any given procedure.
 By default, all users have the privilege to execute any procedure with the users' own level of privilege.
 This means that users without read privileges are not able to read data via a procedure, and users without write
 privileges are not able to write data via a procedure.
 Similar privileges exist for
-link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-user-defined-function[Execute Functions].
+link:https://neo4j.com/docs/cypher-manual/4.4/access-control/dbms-administration/#access-control-execute-user-defined-function[Execute Functions].
 
 There are also
-link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-boosted-procedure[Execute Boosted Procedure]
+link:https://neo4j.com/docs/cypher-manual/4.4/access-control/dbms-administration/#access-control-execute-boosted-procedure[Execute Boosted Procedure]
 privileges concerning the ability of users to execute any given procedure with full privileges.
 This means that users who would not otherwise be allowed to read or write to the database are allowed to do so if
 granted the boosted procedure privilege.
 These privileges are equivalent to the
-link:https://neo4j.com/docs/cypher-manual/current/access-control/dbms-administration/#access-control-admin-procedure[Execute Admin Procedure]
+link:https://neo4j.com/docs/cypher-manual/4.4/access-control/dbms-administration/#access-control-admin-procedure[Execute Admin Procedure]
 privileges. Similar privileges exist for
-link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-boosted-user-defined-function[Execute Boosted Functions].
+link:https://neo4j.com/docs/cypher-manual/4.4/access-control/dbms-administration/#access-control-execute-boosted-user-defined-function[Execute Boosted Functions].
 
 [NOTE]
 ====
@@ -160,7 +160,7 @@ Examples of procedures that can read from the file system include xref:overview/
 and xref:overview/apoc.load/index.adoc[`apoc.load.*`].
 Examples of procedures that can write to the file system include xref:overview/apoc.export/index.adoc[`apoc.export.*`].
 Examples of Cypher clauses that allow the database to read from the file system include
-link:https://neo4j.com/docs/cypher-manual/current/clauses/load-csv/[`LOAD CSV`].
+link:https://neo4j.com/docs/cypher-manual/4.4/clauses/load-csv/[`LOAD CSV`].
 
 [#_securing_the_file_system_at_os]
 ==== Securing the File System at the Operating System Level
@@ -169,7 +169,7 @@ From the point of view of the operating system, there is only a single process b
 APOC does not exist as a separate operating system process from the database process.
 This means that all operating system restrictions applied to the database will also be applied to APOC.
 Therefore, the guidance prescribed by the
-link:https://neo4j.com/docs/operations-manual/current/configuration/file-locations/#file-locations-permissions[File Permission Guidelines]
+link:https://neo4j.com/docs/operations-manual/4.4/configuration/file-locations/#file-locations-permissions[File Permission Guidelines]
 for the database is also applicable to APOC.
 
 It is recommended to configure the database process to have only the minimal set of file system permissions required to
@@ -199,17 +199,17 @@ m|+++true+++
 |===
 
 The database also exposes
-link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/[Configuration Settings] that
+link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/[Configuration Settings] that
 control whether reading files from the file system is allowed, and from which directory.
 The settings can be configured in the `conf/neo4j.conf` file, and are described below.
 
 [options="header",cols="2,3,1"]
 |===
 |Setting |Description |Default
-|link:https://neo4j.com/docs/operations-manual/5/reference/configuration-settings/#config_dbms.security.allow_csv_import_from_file_urls[dbms.security.allow_csv_import_from_file_urls]
+|link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_dbms.security.allow_csv_import_from_file_urls[dbms.security.allow_csv_import_from_file_urls]
 |Enables reading files from the file system.
 m|+++false+++
-|link:https://neo4j.com/docs/operations-manual/5/reference/configuration-settings/#config_server.directories.import[server.directories.import]
+|link:https://neo4j.com/docs/operations-manual/4.4/reference/configuration-settings/#config_server.directories.import[server.directories.import]
 |Restricts reading files to the given directory.
 m|+++import+++
 |===
@@ -295,7 +295,7 @@ CALL apoc.cypher.run("MATCH (n) RETURN n", {})
 Both of the procedures in the above examples build and execute new queries derived from the inputs they receive.
 The only difference between these two procedures is the inputs they receive.
 In the first example, the procedure knows the inputs represent
-link:https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#cypher-expressions-general[Cypher Literals].
+link:https://neo4j.com/docs/cypher-manual/4.4/syntax/expressions/#cypher-expressions-general[Cypher Literals].
 In the second example, the procedure knows the input represents a whole Cypher query. The inputs in the first example
 can be sanitized, whereas the input in the second example cannot be sanitized.
 
