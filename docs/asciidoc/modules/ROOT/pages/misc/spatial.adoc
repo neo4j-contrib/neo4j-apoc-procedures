@@ -75,16 +75,18 @@ In the `apoc.conf` we can pass:
 * apoc.spatial.geocode.google.client=xxxx (client code for google geocode access)
 * apoc.spatial.geocode.google.signature=xxxx (client signature for google geocode access)
 
-For google, you should use either a key or a combination of client and signature. Read more
-about this on the google page for geocode access at
+For Google, you should use either a key or a combination of client and signature.
+Read more about this on the google page for geocode access at
 https://developers.google.com/maps/documentation/geocoding/get-api-key#key
 
+[#_configuring_custom_geocode_provider]
 === Configuring Custom Geocode Provider
 
 *Geocode*
 
 For any provider that is not 'osm' or 'google' you get a configurable supplier that requires two
-additional settings, 'url' and 'key'. The 'url' must contain the two words 'PLACE' and 'KEY'.
+additional settings, 'url' and 'key'.
+The 'url' must contain the two words 'PLACE' and 'KEY'.
 The 'KEY' will be replaced with the key you get from the provider when you register for the service.
 The 'PLACE' will be replaced with the address to geocode when the procedure is called.
 

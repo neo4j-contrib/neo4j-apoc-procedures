@@ -73,12 +73,12 @@ See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to
 include::partial$docker.adoc[tags=docker,leveloffset=1]
 
 [[restricted]]
-== Load and unrestrict procedures/function
+== Load and Unrestrict
 
-include::partial$restricted.adoc[tags=warnings,leveloffset=1]
+include::partial$restricted.adoc[tags=restricted,leveloffset=1]
 
-[[dependencies]]
-== Additional dependencies excluded from the APOC Core jar
+[[additional_dependencies]]
+== Additional Dependencies
 Some functionalities require additional jars in order to be used.
 This includes xref::import/index.adoc[loading] and xref:export/index.adoc[exporting] data when using services such as:
 

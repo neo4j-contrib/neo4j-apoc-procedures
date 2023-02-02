@@ -23,8 +23,9 @@ The guide covers the following areas:
 * xref::installation/index.adoc[] -- Installation instructions for the library.
 * xref::usage/index.adoc[] -- A usage example.
 * xref::help/index.adoc[] -- In-built help in the library.
-* xref::overview/index.adoc[] -- A list of all APOC procedures and functions.
 * xref::config/index.adoc[] -- Configuration options used by the library.
+* xref::security-guidelines/index.adoc[] -- Guidelines on securing the APOC library, and its environment.
+* xref::overview/index.adoc[] -- A list of all APOC procedures and functions.
 * xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * xref::export/index.adoc[] -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * xref::database-integration/index.adoc[] -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
