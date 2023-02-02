@@ -1,24 +1,22 @@
-The procedure support the following config parameters:
+This procedure supports the following config parameters:
 
 .Config parameters
 [opts=header]
 |===
-| name | type | default | description
-| includeLabels | List<String> | [] | labels to include. Default is to include all labels
-| includeRels | List<String> | [] | relationship types to include. Default is to include all relationship types
-| excludeLabels | List<String> | [] | labels to exclude. Default is to not exclude any label
-| excludeRels | List<String> | [] | relationship types to exclude. Default is to not exclude any relationship type
-| sample | Long | 1000 | number of nodes to sample per label. See "Sampling" section below.
-| maxRels | Long | 100 | number of relationships to sample per relationship type
+| Name | Type | Default | Description
+| includeLabels | List<String> | [] | Node labels to include. Default is to include all node labels.
+| includeRels | List<String> | [] | Relationship types to include. Default is to include all relationship types.
+| excludeLabels | List<String> | [] | Node labels to exclude. Default is to include all node labels.
+| excludeRels | List<String> | [] | Relationship types to exclude. Default is to include all relationship types.
+| sample | Long | 1000 | Number of nodes to skip, e.g. a sample of 1000 will read every 1000th node.
+| maxRels | Long | 100 | Number of relationships to read per sampled node.
 |===
-
-include::partial$usage/config/sample.config.adoc[]
 
 .Deprecated parameters
 [opts=header]
 |===
-| name | type | default | description
-| labels | List<String> | [] | deprecated, use `includeLabels`
-| rels | List<String> | [] | deprecated, use `includeRels`
-| excludes | List<String> | [] | deprecated, use `excludeLabels`
+| Name | Type | Default | Description
+| labels | List<String> | [] | Deprecated, use `includeLabels`.
+| rels | List<String> | [] | Deprecated, use `includeRels`.
+| excludes | List<String> | [] | Deprecated, use `excludeLabels`.
 |===

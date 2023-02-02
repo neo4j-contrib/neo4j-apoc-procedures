@@ -1,0 +1,18 @@
+This procedure works by using the database statistics. A new node is returned for each label, and its connecting
+relationships are calculated based on the pairing combinations of [:R]->(:N) and (:M)->[:R]. For example, for the graph
+(:A)-[:R]->(:B)-[:R]->(:C), the path (:B)-[:R]->(:B) will be calculated from the combination of [:R]->(:B) and (:B)-[:R].
+This procedure will post-process the data by default, removing all non-existing relationships.
+This is done by scanning the nodes and their relationships.
+If the relationship is not found, it is removed from the final result.
+This slows down the procedure, but will produce an accurate schema.
+
+See xref::overview/apoc.meta/apoc.meta.graphSample.adoc[apoc.meta.graphSample] to avoid performing any post-processing.
+
+It is also possible to specify how many nodes and relationships to scan. The config parameter `sample` gives the skip count,
+and the `maxRels` parameter gives the max number of relationships that will be checked per node.
+If `sample` is set to 100, this means that every 100th node will be checked per label,
+and a value of 100 for `maxRels` means that for each node read, only the first 100 relationships will be read.
+Note that if these values are set, and the relationship is not found within those constraints,
+it is assumed that the relationship does not exist, and this may result in false negatives.
+
+A `sample` value higher than the number of nodes for that label will result in one node being checked.

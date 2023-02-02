@@ -1,9 +1,16 @@
-The procedure support the following config parameters:
+This procedure supports the following config parameters:
 
 .Config parameters
 [opts=header, cols="1,1,1,5"]
 |===
-| name | type | default | description
-| rels | Set<String> | `EmptySet` | The rel types to consider in the count. 
-    We can add to the suffix `>` or `<` to the rel type name to indicate an outgoing or incoming relationship.
+| Name | Type | Default | Description
+| includeRels | List<String> | [] | Relationship types to include. Default is to include all relationship types.
+Add the suffix `>` or `<` to the relationship type name to indicate an outgoing or incoming relationship.
+|===
+
+.Deprecated parameters
+[opts=header]
+|===
+| Name | Type | Default | Description
+| rels | List<String> | [] | deprecated, use `includeRels`
 |===

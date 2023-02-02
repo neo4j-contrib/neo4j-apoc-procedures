@@ -25,8 +25,16 @@ apoc.meta.data.of(graph :: ANY?, config = {} :: MAP?) :: (label :: STRING?, prop
 |config|MAP?|{}
 |===
 
-== Config parameters
-include::partial$usage/config/apoc.meta.data.of.adoc[]
+== Config Parameters
+This procedure supports the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| Name | Type | Default | Description
+| sample | Long | 1000 | Number of nodes to skip, e.g. a sample of 1000 will read every 1000th node.
+|===
+
 
 == Output parameters
 [.procedures, opts=header]

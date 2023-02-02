@@ -25,7 +25,7 @@ apoc.meta.subGraph(config :: MAP?) :: (nodes :: LIST? OF NODE?, relationships ::
 |===
 
 == Config parameters
-include::partial$usage/config/apoc.meta.subGraph.adoc[]
+include::partial$usage/config/apoc.meta.graph.adoc[]
 
 == Output parameters
 [.procedures, opts=header]
@@ -34,6 +34,10 @@ include::partial$usage/config/apoc.meta.subGraph.adoc[]
 |nodes|LIST? OF NODE?
 |relationships|LIST? OF RELATIONSHIP?
 |===
+
+[[sampling-apoc.meta.graph]]
+== Sampling
+include::partial$usage/apoc.meta.samplingDesc.adoc[]
 
 [[usage-apoc.meta.subGraph]]
 == Usage Examples
