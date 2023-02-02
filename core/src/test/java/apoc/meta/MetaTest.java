@@ -10,13 +10,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterable;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -1790,4 +1794,109 @@ public class MetaTest {
                 });
     }
 
+    @Test
+    public void testRelationshipExistsSampling() {
+        List<Long> skipSizes = List.of(2L, 100L, 1000L, -1L, 0L, 1L);
+        List<Long> fromNodeCounts = List.of(4L, 1000L, 100L, 500L, 10000L, 4L);
+        List<Integer> expectedChecks = List.of(2, 10, 1, 500, 10000, 4);
+
+        for (int i = 0; i < skipSizes.size(); i++) {
+            testSampling(skipSizes.get(i), fromNodeCounts.get(i), expectedChecks.get(i));
+        }
+    }
+
+    public void testSampling(Long skipSize, Long fromNodeCount, int expectedChecks) {
+        SampleMetaConfig config = Mockito.mock(SampleMetaConfig.class);
+        Mockito.when(config.getSample()).thenReturn(skipSize);
+
+        Label labelFromLabel = Label.label("A");
+        Label labelToLabel = Label.label("B");
+        RelationshipType relationshipType = RelationshipType.withName("R");
+        Direction direction = Direction.OUTGOING;
+
+        Transaction tx = Mockito.mock(Transaction.class);
+        ResourceIterator<Node> nodes = Mockito.mock(ResourceIterator.class);
+        ResourceIterable<Relationship> relationships = Mockito.mock(ResourceIterable.class);
+        ResourceIterator<Relationship> relationshipIterator =  Mockito.mock(ResourceIterator.class);
+        Node node = Mockito.mock(Node.class);
+
+        Mockito.when(tx.findNodes(labelFromLabel)).thenReturn(nodes);
+        List<Boolean> nodesNext = new ArrayList<>(Arrays.asList(new Boolean[fromNodeCount.intValue()]));
+        Collections.fill(nodesNext, Boolean.TRUE);
+        nodesNext.set(fromNodeCount.intValue() - 1, false);
+        Mockito.when(nodes.hasNext()).thenReturn(true, nodesNext.toArray(Boolean[]::new));
+        Mockito.when(nodes.next()).thenReturn(node);
+
+        Mockito.when(node.getRelationships(direction, relationshipType)).thenReturn(relationships);
+        Mockito.when(relationships.iterator()).thenReturn(relationshipIterator);
+
+        assertFalse(Meta.relationshipExists(tx, labelFromLabel, labelToLabel, relationshipType, direction, config));
+        Mockito.verify(nodes, Mockito.times(fromNodeCount.intValue())).next();
+
+        Mockito.verify(node, Mockito.times(expectedChecks)).getRelationships(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testMetaGraphSampling() {
+        db.executeTransactionally("CREATE (:A)-[:R1]->(:B)-[:R1]->(:C)");
+
+        // Not specifying sampling will check through all relationships and make sure they
+        // exist, clearing out non-existing ones
+        testCall(db, "CALL apoc.meta.graph()",(row) -> {
+            List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+            assertEquals(2, relationships.size());
+        });
+
+        // A SampleSize larger than the number of Nodes will check one node still
+        testCall(db, "CALL apoc.meta.graph({ sample: 1000 })", (row) -> {
+            List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+            assertEquals(2, relationships.size());
+        });
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+    @Test
+    public void testMetaGraphSparseSampling() {
+        // The 3 procedures using this sampling, set to look at the whole graph
+        List<String> samplingBasedProcs = List.of(
+                "apoc.meta.graph(",
+                "apoc.meta.graph.of(\"MATCH p = ()-[]->() RETURN p\", ",
+                "apoc.meta.subGraph("
+        );
+        // The "Schema" Should be: A->B->C and A->C
+        for (int i = 0; i < 100; i++) {
+            if (i == 50) {
+                // Create one existing A-->C relationship
+                db.executeTransactionally("CREATE (:A)-[:R1]->(:C)");
+            } else {
+                // Create 99 A->B->C relationships
+                db.executeTransactionally("CREATE (:A)-[:R1]->(:B)-[:R1]->(:C)");
+            }
+        }
+
+        for (String samplingProc : samplingBasedProcs) {
+            // Not specifying sampling will check through all relationships and make sure they
+            // exist, clearing out non-existing ones
+            testCall(db, "CALL " + samplingProc + " {})", (row) -> {
+                List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+                assertEquals(3, relationships.size());
+            });
+
+            // A SampleSize larger than the number of Nodes will check one node still, returning
+            // missing relationships. In this case; A->C which does exist will not be returned.
+            testCall(db, "CALL " + samplingProc + " { sample: 1000 })", (row) -> {
+                List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+                assertEquals(2, relationships.size());
+            });
+
+            // A SampleSize which isn't fine-grained enough to find the one A->C relationship, returning
+            // missing relationships. In this case; A->C which does exist will not be returned.
+            testCall(db, "CALL " + samplingProc + " { sample: 99 })", (row) -> {
+                List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+                assertEquals(2, relationships.size());
+            });
+        }
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
 }
