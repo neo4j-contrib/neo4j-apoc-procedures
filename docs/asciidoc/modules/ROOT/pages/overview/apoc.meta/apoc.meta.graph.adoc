@@ -35,6 +35,10 @@ include::partial$usage/config/apoc.meta.graph.adoc[]
 |relationships|LIST? OF RELATIONSHIP?
 |===
 
+[[sampling-apoc.meta.graph]]
+== Sampling
+include::partial$usage/apoc.meta.samplingDesc.adoc[]
+
 [[usage-apoc.meta.graph]]
 == Usage Examples
 include::partial$usage/apoc.meta.graph.adoc[]

@@ -22,11 +22,11 @@ RETURN apoc.meta.nodes.count(['MyCountLabel', 'ThirdLabel']) AS count;
 |===
 
 
-We can return all nodes with a label `MyCountLabel` and a relationship `MY_COUNT_REL` through the config param `rel`
+We can return all nodes with a label `MyCountLabel` and a relationship `MY_COUNT_REL` through the config param `includeRels`
 
 [source,cypher]
 ----
-RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL']}) AS count;
+RETURN apoc.meta.nodes.count(['MyCountLabel'], {includeRels: ['MY_COUNT_REL']}) AS count;
 ----
 
 .Results
@@ -40,7 +40,7 @@ Moreover, we can return all nodes with a `outcome` relationship `MY_COUNT_REL` (
 
 [source,cypher]
 ----
-RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL>']}) AS count;
+RETURN apoc.meta.nodes.count(['MyCountLabel'], {includeRels: ['MY_COUNT_REL>']}) AS count;
 ----
 
 .Results
@@ -54,7 +54,7 @@ otherwise with an `incoming` relationship `MY_COUNT_REL` (with the suffix `<`):
 
 [source,cypher]
 ----
-RETURN apoc.meta.nodes.count(['MyCountLabel'], {rels: ['MY_COUNT_REL<']}) AS count;
+RETURN apoc.meta.nodes.count(['MyCountLabel'], {includeRels: ['MY_COUNT_REL<']}) AS count;
 ----
 
 .Results
