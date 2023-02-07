@@ -2,4 +2,4 @@
 
 `Provides a entity analysis for provided text`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

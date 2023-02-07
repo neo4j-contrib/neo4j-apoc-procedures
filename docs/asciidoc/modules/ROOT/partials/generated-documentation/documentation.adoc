@@ -206,7 +206,7 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 
 apoc.bolt.execute(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for reads and writes
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.bolt/apoc.bolt.load.adoc[apoc.bolt.load icon:book[]]
 
 apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read
@@ -1126,27 +1126,27 @@ apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on
 
 Add a virtualized resource configuration
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.dv/apoc.dv.catalog.list.adoc[apoc.dv.catalog.list icon:book[]]
 
 List all virtualized resource configs
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.dv/apoc.dv.catalog.remove.adoc[apoc.dv.catalog.remove icon:book[]]
 
 Remove a virtualized resource config by name
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.dv/apoc.dv.query.adoc[apoc.dv.query icon:book[]]
 
 Query a virtualized resource by name and return virtual nodes
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.dv/apoc.dv.queryAndLink.adoc[apoc.dv.queryAndLink icon:book[]]
 
 Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.es/index.adoc[]
@@ -2265,32 +2265,32 @@ Returns stream of sentiment for items in provided text
 
 Creates a (virtual) entity graph for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.entities.stream.adoc[apoc.nlp.azure.entities.stream icon:book[]]
 
 Provides a entity analysis for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.graph.adoc[apoc.nlp.azure.keyPhrases.graph icon:book[]]
 
 Creates a (virtual) key phrase graph for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.keyPhrases.stream.adoc[apoc.nlp.azure.keyPhrases.stream icon:book[]]
 
 Provides a entity analysis for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.sentiment.graph.adoc[apoc.nlp.azure.sentiment.graph icon:book[]]
 
 Creates a (virtual) sentiment graph for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.azure.sentiment.stream.adoc[apoc.nlp.azure.sentiment.stream icon:book[]]
 
 Provides a sentiment analysis for provided text
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.nlp/apoc.nlp.gcp.classify.graph.adoc[apoc.nlp.gcp.classify.graph icon:book[]]
 
 Classifies a document into categories.
@@ -3078,7 +3078,7 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 
 
 |label:procedure[]
-|label:apoc-core[]
+|label:apoc-full[]
 |xref::overview/apoc.systemdb/apoc.systemdb.graph.adoc[apoc.systemdb.graph icon:book[]]
 
 
