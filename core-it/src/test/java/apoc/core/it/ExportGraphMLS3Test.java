@@ -20,6 +20,7 @@ package apoc.core.it;
 
 import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,6 +54,11 @@ public class ExportGraphMLS3Test extends S3BaseTest {
     @Before
     public void setUp() throws Exception {
         setUpGraphMl(db, testName);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

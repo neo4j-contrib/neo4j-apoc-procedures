@@ -20,6 +20,7 @@ package apoc.export.csv;
 
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -147,6 +148,12 @@ public class ImportCsvLdbcTest {
 
         TestUtil.registerProcedure(db, ImportCsv.class);
     }
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+
 
     @Test
     public void testLdbc() throws Exception {

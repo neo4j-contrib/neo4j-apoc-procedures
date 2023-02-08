@@ -21,6 +21,7 @@ package apoc.custom;
 import apoc.path.PathExplorer;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,6 +64,11 @@ public class CypherProceduresStorageTest {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
+    }
+
+    @After
+    public void teardown() {
+        databaseManagementService.shutdown();
     }
 
     private void restartDb() {

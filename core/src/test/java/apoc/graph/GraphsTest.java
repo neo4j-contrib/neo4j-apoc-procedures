@@ -24,6 +24,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,6 +82,11 @@ public class GraphsTest {
                     result.stream().forEach(m -> graph.putAll(m));
                     return null;
                 });
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

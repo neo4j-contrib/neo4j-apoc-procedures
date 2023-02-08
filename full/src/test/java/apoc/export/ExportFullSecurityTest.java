@@ -24,6 +24,7 @@ import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -80,6 +81,11 @@ public class ExportFullSecurityTest {
     public static void setUp() {
         TestUtil.registerProcedure(db, ExportXls.class);
         setFileExport(false);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     private static void setFileExport(boolean allowed) {

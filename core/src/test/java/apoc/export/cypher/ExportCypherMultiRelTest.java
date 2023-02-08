@@ -20,6 +20,7 @@ package apoc.export.cypher;
 
 import apoc.cypher.Cypher;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,7 +81,12 @@ public class ExportCypherMultiRelTest {
                 "(pers)-[:IS_TEAM_MEMBER_OF {name: 'eee'}]->(:Team {name: 'two'})");
         
     }
-    
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+
     @Test
     public void updateAllOptimizationNone() {
         String expectedCypherStatement = NODES_MULTI_RELS + SCHEMA_WITH_UNIQUE_IMPORT_ID + RELS_MULTI_RELS + CLEANUP_SMALL_BATCH;

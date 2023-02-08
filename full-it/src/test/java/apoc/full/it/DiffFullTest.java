@@ -97,6 +97,7 @@ public class DiffFullTest {
     @AfterClass
     public static void tearDown() {
         neo4jContainer.close();
+        db.shutdown();
     }
 
     @Before

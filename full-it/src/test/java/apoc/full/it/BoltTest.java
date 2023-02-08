@@ -92,6 +92,7 @@ public class BoltTest {
         if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
+        db.shutdown();
     }
     
     @Test

@@ -19,6 +19,7 @@
 package apoc.monitor;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +37,11 @@ public class StoreInfoProcedureTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Store.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

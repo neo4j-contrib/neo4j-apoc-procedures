@@ -24,6 +24,7 @@ import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +57,11 @@ public class UUIDTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Uuid.class, Create.class, Periodic.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

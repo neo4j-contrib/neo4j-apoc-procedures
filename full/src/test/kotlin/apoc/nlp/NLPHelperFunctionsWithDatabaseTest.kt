@@ -21,6 +21,7 @@ package apoc.nlp
 import apoc.result.VirtualNode
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert
+import org.junit.AfterClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.configuration.SettingImpl
@@ -36,6 +37,12 @@ class NLPHelperFunctionsWithDatabaseTest {
         val neo4j = ImpermanentDbmsRule()
                 .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
                 .withSetting(SettingImpl.newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
+        }
     }
 
     @Test

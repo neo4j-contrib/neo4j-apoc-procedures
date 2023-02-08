@@ -19,6 +19,7 @@
 package apoc.warmup;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class WarmupTest {
                 "MATCH (n)-[r:KNOWS]->(m) " +
                 "WHERE NOT id(r) IN ids " +
                 "DELETE n, m, r");
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

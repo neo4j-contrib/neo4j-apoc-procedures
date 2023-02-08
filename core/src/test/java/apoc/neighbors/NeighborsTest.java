@@ -19,6 +19,7 @@
 package apoc.neighbors;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +49,11 @@ public class NeighborsTest {
                 "(b)-[:KNOWS]->(a), " +
                 "(b)-[:KNOWS]->(c), " +
                 "(c)-[:KNOWS]->(d) ");
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

@@ -22,6 +22,7 @@ import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -61,8 +62,14 @@ public class LoadXlsTest {
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
-    @Before public void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test public void testLoadXls() throws Exception {

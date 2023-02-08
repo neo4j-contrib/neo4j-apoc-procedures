@@ -23,6 +23,7 @@ import apoc.export.json.ExportJson;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class ExportJsonS3Test extends S3BaseTest {
     public void setUp() throws Exception {
         TestUtil.registerProcedure( db, ExportJson.class, Graphs.class);
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12})");
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

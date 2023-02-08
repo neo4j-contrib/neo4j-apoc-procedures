@@ -74,6 +74,7 @@ public class LoadS3Test {
     @After
     public void tearDown() throws Exception {
         minio.close();
+        db.shutdown();
     }
 
     @Test

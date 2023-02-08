@@ -19,6 +19,7 @@
 package apoc.algo;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -40,6 +41,11 @@ public class CoverTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Cover.class);
         db.executeTransactionally("CREATE (a)-[:X]->(b)-[:X]->(c)-[:X]->(d)");
+    }
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
     }
 
     @Test

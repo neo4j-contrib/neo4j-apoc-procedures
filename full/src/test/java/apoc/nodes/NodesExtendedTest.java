@@ -20,6 +20,7 @@ package apoc.nodes;
 
 import apoc.create.Create;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,6 +47,11 @@ public class NodesExtendedTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, NodesExtended.class, Create.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

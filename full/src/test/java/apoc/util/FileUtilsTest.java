@@ -20,6 +20,7 @@ package apoc.util;
 
 import apoc.config.Config;
 import apoc.load.relative.LoadRelativePathTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +73,11 @@ public class FileUtilsTest {
             apocConfig().setProperty("dbms.directories.import", importFolder);
         }
         TestUtil.registerProcedure(db, Config.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

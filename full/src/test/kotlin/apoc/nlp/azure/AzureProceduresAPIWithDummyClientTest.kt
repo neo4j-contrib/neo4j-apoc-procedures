@@ -50,6 +50,12 @@ class AzureProceduresAPIWithDummyClientTest {
             TestUtil.registerProcedure(neo4j, AzureProcedures::class.java)
             assumeTrue(apiKey != null)
         }
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
+        }
     }
 
     @Test

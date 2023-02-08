@@ -28,6 +28,7 @@ import apoc.generate.relationship.RelationshipCreator;
 import apoc.generate.relationship.SimpleGraphRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +53,11 @@ public class Neo4jGraphGeneratorTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Generate.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

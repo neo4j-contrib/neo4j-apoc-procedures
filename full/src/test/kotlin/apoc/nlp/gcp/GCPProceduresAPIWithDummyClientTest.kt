@@ -23,14 +23,11 @@ import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
 import apoc.result.VirtualNode
 import apoc.util.TestUtil
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.*
 import org.junit.Assume.assumeTrue
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -51,6 +48,12 @@ class GCPProceduresAPIWithDummyClientTest {
         fun beforeClass() {
             TestUtil.registerProcedure(neo4j, GCPProcedures::class.java)
             assumeTrue(apiKey != null)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
         }
     }
 

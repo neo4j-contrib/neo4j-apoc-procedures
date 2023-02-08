@@ -86,6 +86,7 @@ public class RedisTest {
         if (redis != null) {
             redis.stop();
         }
+        db.shutdown();
     }
 
     @After

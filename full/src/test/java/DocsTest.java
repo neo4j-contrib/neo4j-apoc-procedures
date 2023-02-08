@@ -18,6 +18,7 @@
  */
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -68,6 +69,11 @@ public class DocsTest {
         new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_PARTIALS_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_OVERVIEW_DIR).mkdirs();
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

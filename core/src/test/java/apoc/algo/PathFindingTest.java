@@ -19,6 +19,7 @@
 package apoc.algo;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +73,11 @@ public class PathFindingTest {
    	public void setUp() throws Exception {
    		TestUtil.registerProcedure(db, PathFinding.class);
    	}
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
 
     @Test
     public void testAStar() {

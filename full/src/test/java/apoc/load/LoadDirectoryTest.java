@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -128,11 +129,17 @@ public class LoadDirectoryTest {
         temporaryFolder.newFile(IMPORT_DIR + File.separator + SUBFOLDER_1 + File.separator + CSV_SUBFOLDER_1);
     }
 
+    @AfterClass
+    public static void teardown() {
+        databaseManagementService.shutdown();
+    }
+
     @Before
     public void before() throws Exception {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
     }
+
 
     @Test
     public void testWithNullUrlDir() {

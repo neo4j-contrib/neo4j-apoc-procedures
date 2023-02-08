@@ -24,6 +24,7 @@ import apoc.meta.Meta;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -91,6 +92,11 @@ public class ExportArrowSecurityTest {
         logger.setLevel(Level.SEVERE);
 
         TestUtil.registerProcedure(db, ExportArrow.class, Meta.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     private static Collection<Object[]> getParameterData(List<Pair<String, Consumer<Map>>> fileAndErrors) {

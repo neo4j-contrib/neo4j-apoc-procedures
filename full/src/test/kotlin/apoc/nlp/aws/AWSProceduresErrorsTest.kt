@@ -20,6 +20,7 @@ package apoc.nlp.aws
 
 import apoc.util.TestUtil
 import org.hamcrest.CoreMatchers.containsString
+import org.junit.AfterClass
 import org.junit.Assert.assertThat
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -38,6 +39,12 @@ class AWSProceduresErrorsTest {
         @JvmStatic
         fun beforeClass() {
             TestUtil.registerProcedure(neo4j, AWSProcedures::class.java)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
         }
     }
 

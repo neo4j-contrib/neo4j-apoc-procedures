@@ -19,6 +19,7 @@
 package apoc.monitor;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +38,11 @@ public class IdsProcedureTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Ids.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

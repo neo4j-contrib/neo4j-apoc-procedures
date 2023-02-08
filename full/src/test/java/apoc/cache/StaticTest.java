@@ -19,6 +19,7 @@
 package apoc.cache;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +53,11 @@ public class StaticTest {
     public  void setUp() throws Exception {
         TestUtil.registerProcedure(db, Static.class);
         Static.clear();
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test
