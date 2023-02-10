@@ -328,8 +328,7 @@ public class Util {
         }
     }
 
-    public static URLConnection openUrlConnection(String url, Map<String, Object> headers) throws IOException {
-        URL src = new URL(url);
+    public static URLConnection openUrlConnection(URL src, Map<String, Object> headers) throws IOException {
         URLConnection con = src.openConnection();
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
        if (con instanceof HttpURLConnection) {
@@ -432,8 +431,8 @@ public class Util {
     }
 
     public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload, int redirectLimit) throws IOException {
-        ApocConfig.apocConfig().checkReadAllowed(urlAddress);
-        URLConnection con = openUrlConnection(urlAddress, headers);
+        URL url = ApocConfig.apocConfig().checkAllowedUrlAndPinToIP(urlAddress);
+        URLConnection con = openUrlConnection(url, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
         if (newUrl != null && !urlAddress.equals(newUrl)) {

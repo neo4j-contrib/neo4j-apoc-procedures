@@ -298,17 +298,26 @@ public class ApocConfig extends LifecycleAdapter {
         }
     }
 
-    /*
-        TODO
-        This needs to be cleaned up in 5.0
-        WebURLAccessRule was added in the database in 4.4.5, so it would
-        break backwards compatibility with 4.4.xx previous versions
-    */
-    private void checkAllowedUrl(String url) throws IOException {
+    protected URL substituteHostByIP( URL u, String ip ) throws MalformedURLException {
+        String s;
+        int port;
+        String newURLString = u.getProtocol() + "://"
+                              + ((s = u.getUserInfo()) != null && !s.isEmpty() ? s + '@' : "")
+                              + ((s = u.getHost()) != null && !s.isEmpty() ? ip : "")
+                              + ((port = u.getPort()) != u.getDefaultPort() && port > 0 ? ':' + Integer.toString( port ) : "")
+                              + ((s = u.getPath()) != null ? s : "")
+                              + ((s = u.getQuery()) != null ? '?' + s : "")
+                              + ((s = u.getRef()) != null ? '#' + s : "");
+
+        return new URL( newURLString );
+    }
+
+    public URL checkAllowedUrlAndPinToIP(String url) throws IOException {
         try {
+            URL result = new URL(url);
+
             if (blockedIpRanges != null && !blockedIpRanges.isEmpty()) {
-                URL parsedUrl = new URL(url);
-                InetAddress inetAddress = InetAddress.getByName(parsedUrl.getHost());
+                InetAddress inetAddress = InetAddress.getByName(result.getHost());
 
                 for (var blockedIpRange : blockedIpRanges)
                 {
@@ -318,17 +327,32 @@ public class ApocConfig extends LifecycleAdapter {
                                                + ApocSettings.cypher_ip_blocklist.name());
                     }
                 }
+
+                // If the address is a http or ftp one, we want to avoid an extra DNS lookup to avoid
+                // DNS spoofing. It is unlikely, but it could happen between the first DNS resolve above
+                // and the con.connect() below, in case we have the JVM dns cache disabled, or it
+                // expires in between this two calls. Thus, we substitute the resolved ip here
+                //
+                // In the case of https DNS spoofing is not possible. Source here:
+                // https://security.stackexchange.com/questions/94331/why-doesnt-dns-spoofing-work-against-https-sites
+                if (result.getProtocol().equals( "http" ) || result.getProtocol().equals( "ftp" ))
+                {
+                    result = substituteHostByIP(result, inetAddress.getHostAddress());
+                }
             }
+
+            return result;
         } catch (MalformedURLException e) {
             throw new IOException(e);
         }
     }
 
+
     public void checkReadAllowed(String url) throws IOException {
         if (isFile(url)) {
             isImportFileEnabled();
         } else {
-            checkAllowedUrl(url);
+            checkAllowedUrlAndPinToIP(url);
         }
     }
 
