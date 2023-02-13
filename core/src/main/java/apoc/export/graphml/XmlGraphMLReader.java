@@ -206,6 +206,8 @@ public class XmlGraphMLReader {
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
         inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
+        inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        inputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         XMLEventReader reader = inputFactory.createXMLEventReader(input);
         Entity last = null;
         Map<String, Key> nodeKeys = new HashMap<>();
@@ -218,10 +220,17 @@ public class XmlGraphMLReader {
                 XMLEvent event;
                 try {
                     event = (XMLEvent) reader.next();
+                    if ( event.getEventType() == XMLStreamConstants.DTD)
+                    {
+                        generateXmlDoctypeException();
+                    }
                 } catch (Exception e) {
                     // in case of unicode invalid chars we skip the event, or we exit in case of EOF
                     if (e.getMessage().contains("Unexpected EOF")) {
                         break;
+                    } else if (e.getMessage().contains("DOCTYPE"))
+                    {
+                        throw e;
                     }
                     continue;
                 }
@@ -415,5 +424,9 @@ public class XmlGraphMLReader {
     private String getAttribute(StartElement element, QName qname) {
         Attribute attribute = element.getAttributeByName(qname);
         return attribute != null ? attribute.getValue() : null;
+    }
+
+    private RuntimeException generateXmlDoctypeException() {
+        throw new RuntimeException("XML documents with a DOCTYPE are not allowed.");
     }
 }
