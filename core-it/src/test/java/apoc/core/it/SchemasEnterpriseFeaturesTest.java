@@ -21,6 +21,7 @@ package apoc.core.it;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static apoc.schema.SchemasTest.CALL_SCHEMA_NODES_ORDERED;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
@@ -327,7 +329,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(":Foo(bar,foo)", r.get("name"));
             assertEquals("ONLINE", r.get("status"));
             assertEquals("Foo", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("BTREE", r.get("type"));
             assertTrue(((List<String>) r.get("properties")).contains("bar"));
             assertTrue(((List<String>) r.get("properties")).contains("foo"));
 
@@ -436,6 +438,39 @@ public class SchemasEnterpriseFeaturesTest {
             tx.commit();
             return null;
         });
+    }
+
+    @Test
+    public void testSchemaNodesWithNodeKey() {
+        session.writeTransaction(tx -> {
+            tx.run("CREATE CONSTRAINT node_key_movie FOR (m:Movie) REQUIRE (m.first, m.second) IS NODE KEY");
+            tx.commit();
+            return null;
+        });
+
+        testResult(session, CALL_SCHEMA_NODES_ORDERED, (result) -> {
+            Map<String, Object> r = result.next();
+            schemaNodeKeyAssertions(r);
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals("BTREE", r.get("type"));
+            final String expectedUserDescIdx = "name='node_key_movie', type='UNIQUE BTREE', schema=(:Movie {first, second}), indexProvider='native-btree-1.0', owningConstraint";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescIdx);
+
+            r = result.next();
+            schemaNodeKeyAssertions(r);
+            assertEquals("", r.get("status"));
+            assertEquals("NODE_KEY", r.get("type"));
+            final String expectedUserDescConstraint = "name='node_key_movie', type='NODE KEY', schema=(:Movie {first, second}), ownedIndex";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescConstraint);
+
+            assertFalse(result.hasNext());
+        });
+    }
+
+    private static void schemaNodeKeyAssertions(Map<String, Object> r) {
+        assertEquals("Movie", r.get("label"));
+        assertEquals(List.of("first", "second"), r.get("properties"));
+        assertEquals(":Movie(first,second)", r.get("name"));
     }
 
     private List<String> expectedKeys(String... keys){

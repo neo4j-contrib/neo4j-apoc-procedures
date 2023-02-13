@@ -18,6 +18,7 @@
  */
 package apoc.schema;
 
+import apoc.result.AssertSchemaResult;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import apoc.util.Util;
 import org.assertj.core.api.Assertions;
@@ -37,10 +38,12 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.ignoreException;
 import static apoc.util.TestUtil.registerProcedure;
@@ -61,6 +64,9 @@ import static org.neo4j.internal.schema.SchemaUserDescription.TOKEN_REL_TYPE;
  * @since 12.05.16
  */
 public class SchemasTest {
+    public static final String CALL_SCHEMA_NODES_ORDERED = "CALL apoc.schema.nodes() " +
+            "YIELD label, type, properties, status, userDescription, name " +
+            "RETURN * ORDER BY label, type";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -72,7 +78,7 @@ public class SchemasTest {
         assertEquals(":Foo(bar)", r.get("name"));
         assertEquals("ONLINE", r.get("status"));
         assertEquals("Foo", r.get("label"));
-        assertEquals("INDEX", r.get("type"));
+        assertEquals("BTREE", r.get("type"));
         assertEquals("bar", ((List<String>) r.get("properties")).get(0));
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
@@ -88,7 +94,7 @@ public class SchemasTest {
         assertEquals(":Foo(bar)", r.get("name"));
         assertEquals("ONLINE", r.get("status"));
         assertEquals("Foo", r.get("label"));
-        assertEquals("INDEX", r.get("type"));
+        assertEquals("BTREE", r.get("type"));
         assertEquals("bar", ((List<String>) r.get("properties")).get(0));
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
@@ -100,7 +106,7 @@ public class SchemasTest {
         assertEquals(":Person(name)", r.get("name"));
         assertEquals("ONLINE", r.get("status"));
         assertEquals("Person", r.get("label"));
-        assertEquals("INDEX", r.get("type"));
+        assertEquals("BTREE", r.get("type"));
         assertEquals("name", ((List<String>) r.get("properties")).get(0));
         assertEquals("NO FAILURE", r.get("failure"));
         assertEquals(100d, r.get("populationProgress"));
@@ -350,7 +356,7 @@ public class SchemasTest {
             assertEquals(":Foo(bar)", r.get("name"));
             assertEquals("ONLINE", r.get("status"));
             assertEquals("Foo", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("BTREE", r.get("type"));
             assertEquals("bar", ((List<String>) r.get("properties")).get(0));
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
@@ -369,7 +375,7 @@ public class SchemasTest {
             assertEquals(":KNOWS(id,since)", row.get("name"));
             assertEquals("ONLINE", row.get("status"));
             assertEquals("KNOWS", row.get("relationshipType"));
-            assertEquals("INDEX", row.get("type"));
+            assertEquals("BTREE", row.get("type"));
             assertEquals(List.of("id", "since"), row.get("properties"));
         });
     }
@@ -407,39 +413,92 @@ public class SchemasTest {
 
     @Test
     public void testUniquenessConstraintOnNode() {
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT bar_foo ON (bar:Bar) ASSERT bar.foo IS UNIQUE");
         awaitIndexesOnline();
 
-        testResult(db, "CALL apoc.schema.nodes()", (result) -> {
+        testResult(db, CALL_SCHEMA_NODES_ORDERED, (result) -> {
             Map<String, Object> r = result.next();
 
-            assertEquals(":Bar(foo)", r.get("name"));
-            assertEquals("Bar", r.get("label"));
+            assertionsBarFooUniqueCons(r);
+
+            assertEquals("BTREE", r.get("type"));
+            assertEquals("ONLINE", r.get("status"));
+            final String expectedUserDescBarIdx = "name='bar_foo', type='UNIQUE BTREE', schema=(:Bar {foo}), indexProvider='native-btree-1.0', owningConstraint";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescBarIdx);
+            r = result.next();
+
+            assertionsBarFooUniqueCons(r);
+
             assertEquals("UNIQUENESS", r.get("type"));
-            assertEquals("foo", ((List<String>) r.get("properties")).get(0));
+            assertEquals("", r.get("status"));
+            final String expectedUserDescBarCons = "name='bar_foo', type='UNIQUENESS', schema=(:Bar {foo}), ownedIndex";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescBarCons);
 
             assertFalse(result.hasNext());
         });
     }
 
+    private static void assertionsBarFooUniqueCons(Map<String, Object> r) {
+        assertEquals(":Bar(foo)", r.get("name"));
+        assertEquals("Bar", r.get("label"));
+        assertEquals(List.of("foo"), r.get("properties"));
+    }
+
     @Test
     public void testIndexAndUniquenessConstraintOnNode() {
-        db.executeTransactionally("CREATE INDEX ON :Foo(foo)");
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
+        db.executeTransactionally("CREATE INDEX foo_idx FOR (n:Foo) ON (n.foo)");
+        db.executeTransactionally("CREATE CONSTRAINT bar_unique ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
         awaitIndexesOnline();
+
+        testResult(db, CALL_SCHEMA_NODES_ORDERED, (result) -> {
+            Map<String, Object> r = result.next();
+
+            assertionsBarUniqueCons(r);
+            assertEquals("BTREE", r.get("type"));
+            assertEquals("ONLINE", r.get("status"));
+            final String expectedUserDescBarIdx = "id=4, name='bar_unique', type='UNIQUE BTREE', schema=(:Bar {bar}), indexProvider='native-btree-1.0', owningConstraint";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescBarIdx);
+
+            r = result.next();
+
+            assertionsBarUniqueCons(r);
+            assertEquals("UNIQUENESS", r.get("type"));
+            assertEquals("", r.get("status"));
+            final String expectedUserDescBarCons = "name='bar_unique', type='UNIQUENESS', schema=(:Bar {bar}), ownedIndex";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescBarCons);
+
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals("BTREE", r.get("type"));
+            assertEquals("foo", ((List<String>) r.get("properties")).get(0));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals(":Foo(foo)", r.get("name"));
+            final String expectedUserDescFoo = "name='foo_idx', type='GENERAL BTREE', schema=(:Foo {foo}), indexProvider='native-btree-1.0'";
+            Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescFoo);
+
+            assertFalse(result.hasNext());
+        });
+    }
+
+    private static void assertionsBarUniqueCons(Map<String, Object> r) {
+        assertEquals("Bar", r.get("label"));
+        assertEquals(":Bar(bar)", r.get("name"));
+        assertEquals(List.of("bar"), r.get("properties"));
+    }
+
+    @Test
+    public void testSchemaNodesPointIndex() {
+        db.executeTransactionally("CREATE POINT INDEX pointIdx FOR (n:Baz) ON (n.baz)");
 
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
-            assertEquals("Bar", r.get("label"));
-            assertEquals("UNIQUENESS", r.get("type"));
-            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
-
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
-            assertEquals("foo", ((List<String>) r.get("properties")).get(0));
+            assertEquals("Baz", r.get("label"));
+            assertEquals("POINT", r.get("type"));
+            assertEquals("baz", ((List<String>) r.get("properties")).get(0));
             assertEquals("ONLINE", r.get("status"));
+            final String expectedUserDesc = "name='pointIdx', type='GENERAL POINT', schema=(:Baz {baz}), indexProvider='point-1.0'";
+            Assertions.assertThat( r.get( "userDescription").toString() ).contains(expectedUserDesc);
 
             assertFalse(result.hasNext());
         });
@@ -514,12 +573,12 @@ public class SchemasTest {
         This is only for 3.2+
     */
     @Test
-    public void testKeepCompoundIndex() throws Exception {
+    public void testKeepCompoundIndex() {
         testKeepCompoundCommon(false);
     }
     
     @Test
-    public void testKeepCompoundIndexWithDropExisting() throws Exception {
+    public void testKeepCompoundIndexWithDropExisting() {
         testKeepCompoundCommon(true);
     }
 
@@ -722,17 +781,18 @@ public class SchemasTest {
             assertEquals(":" + TOKEN_LABEL + "()", row.get("name"));
             assertEquals("ONLINE", row.get("status"));
             assertEquals(TOKEN_LABEL, row.get("label"));
-            assertEquals("INDEX", row.get("type"));
+            assertEquals("LOOKUP", row.get("type"));
             assertTrue(((List)row.get("properties")).isEmpty());
             assertEquals("NO FAILURE", row.get("failure"));
             assertEquals(100d, row.get("populationProgress"));
             assertEquals(1d, row.get("valuesSelectivity"));
             assertTrue(row.get("userDescription").toString().contains("name='node_label_lookup_index', type='TOKEN LOOKUP', schema=(:<any-labels>), indexProvider='token-lookup-1.0' )"));
         });
+
         testCall(db, "CALL apoc.schema.relationships()", (row) -> {
             assertEquals(":" + TOKEN_REL_TYPE + "()", row.get("name"));
             assertEquals("ONLINE", row.get("status"));
-            assertEquals("INDEX", row.get("type"));
+            assertEquals("LOOKUP", row.get("type"));
             assertEquals(TOKEN_REL_TYPE, row.get("relationshipType"));
             assertTrue(((List)row.get("properties")).isEmpty());
         });
@@ -759,7 +819,7 @@ public class SchemasTest {
             assertEquals(":[Blah, Moon],(weightProp,anotherProp)", r.get("name"));
             assertEquals("ONLINE", r.get("status"));
             assertEquals(List.of("Blah", "Moon"), r.get("label"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("FULLTEXT", r.get("type"));
             assertEquals(List.of("weightProp", "anotherProp"), r.get("properties"));
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(100d, r.get("populationProgress"));
@@ -778,7 +838,7 @@ public class SchemasTest {
             assertEquals("ONLINE", r.get("status"));
             assertEquals(List.of("TYPE_1", "TYPE_2"), r.get("relationshipType"));
             assertEquals(List.of("alpha", "beta"), r.get("properties"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("FULLTEXT", r.get("type"));
             assertFalse(result.hasNext());
         });
     }
@@ -804,7 +864,7 @@ public class SchemasTest {
             assertEquals(":LabelTest(prop)", r.get("name"));
             assertEquals("FAILED", r.get("status"));
             assertEquals("LabelTest", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("BTREE", r.get("type"));
             assertEquals(List.of("prop"), r.get("properties"));
         });
     }
@@ -828,7 +888,7 @@ public class SchemasTest {
             assertEquals(":REL_TEST(prop)", r.get("name"));
             assertEquals("FAILED", r.get("status"));
             assertEquals("REL_TEST", r.get("relationshipType"));
-            assertEquals("INDEX", r.get("type"));
+            assertEquals("BTREE", r.get("type"));
             assertEquals(List.of("prop"), r.get("properties"));
         });
     }
