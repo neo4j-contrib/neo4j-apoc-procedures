@@ -24,7 +24,7 @@ public class GeocodeTest {
 
     private static final String BLOCKED_ADDRESS = "127.168.0.0";
     private static final String NON_BLOCKED_ADDRESS = "localhost";
-    private static final String BLOCKED_ERROR = "access to /" + BLOCKED_ADDRESS + " is blocked via the configuration property internal.dbms.cypher_ip_blocklist";
+    private static final String BLOCKED_ERROR = "access to /" + BLOCKED_ADDRESS + " is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist";
     private static final String JAVA_NET_EXCEPTION = "Caused by: java.net";
     private static final String URL_FORMAT = "%s://%s/geocode/v1/json?q=PLACE&key=KEY";
     private static final String REVERSE_URL_FORMAT = "%s://%s/geocode/v1/json?q=LAT+LNG&key=KEY";
