@@ -2,6 +2,8 @@ package apoc.util;
 
 import com.github.dockerjava.api.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.tooling.BuildLauncher;
@@ -31,6 +33,7 @@ public class TestContainerUtil {
 
     private TestContainerUtil() {}
 
+    private static File pluginsFolder;
     private static File baseDir = Paths.get(".").toFile();
 
     public static TestcontainersCausalCluster createEnterpriseCluster(int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
@@ -40,8 +43,24 @@ public class TestContainerUtil {
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging)  {
         return createEnterpriseDB(baseDir, withLogging);
     }
+    
+    private static void addExtraDependencies() {
+        final File projectRootDir = Paths.get("..").toFile();
+        File extraDepsDir = new File(projectRootDir, "extra-dependencies");
+        // build the extra-dependencies
+        executeGradleTasks(extraDepsDir, "buildDependencies");
+        
+        // add all extra deps to the plugin docker folder
+        final File directory = new File(extraDepsDir, "build/allJars");
+        final IOFileFilter instance = TrueFileFilter.TRUE;
+        copyFilesToPlugin(directory, instance);
+    }
 
     public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging)  {
+        return createEnterpriseDB(baseDir, withLogging, false);
+    }
+
+    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging, boolean withExtraDeps)  {
         executeGradleTasks(baseDir, "shadowJar");
         // We define the container with external volumes
         File importFolder = new File("import");
@@ -51,17 +70,18 @@ public class TestContainerUtil {
         String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.4.17-enterprise");
 
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
-        File pluginsFolder = new File(baseDir, "build/plugins");
+        pluginsFolder = new File(baseDir, "build/plugins");
         pluginsFolder.mkdirs();
 
-        Collection<File> files = FileUtils.listFiles(new File(baseDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), null);
-        for (File file: files) {
-            try {
-                FileUtils.copyFileToDirectory(file, pluginsFolder);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        final File directory = new File(baseDir, "build/libs");
+        final IOFileFilter fileFilter = new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar"));
+        
+        copyFilesToPlugin(directory, fileFilter);
+        
+        if (withExtraDeps) {
+            addExtraDependencies();
         }
+        
         String canonicalPath = null;
         try {
             canonicalPath = importFolder.getCanonicalPath();
@@ -102,6 +122,17 @@ public class TestContainerUtil {
             neo4jContainer.withLogging();
         }
         return neo4jContainer;
+    }
+
+    private static void copyFilesToPlugin(File directory, IOFileFilter instance) {
+        Collection<File> files = FileUtils.listFiles(directory, instance, null);
+        for (File file: files) {
+            try {
+                FileUtils.copyFileToDirectory(file, pluginsFolder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static void executeGradleTasks(File baseDir, String... tasks) {
