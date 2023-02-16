@@ -2,6 +2,8 @@ package apoc.util;
 
 import com.github.dockerjava.api.exception.NotFoundException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.tooling.BuildLauncher;
@@ -46,6 +48,7 @@ public class TestContainerUtil {
 
     private TestContainerUtil() {}
 
+    private static File pluginsFolder;
     private static File baseDir = Paths.get("..").toFile();
     private static File coreDir = new File(baseDir, "core");
     private static File extendedDir = new File(baseDir, "extended");
@@ -68,8 +71,24 @@ public class TestContainerUtil {
     public static Neo4jContainerExtension createCommunityDB(List<ApocPackage> apocPackages, boolean withLogging) {
         return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.COMMUNITY);
     }
+    
+    private static void addExtraDependencies() {
+        final File projectRootDir = Paths.get("..").toFile();
+        File extraDepsDir = new File(projectRootDir, "extra-dependencies");
+        // build the extra-dependencies
+        executeGradleTasks(extraDepsDir, "buildDependencies");
+        
+        // add all extra deps to the plugin docker folder
+        final File directory = new File(extraDepsDir, "build/allJars");
+        final IOFileFilter instance = TrueFileFilter.TRUE;
+        copyFilesToPlugin(directory, instance);
+    }
 
-    private static Neo4jContainerExtension createNeo4jContainer(List<ApocPackage> apocPackages, boolean withLogging, Neo4jVersion version) {
+    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging, Neo4jVersion version)  {
+        return createEnterpriseDB(baseDir, withLogging, version, false);
+    }
+
+    private static Neo4jContainerExtension createNeo4jContainer(List<ApocPackage> apocPackages, boolean withLogging, Neo4jVersion version, boolean withExtraDeps)  {
         String dockerImage;
         if (version == Neo4jVersion.ENTERPRISE) {
             dockerImage = neo4jEnterpriseDockerImageVersion;
@@ -88,6 +107,7 @@ public class TestContainerUtil {
         File importFolder = new File("import");
         importFolder.mkdirs();
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
+        pluginsFolder = new File(baseDir, "build/plugins");
         pluginsFolder.mkdirs();
         String canonicalPath = null;
 
@@ -97,23 +117,20 @@ public class TestContainerUtil {
             e.printStackTrace();
         }
 
-        for (ApocPackage apocPackage: apocPackages) {
-            if (apocPackage == ApocPackage.CORE) {
-                projectDir = coreDir;
-            } else {
-                projectDir = extendedDir;
-            }
-
-            executeGradleTasks(projectDir, "shadowJar");
-
-            Collection<File> files = FileUtils.listFiles(new File(projectDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")), null);
-            for (File file: files) {
-                try {
-                    FileUtils.copyFileToDirectory(file, pluginsFolder);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        final File directory = new File(baseDir, "build/libs");
+        final IOFileFilter fileFilter = new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar"));
+        
+        copyFilesToPlugin(directory, fileFilter);
+        
+        if (withExtraDeps) {
+            addExtraDependencies();
+        }
+        
+        String canonicalPath = null;
+        try {
+            canonicalPath = importFolder.getCanonicalPath();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         System.out.println("neo4jDockerImageVersion = " + dockerImage);
@@ -154,6 +171,17 @@ public class TestContainerUtil {
         }
 
         return neo4jContainer.withWaitForNeo4jDatabaseReady(password, version);
+    }
+
+    private static void copyFilesToPlugin(File directory, IOFileFilter instance) {
+        Collection<File> files = FileUtils.listFiles(directory, instance, null);
+        for (File file: files) {
+            try {
+                FileUtils.copyFileToDirectory(file, pluginsFolder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static void executeGradleTasks(File baseDir, String... tasks) {
