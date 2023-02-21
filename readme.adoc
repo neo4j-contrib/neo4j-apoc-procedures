@@ -1,8 +1,8 @@
 :readme:
 :branch: 5.4
 :docs: https://neo4j.com/labs/apoc/5
-:apoc-release: 5.9.0
-:neo4j-version: 5.9.0
+:apoc-release: 5.10.0
+:neo4j-version: 5.10.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
 https://community.neo4j.com[image:https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fcommunity.neo4j.com[Discourse users]]
@@ -180,6 +180,7 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.10.0[5.10.0^] | 5.10.0 (5.10.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.9.0[5.9.0^] | 5.9.0 (5.9.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.8.0[5.8.0^] | 5.8.0 (5.8.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.7.0[5.7.0^] | 5.7.0 (5.7.x)
