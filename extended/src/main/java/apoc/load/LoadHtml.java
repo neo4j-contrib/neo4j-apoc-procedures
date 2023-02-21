@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
+import java.nio.charset.UnsupportedCharsetException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -35,6 +36,8 @@ public class LoadHtml {
 
     // public for test purpose
     public static final String KEY_ERROR = "errorList";
+    public static final String INVALID_CONFIG_ERR = "Invalid config: ";
+    public static final String UNSUPPORTED_CHARSET_ERR = "Unsupported charset: ";
 
     @Context
     public GraphDatabaseService db;
@@ -74,12 +77,12 @@ public class LoadHtml {
             }
 
             return Stream.of(new MapResult(output));
+        } catch ( UnsupportedCharsetException e) {
+            throw new RuntimeException(UNSUPPORTED_CHARSET_ERR + config.getCharset());
         } catch (IllegalArgumentException | ClassCastException e) {
-            throw new RuntimeException("Invalid config: " + config);
+            throw new RuntimeException(INVALID_CONFIG_ERR + config);
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found from: " + url);
-        } catch(UnsupportedEncodingException e) {
-            throw new RuntimeException("Unsupported charset: " + config.getCharset());
         } catch(Exception e) {
             throw new RuntimeException("Can't read the HTML from: "+ url, e);
         }
