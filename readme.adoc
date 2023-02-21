@@ -170,7 +170,8 @@ You can find http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/[all
 // tag::warnings[]
 For security reasons, procedures and functions that use internal APIs are disabled by default.
 Loading and enabling APOC procedures and functions can be configured using the Neo4j config file.
-For more details, see https://neo4j.com/labs/apoc/4.4/installation/#restricted[the APOC installation documentation].
+
+For more details, see {docs}/installation#restricted[the APOC installation documentation].
 // end::warnings[]
 ====
 
