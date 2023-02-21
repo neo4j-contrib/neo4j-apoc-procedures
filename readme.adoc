@@ -160,13 +160,10 @@ Go to https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[here] for 
 [WARNING]
 ====
 // tag::warnings[]
-For security reasons, procedures that use internal APIs are disabled by default.
-They can be enabled by specifying config in `$NEO4J_HOME/conf/neo4j.conf` e.g. `+dbms.security.procedures.unrestricted=apoc.*+`
+For security reasons, procedures and functions that use internal APIs are disabled by default.
+Loading and enabling APOC procedures and functions can be configured using the Neo4j config file.
 
-If you want to do this when using the Neo4j Docker container, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command.
-The three backslashes are necessary to prevent wildcard expansions.
-
-You _can_ also allow procedures and functions in general to be loaded using: `+dbms.security.procedures.allowlist=apoc.coll.*,apoc.load.*+`
+For more details, see {docs}/installation#restricted[the APOC installation documentation].
 // end::warnings[]
 ====
 
