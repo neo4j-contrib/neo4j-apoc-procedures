@@ -63,6 +63,6 @@ and put it into `plugin` folder.
 
 
 [[restricted]]
-== Restricted procedures/functions
+== Load and unrestrict procedures/functions
 
 include::partial$restricted.adoc[tags=warnings,leveloffset=1]
