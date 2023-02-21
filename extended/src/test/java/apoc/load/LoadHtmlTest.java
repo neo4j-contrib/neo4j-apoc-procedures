@@ -20,7 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.load.LoadHtml.INVALID_CONFIG_ERR;
 import static apoc.load.LoadHtml.KEY_ERROR;
+import static apoc.load.LoadHtml.UNSUPPORTED_CHARSET_ERR;
 import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LIST;
 import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LOG;
 import static apoc.util.MapUtil.map;
@@ -64,7 +66,6 @@ public class LoadHtmlTest {
             "<p class='thirdClass'>My third paragraph. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p> " +
             "<ul><li>Coffee</li><li>Tea</li><li>Milk</li></ul>  " +
             "</body> </html>";
-    private static final String INVALID_CONFIG_ERR = "Invalid config";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -435,19 +436,19 @@ public class LoadHtmlTest {
 
     @Test
     public void testQueryWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
+        assertWrongConfig(UNSUPPORTED_CHARSET_ERR,
                 Map.of("charset", INVALID_CHARSET));
     }
 
     @Test
     public void testQueryWithFailsSilentlyWithLogWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
+        assertWrongConfig(UNSUPPORTED_CHARSET_ERR,
                 Map.of("failSilently", WITH_LOG.name(), "charset", INVALID_CHARSET));
     }
 
     @Test
     public void testQueryWithFailsSilentlyWithListWithExceptionIfIncorrectCharset() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
+        assertWrongConfig(UNSUPPORTED_CHARSET_ERR,
                 Map.of("failSilently", WITH_LIST.name(), "charset", INVALID_CHARSET));
     }
 
