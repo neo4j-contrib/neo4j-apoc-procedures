@@ -6,7 +6,6 @@ import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
