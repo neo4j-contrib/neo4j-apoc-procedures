@@ -105,7 +105,7 @@ public class Geocode {
             urlTemplate = urlTemplate.replace("KEY", key);
             urlTemplateReverse = urlTemplateReverse.replace("KEY", key);
 
-            this.throttler = new Throttler(terminationGuard, apocConfig().getInt(configKey("throttle"), (int) Throttler.DEFAULT_THROTTLE));
+            this.throttler = new Throttler(terminationGuard, config.getInt(configKey("throttle"), (int) Throttler.DEFAULT_THROTTLE));
         }
 
         @SuppressWarnings("unchecked")
