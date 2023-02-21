@@ -45,7 +45,8 @@ shadowJar {
 
 // to init the submodule in case of new submodule or refresh it if exists, every time we compile 
 task gitSubmoduleLoad {
-    def execute = ["bash", "-c", "git submodule status apoc-core | grep -q \"^-\" && rm -r apoc-core && git submodule update --init apoc-core || git submodule update --remote apoc-core"]
+    def execute = ["bash", "-c", "git submodule status apoc-core | grep -q \"^-\" && rm -r apoc-core && git submodule update --init apoc-core || git submodule update --remote apoc-core; " +
+            "git update-index --assume-unchanged apoc-core"]
             .execute()
     execute.waitForProcessOutput(System.out, System.err)
 }
