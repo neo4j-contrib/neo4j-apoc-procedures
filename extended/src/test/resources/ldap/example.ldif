@@ -1,0 +1,11 @@
+version: 1
+
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: embedded
+
+dn: uid=training,dc=example,dc=com
+objectclass: top
+objectclass: organizationalUnit
+uid: training
