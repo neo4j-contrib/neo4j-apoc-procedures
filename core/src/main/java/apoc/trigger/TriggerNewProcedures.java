@@ -2,9 +2,9 @@ package apoc.trigger;
 
 import apoc.ApocConfig;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Admin;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -32,7 +33,7 @@ public class TriggerNewProcedures {
     public static final String TRIGGER_QUERY_TYPES_ERROR = "The trigger statement must contain READ_ONLY, WRITE, or READ_WRITE query.";
     public static final String TRIGGER_MODES_ERROR = "The trigger statement cannot contain procedures that are not in WRITE, READ, or DEFAULT mode.";
 
-    @Context public GraphDatabaseService db;
+    @Context public GraphDatabaseAPI db;
     
     @Context public Transaction tx;
 
@@ -76,9 +77,11 @@ public class TriggerNewProcedures {
                 READ_ONLY, WRITE, READ_WRITE);
 
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        
-        TriggerInfo triggerInfo = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params);
-        return Stream.of(triggerInfo);
+
+        return withTransaction(tx -> {
+            TriggerInfo triggerInfo = TriggerHandlerNewProcedures.install(databaseName, name, statement, selector, params, tx);
+            return Stream.of(triggerInfo);
+        });
     }
 
 
@@ -89,8 +92,11 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.drop(databaseName, name) | eventually removes an existing trigger, returns the trigger's information")
     public Stream<TriggerInfo> drop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
-        final TriggerInfo removed = TriggerHandlerNewProcedures.drop(databaseName, name);
-        return Stream.ofNullable(removed);
+
+        return withTransaction(tx -> {
+            final TriggerInfo removed = TriggerHandlerNewProcedures.drop(databaseName, name, tx);
+            return Stream.ofNullable(removed);
+        });
     }
     
     
@@ -101,8 +107,10 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.dropAll(databaseName) | eventually removes all previously added trigger, returns triggers' information")
     public Stream<TriggerInfo> dropAll(@Name("databaseName") String databaseName) {
         checkInSystemLeader();
-        return TriggerHandlerNewProcedures.dropAll(databaseName)
-                .stream().sorted(Comparator.comparing(i -> i.name));
+
+        return withTransaction( tx -> TriggerHandlerNewProcedures.dropAll(databaseName, tx)
+                .stream().sorted( Comparator.comparing(i -> i.name) )
+        );
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -113,8 +121,10 @@ public class TriggerNewProcedures {
     public Stream<TriggerInfo> stop(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
 
-        final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, true);
-        return Stream.ofNullable(triggerInfo);
+        return withTransaction(tx -> {
+            final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, true, tx);
+            return Stream.ofNullable(triggerInfo);
+        });
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -124,9 +134,11 @@ public class TriggerNewProcedures {
     @Description("CALL apoc.trigger.start(databaseName, name) | eventually unpauses the paused trigger")
     public Stream<TriggerInfo> start(@Name("databaseName") String databaseName, @Name("name")String name) {
         checkInSystemLeader();
-        
-        final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, false);
-        return Stream.ofNullable(triggerInfo);
+
+        return withTransaction(tx -> {
+            final TriggerInfo triggerInfo = TriggerHandlerNewProcedures.updatePaused(databaseName, name, false, tx);
+            return Stream.ofNullable(triggerInfo);
+        });
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -138,5 +150,14 @@ public class TriggerNewProcedures {
         checkInSystem();
 
         return TriggerHandlerNewProcedures.getTriggerNodesList(databaseName, tx);
+    }
+
+
+    public <T> T withTransaction(Function<Transaction, T> action) {
+        try (Transaction tx = db.beginTx()) {
+            T result = action.apply(tx);
+            tx.commit();
+            return result;
+        }
     }
 }
