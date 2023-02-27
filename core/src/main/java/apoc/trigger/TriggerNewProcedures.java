@@ -25,7 +25,7 @@ import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 
 
 public class TriggerNewProcedures {
-    // public for testing purpose
+    public static final String NON_SYS_DB_ERROR = "The procedure should be executed against a system database.";
     public static final String TRIGGER_NOT_ROUTED_ERROR = "No write operations are allowed directly on this database. " +
             "Writes must pass through the leader. The role of this server is: FOLLOWER";
     public static final String TRIGGER_BAD_TARGET_ERROR = "Triggers can only be installed on user databases.";
@@ -41,6 +41,14 @@ public class TriggerNewProcedures {
         // routing check
         if (!db.databaseName().equals(SYSTEM_DATABASE_NAME) || !Util.isWriteableInstance(db, SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(TRIGGER_NOT_ROUTED_ERROR);
+        }
+    }
+
+    private void checkInSystem() {
+        TriggerHandlerNewProcedures.checkEnabled();
+
+        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
+            throw new RuntimeException(NON_SYS_DB_ERROR);
         }
     }
 
@@ -127,7 +135,7 @@ public class TriggerNewProcedures {
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.trigger.show(databaseName) | it lists all eventually installed triggers for a database")
     public Stream<TriggerInfo> show(@Name("databaseName") String databaseName) {
-        checkInSystemLeader();
+        checkInSystem();
 
         return TriggerHandlerNewProcedures.getTriggerNodesList(databaseName, tx);
     }
