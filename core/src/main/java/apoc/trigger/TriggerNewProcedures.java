@@ -26,7 +26,8 @@ import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
 
 public class TriggerNewProcedures {
     // public for testing purpose
-    public static final String TRIGGER_NOT_ROUTED_ERROR = "The procedure should be routed and executed against the LEADER system database";
+    public static final String TRIGGER_NOT_ROUTED_ERROR = "No write operations are allowed directly on this database. " +
+            "Writes must pass through the leader. The role of this server is: FOLLOWER";
     public static final String TRIGGER_BAD_TARGET_ERROR = "Triggers can only be installed on user databases.";
     public static final String TRIGGER_QUERY_TYPES_ERROR = "The trigger statement must contain READ_ONLY, WRITE, or READ_WRITE query.";
     public static final String TRIGGER_MODES_ERROR = "The trigger statement cannot contain procedures that are not in WRITE, READ, or DEFAULT mode.";
