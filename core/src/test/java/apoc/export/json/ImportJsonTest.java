@@ -23,6 +23,7 @@ import apoc.schema.Schemas;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import apoc.util.TransactionTestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -35,7 +36,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -53,7 +53,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static apoc.export.json.ImportJsonConfig.WILDCARD_PROPS;
@@ -61,12 +60,12 @@ import static apoc.export.json.JsonImporter.MISSING_CONSTRAINT_ERROR_MSG;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TransactionTestUtil.checkTerminationGuard;
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 
 public class ImportJsonTest {
@@ -213,31 +212,8 @@ public class ImportJsonTest {
         String filename = "https://devrel-data-science.s3.us-east-2.amazonaws.com/twitch_all.json";
 
         final String query = "CALL apoc.import.json($file)";
-        new Thread(() -> db.executeTransactionally(query,  map("file", filename))).start();
 
-        // waiting for 'apoc.import.json() query to cancel when it is found
-        final String transactionId = TestUtil.singleResultFirstColumn(db, 
-                "SHOW TRANSACTIONS YIELD currentQuery, transactionId WHERE currentQuery = $query RETURN transactionId",
-                map("query", query));
-        
-        assertEventually(() -> db.executeTransactionally("TERMINATE TRANSACTION $transactionId",
-                map("transactionId", transactionId),
-                result -> {
-                    final ResourceIterator<String> msgIterator = result.columnAs("message");
-                    return msgIterator.hasNext() && msgIterator.next().equals("Transaction terminated.");
-                }), (value) -> value, 10L, TimeUnit.SECONDS);
-
-        // checking for query cancellation
-        assertEventually(() -> {
-            final String transactionListCommand = "SHOW TRANSACTIONS";
-            return db.executeTransactionally(transactionListCommand,
-                    map("query", query),
-                    result -> {
-                        final ResourceIterator<String> queryIterator = result.columnAs("currentQuery");
-                        final String first = queryIterator.next();
-                        return first.equals(transactionListCommand) && !queryIterator.hasNext();
-                    } );
-        }, (value) -> value, 10L, TimeUnit.SECONDS);
+        TransactionTestUtil.checkTerminationGuard(db, query, map("file", filename));
     }
 
     @Test
@@ -397,6 +373,12 @@ public class ImportJsonTest {
                 (r) -> assertionsAllJsonProgressInfo(r, true));
 
         assertionsAllJsonDbResult();
+    }
+
+    @Test
+    public void shouldTerminateImportJson()  {
+        createConstraints(List.of("Movie", "Other", "Person"));
+        checkTerminationGuard(db, "CALL apoc.import.json('testTerminate.json',{})");
     }
 
     private void assertionsAllJsonProgressInfo(Map<String, Object> r, boolean isBinary) {

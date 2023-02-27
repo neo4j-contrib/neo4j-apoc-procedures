@@ -57,6 +57,8 @@ import java.util.stream.Stream;
 import static apoc.periodic.Periodic.applyPlanner;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.TransactionTestUtil.lastTransactionChecks;
+import static apoc.util.TransactionTestUtil.terminateTransactionAsync;
 import static apoc.util.Util.map;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -303,6 +305,37 @@ public class PeriodicTest {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
+    }
+
+    @Test
+    public void testTerminateIterateWithTerminateTransactionCommand()  {
+        PeriodicTestUtils.testTerminateWithCommand(db, "CALL apoc.periodic.iterate('UNWIND range(0,999999) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})",
+                "UNWIND range(0,999999) as id RETURN id");
+    }
+
+    @Test
+    public void testWithTerminationInnerTransaction() {
+        // terminating the apoc.util.sleep should instantly terminate the periodic query without any creation
+        final String innerLongQuery = "CALL apoc.util.sleep(20999) RETURN 0";
+        final String query = "CALL apoc.periodic.iterate($innerQuery, 'WITH $id as id CREATE (:Foo {id: $id})', {params: {innerQuery: $innerQuery}})";
+
+        terminateTransactionAsync(db, innerLongQuery);
+
+        long timeBefore = System.currentTimeMillis();
+        // assert query terminated (RETURN 0 nodesCreated)
+        try {
+            TestUtil.testCall(db, query,
+                    Map.of("innerQuery", innerLongQuery),
+                    row -> {
+                        final Object actual = ((Map) row.get("updateStatistics")).get("nodesCreated");
+                        assertEquals(0L, actual);
+                    });
+            fail("Should have terminated");
+        } catch (Exception e) {
+            assertTrue(e.getMessage().contains("terminated"));
+        }
+
+        lastTransactionChecks(db, query, timeBefore);
     }
 
     /**

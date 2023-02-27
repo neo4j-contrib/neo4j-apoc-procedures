@@ -28,6 +28,7 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -51,6 +52,7 @@ import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.TransactionTestUtil.checkTerminationGuard;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -59,6 +61,8 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
+import static org.neo4j.configuration.SettingValueParsers.BYTES;
 
 public class LoadJsonTest {
 
@@ -75,7 +79,10 @@ public class LoadJsonTest {
     }
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.memory_tracking, true)
+            .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("1G"));
 
 	@Before public void setUp() throws Exception {
 	    apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
@@ -407,5 +414,12 @@ public class LoadJsonTest {
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
                     assertFalse("value should be not empty", value.isEmpty());
                 });
+    }
+
+    @Test
+    public void shouldTerminateLoadJson()  {
+        URL url = ClassLoader.getSystemResource("exportJSON/testTerminate.json");
+        checkTerminationGuard(db, "CALL apoc.load.json($file)",
+                Map.of("file", url.toString()));
     }
 }
