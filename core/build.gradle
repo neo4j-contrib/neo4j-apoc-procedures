@@ -77,7 +77,6 @@ dependencies {
             strictly '3.12.0'
         }
     }
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.32'
     compile group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
