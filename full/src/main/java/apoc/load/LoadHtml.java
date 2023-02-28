@@ -5,6 +5,8 @@ import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
 import java.nio.charset.UnsupportedCharsetException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -74,7 +76,7 @@ public class LoadHtml {
             }
 
             return Stream.of(new MapResult(output));
-        } catch ( UnsupportedCharsetException e) {
+        } catch (UnsupportedCharsetException e) {
             throw new RuntimeException("Unsupported charset: " + config.getCharset());
         } catch (IllegalArgumentException | ClassCastException e) {
             throw new RuntimeException("Invalid config: " + config);
@@ -137,7 +139,16 @@ public class LoadHtml {
                 final String key = attribute.getKey();
                 // with href/src attribute we prepend baseUri path
                 final boolean attributeHasLink = key.equals("href") || key.equals("src");
-                attributes.put(key, attributeHasLink ? element.absUrl(key) : attribute.getValue());
+                String attr = null;
+                if (attributeHasLink) {
+                    attr = element.absUrl(key);
+                    if (StringUtils.isBlank(attr)) {
+                        attr = attribute.getValue();
+                    }
+                } else {
+                    attr = attribute.getValue();
+                }
+                attributes.put(key, attr);
             }
         }
 
