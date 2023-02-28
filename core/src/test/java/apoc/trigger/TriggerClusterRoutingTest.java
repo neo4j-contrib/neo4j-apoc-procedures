@@ -69,29 +69,37 @@ public class TriggerClusterRoutingTest {
     @Test
     public void testTriggerDropAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.trigger.drop('neo4j', $name)";
-        triggerInSysLeaderMemberCommon(query, TRIGGER_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, 
+        triggerInSysLeaderMemberCommon(query, TRIGGER_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, false,
                 (session, name) -> testCallEmpty(session, query, Map.of("name", name)));
+    }
+
+    @Test
+    public void testTriggerShowAllowedOnlyInSysLeaderMember() {
+        final String query = "CALL apoc.trigger.show('neo4j')";
+        final BiConsumer<Session, String> testTrigger = (session, name) -> testCallEmpty(session, query, Collections.emptyMap());
+        triggerInSysLeaderMemberCommon(query, TRIGGER_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, true, testTrigger);
     }
 
     private static void triggerInSysLeaderMemberCommon(String query, String triggerNotRoutedError, String dbName) {
         final BiConsumer<Session, String> testTrigger = (session, name) -> testCall(session, query,
                 Map.of("name", name),
                 row -> assertEquals(name, row.get("name")));
-        triggerInSysLeaderMemberCommon(query, triggerNotRoutedError, dbName, testTrigger);
+        triggerInSysLeaderMemberCommon(query, triggerNotRoutedError, dbName, false, testTrigger);
     }
 
-    private static void triggerInSysLeaderMemberCommon(String query, String triggerNotRoutedError, String dbName, BiConsumer<Session, String> testTrigger) {
+    private static void triggerInSysLeaderMemberCommon(String query, String triggerNotRoutedError, String dbName, boolean nonWriteOperation, BiConsumer<Session, String> testTrigger) {
         final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
         assertEquals(4, members.size());
         for (Neo4jContainerExtension container: members) {
-            // we skip READ_REPLICA members
-            final String readReplica = TestcontainersCausalCluster.ClusterInstanceType.READ_REPLICA.toString();
-            final Driver driver = container.getDriver();
-            if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || driver == null) {
+            // we skip READ_REPLICA members with write operations
+            final Driver driver = nonWriteOperation
+                    ? container.getDriver()
+                    : getDriverIfNotReplica(container);
+            if (driver == null) {
                 continue;
             }
             Session session = driver.session(SessionConfig.forDatabase(dbName));
-            if (sysIsLeader(session)) {
+            if (nonWriteOperation || sysIsLeader(session)) {
                 final String name = UUID.randomUUID().toString();
                 testTrigger.accept(session, name);
             } else {
@@ -105,6 +113,15 @@ public class TriggerClusterRoutingTest {
                 }
             }
         }
+    }
+
+    private static Driver getDriverIfNotReplica(Neo4jContainerExtension container) {
+        final String readReplica = TestcontainersCausalCluster.ClusterInstanceType.READ_REPLICA.toString();
+        final Driver driver = container.getDriver();
+        if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || driver == null) {
+            return null;
+        }
+        return driver;
     }
 
     private static boolean sysIsLeader(Session session) {

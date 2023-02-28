@@ -31,10 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
-import static apoc.trigger.TriggerNewProcedures.TRIGGER_BAD_TARGET_ERROR;
-import static apoc.trigger.TriggerNewProcedures.TRIGGER_MODES_ERROR;
-import static apoc.trigger.TriggerNewProcedures.TRIGGER_NOT_ROUTED_ERROR;
-import static apoc.trigger.TriggerNewProcedures.TRIGGER_QUERY_TYPES_ERROR;
+import static apoc.trigger.TriggerNewProcedures.*;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
@@ -576,6 +573,16 @@ public class TriggerNewProceduresTest {
                     r -> fail("Should fail because of database not found"));
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains(DatabaseNotFoundException.class.getName()));
+        }
+    }
+
+    @Test
+    public void testShowTriggerInUserDb() {
+        try {
+            testCall(db, "CALL apoc.trigger.show('neo4j')",
+                    r -> fail("Should fail because of user db execution"));
+        } catch (QueryExecutionException e) {
+            assertTrue(e.getMessage().contains(NON_SYS_DB_ERROR));
         }
     }
 
