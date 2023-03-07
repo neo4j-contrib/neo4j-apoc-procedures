@@ -11,7 +11,6 @@ import org.neo4j.internal.helpers.collection.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
@@ -33,76 +32,66 @@ public class TriggerHandlerNewProcedures {
         }
     }
 
-    public static TriggerInfo install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params) {
-        final TriggerInfo[] result = new TriggerInfo[1];
+    public static TriggerInfo install(String databaseName, String triggerName, String statement, Map<String,Object> selector, Map<String,Object> params, Transaction tx) {
+        final TriggerInfo result;
 
-        withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
-                    Pair.of(SystemPropertyKeys.database.name(), databaseName),
-                    Pair.of(SystemPropertyKeys.name.name(), triggerName));
-            
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
-            node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
-            node.setProperty(SystemPropertyKeys.paused.name(), false);
-            
-            // we'll the return current trigger info
-            result[0] = fromNode(node, true);
+        Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
+                Pair.of(SystemPropertyKeys.database.name(), databaseName),
+                Pair.of(SystemPropertyKeys.name.name(), triggerName));
 
-            setLastUpdate(databaseName, tx);
-        });
+        node.setProperty(SystemPropertyKeys.statement.name(), statement);
+        node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
+        node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
+        node.setProperty(SystemPropertyKeys.paused.name(), false);
+        
+        // we'll return current trigger info
+        result = fromNode(node, true);
 
-        return result[0];
+        setLastUpdate(databaseName, tx);
+
+        return result;
     }
 
-    public static TriggerInfo drop(String databaseName, String triggerName) {
+    public static TriggerInfo drop(String databaseName, String triggerName, Transaction tx) {
         final TriggerInfo[] previous = new TriggerInfo[1];
 
-        withSystemDb(tx -> {
-            getTriggerNodes(databaseName, tx, triggerName)
-                    .forEachRemaining(node -> {
-                                previous[0] = fromNode(node, false);
-                                node.delete();
-                            });
-            
-            setLastUpdate(databaseName, tx);
-        });
+        getTriggerNodes(databaseName, tx, triggerName)
+                .forEachRemaining(node -> {
+                            previous[0] = fromNode(node, false);
+                            node.delete();
+                        });
+        
+        setLastUpdate(databaseName, tx);
 
         return previous[0];
     }
 
-    public static TriggerInfo updatePaused(String databaseName, String name, boolean paused) {
+    public static TriggerInfo updatePaused(String databaseName, String name, boolean paused, Transaction tx) {
         final TriggerInfo[] result = new TriggerInfo[1];
 
-        withSystemDb(tx -> {
-            getTriggerNodes(databaseName, tx, name)
-                    .forEachRemaining(node -> {
-                        node.setProperty( SystemPropertyKeys.paused.name(), paused );
+        getTriggerNodes(databaseName, tx, name)
+                .forEachRemaining(node -> {
+                    node.setProperty( SystemPropertyKeys.paused.name(), paused );
 
-                        // we'll return previous trigger info
-                        result[0] = fromNode(node, true);
-                    });
+                    // we'll return previous trigger info
+                    result[0] = fromNode(node, true);
+                });
 
-            setLastUpdate(databaseName, tx);
-        });
+        setLastUpdate(databaseName, tx);
 
         return result[0];
     }
 
-    public static List<TriggerInfo> dropAll(String databaseName) {
+    public static List<TriggerInfo> dropAll(String databaseName, Transaction tx) {
         final List<TriggerInfo> previous = new ArrayList<>();
 
-        withSystemDb(tx -> {
-            getTriggerNodes(databaseName, tx)
-                    .forEachRemaining(node -> {
-                        String triggerName = (String) node.getProperty(SystemPropertyKeys.name.name());
-
-                        // we'll return previous trigger info
-                        previous.add( fromNode(node, false) );
-                        node.delete();
-                    });
-            setLastUpdate(databaseName, tx);
-        });
+        getTriggerNodes(databaseName, tx)
+                .forEachRemaining(node -> {
+                    // we'll return previous trigger info
+                    previous.add( fromNode(node, false) );
+                    node.delete();
+                });
+        setLastUpdate(databaseName, tx);
 
         return previous;
     }
@@ -125,13 +114,6 @@ public class TriggerHandlerNewProcedures {
         }
         return tx.findNodes(label, dbNameKey, databaseName,
                 SystemPropertyKeys.name.name(), name);
-    }
-
-    public static void withSystemDb(Consumer<Transaction> consumer) {
-        try (Transaction tx = apocConfig().getSystemDb().beginTx()) {
-            consumer.accept(tx);
-            tx.commit();
-        }
     }
 
     private static void setLastUpdate(String databaseName, Transaction tx) {
