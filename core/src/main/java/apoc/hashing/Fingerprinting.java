@@ -315,6 +315,10 @@ public class Fingerprinting {
             for (double l : (long[]) value) {
                 sb.append(l);
             }
+        } else if (value instanceof byte[]) {
+            for (byte l : (byte[]) value) {
+                sb.append(l);
+            }
         } else {
             throw new UnsupportedOperationException("cannot yet deal with " + value.getClass().getName());
         }

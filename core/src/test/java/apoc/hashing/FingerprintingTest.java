@@ -110,6 +110,20 @@ public class FingerprintingTest  {
     }
 
     @Test
+    public void fingerprintByteArray() {
+        byte[] byteArray = "hello, world".getBytes();
+        
+        db.executeTransactionally("CREATE (n:NodeTest {value: $value})", 
+                Map.of( "value", byteArray ) );
+        
+        TestUtil.testCall(db, "MATCH (n:NodeTest) RETURN apoc.hashing.fingerprinting(n) as hash", 
+                r -> assertEquals("D41D8CD98F00B204E9800998ECF8427E", r.get("hash")));
+        
+        TestUtil.testCall(db, "MATCH (n:NodeTest) RETURN apoc.hashing.fingerprint(n) as hash",
+                r -> assertEquals("3F8674B1C91F6D033C7183DB8F90936F", r.get("hash")));
+    }
+
+    @Test
     public void testFingerprintingNodeConf() {
         db.executeTransactionally("CREATE (:Person{name:'Andrea',emails:['aa@bb.de', 'cc@dd.ee'], integers:[1,2,3], floats:[0.9,1.1]})");
         String all = TestUtil.singleResultFirstColumn(db, "MATCH (p:Person) return apoc.hashing.fingerprinting(p, $conf) as hash",
