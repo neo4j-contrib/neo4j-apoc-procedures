@@ -269,6 +269,69 @@ public class TriggerNewProceduresTest {
     }
 
     @Test
+    public void testTxIdWithRelationshipsAndAfter() {
+        db.executeTransactionally("CREATE (:RelationshipCounter {count:0})");
+        String name = UUID.randomUUID().toString();
+        
+        // We need to filter $createdRelationships, i.e. `size(..) > 0`, not to cause a deadlock
+        String query = "WITH size($createdRelationships) AS sizeRels \n" +
+                "WHERE sizeRels > 0 \n" +
+                "MATCH (c:RelationshipCounter) \n" +
+                "SET c.txId = $transactionId  SET c.count = c.count + sizeRels";
+        
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: 'after'})",
+                Map.of("name", name, "query", query));
+        awaitTriggerDiscovered(db, name, query);
+        
+        db.executeTransactionally("CREATE (a:A)<-[r:C]-(b:B)");
+        
+        testCall(db, "MATCH (n:RelationshipCounter) RETURN n",
+                this::testTxIdWithRelsAssertionsCommon);
+    }
+
+    @Test
+    public void testTxIdWithRelationshipsAndAfterAsync(){
+        testTxIdWithRelationshipsCommon("afterAsync");
+
+        testCallEventually(db, "MATCH (n:RelationshipCounter) RETURN n", 
+                this::testTxIdWithRelsAssertionsCommon, 
+                10);
+    }
+
+    private void testTxIdWithRelsAssertionsCommon(Map<String, Object> r) {
+        final Node n = (Node) r.get("n");
+        assertEquals(1L, n.getProperty("count"));
+        final long txId = (long) n.getProperty("txId");
+        assertTrue("Current txId is: " + txId, txId > -1L);
+    }
+
+    @Test
+    public void testTxIdWithRelationshipsAndBefore(){
+        testTxIdWithRelationshipsCommon("before");
+
+        testCall(db, "MATCH (n:RelationshipCounter) RETURN n", r -> {
+            final Node n = (Node) r.get("n");
+            assertEquals(-1L, n.getProperty("txId"));
+            assertEquals(1L, n.getProperty("count"));
+        });
+    }
+
+    private static void testTxIdWithRelationshipsCommon(String phase) {
+        String query = "MATCH (c:RelationshipCounter) \n" +
+                "SET c.count = c.count + size($createdRelationships) \n" +
+                "SET c.txId = $transactionId";
+
+        db.executeTransactionally("CREATE (:RelationshipCounter {count:0})");
+        String name = UUID.randomUUID().toString();
+
+        sysDb.executeTransactionally("CALL apoc.trigger.install( 'neo4j', $name, $query, {phase: $phase})",
+                Map.of("name", name, "query", query, "phase", phase));
+        awaitTriggerDiscovered(db, name, query);
+
+        db.executeTransactionally("CREATE (a:A)<-[r:C]-(b:B)");
+    }
+
+    @Test
     public void testMetaDataBefore() {
         testMetaData("before");
     }
