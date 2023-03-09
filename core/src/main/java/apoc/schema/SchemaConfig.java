@@ -7,11 +7,15 @@ import java.util.*;
  * @since 17.12.18
  */
 public class SchemaConfig {
-
-    private Set<String> labels;
-    private Set<String> excludeLabels;
-    private Set<String> relationships;
-    private Set<String> excludeRelationships;
+    private static final String LABELS_KEY = "labels";
+    private static final String EXCLUDE_LABELS_KEY = "excludeLabels";
+    private static final String RELATIONSHIPS_KEY = "relationships";
+    private static final String EXCLUDE_RELATIONSHIPS_KEY = "excludeRelationships";
+    
+    private final Set<String> labels;
+    private final Set<String> excludeLabels;
+    private final Set<String> relationships;
+    private final Set<String> excludeRelationships;
 
     public Set<String> getLabels() {
         return labels;
@@ -31,16 +35,18 @@ public class SchemaConfig {
 
     public SchemaConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
-        this.labels = new HashSet<>((Collection<String>)config.getOrDefault("labels", Collections.EMPTY_SET));
-        this.excludeLabels = new HashSet<>((Collection<String>) config.getOrDefault("excludeLabels", Collections.EMPTY_SET));
-        validateParameters(this.labels, this.excludeLabels, "labels");
-        this.relationships = new HashSet<>((Collection<String>)config.getOrDefault("relationships", Collections.EMPTY_SET));
-        this.excludeRelationships = new HashSet<>((Collection<String>)config.getOrDefault("excludeRelationships", Collections.EMPTY_SET));
-        validateParameters(this.labels, this.excludeLabels, "relationships");
+        this.labels = new HashSet<>((Collection<String>)config.getOrDefault(LABELS_KEY, Collections.EMPTY_SET));
+        this.excludeLabels = new HashSet<>((Collection<String>) config.getOrDefault(EXCLUDE_LABELS_KEY, Collections.EMPTY_SET));
+        validateParameters(this.labels, this.excludeLabels, LABELS_KEY, EXCLUDE_LABELS_KEY);
+        this.relationships = new HashSet<>((Collection<String>)config.getOrDefault(RELATIONSHIPS_KEY, Collections.EMPTY_SET));
+        this.excludeRelationships = new HashSet<>((Collection<String>)config.getOrDefault(EXCLUDE_RELATIONSHIPS_KEY, Collections.EMPTY_SET));
+        validateParameters(this.relationships, this.excludeRelationships, RELATIONSHIPS_KEY, EXCLUDE_RELATIONSHIPS_KEY);
     }
 
-    private void validateParameters(Set<String> include, Set<String> exclude, String parametrType){
+    private void validateParameters(Set<String> include, Set<String> exclude, String includeParameterType, String excludeParameterType){
         if(!include.isEmpty() && !exclude.isEmpty())
-            throw new IllegalArgumentException(String.format("Parameters %s and exclude%s are both valuated. Please check parameters and valuate only one.", parametrType, parametrType));
+            throw new IllegalArgumentException( String.format("Parameters %s and %s are both valuated. Please check parameters and valuate only one.", 
+                    includeParameterType, 
+                    excludeParameterType) );
     }
 }

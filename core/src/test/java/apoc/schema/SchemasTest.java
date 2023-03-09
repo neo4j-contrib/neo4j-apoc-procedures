@@ -668,7 +668,7 @@ public class SchemasTest {
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);
-            assertEquals("Parameters labels and excludelabels are both valuated. Please check parameters and valuate only one.", except.getMessage());
+            assertEquals("Parameters labels and excludeLabels are both valuated. Please check parameters and valuate only one.", except.getMessage());
             throw e;
         }
 
@@ -686,7 +686,7 @@ public class SchemasTest {
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);
-            assertEquals("Parameters relationships and excluderelationships are both valuated. Please check parameters and valuate only one.", except.getMessage());
+            assertEquals("Parameters relationships and excludeRelationships are both valuated. Please check parameters and valuate only one.", except.getMessage());
             throw e;
         }
     }
