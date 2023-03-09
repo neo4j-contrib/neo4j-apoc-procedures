@@ -62,7 +62,6 @@ import java.util.stream.StreamSupport;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
-import static apoc.util.Util.setKernelStatusMap;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
@@ -234,7 +233,7 @@ public class CypherExtended {
                                 Map.Entry::getValue,
                                 (v1, v2) -> (long) v1 + (long) v2));
                 // in this case we update statusDetails for each query result instead of count rows/lines
-                setKernelStatusMap(tx, true, update);
+                Util.setKernelStatus(tx, true, update);
                 queue.put(new RowResult(-1, resultMap));
             }
             return row;

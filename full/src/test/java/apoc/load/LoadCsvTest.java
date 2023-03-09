@@ -19,8 +19,6 @@
 package apoc.load;
 
 import apoc.ApocSettings;
-import apoc.export.csv.ExportCSV;
-import apoc.export.csv.ImportCsv;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -80,7 +78,6 @@ public class LoadCsvTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
                 .withSetting(ApocSettings.apoc_import_file_enabled, true)
-                .withSetting(ApocSettings.apoc_export_file_enabled, true)
                 .withSetting(GraphDatabaseSettings.load_csv_file_url_root, Paths.get(getUrlFileName("test.csv").toURI()).getParent());
 
     private GenericContainer httpServer;
@@ -89,7 +86,7 @@ public class LoadCsvTest {
     }
 
     @Before public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class, ExportCSV.class, ImportCsv.class);
+        TestUtil.registerProcedure(db, LoadCsv.class);
     }
 
     @Test public void testLoadCsv() throws Exception {

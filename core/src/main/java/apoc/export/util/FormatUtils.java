@@ -44,11 +44,11 @@ import static apoc.util.Util.map;
  */
 public class FormatUtils {
     
-    public static <T> String asListed(Map<String, T> map) {
+    public static <T> String asHyphenSeparatedList(Map<String, T> map) {
         return map.entrySet()
                 .stream()
                 .map(e -> "- " + e.getKey() + ": " + e.getValue())
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(",\n"));
     }
 
     public static String formatNumber(Number value) {

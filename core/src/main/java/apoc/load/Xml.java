@@ -83,7 +83,6 @@ import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
 import static apoc.util.Util.map;
-import static apoc.util.Util.setKernelStatusMap;
 
 public class Xml {
 
@@ -266,9 +265,9 @@ public class Xml {
 
         if (!elementMap.isEmpty()) {
             final int counter = stack.size();
-            final Map<String, Object> statusMap = map("curr. element", counter);
+            final Map<String, Object> statusMap = map("record", counter);
             statusMap.putAll(elementMap);
-            setKernelStatusMap(tx, counter, statusMap);
+            Util.setKernelStatusPeriodically(tx, counter, statusMap);
             stack.addLast(elementMap);
         }
     }
@@ -528,14 +527,14 @@ public class Xml {
             }
             statusDetail.merge("nodes", 1L, Long::sum);
             statusDetail.merge("relationships", 1L, Long::sum);
-            setKernelStatusMap(tx, ++counter, statusDetail);
+            Util.setKernelStatusPeriodically(tx, ++counter, statusDetail);
             parentAndChildPair.setPreviousChild(thisNode);
             last = thisNode;
         }
         
         public void updateNumTags() {
             statusDetail.merge("elements", 1L, Long::sum);
-            setKernelStatusMap(tx, counter, statusDetail);
+            Util.setKernelStatusPeriodically(tx, counter, statusDetail);
         }
 
         public void addCurrentCharacterIndex(int length) {

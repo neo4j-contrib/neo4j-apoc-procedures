@@ -20,6 +20,7 @@ package apoc.export.util;
 
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;
+import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Transaction;
 
@@ -27,8 +28,6 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import static apoc.util.Util.setKernelStatusMap;
 
 /**
  * @author mh
@@ -78,15 +77,11 @@ public class ProgressReporter implements Reporter {
     }
 
     public void update(long nodes, long relationships, long properties) {
-        update(nodes, relationships, properties, false);
-    }
-    
-    public void update(long nodes, long relationships, long properties, boolean updateCurrent) {
         time = System.currentTimeMillis();
         progressInfo.update(nodes, relationships, properties);
         totalEntities += nodes + relationships;
         acceptBatch();
-        updateStatus(updateCurrent);
+        updateStatus();
     }
 
     public void acceptBatch() {
@@ -139,15 +134,17 @@ public class ProgressReporter implements Reporter {
     public void nextRow() {
         this.progressInfo.nextRow();
         this.totalEntities++;
-        updateStatus(false);
+        updateStatusPeriodically();
         acceptBatch();
     }
 
-    public void updateStatus(boolean updateCurrent) {
+    private void updateStatusPeriodically() {
         final Map<String, Object> statusMap = JsonUtil.convertToMap(this.progressInfo);
-        if (updateCurrent) {
-            setKernelStatusMap(tx, true, statusMap);
-        }
-        setKernelStatusMap(tx, progressInfo.nodes + progressInfo.relationships + progressInfo.properties, statusMap);
+        Util.setKernelStatusPeriodically(tx, progressInfo.nodes + progressInfo.relationships + progressInfo.properties, statusMap);
+    }
+
+    private void updateStatus() {
+        final Map<String, Object> statusMap = JsonUtil.convertToMap(this.progressInfo);
+        Util.setKernelStatus(tx, true, statusMap);
     }
 }

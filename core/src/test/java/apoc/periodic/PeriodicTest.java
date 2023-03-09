@@ -56,6 +56,8 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static apoc.periodic.Periodic.applyPlanner;
+import static apoc.periodic.PeriodicUtils.COMMITTED;
+import static apoc.periodic.PeriodicUtils.FAILED;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
@@ -399,7 +401,8 @@ public class PeriodicTest {
         
         // test periodic iterate
         KernelTestUtils.checkStatusDetails(db, 
-                "CALL apoc.periodic.iterate('match (p:StatusIterate) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", 
+                "CALL apoc.periodic.iterate('match (p:StatusIterate) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})",
+                (row) -> row.contains(COMMITTED) && row.contains(FAILED),
                 Collections.emptyMap(), 
                 "cypher runtime=slotted match (p:StatusIterate)");
 
@@ -407,8 +410,9 @@ public class PeriodicTest {
         String query = "MATCH (p:StatusIterate) WHERE NOT p:Processed WITH p LIMIT 200 SET p:Processed RETURN count(*)";
         KernelTestUtils.checkStatusDetails(db,
                 "CALL apoc.periodic.commit($query, {})",
+                (row) -> row.contains(COMMITTED) && row.contains(FAILED),
                 map("query", query));
-        
+
         db.executeTransactionally("MATCH (s:StatusIterate) DELETE s");
     }
 

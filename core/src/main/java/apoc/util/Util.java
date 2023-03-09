@@ -1190,17 +1190,17 @@ public class Util {
         }
     }
 
-    public static <T> void setKernelStatusMap(Transaction tx, boolean updateResult, Map<String, T> map) {
+    public static <T> void setKernelStatus(Transaction tx, boolean updateResult, Map<String, T> status) {
         // we don't write anything if transaction is not an InternalTransaction
         if (updateResult && tx instanceof InternalTransaction) {
             final KernelTransaction ktx = ((InternalTransaction) tx).kernelTransaction();
-            ktx.setStatusDetails(FormatUtils.asListed(map));
+            ktx.setStatusDetails(FormatUtils.asHyphenSeparatedList(status));
         }
     }
 
-    public static <T> void setKernelStatusMap(Transaction tx, long counter, Map<String, T> map) {
+    public static <T> void setKernelStatusPeriodically(Transaction tx, long counter, Map<String, T> map) {
         boolean updateResult = counter != 0 && counter % 1000 == 0;
-        setKernelStatusMap(tx, updateResult, map);
+        setKernelStatus(tx, updateResult, map);
     }
 
     public static String toCypherMap(Map<String, Object> map) {

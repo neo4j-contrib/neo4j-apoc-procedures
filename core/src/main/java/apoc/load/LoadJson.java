@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static apoc.util.CompressionConfig.COMPRESSION;
-import static apoc.util.Util.setKernelStatusMap;
 
 public class LoadJson {
 
@@ -60,7 +59,7 @@ public class LoadJson {
                 .flatMap((value) -> {
                     if (value instanceof List) {
                         final long counter = rows.incrementAndGet();
-                        setKernelStatusMap(tx, counter, Map.of("rows", counter));
+                        Util.setKernelStatusPeriodically(tx, counter, Map.of("records", counter));
                         List list = (List) value;
                         if (list.isEmpty()) return Stream.empty();
                         if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
@@ -100,12 +99,12 @@ public class LoadJson {
         return stream.flatMap((value) -> {
             if (value instanceof Map) {
                 final long counter = rows.incrementAndGet();
-                setKernelStatusMap(tx, counter, Map.of("rows", counter));
+                Util.setKernelStatusPeriodically(tx, counter, Map.of("records", counter));
                 return Stream.of(new MapResult((Map) value));
             }
             if (value instanceof List) {
                 final long counter = rows.incrementAndGet();
-                setKernelStatusMap(tx, counter, Map.of("rows", counter));
+                Util.setKernelStatusPeriodically(tx, counter, Map.of("records", counter));
                 if (((List)value).isEmpty()) return Stream.empty();
                 if (((List) value).get(0) instanceof Map)
                     return ((List) value).stream().map((v) -> new MapResult((Map) v));

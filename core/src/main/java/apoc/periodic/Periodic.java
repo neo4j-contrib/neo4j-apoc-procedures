@@ -44,12 +44,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static apoc.periodic.PeriodicUtils.*;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType;
-import static apoc.periodic.PeriodicUtils.submitJob;
-import static apoc.periodic.PeriodicUtils.submitProc;
-import static apoc.periodic.PeriodicUtils.wrapTask;
 import static apoc.util.Util.merge;
-import static apoc.util.Util.setKernelStatusMap;
 
 public class Periodic {
     
@@ -122,8 +119,8 @@ public class Periodic {
                     return 0L;
                 }
             }), commitErrors, failedCommits, 0L);
-            setKernelStatusMap(tx, true,
-                    Map.of("successes", batches.get() - failedBatches.get(), "errors", failedBatches.get()));
+            Util.setKernelStatus(tx, true,
+                    Map.of(COMMITTED, batches.get() - failedBatches.get(), FAILED, failedBatches.get()));
             total += updates;
             if (updates > 0) executions++;
             if (log.isDebugEnabled()) {

@@ -34,7 +34,7 @@ import static org.neo4j.configuration.SettingValueParsers.BYTES;
 @RunWith(Parameterized.class)
 public class StatusDetailsTest {
 
-    private static File directory = new File("target/import");
+    private static final File directory = new File("target/import");
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -73,7 +73,7 @@ public class StatusDetailsTest {
     
     @Before
     public void before() throws Exception {
-        IntStream.range(0, 10)
+        IntStream.range(0, 20)
                 .forEach(__-> db.executeTransactionally("UNWIND range(0, 10000) AS x CREATE (:Status)"));
     }
     
@@ -88,15 +88,15 @@ public class StatusDetailsTest {
                 { "status.csv",
                         "CALL apoc.export.csv.all($file, {})",
                         "CALL apoc.import.csv([{fileName: $file, labels: ['Status']}], [], {batchSize: 500})",
-                        "CALL apoc.load.csv($file,null)" },
+                        "CALL apoc.load.csv($file,null)", "nodes", "lineNo" },
                 { "status.json",
                         "CALL apoc.export.json.all($file, {})",
-                        "CALL apoc.import.json($file, {batchSize: 500})",
-                        "CALL apoc.load.json($file)" },
+                        "CALL apoc.import.json($file, {batchSize: 100})",
+                        "CALL apoc.load.json($file)", "nodes", "records" },
                 { "status.graphml" ,
                         "MATCH (n:Status) WITH collect(n) as nodes CALL apoc.export.graphml.data(nodes, [], $file, {}) yield data RETURN 1",
-                        "CALL apoc.import.graphml($file,{readLabels:true, batchSize: 500})",
-                        null }
+                        "CALL apoc.import.graphml($file, {readLabels:true, batchSize: 100})",
+                        null, "nodes", null }
         });
     }
 
@@ -112,17 +112,25 @@ public class StatusDetailsTest {
     @Parameterized.Parameter(3)
     public String loadQuery;
 
+    @Parameterized.Parameter(4)
+    public String checkStatusImportExport;
+
+    @Parameterized.Parameter(5)
+    public String checkStatusLoad;
+
     
     @Test
     public void testImportExportStatusDetails() {
-        checkStatus(exportQuery);
-        checkStatus(importQuery);
-        checkStatus(loadQuery);
+        checkStatus(exportQuery, checkStatusImportExport);
+        checkStatus(importQuery, checkStatusImportExport);
+        checkStatus(loadQuery, checkStatusLoad);
     }
 
-    private void checkStatus(String query) {
+    private void checkStatus(String query, String checkStatus) {
         if (query != null) {
-            checkStatusDetails(db, query, Map.of("file", file));
+            checkStatusDetails(db, query,
+                    row -> row.contains(checkStatus),
+                    Map.of("file", file));
         }
     }
 }

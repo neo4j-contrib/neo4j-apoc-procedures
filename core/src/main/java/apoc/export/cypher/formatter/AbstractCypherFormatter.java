@@ -20,7 +20,6 @@ package apoc.export.cypher.formatter;
 
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ExportFormat;
-import apoc.export.util.ProgressReporter;
 import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
@@ -254,8 +253,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		});
 		addCommitToEnd(exportConfig, out, batchCount);
 
-		// because of unwind batched result, we update the statusDetail for each line
-		((ProgressReporter) reporter).update(nodeCount.get(), 0, propertiesCount.longValue(), true);
+		reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
 	}
 
 	private void closeUnwindNodes(String nodeClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Map.Entry<Set<String>, Set<String>> key, Node last) {
@@ -392,8 +390,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		});
 		addCommitToEnd(exportConfig, out, batchCount);
 
-		// because of unwind batched result, we update the statusDetail for each line 
-		((ProgressReporter) reporter).update(0, relCount.get(), propertiesCount.longValue(), true);
+		reporter.update(0, relCount.get(), propertiesCount.longValue());
 	}
 
 	private void closeUnwindRelationships(String relationshipClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, String start, String end, Map<String, Object> path, Relationship last, boolean withMultipleRels) {

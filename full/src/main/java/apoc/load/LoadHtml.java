@@ -31,7 +31,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -45,13 +44,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
 import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
-import static apoc.util.Util.setKernelStatusMap;
 
 @Extended
 public class LoadHtml {
@@ -61,9 +58,6 @@ public class LoadHtml {
 
     @Context
     public GraphDatabaseService db;
-
-    @Context
-    public Transaction tx;
 
     @Context
     public Log log;
@@ -91,9 +85,8 @@ public class LoadHtml {
             Map<String, Object> output = new HashMap<>();
             List<String> errorList = new ArrayList<>();
 
-            AtomicInteger rows = new AtomicInteger();
             query.keySet().forEach(key -> {
-                final Object value = type.get().getResult(document, query.get(key), config, errorList, log, rows, tx);
+                final Object value = type.get().getResult(document, query.get(key), config, errorList, log);
                 output.put(key, value);
             });
             if (!errorList.isEmpty()) {
@@ -126,7 +119,7 @@ public class LoadHtml {
         }
     }
 
-    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log, AtomicInteger rows, Transaction tx) {
+    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
 
         List<Map<String, Object>> elementList = new ArrayList<>();
 
@@ -141,13 +134,11 @@ public class LoadHtml {
                 if (conf.isChildren()) {
                     if(element.hasText()) result.put("text", element.ownText());
 
-                    result.put("children", getElements(element.children(), conf, errorList, log, rows, tx));
+                    result.put("children", getElements(element.children(), conf, errorList, log));
                 }
                 else {
                     if(element.hasText()) result.put("text", element.text());
                 }
-                final int counter = rows.incrementAndGet();
-                setKernelStatusMap(tx, counter, Map.of("rows", counter, "result", result));
                 elementList.add(result);
                 return null;
             });
