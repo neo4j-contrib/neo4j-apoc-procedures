@@ -1,6 +1,7 @@
 package apoc.uuid;
 
 import apoc.ApocConfig;
+import apoc.Pools;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
@@ -14,26 +15,28 @@ import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
-import org.neo4j.graphdb.schema.ConstraintDefinition;
-import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
+import org.neo4j.scheduler.JobScheduler;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_FORMAT;
+import static apoc.util.SystemDbUtil.getLastUpdate;
+import static apoc.uuid.Uuid.setExistingNodes;
+import static apoc.uuid.UuidConfig.*;
 
 public class UuidHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
@@ -43,35 +46,59 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final ApocConfig apocConfig;
     private final ConcurrentHashMap<String, UuidConfig> configuredLabelAndPropertyNames = new ConcurrentHashMap<>();
     private final ApocConfig.UuidFormatType uuidFormat;
+    private final JobScheduler jobScheduler;
+    private final Pools pools;
+
+    private JobHandle refreshUuidHandle;
+    private long lastUpdate;
+
+    public static final String APOC_UUID_REFRESH = "apoc.uuid.refresh";
 
     public static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
             " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProcedures globalProceduresRegistry) {
+    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, JobScheduler jobScheduler,
+                       Pools pools) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.apocConfig = apocConfig;
         this.uuidFormat = apocConfig.getEnumProperty(APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
+        this.jobScheduler = jobScheduler;
+        this.pools = pools;
     }
 
     @Override
     public void start() {
         if (isEnabled()) {
             refresh();
+            // not to cause breaking-change, with deprecated procedures we don't schedule the refresh()
+            Integer uuidRefresh = apocConfig.getConfig().getInteger(APOC_UUID_REFRESH, null);
+            if (uuidRefresh != null) {
+                refreshUuidHandle = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
+                            if (getLastUpdate(db.databaseName(), SystemLabels.ApocUuidMeta) > lastUpdate) {
+                                refreshAndAdd();
+                            }
+                        },
+                        uuidRefresh, uuidRefresh, TimeUnit.MILLISECONDS);
+            }
+
             databaseManagementService.registerTransactionEventListener(db.databaseName(), this);
         }
     }
 
     private boolean isEnabled() {
-        String apocUUIDEnabledDb = String.format(ApocConfig.APOC_UUID_ENABLED_DB, this.db.databaseName());
-        return apocConfig.getConfig().getBoolean(apocUUIDEnabledDb, apocConfig.getBoolean(APOC_UUID_ENABLED));
+        return UUIDHandlerNewProcedures.isEnabled(this.db.databaseName());
     }
 
     @Override
     public void stop() {
         if (isEnabled()) {
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
+
+            if (refreshUuidHandle != null) {
+                refreshUuidHandle.cancel();
+            }
         }
     }
 
@@ -135,9 +162,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     private void checkEnabled() {
-        if (!isEnabled()) {
-            throw new RuntimeException(String.format(NOT_ENABLED_ERROR, this.db.databaseName()) );
-        }
+        UUIDHandlerNewProcedures.checkEnabled(db.databaseName());
     }
 
     private String generateUuidValue() {
@@ -152,17 +177,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     public void checkConstraintUuid(Transaction tx, String label, String propertyName) {
-        Schema schema = tx.schema();
-        Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
-        boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
-            Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
-            return streamPropertyKeys.anyMatch(property -> property.equals(propertyName));
-        });
-        if (!exists) {
-            String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
-                    label.toLowerCase(), label, label.toLowerCase(), propertyName);
-            throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
-        }
+        UUIDHandlerNewProcedures.checkConstraintUuid(tx, label, propertyName);
     }
 
     public void add(Transaction tx, String label, UuidConfig config) {
@@ -188,18 +203,55 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         return configuredLabelAndPropertyNames;
     }
 
-    public void refresh() {
+
+    // we cannot refresh global configuredLabelAndPropertyNames before the forEach about `setExistingNodes`
+    // otherwise some tests like `UUIDNewProceduresTest.testUUIDSetUuidToEmptyAndRestore` could be flaky
+    // because we could populate the forEach after the beforeCommit
+    public synchronized void refreshAndAdd() {
         configuredLabelAndPropertyNames.clear();
+        ConcurrentHashMap<String, UuidConfig> localCache = provisionalRefresh();
+
+        if (Util.isWriteableInstance(db)) {
+            // add to existing nodes
+            localCache.forEach((label, conf) -> {
+                if (conf.isAddToExistingNodes()) {
+                    Map<String, Object> result = setExistingNodes(db, pools, label, conf);
+
+                    String logBatchResult = String.format(
+                            "Result of batch computation obtained from existing nodes for UUID handler with label `%s`: \n %s",
+                            label, result);
+                    log.info(logBatchResult);
+                    conf.setAddToExistingNodes(false);
+                }
+            });
+        }
+
+        configuredLabelAndPropertyNames.putAll(localCache);
+    }
+
+    public ConcurrentHashMap<String, UuidConfig> provisionalRefresh() {
+        ConcurrentHashMap<String, UuidConfig> localCache = new ConcurrentHashMap<>();
+
+        lastUpdate = System.currentTimeMillis();
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
                     .forEachRemaining(node -> {
                         final UuidConfig config =  new UuidConfig(Map.of(
-                                "uuidProperty", node.getProperty(SystemPropertyKeys.propertyName.name()),
-                                "addToSetLabels", node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false)));
-                        configuredLabelAndPropertyNames.put((String)node.getProperty(SystemPropertyKeys.label.name()), config);
+                                UUID_PROPERTY_KEY, node.getProperty(SystemPropertyKeys.propertyName.name()),
+                                ADD_TO_SET_LABELS_KEY, node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false),
+                                ADD_TO_EXISTING_NODES_KEY, node.getProperty(SystemPropertyKeys.addToExistingNodes.name(), false)
+                        ));
+                        localCache.put((String)node.getProperty(SystemPropertyKeys.label.name()), config);
                     });
             tx.commit();
         }
+        return localCache;
+    }
+
+    public void refresh() {
+        ConcurrentHashMap<String, UuidConfig> localCache = provisionalRefresh();
+        configuredLabelAndPropertyNames.clear();
+        configuredLabelAndPropertyNames.putAll(localCache);
     }
 
     public synchronized UuidConfig remove(String label) {

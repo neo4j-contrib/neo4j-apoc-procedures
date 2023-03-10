@@ -158,10 +158,14 @@ apoc.systemdb.export.metadata
 apoc.systemdb.graph
 apoc.ttl.expire
 apoc.ttl.expireIn
+apoc.uuid.create
+apoc.uuid.drop
+apoc.uuid.dropAll
 apoc.uuid.install
 apoc.uuid.list
 apoc.uuid.remove
 apoc.uuid.removeAll
+apoc.uuid.show
 apoc.any.rebind
 apoc.coll.avgDuration
 apoc.data.email

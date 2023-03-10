@@ -6,7 +6,7 @@ import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.Before;
+ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -33,7 +33,7 @@ public class UUIDTest {
             .withSetting(GraphDatabaseSettings.auth_enabled, true)
             .withSetting(ApocSettings.apoc_uuid_enabled, true);
 
-    private static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
+    public static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
     @Before
     public void setUp() throws Exception {
@@ -310,7 +310,7 @@ public class UUIDTest {
         }
     }
 
-    private void assertResult(Map<String, Object> row, String labels, boolean installed, Map<String, Object> conf) {
+    public static void assertResult(Map<String, Object> row, String labels, boolean installed, Map<String, Object> conf) {
         assertEquals(labels, row.get("label"));
         assertEquals(installed, row.get("installed"));
         assertEquals(conf, row.get("properties"));

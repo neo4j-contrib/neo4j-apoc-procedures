@@ -1,5 +1,9 @@
 ¦signature
+¦apoc.uuid.create(databaseName :: STRING?, label :: STRING?, config = {} :: MAP?) :: (batchComputationResult :: MAP?, label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
+¦apoc.uuid.drop(databaseName :: STRING?, label :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
+¦apoc.uuid.dropAll(databaseName :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ¦apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationResult :: MAP?, label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ¦apoc.uuid.list() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ¦apoc.uuid.remove(label :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ¦apoc.uuid.removeAll() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
+¦apoc.uuid.show(databaseName :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

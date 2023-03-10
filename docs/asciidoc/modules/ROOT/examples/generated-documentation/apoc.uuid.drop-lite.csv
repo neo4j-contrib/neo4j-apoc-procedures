@@ -1,0 +1,2 @@
+¦signature
+¦apoc.uuid.drop(databaseName :: STRING?, label :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

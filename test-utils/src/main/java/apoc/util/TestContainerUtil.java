@@ -9,6 +9,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.ContainerFetchException;
@@ -21,6 +23,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,7 @@ import static apoc.util.TestUtil.printFullStackTrace;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TestContainerUtil {
 
@@ -244,6 +249,43 @@ public class TestContainerUtil {
 
     public static <T> T singleResultFirstColumn(Session session, String cypher) {
         return singleResultFirstColumn(session, cypher, Map.of());
+    }
+
+    /**
+     * Check if the system LEADER and the neo4j LEADER are located in different cores
+     *
+     * @param session
+     */
+    public static void checkLeadershipBalanced(Session session) {
+        assertEventually(() -> {
+                    String query = "CALL dbms.cluster.overview() YIELD databases\n" +
+                            "WITH databases.neo4j AS neo4j, databases.system AS system\n" +
+                            "WHERE neo4j = 'LEADER' OR system = 'LEADER'\n" +
+                            "RETURN count(*)";
+
+                    return (long) singleResultFirstColumn(session, query);
+                },
+                (value) -> value == 2L, 30L, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Open a routing session for each cluster core member
+     *
+     * @param members
+     * @param sessionConsumer
+     */
+    public static void queryForEachMembers(List<Neo4jContainerExtension> members,
+                                           BiConsumer<Session, Neo4jContainerExtension> sessionConsumer) {
+
+        for (Neo4jContainerExtension container: members) {
+            // Bolt (routing) url
+            String neo4jUrl = "neo4j://localhost:" + container.getMappedPort(7687);
+
+            try (Driver driver = GraphDatabase.driver(neo4jUrl, container.getAuth());
+                 Session session = driver.session()) {
+                sessionConsumer.accept(session, container);
+            }
+        }
     }
 
 }
