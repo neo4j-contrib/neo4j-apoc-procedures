@@ -17,7 +17,7 @@ jar {
 }
 
 dependencies {
-    compile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE', {
+    compile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.9.RELEASE', {
         exclude group: 'io.netty'
     }
 }

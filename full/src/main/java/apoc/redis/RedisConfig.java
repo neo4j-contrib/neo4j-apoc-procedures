@@ -28,7 +28,7 @@ public class RedisConfig {
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
                 throw new MissingDependencyException("Cannot find the Redis client jar. \n" +
-                        "Please put the lettuce-core-6.1.1.RELEASE.jar into plugin folder. \n" +
+                        "Please put the lettuce-core-6.1.9.RELEASE.jar into plugin folder. \n" +
                         "See the documentation: https://neo4j.com/labs/apoc/4.1/database-integration/redis/");
             } catch (Exception e) {
                 throw new RuntimeException(e);
