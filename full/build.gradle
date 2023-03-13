@@ -91,8 +91,8 @@ dependencies {
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.349'
-    testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.349'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
 
     testCompile group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
@@ -123,8 +123,8 @@ dependencies {
     compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
     testCompile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
 
-    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
-    testCompile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
+    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.9.RELEASE'
+    testCompile group: 'io.lettuce', name: 'lettuce-core', version: '6.1.9.RELEASE'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
