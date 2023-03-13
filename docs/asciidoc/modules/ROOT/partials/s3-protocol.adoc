@@ -3,7 +3,7 @@
 When using the S3 protocol we need to download and copy the following jars into the plugins directory:
 
 * aws-java-sdk-core-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.12.136)
-* aws-java-sdk-s3-1.12.136.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.12.136)
+* aws-java-sdk-s3-1.12.425.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.12.425)
 * httpclient-4.5.13.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.13)
 * httpcore-4.4.15.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.15)
 * joda-time-2.10.13.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.10.13)

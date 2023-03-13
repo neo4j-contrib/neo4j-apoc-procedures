@@ -26,7 +26,7 @@ dependencies {
 
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.348'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
 
     // Test Containers
     compile group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
