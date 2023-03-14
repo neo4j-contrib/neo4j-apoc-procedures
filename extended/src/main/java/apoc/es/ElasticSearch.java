@@ -188,6 +188,6 @@ public class ElasticSearch {
     }
 
     private static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
-        return LoadJsonUtils.loadJsonStream(url, headers, payload, "", true, null, null);
+        return LoadJsonUtils.loadJsonStream(url, headers, payload, "", true, null, null, null);
     }
 }
