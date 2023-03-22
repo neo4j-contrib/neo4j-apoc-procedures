@@ -1,0 +1,18 @@
+include::partial$triggers/triggersAdmonitions.adoc[]
+
+This example assumes that an `apoc.trigger.install` has been executed, 
+and then stopped using `apoc.trigger.stop`.
+
+In this case, it is possible to restart the trigger by running the following query:
+
+[source,cypher]
+----
+CALL apoc.trigger.start('neo4j', 'count-removals');
+----
+
+.Results
+[opts="header"]
+|===
+| name | query | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {} | {} | TRUE | FALSE
+|===

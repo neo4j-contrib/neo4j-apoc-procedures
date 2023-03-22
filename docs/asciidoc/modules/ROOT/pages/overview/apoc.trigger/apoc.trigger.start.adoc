@@ -40,5 +40,9 @@ apoc.trigger.start(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
 
+[[usage-apoc.trigger.start]]
+== Usage Examples
+include::partial$usage/apoc.trigger.start.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.start,role=more information]
 

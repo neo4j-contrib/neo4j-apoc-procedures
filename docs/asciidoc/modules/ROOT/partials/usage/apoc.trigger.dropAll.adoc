@@ -1,9 +1,12 @@
-If we want to remove the trigger created by the example in xref::overview/apoc.trigger/apoc.trigger.add.adoc[], we can run the following query:
+include::partial$triggers/triggersAdmonitions.adoc[]
+
+It is possible to remove all previously installed triggers from the given database by running the following query:
 
 [source,cypher]
 ----
-CALL apoc.trigger.remove("count-removals");
+CALL apoc.trigger.dropAll('neo4j');
 ----
+
 
 .Results
 [opts="header"]

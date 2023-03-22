@@ -8,7 +8,6 @@ CALL apoc.trigger.pause("count-removals");
 .Results
 [opts="header"]
 |===
-| name             | query                                                                                     | selector | params | installed | paused
-| "count-removals" | "MATCH (c:Counter)
-SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | TRUE
+| name | query | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | TRUE
 |===

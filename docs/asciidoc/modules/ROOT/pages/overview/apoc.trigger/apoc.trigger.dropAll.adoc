@@ -39,5 +39,9 @@ apoc.trigger.dropAll(databaseName :: STRING?) :: (name :: STRING?, query :: STRI
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
 
+[[usage-apoc.trigger.dropAll]]
+== Usage Examples
+include::partial$usage/apoc.trigger.dropAll.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.dropAll,role=more information]
 

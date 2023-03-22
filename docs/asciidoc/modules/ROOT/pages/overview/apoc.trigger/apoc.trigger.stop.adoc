@@ -20,7 +20,7 @@ apoc.trigger.stop(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?,
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |databaseName|STRING?|null
 |name|STRING?|null
 |===
@@ -28,7 +28,7 @@ apoc.trigger.stop(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?,
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |name|STRING?
 |query|STRING?
 |selector|MAP?
@@ -39,6 +39,10 @@ apoc.trigger.stop(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?,
 
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
+
+[[usage-apoc.trigger.stop]]
+== Usage Examples
+include::partial$usage/apoc.trigger.stop.adoc[]
 
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.stop,role=more information]
 

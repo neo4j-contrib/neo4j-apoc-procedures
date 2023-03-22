@@ -40,5 +40,8 @@ apoc.trigger.drop(databaseName :: STRING?, name :: STRING?) :: (name :: STRING?,
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
 
-xref::background-operations/triggers.adoc[More documentation of apoc.trigger.drop,role=more information]
+[[usage-apoc.trigger.drop]]
+== Usage Examples
+include::partial$usage/apoc.trigger.drop.adoc[]
 
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.drop,role=more information]
