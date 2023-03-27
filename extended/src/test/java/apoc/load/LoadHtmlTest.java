@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -362,6 +363,19 @@ public class LoadHtmlTest {
                     assertEquals(Collections.emptyList(), value.get("invalid"));
                     assertNull(value.get(KEY_ERROR));
                     assertFalse(result.hasNext());
+                });
+    }
+
+    @Test
+    public void testHref() {
+        Map<String, Object> query = Map.of("a", "a.image");
+
+        testResult(db, "CALL apoc.load.html($url, $query) YIELD value UNWIND value.a AS row RETURN row",
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+                result -> {
+                    Map<String, Object> row = (Map<String, Object>) result.next().get("row");
+                    Map<String, Object> attributes = (Map<String, Object>) row.get("attributes");
+                    Assert.assertEquals("/wiki/File:Aap_Kaa_Hak_titles.jpg", attributes.get("href"));
                 });
     }
 
