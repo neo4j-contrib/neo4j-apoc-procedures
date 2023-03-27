@@ -147,9 +147,6 @@ public class UUIDMultiDbTest {
 
     @Test(expected = RuntimeException.class)
     public void createUUIDWithSpecificDbWithUUIDDisabled() {
-        driver.session(SessionConfig.forDatabase(dbTest))
-                .run("CREATE CONSTRAINT ON (foo:Baz) ASSERT foo.uuid IS UNIQUE");
-
         try(Session session = driver.session(SYS_CONF)) {
             session.run("CALL apoc.uuid.setup('Baz', $db) YIELD label RETURN label",
                     Map.of("db", dbTest)

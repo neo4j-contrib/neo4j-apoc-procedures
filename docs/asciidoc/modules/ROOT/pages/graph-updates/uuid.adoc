@@ -175,7 +175,7 @@ CALL apoc.uuid.show()
 Please note that, since the auto-UUID operations are eventually consistent (based on the `apoc.uuid.refresh` configuration),
 the `apoc.uuid.show` may return some UUIDs not yet added/updated/removed.
 To get the list of all of currently installed UUIDs,
-use the xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list] against the session database ("neo4j" in the above case).
+use the xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list]
 ====
 
 

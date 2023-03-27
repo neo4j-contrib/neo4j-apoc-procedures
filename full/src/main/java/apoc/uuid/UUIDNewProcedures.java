@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
 
 @Extended
@@ -25,15 +26,10 @@ public class UUIDNewProcedures {
     public Transaction tx;
 
     private void checkInSystemLeader(String databaseName) {
-        UUIDHandlerNewProcedures.checkEnabled(databaseName);
+        checkEnabled(databaseName);
         checkRefreshConfigSet();
 
         SystemDbUtil.checkInSystemLeader(db);
-    }
-
-    private void checkInSystem(String databaseName) {
-        UUIDHandlerNewProcedures.checkEnabled(databaseName);
-        SystemDbUtil.checkInSystem(db);
     }
 
     private void checkTargetDatabase(String databaseName) {
@@ -100,13 +96,10 @@ public class UUIDNewProcedures {
     }
 
 
-    // TODO - change with @SystemOnlyProcedure
-    @SystemProcedure
-    @Admin
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.uuid.show(databaseName) | it lists all eventually installed UUID handler for a database")
     public Stream<UuidInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        checkInSystem(databaseName);
+        checkEnabled(databaseName);
 
         return UUIDHandlerNewProcedures.getUuidNodes(tx, databaseName)
                 .stream()

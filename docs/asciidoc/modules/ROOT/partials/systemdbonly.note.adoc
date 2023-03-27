@@ -1,7 +1,7 @@
 
 [NOTE]
 ====
-All these procedures are intended to be executed in the system database,
+All these procedures (except the list and show ones) are intended to be executed in the system database,
 therefore they have to be used executed by opening a system database session. There are several ways of doing this:
 - when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
 - when using fabric, one can prefix their Cypher query with `USE system`
