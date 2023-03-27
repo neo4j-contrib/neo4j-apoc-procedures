@@ -17,6 +17,13 @@ CALL apoc.uuid.removeAll() yield label, installed, properties | it removes all p
 apoc.uuid.removeAll() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ----
 
+include::partial$triggers/deprecated.adoc[]
+
+[WARNING]
+====
+This procedure is not intended to be used in a cluster environment, and may act unpredictably.
+====
+
 == Output parameters
 [.procedures, opts=header]
 |===

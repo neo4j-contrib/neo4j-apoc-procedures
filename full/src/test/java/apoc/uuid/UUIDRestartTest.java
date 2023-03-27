@@ -55,7 +55,7 @@ public class UUIDRestartTest {
     public void testUuidViaInstallRunsAfterRestart() {
         db.executeTransactionally("CREATE CONSTRAINT ON (n:Person) ASSERT n.uuid IS UNIQUE");
 
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Person')");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Person')");
         awaitUuidDiscovered(db, "Person");
 
         db.executeTransactionally("CREATE (p:Person {id: 1})");

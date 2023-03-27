@@ -7,12 +7,13 @@ Use the following ones instead, which allow for better support in a cluster:
 [opts="header"]
 |===
 | deprecated procedure | new procedure
-| `apoc.uuid.install('<name>', $config)` | `apoc.uuid.create('<dbName>', '<name>', '<query>', $phase, $config)`
-| `apoc.uuid.remove('<name>')` | `apoc.uuid.drop('<dbName>', '<name>')`
+| `apoc.uuid.install('<name>', $config)` | `apoc.uuid.setup('<name>', '<query>', '<dbName>', $config)`
+| `apoc.uuid.remove('<name>')` | `apoc.uuid.drop('<name>', '<dbName>')`
 | `apoc.uuid.removeAll()` | `apoc.uuid.removeAll('<dbName>')`
 |===
 
-where `<dbName>` is the database where we want to execute the automatic UUIDs.
+where `<dbName>` is the database where we want to execute the automatic UUIDs and
+has "neo4j" as default value.
 
 xref::graph-updates/uuid.adoc#automatic-uuids[See here for more info].
 

@@ -65,13 +65,11 @@ public class UUIDClusterRoutingTest {
 
         queryForEachMembers(members, (session, container) -> {
                 String label = container.getContainerName();
-                // create constraint
-                session.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
 
                 // create note to be populated because of `addToExistingNodes` config
                 session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", label)));
 
-                final String query = "USE SYSTEM CALL apoc.uuid.create('neo4j', $label, {})";
+                final String query = "USE SYSTEM CALL apoc.uuid.setup($label, {})";
                 Map<String, Object> params = Map.of("label", label);
                 session.writeTransaction(tx -> tx.run(query, params));
         });
@@ -100,7 +98,7 @@ public class UUIDClusterRoutingTest {
 
         // drop the previus uuids
         queryForEachMembers(members, (session, container) -> {
-            String query = "USE SYSTEM CALL apoc.uuid.drop('neo4j', $label)";
+            String query = "USE SYSTEM CALL apoc.uuid.drop($label)";
             Map<String, Object> params = Map.of("label", container.getContainerName());
             session.writeTransaction(tx -> tx.run(query, params));
         });
@@ -154,29 +152,29 @@ public class UUIDClusterRoutingTest {
 
     @Test
     public void testUuidCreateAllowedOnlyInSysLeaderMember() {
-        final String query = "CALL apoc.uuid.create('neo4j', $label)";
+        final String query = "CALL apoc.uuid.setup($label)";
         uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
             (session, label) -> {
                 Map<String, Object> params = Map.of("label", label);
                 testCall(session, query, params,
                     row -> assertEquals(label, row.get("label"))
                 );
-                session.writeTransaction(tx -> tx.run("CALL apoc.uuid.drop('neo4j', $label)", params));
+                session.writeTransaction(tx -> tx.run("CALL apoc.uuid.drop($label)", params));
                 }
         );
     }
 
     @Test
     public void testUuidDropAllowedOnlyInSysLeaderMember() {
-        final String query = "CALL apoc.uuid.drop('neo4j', $label)";
+        final String query = "CALL apoc.uuid.drop($label)";
         uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
                 (session, label) -> testCallEmpty(session, query, Map.of("label", label))
         );
     }
 
     @Test
-    public void testUuidShowAllowedOnlyInSysLeaderMember() {
-        final String query = "CALL apoc.uuid.show('neo4j')";
+    public void testUuidShowAllowedInAllSysLeaderMembers() {
+        final String query = "CALL apoc.uuid.show";
         final BiConsumer<Session, String> testUuidShow = (session, name) -> testResult(session, query, Iterators::count);
         uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, testUuidShow, true);
     }
@@ -192,6 +190,7 @@ public class UUIDClusterRoutingTest {
         clusterSession.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
         for (Neo4jContainerExtension container: members) {
             // we skip READ_REPLICA members with write operations
+            // instead, we consider all members with a read only operations
             final Driver driver = readOnlyOperation
                     ? container.getDriver()
                     : getDriverIfNotReplica(container);

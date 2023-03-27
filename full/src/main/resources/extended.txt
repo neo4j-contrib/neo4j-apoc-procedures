@@ -158,7 +158,7 @@ apoc.systemdb.export.metadata
 apoc.systemdb.graph
 apoc.ttl.expire
 apoc.ttl.expireIn
-apoc.uuid.create
+apoc.uuid.setup
 apoc.uuid.drop
 apoc.uuid.dropAll
 apoc.uuid.install

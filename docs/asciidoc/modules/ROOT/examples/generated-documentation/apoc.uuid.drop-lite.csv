@@ -1,2 +1,2 @@
 ¦signature
-¦apoc.uuid.drop(databaseName :: STRING?, label :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
+¦apoc.uuid.drop(label :: STRING?, databaseName = neo4j :: STRING?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)

@@ -17,7 +17,7 @@ import static apoc.util.SystemDbUtil.checkWriteAllowed;
 @Extended
 public class Uuid {
     private static final String MSG_DEPRECATION = "Please note that the current procedure is deprecated, \n" +
-            "it's recommended to use the `apoc.uuid.create`, `apoc.uuid.drop`, `apoc.uuid.dropAll` procedures \n" +
+            "it's recommended to use the `apoc.uuid.setup`, `apoc.uuid.drop`, `apoc.uuid.dropAll` procedures executed against the 'system' database \n" +
             "instead of, respectively, `apoc.uuid.install`, `apoc.uuid.remove`, `apoc.uuid.removeAll`.";
 
     @Context
@@ -34,7 +34,7 @@ public class Uuid {
 
 
     @Deprecated
-    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.uuid.create")
+    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.uuid.setup")
     @Description("CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler\n" +
             "for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
     public Stream<UuidInstallInfo> install(@Name("label") String label, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
@@ -106,11 +106,14 @@ public class Uuid {
     public static Map<String, Object> setExistingNodes(GraphDatabaseService db, Pools pools, String label, UuidConfig uuidConfig) {
         final String uuidFunctionName = getUuidFunctionName();
 
-        return Util.inTx(db, pools, txInThread ->
-                txInThread.execute("CALL apoc.periodic.iterate(" +
-                                "\"MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN n\",\n" +
-                                "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
-                        .next()
+        return Util.inTx(db, pools, txInThread -> {
+                    String iterate = "MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN id(n) AS id";
+                    String action = "MATCH (n) WHERE id(n) = id SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()";
+                    return txInThread.execute(
+                            "CALL apoc.periodic.iterate($iterate, $action, {batchSize:10000, parallel:true})",
+                                    Map.of("iterate", iterate, "action", action))
+                            .next();
+                }
         );
     }
 

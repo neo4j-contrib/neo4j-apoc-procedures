@@ -4,19 +4,14 @@ import apoc.ApocConfig;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.schema.ConstraintDefinition;
-import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.*;
 import static apoc.SystemPropertyKeys.*;
@@ -29,7 +24,8 @@ import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 public class UUIDHandlerNewProcedures {
     public static boolean isEnabled(String databaseName) {
         String apocUUIDEnabledDb = String.format(ApocConfig.APOC_UUID_ENABLED_DB, databaseName);
-        return apocConfig().getConfig().getBoolean(apocUUIDEnabledDb, apocConfig().getBoolean(APOC_UUID_ENABLED));
+        boolean enabled = apocConfig().getBoolean(APOC_UUID_ENABLED, false);
+        return apocConfig().getConfig().getBoolean(apocUUIDEnabledDb, enabled);
     }
 
     public static void checkEnabled(String databaseName) {
@@ -62,36 +58,39 @@ public class UUIDHandlerNewProcedures {
     }
 
     public static UuidInfo drop(String databaseName, String labelName) {
-        final UuidInfo[] previous = new UuidInfo[1];
-
-        withSystemDb(tx -> {
-            getUuidNodes(tx, databaseName, Map.of(SystemPropertyKeys.label.name(), labelName))
-                    .forEachRemaining(node -> {
-                        previous[0] = new UuidInfo(node);
+        return withSystemDb(tx -> {
+            UuidInfo uuidInfo = getUuidNodes(tx, databaseName, Map.of(SystemPropertyKeys.label.name(), labelName))
+                    .stream()
+                    .map(node -> {
+                        UuidInfo info = new UuidInfo(node);
                         node.delete();
-                    });
+                        return info;
+                    })
+                    .findAny()
+                    .orElse(null);
 
             setLastUpdate(tx, databaseName, ApocUuidMeta);
-        });
 
-        return previous[0];
+            return uuidInfo;
+        });
     }
 
     public static List<UuidInfo> dropAll(String databaseName) {
-        final List<UuidInfo> previous = new ArrayList<>();
-
-        withSystemDb(tx -> {
-            getUuidNodes(tx, databaseName)
-                    .forEachRemaining(node -> {
+        return withSystemDb(tx -> {
+            List<UuidInfo> previous = getUuidNodes(tx, databaseName)
+                    .stream()
+                    .map(node -> {
                         // we'll return previous uuid info
-                        previous.add( new UuidInfo(node) );
+                        UuidInfo info = new UuidInfo(node);
                         node.delete();
-                    });
+                        return info;
+                    })
+                    .collect(Collectors.toList());
 
             setLastUpdate(tx, databaseName, ApocUuidMeta);
-        });
 
-        return previous;
+            return previous;
+        });
     }
 
     public static ResourceIterator<Node> getUuidNodes(Transaction tx, String databaseName) {
@@ -102,17 +101,11 @@ public class UUIDHandlerNewProcedures {
         return getSystemNodes(tx, databaseName, SystemLabels.ApocUuid, props);
     }
 
-    public static void checkConstraintUuid(Transaction tx, String label, String propertyName) {
-        Schema schema = tx.schema();
-        Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
-        boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
-            Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
-            return streamPropertyKeys.anyMatch(property -> property.equals(propertyName));
-        });
-        if (!exists) {
-            String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
-                    label.toLowerCase(), label, label.toLowerCase(), propertyName);
-            throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
-        }
+    public static void createConstraintUuid(Transaction tx, String label, String propertyName) {
+        tx.execute(
+                String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
+                        Util.quote(label),
+                        Util.quote(propertyName))
+        );
     }
 }

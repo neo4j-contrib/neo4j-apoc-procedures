@@ -2,4 +2,4 @@
 
 `CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties | eventually removes all previously added UUID handlers and returns uuids' information`
 ¦label:procedure[]
-¦label:apoc-core[]
+¦label:apoc-full[]

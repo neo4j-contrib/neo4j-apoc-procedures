@@ -82,7 +82,7 @@ Configuration value `apoc.uuid.format` let you choose between different UUID enc
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
-include::example$generated-documentation/apoc.uuid.create.adoc[]
+include::example$generated-documentation/apoc.uuid.setup.adoc[]
 include::example$generated-documentation/apoc.uuid.drop.adoc[]
 include::example$generated-documentation/apoc.uuid.dropAll.adoc[]
 include::example$generated-documentation/apoc.uuid.list.adoc[]
@@ -97,33 +97,34 @@ include::example$generated-documentation/apoc.uuid.show.adoc[]
 This examples assume that we are on the `neo4j` database,
 and we want to create the automatic UUIDs in that database.
 
-First create a Constraint for the Label and the Property, if you try to add a `uuid` an error occurred.
-
-[source,cypher]
-----
-CREATE CONSTRAINT ON (person:Person)
-ASSERT person.uuid IS UNIQUE
-----
 
 Add the `uuid`:
 
 [source,cypher]
 ----
-CALL apoc.uuid.create('neo4j', 'Person')
+CALL apoc.uuid.setup('Person')
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----
 
-Note that the `apoc.uuid.create`, as well as the `apoc.uuid.drop`, `apoc.uuid.dropAll`,
+Note that the `apoc.uuid.setup`, as well as the `apoc.uuid.drop`, `apoc.uuid.dropAll`,
 have to be executed in the system database.
 
 The result is:
 
-[opts="header",cols="1,1,1,1"]
+[opts="header",cols="1,1,1"]
 |===
 | label    | installed | properties
-| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true}
+| "Person" | true      | `{uuidProperty -> "uuid", addToExistingNodes -> true}`
 |===
+
+[Note]
+====
+When an `apoc.uuid.setup` procedure is executed,
+a query to create a constraint, if not exists, is automatically executed:
+`CREATE CONSTRAINT IF NOT EXISTS FOR (n:<label>) REQUIRE (n.<uuidProperty>) IS UNIQUE`
+====
+
 
 It is then possible to execute the following query, after a time defined by the configuration `apoc.uuid.refresh`:
 [source,cypher]
@@ -150,14 +151,14 @@ Result of batch computation obtained from existing nodes for UUID handler with l
 It is possible to return the full list of automatic UUIDS in a database. For example, if the UUID in the following query is created:
 [source,cypher]
 ----
-CALL apoc.uuid.create('neo4j', 'TestShow')
+CALL apoc.uuid.setup('TestShow')
 ----
 
 It is then possible to run (also in this case, after a time defined by the configuration `apoc.uuid.refresh`):
 
 [source,cypher]
 ----
-CALL apoc.uuid.show('neo4j')
+CALL apoc.uuid.show()
 ----
 
 .Results
@@ -182,7 +183,7 @@ use the xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list] against the
 
 [source,cypher]
 ----
-CALL apoc.uuid.drop('neo4j', 'Person')
+CALL apoc.uuid.drop('Person')
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----
@@ -200,7 +201,7 @@ You can also remove all the uuid installed call the procedure as:
 
 [source,cypher]
 ----
-CALL apoc.uuid.dropAll('neo4j')
+CALL apoc.uuid.dropAll()
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----

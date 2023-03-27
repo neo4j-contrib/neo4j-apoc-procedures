@@ -32,6 +32,8 @@ import static apoc.uuid.UUIDTest.assertResult;
 import static apoc.uuid.UUIDTestUtils.*;
 import static apoc.uuid.UuidConfig.*;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
+import static java.util.Collections.emptyMap;
+import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
@@ -70,7 +72,7 @@ public class UUIDNewProceduresTest {
 
     @After
     public void after() throws Exception {
-        sysDb.executeTransactionally("CALL apoc.uuid.dropAll('neo4j')");
+        sysDb.executeTransactionally("CALL apoc.uuid.dropAll");
         testCallCountEventually(db, "CALL apoc.uuid.list", 0, TIMEOUT);
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
@@ -89,7 +91,7 @@ public class UUIDNewProceduresTest {
     public void testUUID() {
         // given
         db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Person')");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Person')");
         UUIDTestUtils.awaitUuidDiscovered(db, "Person");
 
         // when
@@ -98,7 +100,7 @@ public class UUIDNewProceduresTest {
         // then
         try (Transaction tx = db.beginTx()) {
             Node company = (Node) tx.execute("MATCH (c:Company) return c").next().get("c");
-            assertTrue(!company.hasProperty("uuid"));
+            assertFalse(company.hasProperty("uuid"));
             Node person = (Node) tx.execute("MATCH (p:Person) return p").next().get("p");
             assertTrue(person.getAllProperties().containsKey("uuid"));
 
@@ -110,8 +112,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testUUIDWithSetLabel() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (p:Mario) ASSERT p.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Mario', {addToSetLabels: true}) YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Mario', 'neo4j', {addToSetLabels: true}) YIELD label RETURN label");
         awaitUuidDiscovered(db, "Mario", DEFAULT_UUID_PROPERTY, true);
 
         // when
@@ -128,7 +129,7 @@ public class UUIDNewProceduresTest {
         TestUtil.testCall(db, "MATCH (a:Peach:Mario) RETURN a.uuid as uuid",
                 row -> assertIsUUID(row.get("uuid")));
 
-        TestUtil.testCall(sysDb, "CALL apoc.uuid.drop('neo4j', 'Mario')",
+        TestUtil.testCall(sysDb, "CALL apoc.uuid.drop('Mario')",
                 (row) -> assertResult(row, "Mario", false,
                         Util.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, true)));
     }
@@ -136,8 +137,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testUUIDWithoutRemovedUuid() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:TestSetUuid) ASSERT test.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'TestSetUuid') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('TestSetUuid') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "TestSetUuid");
 
         String expectedUuid = "dab404ee-391d-11e9-b210-d663bd873d93";
@@ -157,8 +157,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testUUIDSetUuidToEmptyAndRestore() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:TestEmptyRestore) ASSERT test.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'TestEmptyRestore') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('TestEmptyRestore') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "TestEmptyRestore");
 
         String expectedUuid = "dab404ee-391d-11e9-b210-d663bd873d93";
@@ -180,8 +179,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testUUIDDeleteUuidAndRestore() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:TestRestoreDeleted) ASSERT test.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'TestRestoreDeleted') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('TestRestoreDeleted') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "TestRestoreDeleted");
         db.executeTransactionally("CREATE (n:TestRestoreDeleted {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})");
 
@@ -200,8 +198,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testUUIDSetUuidToEmpty() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:TestToEmpty) ASSERT test.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'TestToEmpty') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('TestToEmpty') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "TestToEmpty");
 
         db.executeTransactionally("CREATE (n:TestToEmpty {name:'empty'})");
@@ -221,7 +218,7 @@ public class UUIDNewProceduresTest {
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
 
         // when
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Bar') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Bar') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "Bar");
 
         // then
@@ -237,7 +234,7 @@ public class UUIDNewProceduresTest {
         db.executeTransactionally("UNWIND Range(1,10) as i CREATE(bar:Bar{id: i})");
 
         // when
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Bar')");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Bar')");
         UUIDTestUtils.awaitUuidDiscovered(db, "Bar");
 
         assertEventually(() -> {
@@ -249,21 +246,58 @@ public class UUIDNewProceduresTest {
     }
 
     @Test
-    public void testAddRemoveUuid() {
-        // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
+    public void testConstraintAutoCreation() {
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Foo') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Bar', 'neo4j', {uuidProperty: 'foo'}) YIELD label RETURN label");
 
+        // one uuid with a constraint already created
+        db.executeTransactionally("CREATE CONSTRAINT baz_uuid FOR (test:Baz) REQUIRE test.another IS UNIQUE");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Baz', 'neo4j', {uuidProperty: 'another'}) YIELD label RETURN label");
+
+        // check constraint auto-creation
+        testResult(db, "SHOW CONSTRAINTS YIELD name, type, labelsOrTypes, properties ORDER BY labelsOrTypes", res -> {
+            Map<String, Object> row = res.next();
+            constraintAssertions(row, "Bar", "foo");
+
+            row = res.next();
+            constraintAssertions(row, "Baz", "another");
+            assertEquals("baz_uuid" , row.get("name"));
+
+            row = res.next();
+            constraintAssertions(row, "Foo", "uuid");
+
+            assertFalse(res.hasNext());
+        });
+    }
+
+    private static void constraintAssertions(Map<String, Object> r, String label, String prop) {
+        assertEquals(List.of(label) , r.get("labelsOrTypes"));
+        assertEquals(List.of(prop) , r.get("properties"));
+        assertEquals("UNIQUENESS" , r.get("type"));
+    }
+
+    @Test
+    public void testSetupAndDropUuid() {
         // when
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Test', {uuidProperty: 'foo'}) YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Test', 'neo4j', {uuidProperty: 'foo'}) YIELD label RETURN label");
         awaitUuidDiscovered(db, "Test", "foo", DEFAULT_ADD_TO_SET_LABELS);
 
-        // then
-        TestUtil.testCall(db, "CALL apoc.uuid.list()",
+        testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
                         Util.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
-        TestUtil.testCall(sysDb, "CALL apoc.uuid.drop('neo4j', 'Test')",
+        testCall(sysDb, "CALL apoc.uuid.drop('Test')",
                 (row) -> assertResult(row, "Test", false,
                         Util.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
+    }
+
+    @Test
+    public void testDropNotExistingUuid() {
+        testCallEmpty(sysDb, "CALL apoc.uuid.drop('Test')", emptyMap());
+    }
+
+    @Test
+    public void testDropAllWithoutUuids() {
+        testCallEmpty(sysDb, "CALL apoc.uuid.dropAll", emptyMap());
     }
 
     @Test
@@ -273,7 +307,7 @@ public class UUIDNewProceduresTest {
 
         // when
         db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Person', {addToExistingNodes: false}) YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Person', 'neo4j', {addToExistingNodes: false}) YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "Person");
 
         // then
@@ -290,8 +324,7 @@ public class UUIDNewProceduresTest {
         db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Person') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Person') YIELD label RETURN label");
         UUIDTestUtils.awaitUuidDiscovered(db, "Person");
 
         // then
@@ -304,16 +337,14 @@ public class UUIDNewProceduresTest {
     }
 
     @Test
-    public void testRemoveAllUuid() {
+    public void testDropAllUuid() {
         // given
-        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Bar') YIELD label RETURN label");
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Test', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Bar') YIELD label RETURN label");
+        sysDb.executeTransactionally("CALL apoc.uuid.setup('Test', 'neo4j', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
         testCallCountEventually(db, "CALL apoc.uuid.list", 2, TIMEOUT);
 
         // when
-        TestUtil.testResult(sysDb, "CALL apoc.uuid.dropAll('neo4j')",
+        TestUtil.testResult(sysDb, "CALL apoc.uuid.dropAll",
                 (result) -> {
                     // then
                     Map<String, Object> row = result.next();
@@ -327,52 +358,21 @@ public class UUIDNewProceduresTest {
         testCallCountEventually(db, "CALL apoc.uuid.list", 0, TIMEOUT);
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testAddWithError() {
-        try {
-            // when
-            sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Wrong') YIELD label RETURN label");
-        } catch (RuntimeException e) {
-            // then
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT ON (wrong:Wrong) ASSERT wrong.uuid IS UNIQUE`", except.getMessage());
-            throw e;
-        }
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testAddWithErrorAndCustomField() {
-        try {
-            // when
-            sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', 'Wrong', {uuidProperty: 'foo'}) YIELD label RETURN label");
-        } catch (RuntimeException e) {
-            // then
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT ON (wrong:Wrong) ASSERT wrong.foo IS UNIQUE`", except.getMessage());
-            throw e;
-        }
-    }
-
     //
     // new test cases
     //
 
     @Test
     public void testUuidShow() {
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Show1) REQUIRE n.uuid IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Show2) REQUIRE n.uuid IS UNIQUE");
-
         String label1 = "Show1";
         String label2 = "Show2";
         String query = "MATCH (c:TestShow) SET c.count = 1";
 
-        testCall(sysDb, "CALL apoc.uuid.create('neo4j', $name)",
+        testCall(sysDb, "CALL apoc.uuid.setup($name)",
                 map("name", label1),
                 r -> assertEquals(label1, r.get("label")));
 
-        testCall(sysDb, "CALL apoc.uuid.create('neo4j', $name)",
+        testCall(sysDb, "CALL apoc.uuid.setup($name)",
                 map("name", label2),
                 r -> assertEquals(label2, r.get("label")));
 
@@ -388,14 +388,50 @@ public class UUIDNewProceduresTest {
                     row = res.next();
                     assertEquals(label2, row.get("label"));
                     assertEquals(defaultProperties, row.get("properties"));
-                    assertFalse(res.hasNext());
+                    Assert.assertFalse(res.hasNext());
                 });
     }
 
     @Test
-    public void testInstallUuidInUserDb() {
+    public void testSameNodeWithMultipleUuid() {
+        String label1 = "Show1";
+        String label2 = "Show2";
+
+        testCall(sysDb, "CALL apoc.uuid.setup($name, 'neo4j', $config)",
+                Map.of("name", label1,
+                        "config", Map.of(ADD_TO_SET_LABELS_KEY, true)
+                ),
+                r -> assertEquals(label1, r.get("label")));
+
+        testCall(sysDb, "CALL apoc.uuid.setup($name, 'neo4j', $config)",
+                Map.of("name", label2,
+                        "config", Map.of(ADD_TO_SET_LABELS_KEY, true)
+                ),
+                r -> assertEquals(label2, r.get("label")));
+
+        testCallCountEventually(db, "CALL apoc.uuid.list", 2, TIMEOUT);
+
+        db.executeTransactionally("CREATE (n:Show1)");
+
+        final String[] uuid = new String[1];
+        testCall(db, "MATCH (c:Show1) RETURN c.uuid as uuid",
+                (row) -> {
+                    uuid[0] = (String) row.get("uuid");
+                    assertIsUUID(uuid[0]);
+                }
+        );
+
+        // check that the uuid value remains unchanged
+        db.executeTransactionally("MATCH (n:Show1) SET n:Show2");
+        testCall(db, "MATCH (c:Show1:Show2) RETURN c.uuid as uuid",
+                (row) -> assertEquals(uuid[0], row.get("uuid"))
+        );
+    }
+
+    @Test
+    public void testSetupUuidInUserDb() {
         try {
-            testCall(db, "CALL apoc.uuid.create('neo4j', 'AnotherLabel')",
+            testCall(db, "CALL apoc.uuid.setup('AnotherLabel')",
                     r -> fail("Should fail because of user db execution"));
         } catch (QueryExecutionException e) {
             assertThat(e.getMessage(), Matchers.containsString(PROCEDURE_NOT_ROUTED_ERROR));
@@ -404,9 +440,9 @@ public class UUIDNewProceduresTest {
 
     // TODO - it should be removed/ignored in 5.x, due to Util.validateQuery(..) removal
     @Test
-    public void testInstallUuidInWrongDb() {
+    public void testSetupUuidInWrongDb() {
         try {
-            testCall(sysDb, "CALL apoc.uuid.create('notExistent', 'DbNotExistent')",
+            testCall(sysDb, "CALL apoc.uuid.setup('notExistent', 'DbNotExistent')",
                     r -> fail("Should fail because of database not found"));
         } catch (QueryExecutionException e) {
             assertThat(e.getMessage(), Matchers.containsString(DatabaseNotFoundException.class.getName()));
@@ -416,7 +452,7 @@ public class UUIDNewProceduresTest {
     @Test
     public void testShowUuidInUserDb() {
         try {
-            testCall(db, "CALL apoc.uuid.show('neo4j')",
+            testCall(db, "CALL apoc.uuid.show",
                     r -> fail("Should fail because of user db execution"));
         } catch (QueryExecutionException e) {
             assertThat(e.getMessage(), Matchers.containsString(NON_SYS_DB_ERROR));
@@ -424,9 +460,9 @@ public class UUIDNewProceduresTest {
     }
 
     @Test
-    public void testInstallUuidInSystemDb() {
+    public void testSetupUuidInSystemDb() {
         try {
-            testCall(sysDb, "CALL apoc.uuid.create('system', 'LabelInSystem')",
+            testCall(sysDb, "CALL apoc.uuid.setup('myName', 'system')",
                     r -> fail("Should fail because of system db pointing"));
         } catch (RuntimeException e) {
             assertThat(e.getMessage(), Matchers.containsString(BAD_TARGET_ERROR));
@@ -436,18 +472,16 @@ public class UUIDNewProceduresTest {
 
     @Test
     public void testEventualConsistencyWithMultipleListeners() {
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:EventualLabel) REQUIRE n.uuid IS UNIQUE");
-        db.executeTransactionally("CREATE CONSTRAINT FOR (n:EventualLabelTwo) REQUIRE n.uuid IS UNIQUE");
 
         final String label = "EventualLabel";
 
 
         // this does nothing, just to test consistency with multiple uuids
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', $label)",
+        sysDb.executeTransactionally("CALL apoc.uuid.setup($label)",
                 map("label", label) );
 
         // create uuid
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', $label)",
+        sysDb.executeTransactionally("CALL apoc.uuid.setup($label)",
                 map("label", label));
         UUIDTestUtils.awaitUuidDiscovered(db, label);
 
@@ -459,7 +493,7 @@ public class UUIDNewProceduresTest {
 
         // this does nothing, just to test consistency with multiple uuids
         String labelTwo = "EventualLabelTwo";
-        sysDb.executeTransactionally("CALL apoc.uuid.create('neo4j', $label)",
+        sysDb.executeTransactionally("CALL apoc.uuid.setup($label)",
                 map("label", labelTwo) );
         UUIDTestUtils.awaitUuidDiscovered(db, labelTwo);
         testCallCount(db, "CALL apoc.uuid.list", 2);
@@ -477,14 +511,14 @@ public class UUIDNewProceduresTest {
         );
     }
 
-    // to check that with new procedures like apoc.uuid.create
+    // to check that with new procedures like apoc.uuid.setup
     // we have to set `apoc.uuid.refresh`
     @Test
     public void testUuidRefreshNotSet() {
         apocConfig().setProperty(APOC_UUID_REFRESH, null);
         db.executeTransactionally("CREATE CONSTRAINT FOR (n:AnotherLabel) REQUIRE n.uuid IS UNIQUE");
         try {
-            testCall(sysDb, "CALL apoc.uuid.create('neo4j', 'AnotherLabel')",
+            testCall(sysDb, "CALL apoc.uuid.setup('AnotherLabel')",
                     r -> fail("Should fail because apoc.uuid.refresh is not set"));
         } catch (RuntimeException e) {
             assertThat(e.getMessage(), Matchers.containsString(UUID_NOT_SET));

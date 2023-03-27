@@ -1,7 +1,0 @@
-¦xref::overview/apoc.uuid/apoc.uuid.create.adoc[apoc.uuid.create icon:book[]] +
-
-`CALL apoc.uuid.install(databaseName, label, $config) | eventually adds the uuid transaction handler for the provided label and uuidProperty.
-In case the UUID handler is already present it will be replaced by the new one`
-
-¦label:procedure[]
-¦label:apoc-core[]

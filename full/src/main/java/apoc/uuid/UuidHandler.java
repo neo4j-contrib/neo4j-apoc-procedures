@@ -15,6 +15,8 @@ import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -31,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.ApocConfig.APOC_UUID_FORMAT;
@@ -177,7 +180,17 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     public void checkConstraintUuid(Transaction tx, String label, String propertyName) {
-        UUIDHandlerNewProcedures.checkConstraintUuid(tx, label, propertyName);
+        Schema schema = tx.schema();
+        Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
+        boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
+            Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
+            return streamPropertyKeys.anyMatch(property -> property.equals(propertyName));
+        });
+        if (!exists) {
+            String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
+                    label.toLowerCase(), label, label.toLowerCase(), propertyName);
+            throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
+        }
     }
 
     public void add(Transaction tx, String label, UuidConfig config) {
