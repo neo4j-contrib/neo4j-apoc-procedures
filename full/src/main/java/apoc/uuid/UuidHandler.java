@@ -227,6 +227,16 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         if (Util.isWriteableInstance(db)) {
             // add to existing nodes
             localCache.forEach((label, conf) -> {
+                // auto-create uuid constraint
+                if (conf.isCreateConstraint()) {
+                    String queryConst = String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
+                            Util.quote(label),
+                            Util.quote(conf.getUuidProperty())
+                    );
+                    db.executeTransactionally(queryConst);
+                    conf.setCreateConstraint(false);
+                }
+
                 if (conf.isAddToExistingNodes()) {
                     Map<String, Object> result = setExistingNodes(db, pools, label, conf);
 

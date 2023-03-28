@@ -7,13 +7,18 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.procedure.*;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 @Extended
 public class UUIDNewProcedures {
@@ -33,7 +38,7 @@ public class UUIDNewProcedures {
     }
 
     private void checkTargetDatabase(String databaseName) {
-        SystemDbUtil.checkTargetDatabase(databaseName, "Automatic UUIDs");
+        SystemDbUtil.checkTargetDatabase(tx, databaseName, "Automatic UUIDs");
     }
 
     private void checkRefreshConfigSet() {
@@ -54,16 +59,6 @@ public class UUIDNewProcedures {
         checkTargetDatabase(databaseName);
 
         UuidConfig uuidConfig = new UuidConfig(config);
-
-        // TODO - the ApocConfig.apocConfig().getDatabase(databaseName) has to be deleted in 5.x,
-        //  because in a cluster, not all DBMS host all the databases on them,
-        //  so we have to assume that the leader of the system database doesn't have access to this user database.
-        //  Maybe we could put it in UuidHandler.java and execute it in the refresh() method before all
-        GraphDatabaseService db = apocConfig().getDatabase(databaseName);
-        try (Transaction tx = db.beginTx()) {
-            UUIDHandlerNewProcedures.createConstraintUuid(tx, label, uuidConfig.getUuidProperty());
-            tx.commit();
-        }
 
         // unlike the apoc.uuid.install we don't return the UuidInstallInfo because we don't retrieve the `batchComputationResult` field
         UuidInfo uuidInfo = UUIDHandlerNewProcedures.create(databaseName, label, uuidConfig);
@@ -95,15 +90,21 @@ public class UUIDNewProcedures {
                 .sorted(Comparator.comparing(i -> i.label));
     }
 
-
+    // not to change with @SystemOnlyProcedure because this procedure can be executed in user dbs as well
+    // since is a read-only operation
+    @SystemProcedure
+    @Admin
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.uuid.show(databaseName) | it lists all eventually installed UUID handler for a database")
     public Stream<UuidInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkEnabled(databaseName);
 
-        return UUIDHandlerNewProcedures.getUuidNodes(tx, databaseName)
-                .stream()
-                .map(UuidInfo::new);
+        return withSystemDb(sysTx -> {
+            return UUIDHandlerNewProcedures.getUuidNodes(sysTx, databaseName)
+                    .stream()
+                    .map(UuidInfo::new)
+                    .collect(Collectors.toList());
+        }).stream();
     }
 
 }

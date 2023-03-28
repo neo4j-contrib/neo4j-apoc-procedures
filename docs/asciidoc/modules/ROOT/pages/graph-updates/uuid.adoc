@@ -121,7 +121,7 @@ The result is:
 [Note]
 ====
 When an `apoc.uuid.setup` procedure is executed,
-a query to create a constraint, if not exists, is automatically executed:
+a query to create a constraint, if not exists, is automatically executed (also in this case, after a time defined by the `apoc.uuid.refresh` config):
 `CREATE CONSTRAINT IF NOT EXISTS FOR (n:<label>) REQUIRE (n.<uuidProperty>) IS UNIQUE`
 ====
 

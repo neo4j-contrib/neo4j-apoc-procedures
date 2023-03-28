@@ -245,8 +245,10 @@ public class UUIDNewProceduresTest {
         sysDb.executeTransactionally("CALL apoc.uuid.setup('Bar', 'neo4j', {uuidProperty: 'foo'}) YIELD label RETURN label");
 
         // one uuid with a constraint already created
+        db.executeTransactionally("CREATE CONSTRAINT baz_uuid FOR (test:Baz) REQUIRE test.another IS UNIQUE");
         sysDb.executeTransactionally("CALL apoc.uuid.setup('Baz', 'neo4j', {uuidProperty: 'another'}) YIELD label RETURN label");
 
+        testCallCountEventually(db, "CALL apoc.uuid.list", 3, TIMEOUT);
         // check constraint auto-creation
         testResult(db, "SHOW CONSTRAINTS YIELD name, type, labelsOrTypes, properties ORDER BY labelsOrTypes", res -> {
             Map<String, Object> row = res.next();
@@ -358,7 +360,6 @@ public class UUIDNewProceduresTest {
     public void testUuidShow() {
         String label1 = "Show1";
         String label2 = "Show2";
-        String query = "MATCH (c:TestShow) SET c.count = 1";
 
         testCall(sysDb, "CALL apoc.uuid.setup($name)",
                 map("name", label1),
@@ -370,7 +371,6 @@ public class UUIDNewProceduresTest {
 
         // not updated
         testResult(db, "CALL apoc.uuid.show('neo4j')",
-                map("query", query, "name", label1),
                 res -> {
                     Map<String, Object> row = res.next();
                     assertEquals(label1, row.get("label"));
@@ -430,14 +430,16 @@ public class UUIDNewProceduresTest {
         }
     }
 
-    // TODO - it should be removed/ignored in 5.x, due to Util.validateQuery(..) removal
     @Test
     public void testSetupUuidInWrongDb() {
+        String dbNotExistent = "notExistent";
         try {
-            testCall(sysDb, "CALL apoc.uuid.setup('notExistent', 'DbNotExistent')",
+            testCall(sysDb, "CALL apoc.uuid.setup('notExistent', $db)",
+                    Map.of("db", dbNotExistent),
                     r -> fail("Should fail because of database not found"));
         } catch (QueryExecutionException e) {
-            assertThat(e.getMessage(), Matchers.containsString(DatabaseNotFoundException.class.getName()));
+            String expected = String.format("The user database with name '%s' does not exist", dbNotExistent);
+            assertThat(e.getMessage(), Matchers.containsString(expected));
         }
     }
 

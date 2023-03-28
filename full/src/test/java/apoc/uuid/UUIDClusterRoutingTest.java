@@ -59,7 +59,7 @@ public class UUIDClusterRoutingTest {
     }
 
     @Test
-    public void testCreateAndDropUuidWithUseSystemClause() {
+    public void testSetupAndDropUuidWithUseSystemClause() {
         // wait until members are balanced, i.e. the system LEADER and the neo4j LEADER aren't in the same member
         checkLeadershipBalanced(clusterSession);
 
@@ -69,14 +69,14 @@ public class UUIDClusterRoutingTest {
                 // create note to be populated because of `addToExistingNodes` config
                 session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", label)));
 
-                final String query = "USE SYSTEM CALL apoc.uuid.setup($label, {})";
+                final String query = "USE SYSTEM CALL apoc.uuid.setup($label)";
                 Map<String, Object> params = Map.of("label", label);
                 session.writeTransaction(tx -> tx.run(query, params));
         });
 
         String countUuids = "CALL apoc.uuid.list() YIELD label RETURN count(*)";
         assertEventually(() -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
-                (value) -> value == members.size(), 10L, TimeUnit.SECONDS);
+                (value) -> value == members.size(), 20L, TimeUnit.SECONDS);
 
         queryForEachMembers(members, (session, container) -> {
                 session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", container.getContainerName())));
@@ -93,7 +93,7 @@ public class UUIDClusterRoutingTest {
                         assertIsUUID(node.get("uuid").asString());
                         return !res.hasNext();
                     },
-                    (val) -> val, 10L, TimeUnit.SECONDS);
+                    (val) -> val, 20L, TimeUnit.SECONDS);
         }
 
         // drop the previus uuids
@@ -151,7 +151,7 @@ public class UUIDClusterRoutingTest {
     }
 
     @Test
-    public void testUuidCreateAllowedOnlyInSysLeaderMember() {
+    public void testUuidSetupAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.setup($label)";
         uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
             (session, label) -> {

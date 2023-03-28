@@ -7,6 +7,7 @@ import static apoc.util.Util.toBoolean;
 
 public class UuidConfig {
 
+    private boolean createConstraint = true;
     private boolean addToExistingNodes;
     private boolean addToSetLabels;
     private String uuidProperty;
@@ -33,6 +34,14 @@ public class UuidConfig {
 
     public boolean isAddToExistingNodes() {
         return addToExistingNodes;
+    }
+
+    public boolean isCreateConstraint() {
+        return createConstraint;
+    }
+
+    public void setCreateConstraint(boolean createConstraint) {
+        this.createConstraint = createConstraint;
     }
 
     public void setAddToExistingNodes(boolean addToExistingNodes) {

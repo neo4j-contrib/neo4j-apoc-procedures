@@ -8,10 +8,13 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.SystemPropertyKeys.database;
@@ -22,6 +25,7 @@ public class SystemDbUtil {
     public static final String NON_SYS_DB_ERROR = "The procedure should be executed against a system database.";
     public static final String PROCEDURE_NOT_ROUTED_ERROR = "No write operations are allowed directly on this database. " +
             "Writes must pass through the leader. The role of this server is: FOLLOWER";
+    public static final String DB_NOT_FOUND_ERROR = "The user database with name '%s' does not exist";
 
     public static final String BAD_TARGET_ERROR = " can only be installed on user databases.";
 
@@ -40,17 +44,6 @@ public class SystemDbUtil {
     }
 
     /**
-     * Check that the database is equal to "system"
-     *
-     * @param db
-     */
-    public static void checkInSystem(GraphDatabaseService db) {
-        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
-            throw new RuntimeException(NON_SYS_DB_ERROR);
-        }
-    }
-
-    /**
      * Check that the database name is equal to "system" and the system database can write
      *
      * @param db
@@ -63,13 +56,20 @@ public class SystemDbUtil {
     }
 
     /**
-     * Check that the database name is not equal to "system"
-     * Otherwise throws an error specifying the procedure type
+     * Check that the database exists and is not equal to "system"
      *
      * @param databaseName
      * @param type: the procedure type
      */
-    public static void checkTargetDatabase(String databaseName, String type) {
+    public static void checkTargetDatabase(Transaction tx, String databaseName, String type) {
+        final Set<String> databases = tx.execute("SHOW DATABASES", Collections.emptyMap())
+                .<String>columnAs("name")
+                .stream()
+                .collect(Collectors.toSet());
+        if (!databases.contains(databaseName)) {
+            throw new RuntimeException( String.format(DB_NOT_FOUND_ERROR, databaseName) );
+        }
+
         if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(type + BAD_TARGET_ERROR);
         }
