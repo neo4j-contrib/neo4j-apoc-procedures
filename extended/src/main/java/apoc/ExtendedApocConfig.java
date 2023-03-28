@@ -55,7 +55,7 @@ public class ExtendedApocConfig extends LifecycleAdapter
     private boolean initialized = false;
 
     private static final String DEFAULT_PATH = ".";
-    private static final String CONFIG_DIR = "config-dir=";
+    public static final String CONFIG_DIR = "config-dir=";
 
     public ExtendedApocConfig(LogService log, GlobalProcedures globalProceduresRegistry) {
         this.log = log.getInternalLog(ApocConfig.class);

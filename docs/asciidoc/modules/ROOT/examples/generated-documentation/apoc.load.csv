@@ -11,7 +11,7 @@ apoc.load.csvParams('url', {httpHeader: value}, payload, \{config}) YIELD lineNo
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.adoc[apoc.load.directory icon:book[]]
 
-apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in folder specified by urlDir or in import folder if urlDir string is empty or not specified
+apoc.load.directory('pattern', 'urlDir', \{config}) YIELD value - Loads list of all files in the folder specified by the parameter urlDir satisfying the given pattern. If the parameter urlDir is not specified or empty, the files of the import folder are loaded instead.
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.adoc[apoc.load.driver icon:book[]]
 
