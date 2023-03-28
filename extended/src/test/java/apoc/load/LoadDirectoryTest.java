@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.util.DbmsUtil;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import junit.framework.TestCase;
@@ -85,13 +86,16 @@ public class LoadDirectoryTest {
     public static void setUp() throws Exception {
         importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
         importPath = encodePath(FILE_PROTOCOL + importFolder.getPath());
+
+        DbmsUtil.setApocConfigs(temporaryFolder.getRoot(),
+                Map.of(APOC_CONFIG_JOBS_POOL_NUM_THREADS, "10",
+                        APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM,  "true"));
+
         databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
                 .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, PROCS_TO_REGISTER);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
-        apocConfig().setProperty(APOC_CONFIG_JOBS_POOL_NUM_THREADS, 10L);
 
         // create temp files and subfolder
         temporaryFolder.newFile("Foo.csv");
@@ -581,7 +585,8 @@ public class LoadDirectoryTest {
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Foo.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Bar.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
-                    assertEquals(3, rows.size());
+                    assertTrue(rows.contains(rootTempFolder + File.separator + "apoc.conf"));
+                    assertEquals(4, rows.size());
                 }
         );
     }
@@ -666,9 +671,13 @@ public class LoadDirectoryTest {
 
     private void restartDb() {
         databaseManagementService.shutdown();
+
+        DbmsUtil.setApocConfigs(temporaryFolder.getRoot(),
+                Map.of(APOC_CONFIG_JOBS_POOL_NUM_THREADS, "40"));
+
         databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
                 .build();
-        apocConfig().setProperty(APOC_CONFIG_JOBS_POOL_NUM_THREADS, 10L);
+
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, PROCS_TO_REGISTER);
@@ -685,7 +694,7 @@ public class LoadDirectoryTest {
         testCallEmpty(db, "CALL apoc.load.directory.async.removeAll()", emptyMap());
         
         restartDb();
-        // to make sure all config on
+        // to make sure all config are set
         before();
         createMultipleListeners(expected);
         testCallCount(db, "CALL apoc.load.directory.async.list", expected);
