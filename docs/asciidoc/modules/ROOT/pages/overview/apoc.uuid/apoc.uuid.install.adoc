@@ -18,7 +18,7 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 apoc.uuid.install(label :: STRING?, config = {} :: MAP?) :: (batchComputationResult :: MAP?, label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ----
 
-include::partial$triggers/deprecated.adoc[]
+include::partial$uuid/deprecated.adoc[]
 
 [WARNING]
 ====

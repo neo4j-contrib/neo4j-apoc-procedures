@@ -17,7 +17,7 @@ CALL apoc.uuid.removeAll() yield label, installed, properties | it removes all p
 apoc.uuid.removeAll() :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
 ----
 
-include::partial$triggers/deprecated.adoc[]
+include::partial$uuid/deprecated.adoc[]
 
 [WARNING]
 ====
