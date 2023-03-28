@@ -10,6 +10,7 @@ import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -222,8 +223,10 @@ public class CypherExtended {
         return stmt;
     }
 
-    private boolean isSchemaOperation(String stmt) {
-        return stmt.matches("(?is).*(create|drop)\\s+(index|constraint).*");
+    private boolean isSchemaOperation(String statement) {
+        return db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(),
+                res -> QueryExecutionType.QueryType.SCHEMA_WRITE.equals(res.getQueryExecutionType().queryType())
+        );
     }
     private boolean isPeriodicOperation(String stmt) {
         return stmt.matches("(?is).*using\\s+periodic.*") || stmt.matches("(?is).*in\\s+transactions.*");
