@@ -17,6 +17,17 @@ There are also procedures that handle automatic adding of UUID properties, via t
 The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
 Please check the following documentation to an in-depth description.
 
+
+include::partial$systemdbonly.note.adoc[]
+
+
+[WARNING]
+====
+Installing, updating or removing an automatic UUID is an eventually consistent operation.
+Therefore, they are not immediately added/updated/removed,
+but they have a refresh rate handled by the Apoc configuration `apoc.uuid.refresh=<MILLISECONDS>`
+====
+
 Enable `apoc.uuid.enabled=true` or `apoc.uuid.enabled.[DATABASE_NAME]=true` in `$NEO4J_HOME/config/apoc.conf` first.
 
 Configuration value `apoc.uuid.format` let you choose between different UUID encoding methods: `hex` (default option) or `base64`.
@@ -24,75 +35,108 @@ Configuration value `apoc.uuid.format` let you choose between different UUID enc
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
-include::example$generated-documentation/apoc.uuid.install.adoc[]
-include::example$generated-documentation/apoc.uuid.remove.adoc[]
-include::example$generated-documentation/apoc.uuid.removeAll.adoc[]
+include::example$generated-documentation/apoc.uuid.setup.adoc[]
+include::example$generated-documentation/apoc.uuid.drop.adoc[]
+include::example$generated-documentation/apoc.uuid.dropAll.adoc[]
 include::example$generated-documentation/apoc.uuid.list.adoc[]
-|===
-
-=== Config
-
-|===
-|*config* | *type* | *description*
-|addToExistingNodes | Boolean (default: true) | when installed, for the label provided, adds the UUID to the nodes already existing in your graph
-|uuidProperty | String (default: uuid) | the name of the UUID field
+include::example$generated-documentation/apoc.uuid.show.adoc[]
 |===
 
 
 === UUID Examples
 
-First create a Constraint for the Label and the Property, if you try to add a `uuid` an error occured.
+==== Create an Automatic UUID
 
-[source,cypher]
-----
-CREATE CONSTRAINT FOR (person:Person)
-REQUIRE person.uuid IS UNIQUE
-----
+This examples assume that we are on the `neo4j` database,
+and we want to create the automatic UUIDs in that database.
+
 
 Add the `uuid`:
 
 [source,cypher]
 ----
-CALL apoc.uuid.install('Person')
+CALL apoc.uuid.setup('Person')
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----
 
-The result is:
-
-[opts="header",cols="1,1,1,1"]
-|===
-| label    | installed | properties                                               | batchComputationResult
-| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true} | {wasTerminated -> false, count -> 10, batches -> 1, successes -> 1, failedOps -> 0, timeTaken -> 0, operationErrors -> {}, failedBatches -> 0}
-|===
-
-The result is Node Person that has 2 properties:
-
-image::apoc.uuid.result.png[width=800]
-
-Get all the uuid installed, call the procedure as:
-
-[source,cypher]
-----
-CALL apoc.uuid.list()
-YIELD label, installed, properties
-RETURN label, installed, properties
-----
+Note that the `apoc.uuid.setup`, as well as the `apoc.uuid.drop`, `apoc.uuid.dropAll`,
+have to be executed in the system database.
 
 The result is:
 
 [opts="header",cols="1,1,1"]
 |===
 | label    | installed | properties
-| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true}
+| "Person" | true      | `{uuidProperty -> "uuid", addToExistingNodes -> true}`
 |===
 
+[Note]
+====
+When an `apoc.uuid.setup` procedure is executed,
+a query to create a constraint, if not exists, is automatically executed (also in this case, after a time defined by the `apoc.uuid.refresh` config):
+`CREATE CONSTRAINT IF NOT EXISTS FOR (n:<label>) REQUIRE (n.<uuidProperty>) IS UNIQUE`
+====
 
-Remove the uuid installed call the procedure as:
+
+It is then possible to execute the following query, after a time defined by the configuration `apoc.uuid.refresh`:
+[source,cypher]
+----
+CREATE (n:Person {name: 'Daniel'})-[:Work]->(:Company {name: 'Neo4j'})
+----
+
+and the result will be a node `:Person` with 2 properties:
+
+image::apoc.uuid.result.png[width=800]
+
+If the default configuration `addToExistingNodes: true` is chosen,
+in background (via the `apoc.periodic.iterate` procedure) all existing nodes will also be populated with a property with uuid values.
+and, when the execution is finished,
+a log with the query result like the following will be printed:
+```
+Result of batch computation obtained from existing nodes for UUID handler with label `MyLabel`:
+{failedParams={}, committedOperations=1, batch={total=10, committed=10, failed=0, errors={}}, wasTerminated=false, batches=1, timeTaken=0, retries=0, errorMessages={}, total=1, operations={total=10, committed=10, failed=0, errors={}}, failedOperations=0, updateStatistics={nodesDeleted=0, labelsAdded=0, relationshipsCreated=0, nodesCreated=0, propertiesSet=1, relationshipsDeleted=0, labelsRemoved=0}, failedBatches=0}
+```
+
+
+==== List of Automatic UUIDs
+
+It is possible to return the full list of automatic UUIDS in a database. For example, if the UUID in the following query is created:
+[source,cypher]
+----
+CALL apoc.uuid.setup('TestShow')
+----
+
+It is then possible to run (also in this case, after a time defined by the configuration `apoc.uuid.refresh`):
 
 [source,cypher]
 ----
-CALL apoc.uuid.remove('Person')
+CALL apoc.uuid.show()
+----
+
+.Results
+
+[opts="header",cols="1,1,1,1"]
+|===
+| label    | installed | properties
+| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true} | {wasTerminated -> false, count -> 10, batches -> 1, successes -> 1, failedOps -> 0, timeTaken -> 0, operationErrors -> {}, failedBatches -> 0}
+|===
+
+
+[WARNING]
+====
+Please note that, since the auto-UUID operations are eventually consistent (based on the `apoc.uuid.refresh` configuration),
+the `apoc.uuid.show` may return some UUIDs not yet added/updated/removed.
+To get the list of all of currently installed UUIDs,
+use the xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list]
+====
+
+
+==== Remove Automatic UUIDs
+
+[source,cypher]
+----
+CALL apoc.uuid.drop('Person')
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----
@@ -110,7 +154,7 @@ You can also remove all the uuid installed call the procedure as:
 
 [source,cypher]
 ----
-CALL apoc.uuid.removeAll()
+CALL apoc.uuid.dropAll()
 YIELD label, installed, properties
 RETURN label, installed, properties
 ----

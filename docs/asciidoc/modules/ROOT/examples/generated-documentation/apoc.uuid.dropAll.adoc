@@ -1,0 +1,5 @@
+¦xref::overview/apoc.uuid/apoc.uuid.dropAll.adoc[apoc.uuid.dropAll icon:book[]] +
+
+`CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties | eventually removes all previously added UUID handlers and returns uuids' information`
+¦label:procedure[]
+¦label:apoc-extended[]

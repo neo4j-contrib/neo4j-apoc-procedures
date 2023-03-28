@@ -9,5 +9,6 @@ public enum ExtendedSystemLabels  implements Label
     Procedure,
     Function,
     ApocUuid,
+    ApocUuidMeta,
     DataVirtualizationCatalog
 }

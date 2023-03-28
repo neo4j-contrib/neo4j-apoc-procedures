@@ -768,6 +768,14 @@ CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+|xref::overview/apoc.uuid/apoc.uuid.drop.adoc[apoc.uuid.drop icon:book[]]
+
+CALL apoc.uuid.drop(databaseName, label) yield label, installed, properties \| eventually removes previously added UUID handler and returns uuid information
+|label:procedure[]
+|xref::overview/apoc.uuid/apoc.uuid.dropAll.adoc[apoc.uuid.dropAll icon:book[]]
+
+CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties \| eventually removes all previously added UUID handlers and returns uuids' information
+|label:procedure[]
 |xref::overview/apoc.uuid/apoc.uuid.install.adoc[apoc.uuid.install icon:book[]]
 
 CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult \| it will add the uuid transaction handler
@@ -784,5 +792,13 @@ CALL apoc.uuid.remove(label) yield label, installed, properties \| remove previo
 |xref::overview/apoc.uuid/apoc.uuid.removeAll.adoc[apoc.uuid.removeAll icon:book[]]
 
 CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
+|label:procedure[]
+|xref::overview/apoc.uuid/apoc.uuid.setup.adoc[apoc.uuid.setup icon:book[]]
+
+CALL apoc.uuid.setup(databaseName, label, $config) \| eventually adds the uuid transaction handler for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
+|label:procedure[]
+|xref::overview/apoc.uuid/apoc.uuid.show.adoc[apoc.uuid.show icon:book[]]
+
+CALL apoc.uuid.show(databaseName) \| it lists all eventually installed UUID handler for a database
 |label:procedure[]
 |===

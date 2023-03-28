@@ -3,8 +3,17 @@ package apoc.util;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
+
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestContainerUtil
 {
@@ -18,5 +27,26 @@ public class ExtendedTestContainerUtil
 
     public static void testCallInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer) {
         TestContainerUtil.testCallInReadTransaction(session, call, null, consumer);
+    }
+
+    /**
+     * Open a routing session for each cluster core member
+     *
+     * @param members
+     * @param sessionConsumer
+     */
+    public static void queryForEachMembers(List<Neo4jContainerExtension> members,
+                                           BiConsumer<Session, Neo4jContainerExtension> sessionConsumer) {
+
+        for (Neo4jContainerExtension container: members) {
+            // Bolt (routing) url
+            String neo4jUrl = "neo4j://localhost:" + container.getMappedPort(7687);
+            AuthToken auth = AuthTokens.basic("neo4j", container.getAdminPassword());
+
+            try (Driver driver = GraphDatabase.driver(neo4jUrl, auth);
+                 Session session = driver.session()) {
+                sessionConsumer.accept(session, container);
+            }
+        }
     }
 }
