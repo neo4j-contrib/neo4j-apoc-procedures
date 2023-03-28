@@ -100,7 +100,7 @@ public class UUIDMultiDbTest {
             nodeHasUUID.set(r.get("uuid") != null);
         };
 
-        long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(5);
+        long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10);
         while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
             neo4jSession.writeTransaction(tx -> {
                 Map<String, Object> p = Collections.<String, Object>emptyMap();

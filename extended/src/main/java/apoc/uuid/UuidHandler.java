@@ -236,21 +236,35 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             localCache.forEach((label, conf) -> {
                 // auto-create uuid constraint
                 if (conf.isCreateConstraint()) {
-                    String queryConst = String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
-                            Util.quote(label),
-                            Util.quote(conf.getUuidProperty())
-                    );
-                    db.executeTransactionally(queryConst);
+                    try {
+                        String queryConst = String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
+                                Util.quote(label),
+                                Util.quote(conf.getUuidProperty())
+                        );
+                        db.executeTransactionally(queryConst);
+                    } catch (Exception e) {
+                        log.error("Error during uuid constraint auto-creation: " + e.getMessage());
+                    }
                     conf.setCreateConstraint(false);
                 }
 
                 if (conf.isAddToExistingNodes()) {
-                    Map<String, Object> result = setExistingNodes(db, pools, label, conf);
+                    try {
+                        Map<String, Object> result = setExistingNodes(db, pools, label, conf);
 
-                    String logBatchResult = String.format(
-                            "Result of batch computation obtained from existing nodes for UUID handler with label `%s`: \n %s",
-                            label, result);
-                    log.info(logBatchResult);
+                        String logBatchResult = String.format(
+                                "Result of batch computation obtained from existing nodes for UUID handler with label `%s`: \n %s",
+                                label, result);
+                        log.info(logBatchResult);
+                    } catch (Exception e) {
+                        String errMsg;
+                        if (e.getMessage().contains( "There is no procedure with the name `apoc.periodic.iterate` registered for this database instance" )) {
+                            errMsg = "apoc core needs to be installed when using apoc.uuid.install with the flag addToExistingNodes = true";
+                        } else {
+                            errMsg = e.getMessage();
+                        }
+                        log.error("Error during uuid set to existing nodes: " + errMsg);
+                    }
                     conf.setAddToExistingNodes(false);
                 }
             });
