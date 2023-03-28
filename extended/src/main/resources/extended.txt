@@ -101,6 +101,7 @@ apoc.nlp.gcp.classify.graph
 apoc.nlp.gcp.classify.stream
 apoc.nlp.gcp.entities.graph
 apoc.nlp.gcp.entities.stream
+apoc.periodic.submitSchema
 apoc.redis.append
 apoc.redis.configGet
 apoc.redis.configSet
