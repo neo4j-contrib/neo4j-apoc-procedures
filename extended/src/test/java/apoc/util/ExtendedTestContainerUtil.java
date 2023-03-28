@@ -3,7 +3,6 @@ package apoc.util;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -12,8 +11,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestContainerUtil
 {
