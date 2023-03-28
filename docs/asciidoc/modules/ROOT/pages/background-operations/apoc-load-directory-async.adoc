@@ -1,0 +1,16 @@
+The apoc.load.directory.async procedures are used for managing triggers.
+Each trigger consists of a listener observing one or more folders which will trigger the execution of a custom cypher query.
+The following procedures can be used to add, remove and list triggers:
+
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.load.directory.async.add.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.remove.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.removeAll.adoc[]
+include::example$generated-documentation/apoc.load.directory.async.list.adoc[]
+|===
+
+
+== Usage Examples
+include::partial$usage/apoc.load.directory.async.adoc[]

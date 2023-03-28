@@ -56,6 +56,9 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref:nlp/aws.adoc[]
     ** xref:nlp/azure.adoc[]
 
+* xref:background-operations/index.adoc[]
+    ** xref::background-operations/apoc-load-directory-async.adoc[]
+
 * xref:database-introspection/index.adoc[]
     ** xref::database-introspection/config.adoc[]
     ** xref::database-introspection/monitoring.adoc[]
