@@ -52,9 +52,7 @@ public class UUIDRestartTest {
     }
 
     @Test
-    public void testUuidViaInstallRunsAfterRestart() {
-        db.executeTransactionally("CREATE CONSTRAINT ON (n:Person) ASSERT n.uuid IS UNIQUE");
-
+    public void testSetupUuidRunsAfterRestart() {
         sysDb.executeTransactionally("CALL apoc.uuid.setup('Person')");
         awaitUuidDiscovered(db, "Person");
 

@@ -22,7 +22,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 
 public class SystemDbUtil {
     public static final String SYS_NON_LEADER_ERROR = "It's not possible to write into a cluster member with a non-LEADER system database.\n";
-    public static final String NON_SYS_DB_ERROR = "The procedure should be executed against a system database.";
     public static final String PROCEDURE_NOT_ROUTED_ERROR = "No write operations are allowed directly on this database. " +
             "Writes must pass through the leader. The role of this server is: FOLLOWER";
     public static final String DB_NOT_FOUND_ERROR = "The user database with name '%s' does not exist";
