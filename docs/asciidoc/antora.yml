@@ -9,4 +9,4 @@ asciidoc:
     branch: "4.4"
     apoc-release-absolute: "4.4"
     apoc-release: "4.4.0.16"
-    json-path-version: "2.7.0"
+    json-path-version: "2.8.0"
