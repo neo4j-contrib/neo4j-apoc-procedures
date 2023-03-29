@@ -1,0 +1,2 @@
+¦signature
+¦apoc.uuid.setup(label :: STRING?, databaseName = neo4j :: STRING?, config = {} :: MAP?) :: (label :: STRING?, installed :: BOOLEAN?, properties :: MAP?)
