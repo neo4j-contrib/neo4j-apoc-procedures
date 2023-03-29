@@ -189,7 +189,7 @@ Note that the `apoc.trigger.install`, as well as the `apoc.trigger.drop`, `apoc.
 have to be executed in the system database
 
 In the example above, we put `match (n) where id(n) = id(node)` to demonstrate that the we pull the node by id into parameters.
-Anyway, we can get rid off this one and change last row with `SET node.time = date(),  node.lasts = propList`.
+Anyway, we can get rid of this one and change last row with `SET node.time = date(),  node.lasts = propList`.
 Note that we have to add the condition `AND NOT 'lasts' IN propList` to prevent an infinite loop as this `SET` will trigger this query again.
 
 Then, after a time defined by the configuration `apoc.trigger.refresh`, we can execute:

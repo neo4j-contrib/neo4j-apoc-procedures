@@ -140,7 +140,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         return session;
     }
 
-    private AuthToken getAuth() {
+    public AuthToken getAuth() {
         return getAdminPassword() != null && !getAdminPassword().isEmpty()
                 ? AuthTokens.basic("neo4j", getAdminPassword()): AuthTokens.none();
     }
