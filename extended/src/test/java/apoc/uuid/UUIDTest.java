@@ -2,24 +2,29 @@ package apoc.uuid;
 
 import apoc.create.Create;
 import apoc.periodic.Periodic;
+import apoc.util.DbmsTestUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -28,29 +33,28 @@ import static org.junit.Assert.assertFalse;
  * @author ab-larus
  * @since 05.09.18
  */
-
-/**
- * TODO:
- * Normally apocConfig() can be used to replace ApocSettings,
- * but apocConfig() doesn't exist yet in @BeforeClass and it is too late to set the config values in @Before.
- * Instead we must either find a way to mock this or
- * make it use Neo4jContainerExtension, which would work if core was a submodule
- * (currently this approach has the same issue as CoreExtendedTest.java)
- */
-@Ignore
 public class UUIDTest {
+
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true);
-            //.withSetting(ApocSettings.apoc_uuid_enabled, true);
+
     @Rule
     public DbmsRule dbWithoutApocPeriodic = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true);
-            //.withSetting(ApocSettings.apoc_uuid_enabled, true);
 
 
-    private static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
+    public static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
+
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        DbmsTestUtil.startDbWithApocConfigs(temporaryFolder,
+                Map.of(APOC_UUID_ENABLED, "true")
+        );
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -349,7 +353,7 @@ public class UUIDTest {
         }
     }
 
-    private void assertResult(Map<String, Object> row, String labels, boolean installed, Map<String, Object> conf) {
+    public static void assertResult(Map<String, Object> row, String labels, boolean installed, Map<String, Object> conf) {
         assertEquals(labels, row.get("label"));
         assertEquals(installed, row.get("installed"));
         assertEquals(conf, row.get("properties"));

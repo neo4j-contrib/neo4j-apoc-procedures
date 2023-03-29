@@ -46,9 +46,11 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                         dependencies.log().getUserLog(TTLLifeCycle.class)),
 
                 "uuid", new UuidHandler(db,
-                dependencies.databaseManagementService(),
-                dependencies.log().getUserLog(Uuid.class),
-                dependencies.apocConfig()),
+                        dependencies.databaseManagementService(),
+                        dependencies.log().getUserLog(Uuid.class),
+                        dependencies.apocConfig(),
+                        dependencies.scheduler(),
+                        dependencies.pools()),
 
                 "directory", new LoadDirectoryHandler(db,
                         dependencies.log().getUserLog(LoadDirectory.class),

@@ -1,0 +1,13 @@
+
+[NOTE]
+====
+All these procedures (except the list and show ones) are intended to be executed in the system database,
+therefore they have to be used executed by opening a system database session. There are several ways of doing this:
+- when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
+- when using fabric, one can prefix their Cypher query with `USE system`
+- when using the drivers, one can open a session directly against the system database
+
+Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the automatic UUIDs.
+Through this implementation, we can use these procedures in a cluster environment,
+by leveraging the cluster routing mechanism.
+====
