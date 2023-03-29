@@ -94,6 +94,8 @@ subprojects {
             }
         }
 
+        include '**/ExportCsvS3Test*'
+
         filter {
             setFailOnNoMatchingTests(false)
         }

@@ -49,10 +49,13 @@ public class S3TestUtil {
                 actual = readS3FileToString(s3Url);
             } catch (AmazonClientException e) {
                 if (e.getMessage().contains("The specified key does not exist")) {
+                    System.out.println("S3TestUtil.assertStringFileEquals-404");
                     return false;
                 }
+                System.out.println("S3TestUtil.assertStringFileEquals-ERR");
                 throw e;
             }
+            System.out.println("expected = " + expected + ", actual = " + actual);
             assertEquals(expected, actual);
             return true;
         }, v -> v, 30L, TimeUnit.SECONDS);
