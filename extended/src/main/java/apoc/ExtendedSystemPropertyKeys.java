@@ -22,5 +22,6 @@ public enum ExtendedSystemPropertyKeys
     // uuid handler
     label,
     addToSetLabel,
+    addToExistingNodes,
     propertyName
 }

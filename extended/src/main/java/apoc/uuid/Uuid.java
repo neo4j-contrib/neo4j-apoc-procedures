@@ -14,8 +14,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.util.SystemDbUtil.checkWriteAllowed;
+
 @Extended
 public class Uuid {
+    private static final String MSG_DEPRECATION = "Please note that the current procedure is deprecated, \n" +
+            "it's recommended to use the `apoc.uuid.setup`, `apoc.uuid.drop`, `apoc.uuid.dropAll` procedures executed against the 'system' database \n" +
+            "instead of, respectively, `apoc.uuid.install`, `apoc.uuid.remove`, `apoc.uuid.removeAll`.";
 
     @Context
     public GraphDatabaseService db;
@@ -29,23 +34,21 @@ public class Uuid {
     @Context
     public Transaction tx;
 
-    @Procedure(mode = Mode.WRITE)
+
+    @Deprecated
+    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.uuid.setup")
     @Description("CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler\n" +
             "for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
     public Stream<UuidInstallInfo> install(@Name("label") String label, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        checkWriteAllowed(MSG_DEPRECATION);
+
         UuidConfig uuidConfig = new UuidConfig(config);
         uuidHandler.checkConstraintUuid(tx, label, uuidConfig.getUuidProperty());
 
-        final String uuidFunctionName = getUuidFunctionName();
         Map<String, Object> addToExistingNodesResult = Collections.emptyMap();
         if (uuidConfig.isAddToExistingNodes()) {
             try {
-                addToExistingNodesResult = Util.inTx(db, pools, txInThread ->
-                    txInThread.execute("CALL apoc.periodic.iterate(" +
-                            "\"MATCH (n:" + sanitizeAndQuote(label) + ") RETURN n\",\n" +
-                            "\"SET n." + sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()\", {batchSize:10000, parallel:true})")
-                            .next()
-                );
+                addToExistingNodesResult = setExistingNodes(db, pools, label, uuidConfig);
             } catch (RuntimeException e) {
                 if (e.getMessage().contains( "There is no procedure with the name `apoc.periodic.iterate` registered for this database instance" )) {
                     throw new RuntimeException("apoc core needs to be installed when using apoc.uuid.install with the flag addToExistingNodes = true");
@@ -55,28 +58,34 @@ public class Uuid {
             }
         }
         uuidHandler.add(tx, label, uuidConfig);
-        return Stream.of(new UuidInstallInfo(label, true, 
-                Map.of("uuidProperty", uuidConfig.getUuidProperty(), "addToSetLabels", uuidConfig.isAddToSetLabels()), 
+        return Stream.of(new UuidInstallInfo(label, true,
+                Map.of("uuidProperty", uuidConfig.getUuidProperty(), "addToSetLabels", uuidConfig.isAddToSetLabels()),
                 addToExistingNodesResult));
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.uuid.drop")
     @Description("CALL apoc.uuid.remove(label) yield label, installed, properties | remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is")
     public Stream<UuidInfo> remove(@Name("label") String label) {
+        checkWriteAllowed(MSG_DEPRECATION);
+
         UuidConfig removed = uuidHandler.remove(label);
         if (removed == null) {
-            return Stream.of(new UuidInfo(null, false));
+            return Stream.of(new UuidInfo(false));
         }
         return Stream.of(new UuidInfo(label, false, 
                 Map.of("uuidProperty", removed.getUuidProperty(), "addToSetLabels", removed.isAddToSetLabels())));
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(mode = Mode.WRITE, deprecatedBy = "apoc.uuid.dropAll")
     @Description("CALL apoc.uuid.removeAll() yield label, installed, properties | it removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is")
     public Stream<UuidInfo> removeAll() {
+        checkWriteAllowed(MSG_DEPRECATION);
+
         Map<String, UuidConfig> removed = uuidHandler.removeAll();
         if (removed == null) {
-            return Stream.of(new UuidInfo(null, false));
+            return Stream.of(new UuidInfo(false));
         }
         return removed.entrySet().stream().map(e -> {
             final UuidConfig conf = e.getValue();
@@ -94,23 +103,6 @@ public class Uuid {
                 });
     }
 
-    public static class UuidInfo {
-        public final String label;
-        public boolean installed;
-        public Map<String, Object> properties;
-
-        UuidInfo(String label, boolean installed, Map<String, Object> properties) {
-            this.label = label;
-            this.installed = installed;
-            this.properties = properties;
-        }
-
-        UuidInfo(String label, boolean installed) {
-            this(label, installed, Collections.emptyMap());
-        }
-    }
-
-
     public static class UuidInstallInfo extends UuidInfo {
         public Map<String, Object> batchComputationResult;
 
@@ -121,9 +113,22 @@ public class Uuid {
 
     }
 
-    private String getUuidFunctionName() {
-        ExtendedApocConfig.UuidFormatType formatType = ExtendedApocConfig.extendedApocConfig().getEnumProperty(ExtendedApocConfig.APOC_UUID_FORMAT,
-                ExtendedApocConfig.UuidFormatType.class, ExtendedApocConfig.UuidFormatType.hex);
+    public static Map<String, Object> setExistingNodes(GraphDatabaseService db, Pools pools, String label, UuidConfig uuidConfig) {
+        final String uuidFunctionName = getUuidFunctionName();
+
+        return Util.inTx(db, pools, txInThread -> {
+                    String iterate = "MATCH (n:" + sanitizeAndQuote(label) + ") RETURN id(n) AS id";
+                    String action = "MATCH (n) WHERE id(n) = id SET n." + sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()";
+                    return txInThread.execute(
+                            "CALL apoc.periodic.iterate($iterate, $action, {batchSize:10000, parallel:true})",
+                                    Map.of("iterate", iterate, "action", action))
+                            .next();
+                }
+        );
+    }
+
+    public static String getUuidFunctionName() {
+        ExtendedApocConfig.UuidFormatType formatType = ExtendedApocConfig.extendedApocConfig().getEnumProperty(ExtendedApocConfig.APOC_UUID_FORMAT, ExtendedApocConfig.UuidFormatType.class, ExtendedApocConfig.UuidFormatType.hex);
         switch(formatType) {
             case base64:
                 return "apoc.create.uuidBase64";
