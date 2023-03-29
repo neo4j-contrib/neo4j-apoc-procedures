@@ -2,6 +2,7 @@ package apoc.util;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hamcrest.Matcher;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -145,6 +146,12 @@ public class TestUtil {
         } catch (RuntimeException e) {
             throw e;
         }
+    }
+
+    public static void assertError(Exception e, String errorMessage, Class<? extends Exception> exceptionType, String apocProcedure) {
+        final Throwable rootCause = ExceptionUtils.getRootCause(e);
+        assertTrue(apocProcedure + " should throw an instance of " + exceptionType.getSimpleName(), exceptionType.isInstance(rootCause));
+        assertEquals(apocProcedure + " should throw the following message ", errorMessage, rootCause.getMessage());
     }
 
     public static void registerProcedure(GraphDatabaseService db, Class<?>...procedures) {
