@@ -116,6 +116,9 @@ public class Util {
     public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
     public static final int REDIRECT_LIMIT = 10;
 
+    public static String INVALID_QUERY_MODE_ERROR = "This procedure allows for READ-only, non-schema based queries. " +
+            "It is therefore not possible to perform writes or query the database with commands such as SHOW CONSTRAINTS/INDEXES.";
+
     public static String labelString(List<String> labelNames) {
         return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
     }

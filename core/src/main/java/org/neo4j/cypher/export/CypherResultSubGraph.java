@@ -4,12 +4,14 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.IndexType;
+import org.neo4j.graphdb.security.AuthorizationViolationException;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
 import static org.neo4j.internal.helpers.collection.Iterators.loop;
 
 public class CypherResultSubGraph implements SubGraph
@@ -52,13 +54,15 @@ public class CypherResultSubGraph implements SubGraph
     {
         final CypherResultSubGraph graph = new CypherResultSubGraph();
         final List<String> columns = result.columns();
-        for ( Map<String, Object> row : loop( result ) )
-        {
-            for ( String column : columns )
-            {
-                final Object value = row.get( column );
-                graph.addToGraph( value );
+        try {
+            for (Map<String, Object> row : loop(result)) {
+                for (String column : columns) {
+                    final Object value = row.get(column);
+                    graph.addToGraph(value);
+                }
             }
+        } catch (AuthorizationViolationException e) {
+            throw new RuntimeException(INVALID_QUERY_MODE_ERROR);
         }
         for ( IndexDefinition def : tx.schema().getIndexes() )
         {

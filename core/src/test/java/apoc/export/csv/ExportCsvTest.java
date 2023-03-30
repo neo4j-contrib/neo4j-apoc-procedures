@@ -8,10 +8,12 @@ import apoc.meta.Meta;
 import apoc.util.CompressionConfig;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
@@ -32,7 +34,9 @@ import static apoc.util.CompressionAlgo.DEFLATE;
 import static apoc.util.CompressionAlgo.GZIP;
 import static apoc.util.CompressionAlgo.NONE;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.assertError;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
@@ -314,6 +318,32 @@ public class ExportCsvTest {
                 });
         assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, readFile(fileName));
     }
+
+    @Test
+    public void testExportCsvAdminOperationErrorMessage() {
+        String filename = "test.csv";
+        List<String> invalidQueries = List.of(
+                "SHOW CONSTRAINTS YIELD id, name, type RETURN *",
+                "SHOW INDEXES YIELD id, name, type RETURN *"
+        );
+
+        for (String query : invalidQueries) {
+            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
+                    () -> TestUtil.testCall(db, "" +
+                        "CALL apoc.export.csv.query(" +
+                        "$query," +
+                        "$file," +
+                        "{quotes: false}" +
+                        ")",
+                            map("query", query, "file", filename),
+                            (r) -> {}
+                    )
+            );
+
+            assertError(e, INVALID_QUERY_MODE_ERROR, RuntimeException.class, "apoc.export.csv.query");
+        }
+    }
+
 
     @Test
     public void testExportQueryNodesCsv() throws Exception {

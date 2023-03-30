@@ -17,6 +17,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.security.AuthorizationViolationException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -39,6 +40,7 @@ import static apoc.export.util.MetaInformation.collectPropTypesForNodes;
 import static apoc.export.util.MetaInformation.collectPropTypesForRelationships;
 import static apoc.export.util.MetaInformation.getLabelsString;
 import static apoc.export.util.MetaInformation.updateKeyTypes;
+import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
 import static apoc.util.Util.joinLabels;
 
 /**
@@ -113,7 +115,7 @@ public class CsvFormat implements Format {
     }
 
     public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) {
-        try (Transaction tx = db.beginTx(); PrintWriter printWriter = writer.getPrintWriter("csv");) {
+        try (Transaction tx = db.beginTx(); PrintWriter printWriter = writer.getPrintWriter("csv")) {
             CSVWriter out = getCsvWriter(printWriter, config);
             String[] header = writeResultHeader(result, out);
 
@@ -132,6 +134,8 @@ public class CsvFormat implements Format {
             tx.commit();
             reporter.done();
             return reporter.getTotal();
+        } catch (AuthorizationViolationException e) {
+            throw new RuntimeException(INVALID_QUERY_MODE_ERROR);
         }
     }
 

@@ -8,6 +8,7 @@ import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,8 +49,10 @@ import static apoc.export.graphml.ExportGraphMLTestUtil.setUpGraphMl;
 import static apoc.util.BinaryTestUtil.getDecompressedData;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.assertError;
 import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -787,5 +790,30 @@ public class ExportGraphMLTest {
                     assertStreamResults(r, "database");
                     assertXMLEquals(getDecompressedData(algo, r.get("data")), EXPECTED_FALSE);
                 });
+    }
+
+    @Test
+    public void testExportGraphmlAdminOperationErrorMessage() {
+        String filename = "test.xml";
+        List<String> invalidQueries = List.of(
+                "SHOW CONSTRAINTS YIELD id, name, type RETURN *",
+                "SHOW INDEXES YIELD id, name, type RETURN *"
+        );
+
+        for (String query : invalidQueries) {
+            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
+                    () -> TestUtil.testCall(db, "" +
+                        "CALL apoc.export.graphml.query(" +
+                        "$query," +
+                        "$file," +
+                        "{}" +
+                        ")",
+                            map("query", query, "file", filename),
+                            (r) -> {}
+                    )
+            );
+
+            assertError(e, INVALID_QUERY_MODE_ERROR, RuntimeException.class, "apoc.export.graphml.query");
+        }
     }
 }
