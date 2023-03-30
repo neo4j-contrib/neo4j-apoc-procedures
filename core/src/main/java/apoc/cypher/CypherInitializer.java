@@ -8,6 +8,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
@@ -18,7 +21,10 @@ import java.util.Collection;
 
 import java.util.ConcurrentModificationException;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
 
 public class CypherInitializer implements AvailabilityListener {
 
@@ -58,9 +64,11 @@ public class CypherInitializer implements AvailabilityListener {
         Util.newDaemonThread(() -> {
             try {
                 final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
-                if (!isSystemDatabase) {
-                    awaitApocProceduresRegistered();
-                }
+
+                awaitUntil(() -> isSystemDatabase
+                        ? allLabelsPresents()
+                        : areApocProceduresRegistered()
+                );
 
                 if (defaultDb.equals(db.databaseName())) {
                     try {
@@ -131,9 +139,38 @@ public class CypherInitializer implements AvailabilityListener {
         }
     }
 
-    private void awaitApocProceduresRegistered() {
-        while (!areApocProceduresRegistered()) {
+    private void awaitUntil(BooleanSupplier supplier) {
+        while ( !supplier.getAsBoolean() ) {
             Util.sleep(100);
+        }
+    }
+
+    private boolean allLabelsPresents() {
+        Set<String> allSysLabels = Set.of("Database",
+                "DatabaseName",
+                "Version",
+                "User",
+                "DatabaseAll",
+                "LabelQualifierAll",
+                "RelationshipQualifierAll",
+                "DatabaseQualifier",
+                "Resource",
+                "Privilege",
+                "DatabaseDefault",
+                "ProcedureQualifierAll",
+                "FunctionQualifierAll",
+                "UserQualifierAll",
+                "Role",
+                "Segment"
+        );
+
+        try (Transaction tx = db.beginTx()) {
+            Iterable<Label> allLabels = tx.getAllLabels();
+            Set<String> currentSysLabel = Iterables.stream(allLabels)
+                    .map(Label::name)
+                    .collect(Collectors.toSet());
+
+            return currentSysLabel.containsAll(allSysLabels);
         }
     }
 
