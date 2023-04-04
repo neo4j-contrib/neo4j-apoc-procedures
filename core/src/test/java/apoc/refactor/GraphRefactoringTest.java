@@ -389,6 +389,23 @@ public class GraphRefactoringTest {
                     assertEquals(2L, node.getProperty("ID"));
                 });
     }
+    
+    @Test
+    public void testMergeNodesShouldNotFailWithSamePropKeysConstraints() {
+        db.executeTransactionally("CREATE CONSTRAINT FOR (a:A) REQUIRE a.prop1 IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT FOR (a:B) REQUIRE a.prop1 IS UNIQUE");
+        long id = db.executeTransactionally("CREATE (a:A {prop1: 1}), (:B {prop1: 1}) RETURN id(a) as id", emptyMap(),
+                r -> Iterators.single(r.columnAs("id")));
+        testCall(db, "MATCH (a:A {prop1:1}), (b:B {prop1:1})\n" +
+                        "CALL apoc.refactor.mergeNodes([a, b]) YIELD node RETURN node;",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertTrue(node.hasLabel(label("A")));
+                    assertTrue(node.hasLabel(label("B")));
+                    assertEquals(1L, node.getProperty("prop1"));
+                });
+    }
 
     @Test
     public void testMergeNodesEagerAggregation() throws Exception {
