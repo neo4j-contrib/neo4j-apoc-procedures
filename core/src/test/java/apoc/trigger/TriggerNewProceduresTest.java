@@ -3,6 +3,7 @@ package apoc.trigger;
 import apoc.nodes.Nodes;
 import apoc.schema.Schemas;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -116,7 +117,7 @@ public class TriggerNewProceduresTest {
         db.executeTransactionally("CREATE (:Counter {count:0})");
         db.executeTransactionally("CREATE (f:Foo)");
         final String name = "count-removals";
-        final String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])";
+        final String query = "MATCH (c:Counter) SET c.count = c.count + size($deletedNodes)";
         sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {})",
                 Map.of("name", name, "query", query));
         awaitTriggerDiscovered(db, name, query);
@@ -588,6 +589,54 @@ public class TriggerNewProceduresTest {
     //
     // new test cases
     //
+
+    @Test
+    public void testTriggerShouldNotCauseCascadeTransactionWithPhaseBefore() {
+        testCascadeTransactionCommon("before");
+    }
+
+    @Test
+    public void testTriggerShouldNotCauseCascadeTransactionWithPhaseAfter() {
+        testCascadeTransactionCommon("after");
+    }
+
+    @Test
+    public void testTriggerShouldNotCauseCascadeTransactionWithPhaseAfterAsync() {
+        testCascadeTransactionCommon("afterAsync");
+    }
+
+    private static void testCascadeTransactionCommon(String phase) {
+        db.executeTransactionally("CREATE (:TransactionCounter {count:0});");
+
+        // create the trigger
+        String query = "MATCH (c:TransactionCounter) SET c.count = c.count + 1";
+        String name = "count-relationships";
+
+        sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase: $phase})",
+                Map.of("name", name, "query", query, "phase", phase)
+        );
+
+        awaitTriggerDiscovered(db, name, query);
+
+        String countQuery = "MATCH (n:TransactionCounter) RETURN n.count as count";
+        long countBefore = singleResultFirstColumn(db, countQuery);
+        assertEquals(0L, countBefore);
+
+        // activate the trigger handler
+        db.executeTransactionally("CREATE (a:A)");
+
+        // assert that `count` eventually increment by 1
+        assertEventually(() -> (long) singleResultFirstColumn(db, countQuery),
+                (value) -> value == 1L,
+                10L, TimeUnit.SECONDS);
+
+        // assert that `count` remains 1 and doesn't increment in subsequent transactions
+        for (int i = 0; i < 10; i++) {
+            long count = singleResultFirstColumn(db, countQuery);
+            assertEquals(1L, count);
+            Util.sleep(100);
+        }
+    }
 
     @Test
     public void testTriggerShow() {
