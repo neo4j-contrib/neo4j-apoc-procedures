@@ -25,6 +25,7 @@ import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -43,6 +44,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 
 public class ArrowTest {
@@ -113,6 +117,12 @@ public class ArrowTest {
     public static void beforeClass() {
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         TestUtil.registerProcedure(db, ExportArrow.class, LoadArrow.class, Graphs.class, Meta.class);
+    }
+
+    @Before
+    public void before() {
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     private byte[] extractByteArray(Result result) {
@@ -263,6 +273,20 @@ public class ArrowTest {
 
     @Test
     public void testStreamRoundtripArrowAll() {
+        testStreamRoundtripAllCommon();
+    }
+
+    @Test
+    public void testStreamRoundtripArrowAllWithImportExportConfsDisabled() {
+        // disable both export and import configs
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
+
+        // should work regardless of the previous config
+        testStreamRoundtripAllCommon();
+    }
+
+    private void testStreamRoundtripAllCommon() {
         // given - when
         final byte[] byteArray = db.executeTransactionally("CALL apoc.export.arrow.stream.all() YIELD value AS byteArray ",
                 Map.of(),
