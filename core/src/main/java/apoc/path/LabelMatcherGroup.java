@@ -24,6 +24,7 @@ public class LabelMatcherGroup {
     private LabelMatcher blacklistMatcher = new LabelMatcher();
     private LabelMatcher endNodeMatcher = new LabelMatcher();
     private LabelMatcher terminatorNodeMatcher = new LabelMatcher();
+    private LabelMatcher blockerNodeMatcher = new LabelMatcher();
 
     public LabelMatcherGroup addLabels(String fullFilterString) {
         if (fullFilterString !=  null && !fullFilterString.isEmpty()) {
@@ -52,6 +53,10 @@ public class LabelMatcherGroup {
                 case '/':
                     endNodesOnly = true;
                     matcher = terminatorNodeMatcher;
+                    filterString = filterString.substring(1);
+                    break;
+                case '!':
+                    matcher = blockerNodeMatcher;
                     filterString = filterString.substring(1);
                     break;
                 case '-':
@@ -84,6 +89,10 @@ public class LabelMatcherGroup {
 
         if (endNodeMatcher.matchesLabels(nodeLabels)) {
             return belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
+        }
+
+        if (blockerNodeMatcher.matchesLabels(nodeLabels)) {
+            return INCLUDE_AND_PRUNE;
         }
 
         if (whitelistMatcher.isEmpty() || whitelistMatcher.matchesLabels(nodeLabels)) {
