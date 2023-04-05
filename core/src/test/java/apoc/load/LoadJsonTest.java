@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
+import static apoc.export.json.ImportJsonTest.LARGE_REMOTE_FILE;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
@@ -418,8 +419,8 @@ public class LoadJsonTest {
 
     @Test
     public void shouldTerminateLoadJson()  {
-        URL url = ClassLoader.getSystemResource("exportJSON/testTerminate.json");
         checkTerminationGuard(db, "CALL apoc.load.json($file)",
-                Map.of("file", url.toString()));
+                Map.of("file", LARGE_REMOTE_FILE)
+        );
     }
 }

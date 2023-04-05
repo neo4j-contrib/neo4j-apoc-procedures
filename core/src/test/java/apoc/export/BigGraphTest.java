@@ -8,6 +8,7 @@ import apoc.export.json.ExportJson;
 import apoc.export.json.ImportJson;
 import apoc.graph.Graphs;
 import apoc.meta.Meta;
+import apoc.periodic.PeriodicTestUtils;
 import apoc.refactor.GraphRefactoring;
 import apoc.refactor.rename.Rename;
 import apoc.util.TestUtil;
@@ -29,7 +30,8 @@ import java.util.stream.IntStream;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TransactionTestUtil.checkTerminationGuard;
+import static apoc.util.TransactionTestUtil.*;
+import static java.util.Collections.emptyMap;
 import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
 import static org.neo4j.configuration.SettingValueParsers.BYTES;
 
@@ -79,7 +81,11 @@ public class BigGraphTest {
 
     @Test
     public void testTerminateRenameNodeProp() {
-        checkTerminationGuard(db, "CALL apoc.refactor.rename.nodeProperty('name', 'nameTwo')");
+        // this procedure leverage the apoc.periodic.iterate, so we should check in the same way
+        String innerLongQuery = "match (n) where n.`name` IS NOT NULL return n";
+        String query = "CALL apoc.refactor.rename.nodeProperty('name', 'nameTwo')";
+
+        PeriodicTestUtils.testTerminateWithCommand(db, query, innerLongQuery);
     }
 
     @Test
@@ -88,14 +94,20 @@ public class BigGraphTest {
     }
 
     @Test
-    public void testTerminateRefactorProcs() {
+    public void testTerminateRefactorCloneNodes() {
         List<Node> nodes = db.executeTransactionally("MATCH (n:Person) RETURN collect(n) as nodes", Collections.emptyMap(),
                 r -> r.<List<Node>>columnAs("nodes").next());
         
-        checkTerminationGuard(db, "CALL apoc.refactor.cloneNodes($nodes)", 
+        checkTerminationGuard(db, "CALL apoc.refactor.cloneNodes($nodes)",
                 Map.of("nodes", nodes));
+    }
+
+    @Test
+    public void testTerminateRefactorCloneSubgraph() {
+        List<Node> nodes = db.executeTransactionally("MATCH (n:Person) RETURN collect(n) as nodes", Collections.emptyMap(),
+                r -> r.<List<Node>>columnAs("nodes").next());
 
         checkTerminationGuard(db, "CALL apoc.refactor.cloneSubgraph($nodes)",
-                Map.of("nodes", nodes));
+                Map.of("nodes", Util.rebind(nodes, db.beginTx())));
     }
 }

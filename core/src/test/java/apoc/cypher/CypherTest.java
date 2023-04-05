@@ -212,7 +212,7 @@ public class CypherTest {
         TestUtil.testCall(db, query,
                 Map.of("innerQuery", innerLongQuery),
                 row -> assertEquals(Map.of("0", 0L), row.get("value")));
-        
+
         lastTransactionChecks(db, query, timeBefore);
     }
 
