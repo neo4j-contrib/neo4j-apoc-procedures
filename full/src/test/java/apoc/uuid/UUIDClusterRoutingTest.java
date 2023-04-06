@@ -34,7 +34,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class UUIDClusterRoutingTest {
-    private static final int NUM_CORES = 4;
+    private static final int NUM_CORES = 3;
     private static TestcontainersCausalCluster cluster;
     private static Session clusterSession;
     private static List<Neo4jContainerExtension> members;
@@ -134,6 +134,14 @@ public class UUIDClusterRoutingTest {
         final String query = "CALL apoc.uuid.install($label)";
         uuidInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR, DEFAULT_DATABASE_NAME,
             (session, label) -> {
+                clusterSession.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT `%1$s` IF NOT EXISTS FOR (n:`%1$s`) REQUIRE n.uuid IS UNIQUE", label)));
+
+                // check that the constraint is propagated to the current core
+                assertEventually(() -> session.writeTransaction(
+                            tx -> tx.run("SHOW CONSTRAINT YIELD name WHERE name = $label", Map.of("label", label)).hasNext()
+                        ),
+                        (v) -> v, 10, TimeUnit.SECONDS);
+
                 Map<String, Object> params = Map.of("label", label);
                 testCall(session, query, params,
                         row -> assertEquals(label, row.get("label"))
@@ -164,6 +172,7 @@ public class UUIDClusterRoutingTest {
         );
     }
 
+
     @Test
     public void testUuidDropAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.drop($label)";
@@ -187,7 +196,7 @@ public class UUIDClusterRoutingTest {
         final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
         assertEquals(NUM_CORES, members.size());
         final String label = UUID.randomUUID().toString();
-        clusterSession.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
+
         for (Neo4jContainerExtension container: members) {
             // we skip READ_REPLICA members with write operations
             // instead, we consider all members with a read only operations
