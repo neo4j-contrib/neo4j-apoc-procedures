@@ -6,6 +6,7 @@ import inet.ipaddr.IPAddressString;
 import org.junit.*;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.configuration.GraphDatabaseInternalSettings;
+import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -13,12 +14,14 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static org.junit.Assert.*;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class GeocodeTest {
 
@@ -192,18 +195,21 @@ public class GeocodeTest {
 
     private void testReverseGeocodeAddress(Object latitude, Object longitude, Map<String, Object> config) {
         ignoreQuotaError(() -> {
-            testResult(db, "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)",
-                    map("latitude", latitude, "longitude", longitude, "config", config), (row) -> {
-                        assertTrue(row.hasNext());
-                        row.forEachRemaining((r)->{
+            String query = "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)";
+            Map<String, Object> params = Map.of("latitude", latitude, "longitude", longitude, "config", config);
+            waitForServerResponseOK(query, params,
+                    (res) -> {
+                        assertTrue(res.hasNext());
+                        res.forEachRemaining((r) -> {
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
                             assertNotNull(r.get("data"));
                         });
+                        return null;
                     });
         });
     }
-    
+
     private void ignoreQuotaError(Runnable runnable) {
         try {
             runnable.run();
@@ -226,13 +232,16 @@ public class GeocodeTest {
 
     private void testGeocodeAddress(Map map, String provider, Map<String, Object> config) {
         ignoreQuotaError(() -> {
-            testResult(db,"CALL apoc.spatial.geocode('FRANCE',1,true,$config)",
-                    map("config", config), (row)->{
-                        row.forEachRemaining((r)->{
+            String query = "CALL apoc.spatial.geocode('FRANCE',1,true,$config)";
+            Map<String, Object> params = Map.of("config", config);
+            waitForServerResponseOK(query, params,
+                    (res) -> {
+                        res.forEachRemaining((r) -> {
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
                             assertNotNull(r.get("data"));
                         });
+                        return null;
                     });
         });
         if (map.containsKey("noresults")) {
@@ -272,8 +281,9 @@ public class GeocodeTest {
     }
 
     private void testGeocodeAddress(String address, double lat, double lon, Map<String, Object> config) {
-        testResult(db, "CALL apoc.spatial.geocodeOnce($url, $config)", 
-                map("url", address, "config", config),
+        String query = "CALL apoc.spatial.geocodeOnce($url, $config)";
+        Map<String, Object> params = Map.of("url", address, "config", config);
+        waitForServerResponseOK(query, params,
                 (result) -> {
                     if (result.hasNext()) {
                         Map<String, Object> row = result.next();
@@ -287,6 +297,23 @@ public class GeocodeTest {
                     } else {
                         // over request limit
                     }
+                    return null;
                 });
+    }
+
+    private void waitForServerResponseOK(String query, Map<String, Object> params, ResultTransformer<Object> objectResultTransformer) {
+        assertEventually(() -> {
+            try {
+                db.executeTransactionally(query,
+                        params,
+                        objectResultTransformer);
+                return true;
+            } catch (Exception e) {
+                if (e.getMessage().contains("Server returned HTTP response code")) {
+                    return false;
+                }
+                throw e;
+            }
+        }, (value) -> value, 20L, TimeUnit.SECONDS);
     }
 }
