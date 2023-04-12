@@ -118,7 +118,10 @@ subprojects {
 
 }
 
+apply from: "licenses-3rdparties.gradle"
+
 ext {
+    publicDir =  "${project.rootDir}"
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "4.4.19"
     // instead we apply the override logic here
