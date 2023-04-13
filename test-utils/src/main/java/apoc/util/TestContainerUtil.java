@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.printFullStackTrace;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -262,10 +263,15 @@ public class TestContainerUtil {
                             "WITH databases.neo4j AS neo4j, databases.system AS system\n" +
                             "WHERE neo4j = 'LEADER' OR system = 'LEADER'\n" +
                             "RETURN count(*)";
-
-                    return (long) singleResultFirstColumn(session, query);
+                    try {
+                        long count = singleResultFirstColumn(session, query);
+                        assertEquals(2L, count);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
                 },
-                (value) -> value == 2L, 30L, TimeUnit.SECONDS);
+                (value) -> value, 30L, TimeUnit.SECONDS);
     }
 
     /**

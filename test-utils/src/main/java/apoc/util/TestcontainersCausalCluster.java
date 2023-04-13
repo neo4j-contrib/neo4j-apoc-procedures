@@ -79,12 +79,12 @@ public class TestcontainersCausalCluster {
 
         // Build the core/read_replica
         List<Neo4jContainerExtension> members = iterateMembers(numberOfCoreMembers, ClusterInstanceType.CORE)
-                .map(member -> createInstance(member.getValue(), ClusterInstanceType.CORE, network, initialDiscoveryMembers, neo4jConfig, envSettings)
+                .map(member -> createInstance(member.getValue(), ClusterInstanceType.CORE, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
                         .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
                         .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.CORE.port + member.getKey()))))
                 .collect(toList());
         members.addAll(iterateMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA)
-                .map(member -> createInstance(member.getValue(), ClusterInstanceType.READ_REPLICA, network, initialDiscoveryMembers, neo4jConfig, envSettings)
+                .map(member -> createInstance(member.getValue(), ClusterInstanceType.READ_REPLICA, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
                         .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
                         .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.READ_REPLICA.port + member.getKey()))))
                 .collect(toList()));
@@ -110,7 +110,8 @@ public class TestcontainersCausalCluster {
                                                           Network network,
                                                           String initialDiscoveryMembers,
                                                           Map<String, Object> neo4jConfig,
-                                                          Map<String, String> envSettings)  {
+                                                          Map<String, String> envSettings,
+                                                          int numberOfCoreMembers)  {
         Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isRunningInCI())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
@@ -119,6 +120,8 @@ public class TestcontainersCausalCluster {
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
+                .withNeo4jConfig("causal_clustering.minimum_core_cluster_size_at_formation", String.valueOf(numberOfCoreMembers))
+                .withNeo4jConfig("causal_clustering.minimum_core_cluster_size_at_runtime", String.valueOf(numberOfCoreMembers))
                 .withStartupTimeout(Duration.ofMinutes(MINUTES_TO_WAIT));
         if (withRoutingEnabled(envSettings)) {
             container.withEnv("NEO4J_dbms_routing_listen__address", "0.0.0.0:7618")
