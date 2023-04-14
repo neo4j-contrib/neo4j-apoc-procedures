@@ -6,6 +6,8 @@ import inet.ipaddr.IPAddressString;
 import org.junit.*;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.configuration.GraphDatabaseInternalSettings;
+import org.neo4j.graphdb.Result;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -13,12 +15,15 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.*;
 import static org.junit.Assert.*;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class GeocodeTest {
 
@@ -175,27 +180,29 @@ public class GeocodeTest {
         setupSupplier(provider, throttle);
         InputStream is = getClass().getResourceAsStream("/spatial.json");
         Map tests = JsonUtil.OBJECT_MAPPER.readValue(is, Map.class);
-        long start = System.currentTimeMillis();
+        AtomicLong time = new AtomicLong();
 
         if(reverseGeocode) {
             for(Object address : (List) tests.get("events")) {
-                testReverseGeocodeAddress(((Map)address).get("lat"), ((Map)address).get("lon"), config);
+                testReverseGeocodeAddress(((Map)address).get("lat"), ((Map)address).get("lon"), time, config);
             }
         } else {
             for (Object address : (List) tests.get("addresses")) {
-                testGeocodeAddress((Map) address, (String) config.getOrDefault("provider", provider), config);
+                testGeocodeAddress((Map) address, (String) config.getOrDefault("provider", provider), time, config);
             }
         }
 
-        return System.currentTimeMillis() - start;
+        return time.get();
     }
 
-    private void testReverseGeocodeAddress(Object latitude, Object longitude, Map<String, Object> config) {
+    private void testReverseGeocodeAddress(Object latitude, Object longitude, AtomicLong time, Map<String, Object> config) {
         ignoreQuotaError(() -> {
-            testResult(db, "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)",
-                    map("latitude", latitude, "longitude", longitude, "config", config), (row) -> {
-                        assertTrue(row.hasNext());
-                        row.forEachRemaining((r)->{
+            String query = "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)";
+            Map<String, Object> params = Map.of("latitude", latitude, "longitude", longitude, "config", config);
+            waitForServerResponseOK(query, params, time,
+                    (res) -> {
+                        assertTrue(res.hasNext());
+                        res.forEachRemaining((r) -> {
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
                             assertNotNull(r.get("data"));
@@ -203,7 +210,7 @@ public class GeocodeTest {
                     });
         });
     }
-    
+
     private void ignoreQuotaError(Runnable runnable) {
         try {
             runnable.run();
@@ -224,31 +231,42 @@ public class GeocodeTest {
         apocConfig().setProperty(Geocode.PREFIX + "." + providerName + ".throttle", Long.toString(throttle));
     }
 
-    private void testGeocodeAddress(Map map, String provider, Map<String, Object> config) {
+    private void testGeocodeAddress(Map map, String provider, AtomicLong time, Map<String, Object> config) {
         ignoreQuotaError(() -> {
-            testResult(db,"CALL apoc.spatial.geocode('FRANCE',1,true,$config)",
-                    map("config", config), (row)->{
-                        row.forEachRemaining((r)->{
+            String query = "CALL apoc.spatial.geocode('FRANCE',1,true,$config)";
+            Map<String, Object> params = Map.of("config", config);
+            waitForServerResponseOK(query, params, time,
+                    (res) -> {
+                        res.forEachRemaining((r) -> {
                             assertNotNull(r.get("description"));
                             assertNotNull(r.get("location"));
                             assertNotNull(r.get("data"));
                         });
                     });
         });
+        String geocodeQuery = "CALL apoc.spatial.geocode($url,0)";
         if (map.containsKey("noresults")) {
             for (String field : new String[]{"address", "noresults"}) {
                 checkJsonFields(map, field);
             }
-            System.out.println("map = " + map);
-            testCallEmpty(db, "CALL apoc.spatial.geocode($url,0)", map("url", map.get("address").toString()));
+            waitForServerResponseOK(geocodeQuery,
+                    map("url", map.get("address").toString()),
+                    time,
+                    (res) -> assertFalse(res.hasNext())
+            );
         } else if (map.containsKey("count")) {
             if (((Map) map.get("count")).containsKey(provider)) {
                 for (String field : new String[]{"address", "count"}) {
                     checkJsonFields(map, field);
                 }
-                testCallCount(db, "CALL apoc.spatial.geocode($url,0)",
+                waitForServerResponseOK(geocodeQuery,
                         map("url", map.get("address").toString()),
-                        ((Number) ((Map) map.get("count")).get(provider)).intValue());
+                        time,
+                        (res) -> {
+                            long actual = Iterators.count(res);
+                            int expected = ((Number) ((Map) map.get("count")).get(provider)).intValue();
+                            assertEquals(expected, actual);
+                        });
             }
         } else {
             for (String field : new String[]{"address", "osm"}) {
@@ -256,7 +274,8 @@ public class GeocodeTest {
             }
             testGeocodeAddress(map.get("address").toString(),
                     getCoord(map, provider, "latitude"),
-                    getCoord(map, provider, "longitude"), 
+                    getCoord(map, provider, "longitude"),
+                    time,
                     config);
         }
     }
@@ -271,9 +290,10 @@ public class GeocodeTest {
         assertTrue("Expected " + field + " field", map.containsKey(field));
     }
 
-    private void testGeocodeAddress(String address, double lat, double lon, Map<String, Object> config) {
-        testResult(db, "CALL apoc.spatial.geocodeOnce($url, $config)", 
-                map("url", address, "config", config),
+    private void testGeocodeAddress(String address, double lat, double lon, AtomicLong time, Map<String, Object> config) {
+        String query = "CALL apoc.spatial.geocodeOnce($url, $config)";
+        Map<String, Object> params = Map.of("url", address, "config", config);
+        waitForServerResponseOK(query, params, time,
                 (result) -> {
                     if (result.hasNext()) {
                         Map<String, Object> row = result.next();
@@ -288,5 +308,27 @@ public class GeocodeTest {
                         // over request limit
                     }
                 });
+    }
+
+    private void waitForServerResponseOK(String query, Map<String, Object> params, AtomicLong time, Consumer<Result> resultObjectFunction) {
+        assertEventually(() -> {
+            try {
+                long start = System.currentTimeMillis();
+                db.executeTransactionally(query,
+                        params,
+                        res -> {
+                            resultObjectFunction.accept(res);
+                            return null;
+                        });
+
+                time.addAndGet( System.currentTimeMillis() - start );
+                return true;
+            } catch (Exception e) {
+                if (e.getMessage().contains("Server returned HTTP response code")) {
+                    return false;
+                }
+                throw e;
+            }
+        }, (value) -> value, 20L, TimeUnit.SECONDS);
     }
 }
