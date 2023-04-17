@@ -1,6 +1,5 @@
 package apoc.export.cypher;
 
-import apoc.graph.Graphs;
 import apoc.util.BinaryTestUtil;
 import apoc.util.CompressionAlgo;
 import apoc.util.MapUtil;
@@ -25,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
 import static apoc.util.BinaryTestUtil.getDecompressedData;
@@ -61,31 +58,9 @@ public class ExportCypherTest {
     @Rule
     public TestName testName = new TestName();
 
-    private static final String OPTIMIZED = "Optimized";
-    private static final String ODD = "OddDataset";
-
     @Before
     public void setUp() throws Exception {
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
-        TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-        db.executeTransactionally("CREATE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
-        db.executeTransactionally("CREATE INDEX fooIndex FOR (n:Foo) ON (n.name)");
-        db.executeTransactionally("CREATE CONSTRAINT consBar ON (n:Bar) ASSERT (n.name) IS UNIQUE");
-        if (testName.getMethodName().endsWith(OPTIMIZED)) {
-            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
-                    " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
-        } else if(testName.getMethodName().endsWith(ODD)) {
-            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})," +
-                    "(t:Foo {name:'foo2', born:date('2017-09-29')})," +
-                    "(g:Foo {name:'foo3', born:date('2016-03-12')})," +
-                    "(b:Bar {name:'bar',age:42})," +
-                    "(c:Bar {age:12})," +
-                    "(d:Bar {age:4})," +
-                    "(e:Bar {name:'bar2',age:44})," +
-                    "(f)-[:KNOWS {since:2016}]->(b)");
-        } else {
-            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})");
-        }
+        ExportCypherTestUtils.setUp(db, testName);
     }
 
     @Test
@@ -261,7 +236,7 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
-        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", StringUtils.EMPTY);
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", StringUtils.EMPTY, StringUtils.EMPTY);
         assertEquals(expectedFile, readFile("all.schema.cypher"));
     }
 
@@ -273,7 +248,7 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
-        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, StringUtils.EMPTY, StringUtils.EMPTY, " consBar");
+        final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, StringUtils.EMPTY, StringUtils.EMPTY, " consBar", " uniqueConstraintComposite");
         assertEquals(expectedFile, readFile("all.schema.cypher"));
     }
 
@@ -910,6 +885,7 @@ public class ExportCypherTest {
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -918,6 +894,7 @@ public class ExportCypherTest {
                 "CREATE INDEX%s FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX%s FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n";
@@ -957,6 +934,7 @@ public class ExportCypherTest {
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
@@ -964,6 +942,7 @@ public class ExportCypherTest {
                 "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
                 "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
                 "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;\n" +
+                "CREATE CONSTRAINT uniqueConstraintComposite ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;\n" +
                 "COMMIT\n" +
                 "SCHEMA AWAIT\n";
 
@@ -974,6 +953,7 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
@@ -994,6 +974,7 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
@@ -1014,6 +995,7 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
@@ -1034,6 +1016,7 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
@@ -1066,6 +1049,7 @@ public class ExportCypherTest {
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1075,6 +1059,7 @@ public class ExportCypherTest {
                 "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT uniqueConstraintComposite ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1084,6 +1069,7 @@ public class ExportCypherTest {
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1092,6 +1078,7 @@ public class ExportCypherTest {
                 "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1100,6 +1087,7 @@ public class ExportCypherTest {
                 "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
@@ -1109,12 +1097,13 @@ public class ExportCypherTest {
                 "CREATE INDEX fooIndex IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT consBar IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT uniqueConstraintComposite IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED_BATCH_SIZE = String.format("BEGIN%n" +
-                "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
+                "UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
@@ -1127,7 +1116,7 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED = String.format("BEGIN%n" +
-                "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
+                "UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
@@ -1197,7 +1186,7 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED_BATCH_SIZE_UNWIND = String.format("BEGIN%n" +
-                "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
+                "UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
@@ -1259,7 +1248,7 @@ public class ExportCypherTest {
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
                 ":commit%n");
 
-        static final String EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND = String.format("UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
+        static final String EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND = String.format("UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) ON CREATE SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) ON CREATE SET n += row.properties SET n:Bar:Person;%n" +
@@ -1277,8 +1266,9 @@ public class ExportCypherTest {
         static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
-                "UNWIND [{_id:3, properties:{age:12}}] AS row%n" +
+                "UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
@@ -1403,8 +1393,16 @@ public class ExportCypherTest {
 
         static final String EXPECTED_INDEX_AWAIT_COMPOUND_CONSTRAINT =  String.format("CALL db.awaitIndex(':`Person`(`name`,`surname`)');%n");
 
+        static final List<String> EXPECTED_CONSTRAINTS = List.of(
+             "CREATE CONSTRAINT SingleUnique FOR (node:Label) REQUIRE (node.prop) IS UNIQUE;",
+             "CREATE CONSTRAINT CompositeUnique FOR (node:Label) REQUIRE (node.prop1, node.prop2) IS UNIQUE;",
+             "CREATE CONSTRAINT SingleExists FOR (node:Label2) REQUIRE (node.prop) IS NOT NULL;",
+             "CREATE CONSTRAINT SingleExistsRel FOR ()-[rel:TYPE2]-() REQUIRE (rel.prop) IS NOT NULL;",
+             "CREATE CONSTRAINT SingleNodeKey FOR (node:Label3) REQUIRE (node.prop) IS NODE KEY;",
+             "CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;"
+        );
+
         static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
-                "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -1433,7 +1431,7 @@ public class ExportCypherTest {
                 "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
                 ":commit%n");
 
-        static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format("CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+        static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format(
                 "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
                 "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
                 "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +

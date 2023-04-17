@@ -1,5 +1,7 @@
 package apoc.export.util;
 
+import java.util.Comparator;
+import java.util.function.BiFunction;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -60,22 +62,24 @@ public class NodesAndRelsSubGraph implements SubGraph {
 
     @Override
     public Iterable<IndexDefinition> getIndexes() {
-        Schema schema = tx.schema();
-        ArrayList<IndexDefinition> indexes = new ArrayList<>(labels.size() * 2);
-        for (String label : labels) {
-            Iterables.addAll(indexes, schema.getIndexes(Label.label(label)));
-        }
-        return indexes;
+        return getDefinitions(Schema::getIndexes);
     }
 
     @Override
     public Iterable<ConstraintDefinition> getConstraints() {
+        Comparator<ConstraintDefinition> comp = Comparator.comparing(ConstraintDefinition::getName);
+        ArrayList<ConstraintDefinition> definitions = getDefinitions(Schema::getConstraints);
+        definitions.sort(comp);
+        return definitions;
+    }
+
+    private <T> ArrayList<T> getDefinitions( BiFunction<Schema, Label, Iterable<T>> biFunction) {
         Schema schema = tx.schema();
-        ArrayList<ConstraintDefinition> constraints = new ArrayList<>(labels.size() * 2);
+        ArrayList<T> definitions = new ArrayList<>(labels.size() * 2);
         for (String label : labels) {
-            Iterables.addAll(constraints, schema.getConstraints(Label.label(label)));
+            Iterables.addAll(definitions, biFunction.apply(schema, Label.label(label)));
         }
-        return constraints;
+        return definitions;
     }
 
     @Override

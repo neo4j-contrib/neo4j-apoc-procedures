@@ -1,6 +1,43 @@
 package apoc.export.cypher;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
+
+import apoc.graph.Graphs;
+import apoc.schema.Schemas;
+import apoc.util.TestUtil;
+import org.junit.rules.TestName;
+import org.neo4j.graphdb.GraphDatabaseService;
+
 public class ExportCypherTestUtils {
+
+    private static final String OPTIMIZED = "Optimized";
+    private static final String ODD = "OddDataset";
+
+     public static void setUp( GraphDatabaseService db, TestName testName) {
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class, Schemas.class);
+        db.executeTransactionally("CREATE INDEX barIndex FOR (n:Bar) ON (n.first_name, n.last_name)");
+        db.executeTransactionally("CREATE INDEX fooIndex FOR (n:Foo) ON (n.name)");
+        db.executeTransactionally("CREATE CONSTRAINT consBar FOR (b:Bar) REQUIRE b.name IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT uniqueConstraintComposite FOR (b:Bar) REQUIRE (b.name, b.age) IS UNIQUE");
+        if (testName.getMethodName().endsWith(OPTIMIZED)) {
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:17})," +
+                    " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
+        } else if(testName.getMethodName().endsWith(ODD)) {
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})," +
+                    "(t:Foo {name:'foo2', born:date('2017-09-29')})," +
+                    "(g:Foo {name:'foo3', born:date('2016-03-12')})," +
+                    "(b:Bar {name:'bar',age:42})," +
+                    "(c:Bar {age:12})," +
+                    "(d:Bar {age:4})," +
+                    "(e:Bar {name:'bar2',age:44})," +
+                    "(f)-[:KNOWS {since:2016}]->(b)");
+        } else {
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})");
+        }
+    }
+
     protected final static String NODES_MULTI_RELS = ":begin\n" +
             "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.name=\"MyName\", n:Person;\n" +
             "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:1}) SET n.a=1, n:Project;\n" +

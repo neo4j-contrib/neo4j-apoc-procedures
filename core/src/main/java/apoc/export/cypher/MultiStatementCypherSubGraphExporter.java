@@ -9,6 +9,7 @@ import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -215,7 +216,7 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(index);
         }
         if (artificialUniques > 0) {
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), config.ifNotExists(), StringUtils.EMPTY);
+            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), ConstraintType.UNIQUENESS, config.ifNotExists(), StringUtils.EMPTY);
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
             }
@@ -301,13 +302,15 @@ public class MultiStatementCypherSubGraphExporter {
     }
 
     private List<String> exportConstraints() {
-        return StreamSupport.stream(graph.getIndexes().spliterator(), false)
-                .filter(index -> index.isConstraintIndex())
-                .map(index -> {
-                    String name = getIdxName(index.getName(), exportConfig.shouldSaveConstraintNames());
-                    String label = Iterables.single(index.getLabels()).name();
-                    Iterable<String> props = index.getPropertyKeys();
-                    return this.cypherFormat.statementForConstraint(label, props, exportConfig.ifNotExists(), name);
+        return StreamSupport.stream(graph.getConstraints().spliterator(), false)
+                .map(constraint -> {
+                    String name = getIdxName(constraint.getName(), exportConfig.shouldSaveConstraintNames());
+                    ConstraintType type = constraint.getConstraintType();
+                    String label = constraint.isConstraintType( ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ?
+                            constraint.getRelationshipType().name() : constraint.getLabel().name();
+
+                    Iterable<String> props = constraint.getPropertyKeys();
+                    return this.cypherFormat.statementForConstraint(label, props, type, exportConfig.ifNotExists(), name);
                 })
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
@@ -331,7 +334,7 @@ public class MultiStatementCypherSubGraphExporter {
                 artificialUniques -= batchSize;
             }
             begin(out);
-            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), false, StringUtils.EMPTY)
+            String cypher = this.cypherFormat.statementForConstraint(UNIQUE_ID_LABEL, Collections.singleton(UNIQUE_ID_PROP), ConstraintType.UNIQUENESS, false, StringUtils.EMPTY)
                     .replaceAll("^CREATE", "DROP");
             if (cypher != null && !"".equals(cypher)) {
                 out.println(cypher);
