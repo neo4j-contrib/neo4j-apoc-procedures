@@ -124,6 +124,9 @@ public class ExportCypher {
     public Stream<DataProgressInfo> schema(@Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        // streamStatements
+        config.put("stream", false);
+        config.put("streamStatements", false);
         return exportCypher(fileName, source, new DatabaseSubGraph(tx), new ExportConfig(config), true);
     }
 

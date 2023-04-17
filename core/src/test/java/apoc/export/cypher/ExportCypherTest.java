@@ -40,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
@@ -176,7 +177,7 @@ public class ExportCypherTest {
     private static String readFile(String fileName) {
         return readFile(fileName, CompressionAlgo.NONE);
     }
-    
+
     private static String readFile(String fileName, CompressionAlgo algo) {
         return BinaryTestUtil.readFileToString(new File(directory, fileName), UTF_8, algo);
     }
@@ -263,7 +264,7 @@ public class ExportCypherTest {
         final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
         config.put("saveConstraintNames", true);
         String fileName = "all.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)",
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
         final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, StringUtils.EMPTY, StringUtils.EMPTY, " consBar", " uniqueConstraintComposite");
@@ -377,6 +378,30 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$exportConfig)", map("file", fileName, "exportConfig", exportConfig), (r) -> {
         });
         assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(fileName));
+    }
+
+    @Test
+    public void testExportSchemaCypherWithStreamTrue() {
+        Consumer<Map<String, Object>> resultAssertion = (r) -> {
+            Object actual = r.get("cypherStatements");
+            assertEquals(EXPECTED_ONLY_SCHEMA_CYPHER_SHELL, actual);
+        };
+
+        // with {stream: true}
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema(null, {stream: true})",
+                resultAssertion);
+
+        // with {streamStatements: true}
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema(null, {streamStatements: true})",
+                resultAssertion);
+
+        // assert `schemaStatements` of `apoc.export.cypher.all`
+        // is equal to `cypher.schema` output plus the `CREATE CONSTRAINT UNIQUE_IMPORT_NAME ...` statement
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null, { separateFiles: true, stream: true})",
+                r -> {
+                    Object actual = r.get("schemaStatements");
+                    assertEquals(convertToCypherShellFormat(EXPECTED_SCHEMA), actual);
+                });
     }
 
     @Test
@@ -1101,7 +1126,7 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n");
-        
+
         static final String EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED = String.format("BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n" +
@@ -1111,7 +1136,7 @@ public class ExportCypherTest {
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
-        
+
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED = String.format("BEGIN%n" +
                 "CREATE BTREE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE BTREE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
@@ -1121,7 +1146,7 @@ public class ExportCypherTest {
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
-        
+
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS = String.format("BEGIN%n" +
                 "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
@@ -1531,12 +1556,20 @@ public class ExportCypherTest {
                 ":begin%n" +
                 "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n", 3);
-        
-        static final String EXPECTED_QUERY_PARAMS_ODD = (EXPECTED_SCHEMA + EXPECTED_NODES_PARAMS_ODD + EXPECTED_RELATIONSHIPS_PARAMS_ODD + EXPECTED_DROP_PARAMS_ODD)
+
+        public static final String EXPECTED_QUERY_PARAMS_ODD = (EXPECTED_SCHEMA + EXPECTED_NODES_PARAMS_ODD + EXPECTED_RELATIONSHIPS_PARAMS_ODD + EXPECTED_DROP_PARAMS_ODD)
                 .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit())
                 .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
                 .replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
+
+        public static String convertToCypherShellFormat(String input) {
+            return input
+                    .replace( NEO4J_SHELL.begin(), CYPHER_SHELL.begin() )
+                    .replace( NEO4J_SHELL.commit(), CYPHER_SHELL.commit() )
+                    .replace( NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT )
+                    .replace( NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait() );
+        }
     }
 
 }
