@@ -89,6 +89,20 @@ public class StartupTest {
                 this::checkCoreProcsAndFuncsExistence);
 
     }
+
+    @Test
+    public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
+        // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
+        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_CORE, !TestUtil.isRunningInCI(), true)
+                .withEnv("apoc.initializer.system.0", "CREATE USER dummy IF NOT EXISTS SET PASSWORD \"pass12345\" CHANGE NOT REQUIRED")
+                .withEnv("apoc.initializer.system.1", "GRANT ROLE reader TO dummy"),
+                session -> {
+                    var result = session.run("SHOW USERS YIELD roles, user WHERE user = 'dummy' RETURN roles").stream().collect(Collectors.toList());
+                    assertTrue(result.size() > 0);
+                    var dummyRoles = result.get(0).get("roles").asList();
+                    assertTrue(dummyRoles.contains("reader"));
+                });
+    }
     
     private void startNeo4jContainerSession(Supplier<Neo4jContainerExtension> neo4jContainerCreation,
                                             Consumer<Session> sessionConsumer) {
