@@ -3,6 +3,8 @@ package apoc.export.cypher;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -142,6 +145,11 @@ public class ExportCypherEnterpriseFeaturesTest {
     }
 
     private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
-        assertEquals(expectedStatement, isRunningInCI() ? result.get("cypherStatements") : readFileToString(new File(directory, fileName)));
+                // The constraints are exported in arbitrary order, so we cannot assert on the entire file
+        String actual = readFileToString(new File(directory, fileName));
+        MatcherAssert.assertThat(actual, Matchers.containsString(expectedStatement));
+        EXPECTED_CONSTRAINTS.forEach(
+                constraint -> assertTrue(String.format("Constraint '%s' not in result", constraint), actual.contains(constraint))
+        );
     }
 }

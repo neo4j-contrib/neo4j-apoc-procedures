@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.graphdb.schema.ConstraintType;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -35,6 +35,7 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s ON (node:%s) ASSERT (%s) %s;";
+	private static final String STATEMENT_CONSTRAINTS_REL = "CREATE CONSTRAINT%s%s ON ()-[rel:%s]-() ASSERT (%s) %s;";
 
 	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
 	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";
@@ -88,10 +89,35 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	@Override
-	public String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExists, String name) {
-		String keysString = getPropertiesQuoted(keys, "node.");
+	public String statementForConstraint( String label, Iterable<String> keys, ConstraintType type, boolean ifNotExists, String name )
+	{
+		String keysString = "";
+		String typeString = "";
+		String statement = "";
+		switch ( type )
+		{
+		case UNIQUENESS:
+			keysString = "node.";
+			typeString = "IS UNIQUE";
+			statement = STATEMENT_CONSTRAINTS;
+			break;
+		case NODE_KEY:
+			keysString = "node.";
+			typeString = "IS NODE KEY";
+			statement = STATEMENT_CONSTRAINTS;
+			break;
+		case NODE_PROPERTY_EXISTENCE:
+			keysString = "node.";
+			typeString = "IS NOT NULL";
+			statement = STATEMENT_CONSTRAINTS;
+			break;
+		case RELATIONSHIP_PROPERTY_EXISTENCE:
+			keysString = "rel.";
+			typeString = "IS NOT NULL";
+			statement = STATEMENT_CONSTRAINTS_REL;
+		}
 
-		return String.format(STATEMENT_CONSTRAINTS, name, getIfNotExists(ifNotExists), Util.quote(label), keysString, Iterables.count(keys) > 1 ? "IS NODE KEY" : "IS UNIQUE");
+		return String.format( statement, name, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted( keys, keysString ), typeString );
 	}
 
 	private String getIfNotExists(boolean ifNotExists) {

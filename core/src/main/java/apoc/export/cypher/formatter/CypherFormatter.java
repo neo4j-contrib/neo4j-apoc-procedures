@@ -7,6 +7,7 @@ import org.neo4j.graphdb.*;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Set;
+import org.neo4j.graphdb.schema.ConstraintType;
 
 /**
  * @author AgileLARUS
@@ -27,7 +28,7 @@ public interface CypherFormatter {
 
 	String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys);
 
-	String statementForConstraint(String label, Iterable<String> keys, boolean ifNotExist, String name);
+	String statementForConstraint(String label, Iterable<String> keys, ConstraintType type, boolean ifNotExist, String name);
 
 	String statementForCleanUp(int batchSize);
 
