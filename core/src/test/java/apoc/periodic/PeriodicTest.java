@@ -22,6 +22,7 @@ import apoc.cypher.Cypher;
 import apoc.schema.Schemas;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.util.Utils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,7 +93,7 @@ public class PeriodicTest {
 
     @Before
     public void initDb() throws Exception {
-        TestUtil.registerProcedure(db, Periodic.class, Schemas.class, Cypher.class, MockLogger.class);
+        TestUtil.registerProcedure(db, Periodic.class, Schemas.class, Cypher.class, Utils.class, MockLogger.class);
         db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
     }
 
@@ -306,6 +307,7 @@ public class PeriodicTest {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
+
 
     @Test
     public void testTerminateIterateWithTerminateTransactionCommand()  {

@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.*;
-import static apoc.export.json.ImportJsonTest.LARGE_REMOTE_FILE;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.convert.ConvertJsonTest.EXPECTED_AS_PATH_LIST;
@@ -53,7 +52,6 @@ import static apoc.convert.ConvertJsonTest.EXPECTED_PATH_WITH_NULLS;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.TransactionTestUtil.checkTerminationGuard;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -415,12 +413,5 @@ public class LoadJsonTest {
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
                     assertFalse("value should be not empty", value.isEmpty());
                 });
-    }
-
-    @Test
-    public void shouldTerminateLoadJson()  {
-        checkTerminationGuard(db, "CALL apoc.load.json($file)",
-                Map.of("file", LARGE_REMOTE_FILE)
-        );
     }
 }

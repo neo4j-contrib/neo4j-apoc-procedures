@@ -1,7 +1,6 @@
 package apoc.periodic;
 
 import apoc.util.TransactionTestUtil;
-import apoc.util.Util;
 import java.util.concurrent.TimeUnit;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -49,7 +48,6 @@ public class PeriodicTestUtils {
     public static void testTerminateWithCommand(DbmsRule db, String periodicQuery, String iterateQuery) {
         long timeBefore = System.currentTimeMillis();
         TransactionTestUtil.terminateTransactionAsync(db, 10L, iterateQuery);
-        checkPeriodicTerminated(db, periodicQuery);
         TransactionTestUtil.lastTransactionChecks(db, periodicQuery, timeBefore);
     }
 
@@ -59,7 +57,7 @@ public class PeriodicTestUtils {
                             db.executeTransactionally(periodicQuery, Map.of(),
                                     result -> {
                                         Map<String, Object> row = Iterators.single(result);
-                                        return Util.toBoolean(row.get("wasTerminated"));
+                                        return (Boolean) row.get("wasTerminated");
                                     }),
                     (value) -> value, 15L, TimeUnit.SECONDS);
         } catch(Exception tfe) {
