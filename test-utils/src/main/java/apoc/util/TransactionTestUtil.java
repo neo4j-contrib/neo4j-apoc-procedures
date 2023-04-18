@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyMap;
@@ -113,7 +112,7 @@ public class TransactionTestUtil {
     public static void checkTransactionNotInList(GraphDatabaseService db, String query) {
         // checking for query cancellation from transaction list command
         testResult(db, TRANSACTION_LIST,
-                map("query", query),
+                Map.of("query", query),
                 result -> {
                     final boolean currentQuery = result.columnAs("currentQuery")
                             .stream()
@@ -134,7 +133,7 @@ public class TransactionTestUtil {
             assertEventually(() -> db.executeTransactionally(TRANSACTION_LIST + " YIELD currentQuery, transactionId " + 
                             "WHERE currentQuery CONTAINS $query AND NOT currentQuery STARTS WITH $transactionList " +
                             "RETURN transactionId",
-                    map("query", query, "transactionList", TRANSACTION_LIST),
+                    Map.of("query", query, "transactionList", TRANSACTION_LIST),
                     result -> {
                         final ResourceIterator<String> msgIterator = result.columnAs("transactionId");
                         if (!msgIterator.hasNext()) {
@@ -146,7 +145,7 @@ public class TransactionTestUtil {
                         // sometimes `TERMINATE TRANSACTION $transactionId` fails with `Transaction not found`
                         // even if has been retrieved by `SHOW TRANSACTIONS`
                         testCall(db, "TERMINATE TRANSACTION $transactionId",
-                                map("transactionId", transactionId[0]),
+                                Map.of("transactionId", transactionId[0]),
                                 r1 -> assertEquals("Transaction terminated.", r1.get("message")));
                         
                         return true;
