@@ -330,7 +330,7 @@ public class Fingerprinting {
                 sb.append(d);
             }
         } else if (value instanceof long[]) {
-            for (double l : (long[]) value) {
+            for (long l : (long[]) value) {
                 sb.append(l);
             }
         } else if (value instanceof byte[]) {
