@@ -8,8 +8,7 @@ CALL apoc.trigger.removeAll();
 .Results
 [opts="header"]
 |===
-| name             | query                                                                                     | selector | params | installed | paused 
-| "count-removals" | "MATCH (c:Counter)
-SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | FALSE     | FALSE
+| name | query | selector | params | installed | paused 
+| "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | FALSE     | FALSE
 
 |===

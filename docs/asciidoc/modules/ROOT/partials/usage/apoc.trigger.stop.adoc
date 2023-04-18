@@ -1,0 +1,17 @@
+include::partial$triggers/triggersAdmonitions.adoc[]
+
+This example assumes that an `apoc.trigger.install` has already been executed.
+
+In this case, it is possible to stop the trigger by running the following query:
+
+[source,cypher]
+----
+CALL apoc.trigger.stop('neo4j', 'count-removals');
+----
+
+.Results
+[opts="header"]
+|===
+| name | query | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {} | {} | TRUE | FALSE
+|===

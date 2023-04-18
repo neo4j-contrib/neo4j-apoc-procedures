@@ -20,14 +20,14 @@ apoc.trigger.show(databaseName :: STRING?) :: (name :: STRING?, query :: STRING?
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |databaseName|STRING?|null
 |===
 
 == Output parameters
 [.procedures, opts=header]
 |===
-| Name | Type 
+| Name | Type
 |name|STRING?
 |query|STRING?
 |selector|MAP?
@@ -38,6 +38,10 @@ apoc.trigger.show(databaseName :: STRING?) :: (name :: STRING?, query :: STRING?
 
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
+
+[[usage-apoc.trigger.show]]
+== Usage Examples
+include::partial$usage/apoc.trigger.show.adoc[]
 
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.show,role=more information]
 

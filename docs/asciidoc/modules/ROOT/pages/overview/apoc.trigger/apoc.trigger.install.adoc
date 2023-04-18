@@ -43,5 +43,9 @@ apoc.trigger.install(databaseName :: STRING?, name :: STRING?, statement :: STRI
 == Enable Triggers
 include::partial$triggers/triggersConfig.adoc[]
 
+[[usage-apoc.trigger.install]]
+== Usage Examples
+include::partial$usage/apoc.trigger.install.adoc[]
+
 xref::background-operations/triggers.adoc[More documentation of apoc.trigger.install,role=more information]
 

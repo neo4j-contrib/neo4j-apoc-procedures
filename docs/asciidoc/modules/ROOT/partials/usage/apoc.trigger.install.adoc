@@ -1,4 +1,6 @@
-The examples in this section are based on the following graph:
+include::partial$triggers/triggersAdmonitions.adoc[]
+
+The examples in this section are based on the following graph, created in 'neo4j' db:
 
 [source,cypher]
 ----
@@ -6,11 +8,12 @@ CREATE (:Counter {count:0})
 CREATE (f:Foo);
 ----
 
-Let's create a trigger that keeps a count of the number of nodes that have been deleted:
+To create a trigger that keeps a count of the number of nodes that have been deleted, run the following query:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add(
+CALL apoc.trigger.install(
+  'neo4j',
   'count-removals',
   'MATCH (c:Counter)
    SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])',
@@ -25,7 +28,8 @@ CALL apoc.trigger.add(
 | "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {} | {} | TRUE | FALSE
 |===
 
-We'll now delete the `Foo` node:
+After a time defined by the configuration `apoc.trigger.refresh`,
+the `Foo` node will be deleted:
 
 [source,cypher]
 ----

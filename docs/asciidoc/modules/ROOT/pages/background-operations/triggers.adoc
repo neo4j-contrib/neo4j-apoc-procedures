@@ -6,30 +6,7 @@
 Triggers allow the registration of Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
 
-[NOTE]
-====
-All these `apoc.trigger.*` procedures are intended to be executed in the system database,
-therefore they have to be used executed by opening a system database session. There are several ways of doing this:
-
-- when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
-- when using fabric, one can prefix their Cypher query with `USE system`
-- when using the drivers, one can open a session directly against the system database
-
-Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
-
-Through this implementation, we can use these procedures in a cluster environment,
-by leveraging the cluster routing mechanism.
-
-These procedures are only executable by a user with admin permissions.
-If this is not the case, the procedure throws an exception with the message `permission has not been granted for user 'xxx'`.
-====
-
-[WARNING]
-====
-Installing, updating or removing a trigger is an eventually consistent operation.
-Therefore, they are not immediately added/updated/removed,
-but they have a refresh rate handled by the Apoc configuration `apoc.trigger.refresh=<MILLISECONDS>`, with default 60000 (milliseconds)
-====
+include::partial$triggers/triggersAdmonitions.adoc[]
 
 include::partial$triggers/triggersConfig.adoc[]
 
@@ -416,7 +393,7 @@ CALL apoc.trigger.install('dbTest', 'lowercase-by-label','UNWIND apoc.trigger.no
 
 == Remove triggers
 
-If we want to remove the trigger with name 'test' in 'neo4j' database, 
+If we want to remove the trigger with name 'test' in 'neo4j' database,
 we can run the following query:
 
 [source,cypher]
@@ -438,8 +415,8 @@ If we want to get the list of triggers, for example if we have one trigger creat
 
 [source,cypher]
 ----
-CALL apoc.trigger.install('neo4j', 'count-removals', 
-    'MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])', 
+CALL apoc.trigger.install('neo4j', 'count-removals',
+    'MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])',
     {})
 ----
 
@@ -453,18 +430,17 @@ CALL apoc.trigger.show('neo4j')
 .Results
 [opts="header"]
 |===
-| name             | query   | selector | params | installed | paused
-| "count-removals" | "MATCH (c:Counter)
-SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {}       | {}     | TRUE      | FALSE
+| name | query | selector | params | installed | paused
+| "count-removals" | "MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])" | {} | {} | TRUE | FALSE
 |===
 
 
 [WARNING]
 ====
-Please note that, since the trigger operations are eventually consistent (based on `apoc.trigger.refresh` configuration), 
+Please note that, since the trigger operations are eventually consistent (based on `apoc.trigger.refresh` configuration),
 the `apoc.trigger.show` may return some triggers not yet added/updated/removed.
 
-If you want the list of currently installed triggers, 
+If you want the list of currently installed triggers,
 you can use the xref::overview/apoc.trigger/apoc.trigger.list.adoc[apoc.trigger.list] against the session database ("neo4j" in the above case)
 ====
 

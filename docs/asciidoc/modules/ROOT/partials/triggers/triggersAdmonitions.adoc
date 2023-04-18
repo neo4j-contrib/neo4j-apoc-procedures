@@ -1,0 +1,24 @@
+[NOTE]
+====
+All these `apoc.trigger.*` procedures are intended to be executed in the system database,
+therefore they have to be used executed by opening a system database session. There are several ways of doing this:
+
+- when using cypher-shell or Neo4j Browser, one can prefix their Cypher query with `:use system`
+- when using fabric, one can prefix their Cypher query with `USE system`
+- when using the drivers, one can open a session directly against the system database
+
+Moreover, they accept as first parameter the name of the database towards which we want to install/update/remove the triggers.
+
+Through this implementation, we can use these procedures in a cluster environment,
+by leveraging the cluster routing mechanism.
+
+These procedures are only executable by a user with admin permissions.
+If this is not the case, the procedure throws an exception with the message `permission has not been granted for user 'xxx'`.
+====
+
+[WARNING]
+====
+Installing, updating or removing a trigger is an eventually consistent operation.
+Therefore, they are not immediately added/updated/removed,
+but they have a refresh rate handled by the Apoc configuration `apoc.trigger.refresh=<MILLISECONDS>`, with default 60000 (milliseconds)
+====
