@@ -1,7 +1,6 @@
 package apoc.util;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +8,6 @@ import java.util.function.Consumer;
 
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.junit.Test;
 import org.neo4j.driver.Session;
 
 import static apoc.util.TestContainerUtil.copyFilesToPlugin;
