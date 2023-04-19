@@ -60,6 +60,8 @@ public class CypherInitializer implements AvailabilityListener {
                 final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
                 if (!isSystemDatabase) {
                     awaitApocProceduresRegistered();
+                } else {
+                    awaitDbmsComponentsProcedureRegistered();
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
@@ -132,14 +134,20 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     private void awaitApocProceduresRegistered() {
-        while (!areApocProceduresRegistered()) {
+        while (!areProceduresRegistered("apoc")) {
             Util.sleep(100);
         }
     }
 
-    private boolean areApocProceduresRegistered() {
+    private void awaitDbmsComponentsProcedureRegistered() {
+        while (!areProceduresRegistered("dbms.components")) {
+            Util.sleep(100);
+        }
+    }
+
+    private boolean areProceduresRegistered(String procStart) {
         try {
-            return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
+            return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith(procStart));
         } catch (ConcurrentModificationException e) {
             // if a CME happens (possible during procedure scanning)
             // we return false and the caller will try again
