@@ -296,6 +296,23 @@ public class ImportJsonTest {
         
         assertEntities(NODES_BIG_JSON, RELS_BIG_JSON);
     }
+
+    @Test
+    public void shouldFailBecauseOfMissingUniquenessConstraintException() {
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:User) REQUIRE (n.neo4jImportId, n.name) IS UNIQUE;");
+        assertEntities(0L, 0L);
+
+        String filename = "all.json";
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.json($file, {})",
+                    map("file", filename),
+                    (r) -> fail("Should fail due to missing constraint")
+            );
+        } catch (Exception e) {
+            String expectedMsg = format(MISSING_CONSTRAINT_ERROR_MSG, "User", "neo4jImportId");
+            assertRootMessage(expectedMsg, e);
+        }
+    }
     
     @Test
     public void shouldFailBecauseOfMissingSecondConstraintException() {

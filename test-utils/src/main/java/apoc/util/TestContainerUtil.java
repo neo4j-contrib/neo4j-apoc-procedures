@@ -103,6 +103,7 @@ public class TestContainerUtil {
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "512M")
                 .withEnv("NEO4J_dbms_memory_pagecache_size", "256M")
                 .withEnv("apoc.export.file.enabled", "true")
+                .withEnv("apoc.import.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
                 .withFileSystemBind(canonicalPath, "/var/lib/neo4j/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")

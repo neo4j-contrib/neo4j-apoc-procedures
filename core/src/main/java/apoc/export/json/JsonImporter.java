@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.PointValue;
@@ -142,11 +143,11 @@ public class JsonImporter implements Closeable {
                 "label", getType(param));
         List<String> allLabels = Stream.concat(startLabels.stream(), endLabels.stream()).collect(Collectors.toList());
         if (lastRelTypes == null) {
-            checkConstraints(allLabels);
+            checkUniquenessConstraints(allLabels);
             lastRelTypes = relType;
         }
         if (!relType.equals(lastRelTypes)) {
-            checkConstraints(allLabels);
+            checkUniquenessConstraints(allLabels);
             flush();
             lastRelTypes = relType;
         }
@@ -155,17 +156,22 @@ public class JsonImporter implements Closeable {
     private void manageNode(Map<String, Object> param) {
         List<String> labels = getLabels(param);
         if (lastLabels == null) {
-            checkConstraints(labels);
+            checkUniquenessConstraints(labels);
             lastLabels = labels;
         }
         if (!labels.equals(lastLabels)) {
-            checkConstraints(labels);
+            checkUniquenessConstraints(labels);
             flush();
             lastLabels = labels;
         }
     }
 
-    private void checkConstraints(List<String> labels) {
+    /**
+     * The constraint for the import name should be unique to avoid duplicated imports.
+     * Node keys are a combination of a uniqueness constraint and en existence constraint, so can also be used.
+     * The constraint should not be composite.
+     */
+    private void checkUniquenessConstraints(List<String> labels) {
         if (labels.isEmpty()) {
             return;
         }
@@ -174,7 +180,8 @@ public class JsonImporter implements Closeable {
             final String importIdName = importJsonConfig.getImportIdName();
             final String missingConstraint = labels.stream().filter(label -> 
                     StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false)
-                            .noneMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName))
+                            .filter(constraint -> constraint.isConstraintType(ConstraintType.UNIQUENESS) || constraint.isConstraintType(ConstraintType.NODE_KEY))
+                            .noneMatch(constraint -> Iterables.contains(constraint.getPropertyKeys(), importIdName) && Iterables.size(constraint.getPropertyKeys()) == 1)
             ).findAny()
             .orElse(null);
             if (missingConstraint != null) {
