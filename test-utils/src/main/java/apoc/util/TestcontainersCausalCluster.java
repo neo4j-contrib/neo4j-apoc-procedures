@@ -127,8 +127,6 @@ public class TestcontainersCausalCluster {
             container.withEnv("NEO4J_dbms_routing_listen__address", "0.0.0.0:7618")
                     .withEnv("NEO4J_dbms_routing_default__router", "SERVER")
                     .withEnv("NEO4J_dbms_routing_advertised__address", name + ":7618");
-        } else {
-            container.withoutDriver();
         }
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
         container.withEnv(envSettings);

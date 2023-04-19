@@ -22,13 +22,16 @@ import apoc.path.PathExplorer;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
@@ -36,7 +39,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -51,6 +57,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class CypherProceduresStorageTest {
     private final static String QUERY_CREATE = "RETURN $input1 + $input2 as answer";
     private final static String QUERY_OVERWRITE = "RETURN $input1 + $input2 + 123 as answer";
+
+    // we cannot set via apocConfig().setProperty(apoc.custom.procedures.refresh, ...) in `@Before`, because is too late
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule =
+            new ProvideSystemProperty(CUSTOM_PROCEDURES_REFRESH, "10");
 
     @Rule
     public TemporaryFolder STORE_DIR = new TemporaryFolder();
@@ -71,6 +82,99 @@ public class CypherProceduresStorageTest {
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
+    }
+
+    @Test
+    public void testRestoreProcedureWorksCorrectlyWithoutConflicts() {
+        // create a list of ["proc1", "proc2", "proc3" ....] strings
+        List<String> listProcNames = IntStream.range(0, 200)
+                .mapToObj(i -> "proc" + i)
+                .collect(Collectors.toList());
+
+        // for each element, declare a procedure with that name,
+        // then call the custom procedure and finally overwrite it
+        listProcNames.forEach(name -> {
+            String declareProc = String.format("CALL apoc.custom.declareProcedure('%s() :: (answer::INT)', $query)", name);
+
+            db.executeTransactionally(declareProc,
+                    Map.of("query", "RETURN 42 AS answer"),
+                    Result::resultAsString
+            );
+
+            TestUtil.testCall(db,
+                    String.format("call custom.%s", name),
+                    (row) -> assertEquals(42L, row.get("answer"))
+            );
+
+            // overwriting
+            db.executeTransactionally(declareProc,
+                    Map.of("query", "RETURN 1 AS answer"),
+                    Result::resultAsString
+            );
+        });
+
+        // check that the previous overwrite works correctly after the `db.clearQueryCaches`
+        db.executeTransactionally("call db.clearQueryCaches");
+        listProcNames.forEach(name -> TestUtil.testCall(db,
+                    String.format("call custom.%s", name),
+                    (row) -> assertEquals(1L, row.get("answer"))
+                )
+        );
+
+        // check that everything works correctly after a db restart
+        restartDb();
+        listProcNames.forEach(name -> TestUtil.testCall(db,
+                    String.format("call custom.%s", name),
+                    (row) -> assertEquals(1L, row.get("answer"))
+                )
+        );
+    }
+
+    @Test
+    public void testRestoreFunctionWorksCorrectlyWithoutConflicts() {
+        // create a list of ["fun1", "fun2", "fun3" ....] strings
+        List<String> listFunNames = IntStream.range(0, 200)
+                .mapToObj(i -> "fun" + i)
+                .collect(Collectors.toList());
+        final String funQuery = "return custom.%s() as row";
+
+        // for each element, declare a function with that name,
+        // then call the custom function and finally overwrite it
+        listFunNames.forEach(name -> {
+            final String declareFunction = String.format("CALL apoc.custom.declareFunction('%s() :: INT', $query)", name);
+
+            db.executeTransactionally(declareFunction,
+                    Map.of("query", "RETURN 42 as answer"),
+                    Result::resultAsString
+            );
+
+            TestUtil.testCall(db,
+                    String.format(funQuery, name),
+                    (row) -> assertEquals(42L, row.get("row"))
+            );
+
+            // overwriting
+            db.executeTransactionally(declareFunction,
+                    Map.of("query", "RETURN 1 as answer"),
+                    Result::resultAsString
+            );
+        });
+
+        // check that the previous overwrite works correctly after the `db.clearQueryCaches`
+        db.executeTransactionally("call db.clearQueryCaches");
+        listFunNames.forEach(name -> TestUtil.testCall(db,
+                        String.format(funQuery, name),
+                        (row) -> assertEquals(1L, row.get("row"))
+                )
+        );
+
+        // check that everything works correctly after a db restart
+        restartDb();
+        listFunNames.forEach(name -> TestUtil.testCall(db,
+                    String.format(funQuery, name),
+                    (row) -> assertEquals(1L, row.get("row"))
+                )
+        );
     }
 
     @Test
