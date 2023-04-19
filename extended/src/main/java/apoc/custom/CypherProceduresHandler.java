@@ -208,7 +208,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         ), statement, forceSingle);
     }
 
-    public void restoreProceduresAndFunctions() {
+    public synchronized void restoreProceduresAndFunctions() {
         lastUpdate = System.currentTimeMillis();
         Set<ProcedureSignature> currentProceduresToRemove = new HashSet<>(registeredProcedureSignatures);
         Set<UserFunctionSignature> currentUserFunctionsToRemove = new HashSet<>(registeredUserFunctionSignatures);
@@ -253,9 +253,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
 
             setLastUpdate(tx);
-            registerFunction(signature, statement, forceSingle);
             return null;
         });
+
+        restoreProceduresAndFunctions();
     }
 
     public void storeProcedure(ProcedureSignature signature, String statement) {
@@ -271,9 +272,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
-            registerProcedure(signature, statement);
             return null;
         });
+
+        restoreProceduresAndFunctions();
     }
 
     private String serializeSignatures(List<FieldSignature> signatures) {

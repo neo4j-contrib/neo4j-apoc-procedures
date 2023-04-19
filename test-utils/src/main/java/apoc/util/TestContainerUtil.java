@@ -11,6 +11,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 import org.testcontainers.containers.ContainerFetchException;
 import org.testcontainers.utility.MountableFile;
 
@@ -216,11 +217,7 @@ public class TestContainerUtil {
     public static void testCall(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(session, call, params, (res) -> {
             try {
-                assertNotNull("result should be not null", res);
-                assertTrue("result should be not empty", res.hasNext());
-                Map<String, Object> row = res.next();
-                consumer.accept(row);
-                assertFalse("result should not have next", res.hasNext());
+                testCallAssertions(consumer, res);
             } catch(Throwable t) {
                 printFullStackTrace(t);
                 throw t;
@@ -230,6 +227,37 @@ public class TestContainerUtil {
 
     public static void testCall(Session session, String call, Consumer<Map<String, Object>> consumer) {
         testCall(session, call, null, consumer);
+    }
+
+    public static void testCallEventuallyInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer, long timeout) {
+        testCallEventuallyInReadTransaction(session, call, Collections.emptyMap(), consumer, timeout);
+    }
+
+    public static void testCallEventuallyInReadTransaction(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer, long timeout) {
+        assertEventually(
+                () -> session.readTransaction(tx -> testCallEventuallyCommon(call, params, consumer, tx)),
+                (value) -> value, timeout, TimeUnit.SECONDS);
+    }
+
+    public static void testCallEventually(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer, long timeout) {
+        assertEventually(
+                () -> session.writeTransaction(tx -> testCallEventuallyCommon(call, params, consumer, tx)),
+                (value) -> value, timeout, TimeUnit.SECONDS);
+    }
+
+    private static boolean testCallEventuallyCommon(String call, Map<String, Object> params, Consumer<Map<String, Object>> consumer, Transaction tx) {
+        Iterator<Map<String, Object>> iterator = tx.run(call, params).stream().map(Record::asMap).collect(Collectors.toList()).iterator();
+        testCallAssertions(consumer, iterator);
+        tx.commit();
+        return true;
+    }
+
+    private static void testCallAssertions(Consumer<Map<String, Object>> consumer, Iterator<Map<String, Object>> res) {
+        assertNotNull("result should be not null", res);
+        assertTrue("result should be not empty", res.hasNext());
+        Map<String, Object> row = res.next();
+        consumer.accept(row);
+        assertFalse("result should not have next", res.hasNext());
     }
 
     public static void testResult(Session session, String call, Consumer<Iterator<Map<String, Object>>> resultConsumer) {
@@ -252,11 +280,7 @@ public class TestContainerUtil {
     public static void testCallInReadTransaction(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResultInReadTransaction(session, call, params, (res) -> {
             try {
-                assertNotNull("result should be not null", res);
-                assertTrue("result should be not empty", res.hasNext());
-                Map<String, Object> row = res.next();
-                consumer.accept(row);
-                assertFalse("result should not have next", res.hasNext());
+                testCallAssertions(consumer, res);
             } catch(Throwable t) {
                 printFullStackTrace(t);
                 throw t;
