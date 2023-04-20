@@ -89,8 +89,6 @@ public class CypherProceduresClusterTest {
         // when
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asFunction('answer2', 'RETURN 52 as answer')")); // we update the function
 
-        cluster.getSession().run("call db.clearQueryCaches()");
-
         // then
         // we use the readTransaction in order to route the execution to the READ_REPLICA
         TestContainerUtil.testCallEventuallyInReadTransaction(cluster.getSession(), "return custom.answer2() as row", (row) -> assertEquals(52L, ((Map)((List)row.get("row")).get(0)).get("answer")), 10L);
@@ -104,7 +102,6 @@ public class CypherProceduresClusterTest {
         // when
         TestContainerUtil.testCall(cluster.getSession(), "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")));
 
-        cluster.getSession().run("call db.clearQueryCaches()");
         // then
         TestContainerUtil.testCallEventuallyInReadTransaction(cluster.getSession(), "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")), 10L);
     }
@@ -118,7 +115,6 @@ public class CypherProceduresClusterTest {
         // when
         cluster.getSession().writeTransaction(tx -> tx.run("call apoc.custom.asProcedure('answerProcedure2', 'RETURN 55 as answer', 'read', [['answer','long']])")); // we create a procedure
 
-        cluster.getSession().run("call db.clearQueryCaches()");
         // then
         TestContainerUtil.testCallEventuallyInReadTransaction(cluster.getSession(), "call custom.answerProcedure2()", (row) -> Assert.assertEquals(55L, row.get("answer")), 10L);
     }
@@ -186,21 +182,19 @@ public class CypherProceduresClusterTest {
                     tx -> tx.run(declareProcedure, Map.of("query", "RETURN 42 AS answer"))
             );
 
-            // test that it's work for every cluster
+            // test that it's work for each node
             cluster.getClusterMembers().forEach(container -> {
                 testCallEventually(container.getSession(), callProcedure, Map.of(),
                         row -> assertEquals(42L, row.get("answer")),
                         10L);
             });
 
-            // overwriting
+            // overwriting on the leader
             cluster.getSession().writeTransaction(
                     tx -> tx.run(declareProcedure, Map.of("query", "RETURN 1 AS answer"))
             );
 
-            cluster.getSession().run("call db.clearQueryCaches()");
-
-            // check that it has been updated for every cluster
+            // check that it has been updated for each node
             cluster.getClusterMembers().forEach(container -> {
                 testCallEventually(container.getSession(), callProcedure, Map.of(),
                         row -> assertEquals(1L, row.get("answer")),
@@ -227,21 +221,19 @@ public class CypherProceduresClusterTest {
                     Map.of("query", "RETURN 42 as answer")
             ));
 
-            // test that it's work for every cluster
+            // test that it's work each node
             cluster.getClusterMembers().forEach(container -> {
                 testCallEventually(container.getSession(), funQuery, Map.of(),
                         row -> assertEquals(42L, row.get("row")),
                         10L);
             });
 
-            // overwriting
+            // overwriting on the leader
             cluster.getSession().writeTransaction(
                     tx -> tx.run(declareFunction, Map.of("query", "RETURN 1 AS answer"))
             );
 
-            cluster.getSession().run("call db.clearQueryCaches()");
-
-            // check that it has been updated for every cluster
+            // check that it has been updated for each node
             cluster.getClusterMembers().forEach(container -> {
                 testCallEventually(container.getSession(), funQuery, Map.of(),
                         row -> assertEquals(1L, row.get("row")),
