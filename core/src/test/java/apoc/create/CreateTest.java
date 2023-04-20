@@ -347,6 +347,33 @@ public class CreateTest {
     }
 
     @Test
+    public void testClonePathWithMixedDirectionRelationships() {
+        // rel `:b` is to the left, rel `d` is to the right
+        db.executeTransactionally("CREATE (:a {id: 1})<-[:b {id: 10}]-(:c {id: 2})-[:d {id: 20}]->(:e {id: 3})");
+
+        testCall(db, "MATCH p = (:a)<-[:b]-(:c)-[:d]->(:e) " +
+                "CALL apoc.create.clonePathToVirtual(p) YIELD path RETURN path", r -> {
+            Path path = (Path) r.get("path");
+            Iterator<Node> nodes = path.nodes().iterator();
+            Node node = nodes.next();
+            assertEquals(Map.of("id", 1L), node.getAllProperties());
+            node = nodes.next();
+            assertEquals(Map.of("id", 2L), node.getAllProperties());
+            node = nodes.next();
+            assertEquals(Map.of("id", 3L), node.getAllProperties());
+            assertFalse(nodes.hasNext());
+
+            Iterator<Relationship> rels = path.relationships().iterator();
+            Relationship rel = rels.next();
+            assertEquals(Map.of("id", 10L), rel.getAllProperties());
+            rel = rels.next();
+            assertEquals(Map.of("id", 20L), rel.getAllProperties());
+            assertFalse(rels.hasNext());
+
+        });
+    }
+
+    @Test
     public void testClonePathShouldNotDuplicateRelsWithMultipaths() {
         //create path with single rels
         db.executeTransactionally("CREATE (n1:Node {id: 1})-[:R]->(n2:Node)-[:R]->(n3:Node)");
