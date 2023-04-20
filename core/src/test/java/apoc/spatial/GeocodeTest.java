@@ -324,7 +324,8 @@ public class GeocodeTest {
                 time.addAndGet( System.currentTimeMillis() - start );
                 return true;
             } catch (Exception e) {
-                if (e.getMessage().contains("Server returned HTTP response code")) {
+                String msg = e.getMessage();
+                if (msg.contains("Server returned HTTP response code") || msg.contains("connect timed out")) {
                     return false;
                 }
                 throw e;
