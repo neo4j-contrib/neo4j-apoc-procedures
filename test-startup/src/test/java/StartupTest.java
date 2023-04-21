@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 /*
  This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
@@ -97,10 +99,12 @@ public class StartupTest {
                 .withEnv("apoc.initializer.system.0", "CREATE USER dummy IF NOT EXISTS SET PASSWORD \"pass12345\" CHANGE NOT REQUIRED")
                 .withEnv("apoc.initializer.system.1", "GRANT ROLE reader TO dummy"),
                 session -> {
-                    var result = session.run("SHOW USERS YIELD roles, user WHERE user = 'dummy' RETURN roles").stream().collect(Collectors.toList());
-                    assertTrue(result.size() > 0);
-                    var dummyRoles = result.get(0).get("roles").asList();
-                    assertTrue(dummyRoles.contains("reader"));
+                    assertEventually(() ->
+                         session.run( "SHOW USERS YIELD roles, user WHERE user = 'dummy' RETURN roles" ).stream()
+                                             .collect( Collectors.toList() ), (result) ->
+                         result.size() > 0 && result.get(0).get( "roles" ).asList().contains("reader" ),
+                                     30, TimeUnit.SECONDS
+                    );
                 });
     }
     
