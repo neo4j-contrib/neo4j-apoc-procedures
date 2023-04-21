@@ -9,25 +9,28 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.TemporaryFolder;
-import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.Result;
-import org.neo4j.internal.helpers.collection.Iterators;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
+import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 
 /**
  * @author mh
@@ -45,8 +48,8 @@ public class CypherProceduresStorageTest {
 
     @Before
     public void setUp() throws Exception {
-        dbms = startDbWithApocConfs(STORE_DIR,
-                CUSTOM_PROCEDURES_REFRESH + "=10");
+        dbms = startDbWithApocConfigs(STORE_DIR,
+                Map.of(CUSTOM_PROCEDURES_REFRESH, "10"));
         db = dbms.database(DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
@@ -60,8 +63,8 @@ public class CypherProceduresStorageTest {
     private void restartDb() {
         dbms.shutdown();
         try {
-            dbms = startDbWithApocConfs(STORE_DIR,
-                    CUSTOM_PROCEDURES_REFRESH + "=10");
+            dbms = startDbWithApocConfigs(STORE_DIR,
+                    Map.of(CUSTOM_PROCEDURES_REFRESH, "10"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

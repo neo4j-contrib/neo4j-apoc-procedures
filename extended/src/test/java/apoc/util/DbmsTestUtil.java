@@ -16,7 +16,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
 
 public class DbmsTestUtil {
 
-    public static DatabaseManagementService startDbWithApocConfs(TemporaryFolder storeDir, Map<String, Object> configMap) throws IOException {
+    public static DatabaseManagementService startDbWithApocConfigs(TemporaryFolder storeDir, Map<String, Object> configMap) throws IOException {
         // Used `new File(..).createNewFile()` instead of storeDir.newFile(..)
         // because the latter throws an IOException if the file already exists
         File configFile = new File(storeDir.getRoot(), "apoc.conf");
