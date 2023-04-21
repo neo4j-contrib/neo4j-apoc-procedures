@@ -2,13 +2,10 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import apoc.util.s3.S3Container;
+import apoc.util.s3.S3BaseTest;
 import apoc.xml.XmlTestUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -27,37 +24,16 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
-public class LoadS3Test {
+public class LoadS3Test extends S3BaseTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
-
-    private S3Container minio;
-
-    @BeforeClass
-    public static void init() {
-        // In test environment we skip the MD5 validation that can cause issues
-        System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
-        System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
-    }
-
-    @AfterClass
-    public static void destroy() {
-        System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
-        System.clearProperty("com.amazonaws.sdk.disableCertChecking");
-    }
 
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
-        minio = new S3Container();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        minio.close();
     }
 
     @AfterAll
@@ -67,7 +43,7 @@ public class LoadS3Test {
 
     @Test
     public void testLoadCsvS3() throws Exception {
-        String url = minio.putFile("src/test/resources/test.csv");
+        String url = s3Container.putFile("src/test/resources/test.csv");
         testResult(db, "CALL apoc.load.csv($url,{failOnError:false})", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
             assertRow(r, "Rana", "11", 1L);
@@ -77,7 +53,7 @@ public class LoadS3Test {
     }
 
     @Test public void testLoadJsonS3() throws Exception {
-        String url = minio.putFile("src/test/resources/map.json");
+        String url = s3Container.putFile("src/test/resources/map.json");
 
         testCall(db, "CALL apoc.load.json($url,'')",map("url", url),
                 (row) -> {
@@ -86,7 +62,7 @@ public class LoadS3Test {
     }
 
     @Test public void testLoadXmlS3() throws Exception {
-        String url = minio.putFile("src/test/resources/xml/books.xml");
+        String url = s3Container.putFile("src/test/resources/xml/books.xml");
 
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
