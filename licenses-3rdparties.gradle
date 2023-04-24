@@ -163,8 +163,11 @@ tasks.register("generateLicensesFiles") {
 
     dependsOn tasks.downloadLicenses, tasks.validateLicenses
 
-    ext.licensesFile = file("$tasks.downloadLicenses.jsonDestination/LICENSES.txt")
-    ext.noticeFile = file("$tasks.downloadLicenses.jsonDestination/NOTICE.txt")
+    def licenseFile = "$tasks.downloadLicenses.jsonDestination/LICENSES.txt"
+    def noticesFile = "$tasks.downloadLicenses.jsonDestination/NOTICE.txt"
+
+    ext.licensesFile = file(licenseFile)
+    ext.noticeFile = file(noticesFile)
     outputs.file(ext.licensesFile)
     outputs.file(ext.noticeFile)
     doLast {
@@ -194,6 +197,16 @@ tasks.register("generateLicensesFiles") {
             noticeFile << '\n'
             noticeFile << "$it.name\n"
             it.dependencies.sort { it }.each { noticeFile << "  $it\n" }
+        }
+
+        // Copy files to root project so they can be tracked
+        copy {
+            from licenseFile
+            into "$project.rootDir"
+        }
+        copy {
+            from noticesFile
+            into "$project.rootDir"
         }
     }
 }
