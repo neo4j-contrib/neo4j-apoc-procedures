@@ -9,28 +9,12 @@ plugins {
     id "org.sonarqube"
     id "org.jetbrains.kotlin.jvm" version "1.6.0"
     id "com.diffplug.spotless" version "6.7.2"
-    id "com.github.hierynomus.license"
 }
 
 spotless {
     java {
         target 'src/*/java/**/*.java'
         removeUnusedImports()
-    }
-}
-
-licenseFormat {
-    def sourceFileHeader = rootProject.file("${project.rootDir}/licenses/headers/source-header.txt")
-    license {
-        header = sourceFileHeader
-        // what comment style to use
-        mapping {
-            java = 'SLASHSTAR_STYLE'
-        }
-        // exclude 'test/resources/**'
-        // exclude 'main/resources/**'
-        include '**/*.java'
-        include '**/*.kt'
     }
 }
 
