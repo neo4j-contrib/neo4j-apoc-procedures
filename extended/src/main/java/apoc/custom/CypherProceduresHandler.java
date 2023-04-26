@@ -611,6 +611,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Procedure)).forEach(node -> {
                 ProcedureDescriptor descriptor = procedureDescriptor(node);
                 registerProcedure(descriptor.getSignature(), null);
+                registeredProcedureSignatures.remove(descriptor.getSignature());
                 node.delete();
                 setLastUpdate(tx);
             });
@@ -628,6 +629,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Function)).forEach(node -> {
                 UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
                 registerFunction(descriptor.getSignature(), null, false);
+                registeredUserFunctionSignatures.remove(descriptor.getSignature());
                 node.delete();
                 setLastUpdate(tx);
             });

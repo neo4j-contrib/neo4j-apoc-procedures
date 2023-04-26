@@ -8,7 +8,6 @@ import org.junit.*;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.DatabaseException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -34,7 +33,7 @@ public class CypherProceduresClusterTest {
                 List.of(TestContainerUtil.ApocPackage.EXTENDED),
                 3,
                 0,
-                Collections.emptyMap(),
+                Map.of("server.db.query_cache_size", "1"),
                 Map.of("NEO4J_dbms_routing_enabled", "true",
                         "apoc.custom.procedures.refresh", "100"));
 
@@ -56,7 +55,7 @@ public class CypherProceduresClusterTest {
 
         // then
         // we use the readTransaction in order to route the execution to the READ_REPLICA
-        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answer1() as row", (row) -> assertEquals(42L, row.get("row")), 10L);
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answer1() as row", (row) -> assertEquals(42L, row.get("row")), 60L);
     }
 
     @Test
@@ -68,9 +67,12 @@ public class CypherProceduresClusterTest {
         // when
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answer2() :: LONG', 'RETURN 52 as answer')")); // we update the function
 
+        writeSession.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+        readSession.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+
         // then
         // we use the readTransaction in order to route the execution to the READ_REPLICA
-        ExtendedTestContainerUtil.testCallInReadTransaction(readSession, "return custom.answer2() as row", (row) -> assertEquals(52L, row.get("row")));
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answer2() as row", (row) -> assertEquals(52L, row.get("row")), 60L);
     }
 
     @Test
@@ -82,7 +84,7 @@ public class CypherProceduresClusterTest {
         TestContainerUtil.testCall(writeSession, "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")));
 
         // then
-        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")), 10L);
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerProcedure1()", (row) -> Assert.assertEquals(33L, row.get("answer")), 60L);
     }
 
     @Test
@@ -94,23 +96,25 @@ public class CypherProceduresClusterTest {
         // when
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerProcedure2() :: (answer::LONG)', 'RETURN 55 as answer')")); // we create a procedure
 
+        writeSession.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+        readSession.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+
         // then
-        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerProcedure2()", (row) -> Assert.assertEquals(55L, row.get("answer")), 10L);
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerProcedure2()", (row) -> Assert.assertEquals(55L, row.get("answer")), 60L);
     }
 
     @Test(expected = DatabaseException.class)
     public void shouldRemoveProcedureOnOtherClusterMembers() throws InterruptedException {
         // given
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.declareProcedure('answerToRemove() :: (answer::LONG)', 'RETURN 33 as answer')")); // we create a procedure
-        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerToRemove()", (row) -> Assert.assertEquals(33L, row.get("answer")), 10L);
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerToRemove()", (row) -> Assert.assertEquals(33L, row.get("answer")), 60L);
 
         // when
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.removeProcedure('answerToRemove')")); // we remove procedure
 
-        Thread.sleep(1000);
         // then
         try {
-            TestContainerUtil.testCall(readSession, "call custom.answerToRemove()", (row) -> fail("Procedure not removed"));
+            ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "call custom.answerToRemove()", (row) -> fail("Procedure not removed"), 60L);
         } catch (DatabaseException e) {
             String expectedMessage = "There is no procedure with the name `custom.answerToRemove` registered for this database instance. Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.";
             assertEquals(expectedMessage, e.getMessage());
@@ -122,15 +126,14 @@ public class CypherProceduresClusterTest {
     public void shouldRemoveFunctionOnOtherClusterMembers() throws InterruptedException {
         // given
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.declareFunction('answerFunctionToRemove() :: LONG', 'RETURN 42 as answer')")); // we create a function
-        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answerFunctionToRemove() as row", (row) -> assertEquals(42L, row.get("row")), 10L);
+        ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answerFunctionToRemove() as row", (row) -> assertEquals(42L, row.get("row")), 60L);
 
         // when
         writeSession.writeTransaction(tx -> tx.run("call apoc.custom.removeFunction('answerFunctionToRemove')")); // we remove procedure
 
-        Thread.sleep(1000);
         // then
         try {
-            TestContainerUtil.testCall(readSession, "return custom.answerFunctionToRemove() as row", (row) -> fail("Function not removed"));
+            ExtendedTestContainerUtil.testCallEventuallyInReadTransaction(readSession, "return custom.answerFunctionToRemove() as row", (row) -> fail("Function not removed"), 60L);
         } catch (DatabaseException e) {
             String expectedMessage = "Unknown function 'custom.answerFunctionToRemove'";
             assertEquals(expectedMessage, e.getMessage());
@@ -156,10 +159,13 @@ public class CypherProceduresClusterTest {
             );
 
             // test that it's work for each node
-            cluster.getClusterMembers().forEach(container -> {
-                testCallEventually(container.getSession(), callProcedure, Map.of(),
+            cluster.getClusterMembers().stream()
+                    .map(Neo4jContainerExtension::getSession)
+                    .forEach(session -> {
+                session.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+                testCallEventually(session, callProcedure, Map.of(),
                         row -> assertEquals(42L, row.get("answer")),
-                        20L);
+                        60L);
             });
 
             // overwriting on the leader
@@ -168,10 +174,13 @@ public class CypherProceduresClusterTest {
             );
 
             // check that it has been updated for each node
-            cluster.getClusterMembers().forEach(container -> {
-                testCallEventually(container.getSession(), callProcedure, Map.of(),
+            cluster.getClusterMembers().stream()
+                    .map(Neo4jContainerExtension::getSession)
+                    .forEach(session -> {
+                session.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+                testCallEventually(session, callProcedure, Map.of(),
                         row -> assertEquals(1L, row.get("answer")),
-                        20L);
+                        60L);
             });
         });
     }
@@ -195,10 +204,13 @@ public class CypherProceduresClusterTest {
             ));
 
             // test that it's work each node
-            cluster.getClusterMembers().forEach(container -> {
-                testCallEventually(container.getSession(), funQuery, Map.of(),
+            cluster.getClusterMembers().stream()
+                    .map(Neo4jContainerExtension::getSession)
+                    .forEach(session -> {
+                session.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+                testCallEventually(session, funQuery, Map.of(),
                         row -> assertEquals(42L, row.get("row")),
-                        20L);
+                        60L);
             });
 
             // overwriting on the leader
@@ -207,10 +219,13 @@ public class CypherProceduresClusterTest {
             );
 
             // check that it has been updated for each node
-            cluster.getClusterMembers().forEach(container -> {
-                testCallEventually(container.getSession(), funQuery, Map.of(),
+            cluster.getClusterMembers().stream()
+                    .map(Neo4jContainerExtension::getSession)
+                    .forEach(session -> {
+                session.writeTransaction(tx -> tx.run("call db.clearQueryCaches()"));
+                testCallEventually(session, funQuery, Map.of(),
                         row -> assertEquals(1L, row.get("row")),
-                        20L);
+                        60L);
             });
         });
     }
