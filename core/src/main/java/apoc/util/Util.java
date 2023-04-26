@@ -1196,4 +1196,10 @@ public class Util {
         T result = retryInTx(NullLog.getInstance(), db, action, 0, 0, r -> {});
         return rebind(transaction, result);
     }
+
+    public static boolean isWindows() {
+        return System.getProperty("os.name")
+                .toLowerCase()
+                .contains("win");
+    }
 }
