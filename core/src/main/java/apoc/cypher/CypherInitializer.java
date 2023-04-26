@@ -19,6 +19,7 @@
 package apoc.cypher;
 
 import apoc.ApocConfig;
+import apoc.SystemLabels;
 import apoc.util.Util;
 import apoc.version.Version;
 import org.apache.commons.configuration2.Configuration;
@@ -26,12 +27,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.database.SystemGraphComponent.Status;
 import org.neo4j.dbms.database.SystemGraphComponents;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.event.DatabaseEventContext;
+import org.neo4j.graphdb.event.DatabaseEventListener;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.monitoring.DatabaseEventListeners;
 import org.neo4j.logging.Log;
 
 import java.util.Collection;
@@ -39,6 +47,9 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
+
+import static apoc.SystemPropertyKeys.database;
 import java.util.function.BooleanSupplier;
 
 
@@ -49,15 +60,22 @@ public class CypherInitializer implements AvailabilityListener {
     private final GlobalProcedures procs;
     private final DependencyResolver dependencyResolver;
     private final String defaultDb;
+    private final DatabaseManagementService databaseManagementService;
+    private final DatabaseEventListeners databaseEventListeners;
+
 
     /**
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
      */
     private boolean finished = false;
 
-    public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
+    public CypherInitializer(GraphDatabaseAPI db, Log userLog,
+                             DatabaseManagementService databaseManagementService,
+                             DatabaseEventListeners databaseEventListeners) {
         this.db = db;
         this.userLog = userLog;
+        this.databaseManagementService = databaseManagementService;
+        this.databaseEventListeners = databaseEventListeners;
         this.dependencyResolver = db.getDependencyResolver();
         this.procs = dependencyResolver.resolveDependency(GlobalProcedures.class);
         this.defaultDb = dependencyResolver.resolveDependency(Config.class).get(GraphDatabaseSettings.default_database);
@@ -142,6 +160,9 @@ public class CypherInitializer implements AvailabilityListener {
                     }
                 }
 
+                // create listener for each database
+                databaseEventListeners.registerDatabaseEventListener(new SystemFunctionalityListener());
+
                 for (String query : initializers) {
                     try {
                         // we need to apply a retry strategy here since in systemdb we potentially conflict with
@@ -215,5 +236,38 @@ public class CypherInitializer implements AvailabilityListener {
     @Override
     public void unavailable() {
         // intentionally empty
+    }
+
+    private class SystemFunctionalityListener implements DatabaseEventListener {
+
+        @Override
+        public void databaseDrop(DatabaseEventContext eventContext) {
+
+            forEachSystemLabel((tx, label) -> {
+                tx.findNodes(label, database.name(), eventContext.getDatabaseName())
+                        .forEachRemaining(Node::delete);
+            });
+        }
+
+        @Override
+        public void databaseStart(DatabaseEventContext eventContext) {}
+
+        @Override
+        public void databaseShutdown(DatabaseEventContext eventContext) {}
+
+        @Override
+        public void databasePanic(DatabaseEventContext eventContext) {}
+
+        @Override
+        public void databaseCreate(DatabaseEventContext eventContext) {}
+    }
+
+    private void forEachSystemLabel(BiConsumer<Transaction, Label> consumer) {
+        try (Transaction tx = db.beginTx()) {
+            for (Label label: SystemLabels.values()) {
+                consumer.accept(tx, label);
+            }
+            tx.commit();
+        }
     }
 }
