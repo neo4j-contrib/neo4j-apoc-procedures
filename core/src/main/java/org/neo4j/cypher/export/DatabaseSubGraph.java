@@ -123,8 +123,11 @@ public class DatabaseSubGraph implements SubGraph
             final KernelTransaction kernelTransaction = ((InternalTransaction) transaction).kernelTransaction();
             final TokenRead tokenRead = kernelTransaction.tokenRead();
             final int startId = getLabelId(start, tokenRead);
-            final int relId = tokenRead.relationshipType(type.name());
             final int endId = getLabelId(end, tokenRead);
+            if ( labelNotExists(start, startId) || labelNotExists(end, endId) ) {
+                return 0L;
+            }
+            final int relId = tokenRead.relationshipType(type.name());
 
             return kernelTransaction.dataRead()
                     .countsForRelationship(startId, relId, endId);
@@ -145,12 +148,21 @@ public class DatabaseSubGraph implements SubGraph
         if (transaction instanceof InternalTransaction) {
             final KernelTransaction kernelTransaction = ((InternalTransaction) transaction).kernelTransaction();
             final int labelId = getLabelId(label, kernelTransaction.tokenRead());
+            if (labelNotExists(label, labelId)) {
+                return 0L;
+            }
             return kernelTransaction.dataRead()
                     .countsForNode(labelId);
         }
         return transaction.execute(String.format("MATCH (n:%s) RETURN count(n) AS count", quote(label.name())))
                 .<Long>columnAs("count")
                 .next();
+    }
+
+    private boolean labelNotExists(Label label, int labelId) {
+        // `label == null` means that we want to count all the labels
+        // otherwise if we don't found a not-null label, we want the count to return to zero
+        return label != null && labelId == ANY_LABEL;
     }
 
     private Integer getLabelId(Label start, TokenRead tokenRead) {

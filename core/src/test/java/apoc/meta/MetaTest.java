@@ -1917,4 +1917,49 @@ public class MetaTest {
 
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
+
+    @Test
+    public void testMetaGraphWithNoExistingConfLabels() {
+        Map<String, Object> conf = Map.of("includeLabels", List.of("Test"));
+        testSubraphWithNotExistingConfs(conf);
+    }
+
+    @Test
+    public void testMetaGraphWithNoExistingConfLabelsAndRels() {
+        Map<String, Object> conf = Map.of("includeLabels", List.of("Test"),
+                "includeRels", List.of("MY_TEST"));
+        testSubraphWithNotExistingConfs(conf);
+    }
+
+    private void testSubraphWithNotExistingConfs(Map<String, Object> map) {
+        db.executeTransactionally("CREATE (:Foo)-[:BAZ]->(:Bar)");
+
+        testCall(db, "CALL apoc.meta.subGraph($conf)",
+                Map.of("conf", map), (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertTrue("Actual value is: " + nodes, nodes.isEmpty());
+
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertTrue("Actual value is: " + rels, rels.isEmpty());
+                });
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    @Test
+    public void testMetaGraphWithNotExistingRel() {
+        db.executeTransactionally("CREATE (:Foo)-[:BAZ]->(:Bar)");
+
+        Map<String, List<String>> conf = Map.of("includeRels", List.of("MY_TEST"));
+        testCall(db, "CALL apoc.meta.subGraph($conf)",
+                Map.of("conf", conf), (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals(2, nodes.size());
+
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    assertTrue("Actual value is: " + rels, rels.isEmpty());
+                });
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
 }
