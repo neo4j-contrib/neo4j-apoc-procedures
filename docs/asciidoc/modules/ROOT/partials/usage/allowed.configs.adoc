@@ -1,0 +1,25 @@
+[NOTE]
+====
+Please note that this procedure only gets the following configurations, to avoid retrieving sensitive data:
+
+- `apoc.import.file.enabled`,
+- `apoc.import.file.use_neo4j_config`,
+- `apoc.import.file.allow_read_from_filesystem`,
+- `apoc.export.file.enabled`,
+- `apoc.trigger.enabled`,
+- `apoc.trigger.refresh`,
+- `apoc.uuid.enabled`,
+- `apoc.uuid.enabled.<databaseName>`,
+- `apoc.ttl.enabled`,
+- `apoc.ttl.enabled.<databaseName>`,
+- `apoc.ttl.schedule`
+- `apoc.ttl.limit`
+- `apoc.jobs.scheduled.num_threads`,
+- `apoc.jobs.pool.num_threads`,
+- `apoc.jobs.queue.size`
+- `apoc.http.timeout.connect`
+- `apoc.http.timeout.read`
+- `apoc.custom.procedures.refresh`
+- `apoc.spatial.geocode.osm.throttle`
+- `apoc.spatial.geocode.google.throttle`
+====
