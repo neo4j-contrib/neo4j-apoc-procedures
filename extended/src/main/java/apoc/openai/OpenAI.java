@@ -24,23 +24,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class OpenAI {
 
   @Procedure
-  @Description("apoc.openai.getEmbedding(text, api_key, model) - returns the embeddings for a given text")
-  public Stream < MapResult > getEmbedding(@Name("text") String text, @Name("api_key") String apiKey, @Name(value = "model", defaultValue = "text-embedding-ada-002") String model) throws Exception {
+  @Description("apoc.openai.getEmbedding([texts], api_key, model) - returns the embeddings for a given text")
+  public Stream < MapResult > getEmbedding(@Name("texts") List<String> texts, @Name("api_key") String apiKey, @Name(value = "model", defaultValue = "text-embedding-ada-002") String model) throws Exception {
     String endpoint = "https://api.openai.com/v1/embeddings";
     Map < String, Object > headers = new HashMap < > ();
     headers.put("Content-Type", "application/json");
     headers.put("Authorization", "Bearer " + apiKey);
-    String payload = "{\n" +
-      "  \"model\": \"" + model + "\",\n" +
-      "  \"input\": \"" + text + "\"\n" +
-      "}";
+
+    Map < String, Object > payloadMap = new HashMap < > ();
+    payloadMap.put("model", model);
+    payloadMap.put("input", texts);
+
+    String payload = new ObjectMapper().writeValueAsString(payloadMap);
     Stream < Object > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ());
     Map < String, Object > map = value.collect(Collectors.toMap(k -> "embedding", v -> v));
     return Stream.of(new MapResult(map));
   }
 
   @Procedure
-  @Description("apoc.openai.completion(text, api_key, configuration) - prompts the completion API")
+  @Description("apoc.openai.completion(prompt, api_key, configuration) - prompts the completion API")
   public Stream < MapResult > completion(@Name("prompt") String prompt, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
     String endpoint = "https://api.openai.com/v1/completions";
     Map < String, Object > headers = new HashMap < > ();
