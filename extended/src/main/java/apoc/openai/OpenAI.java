@@ -35,7 +35,7 @@ public class OpenAI {
       "  \"input\": \"" + text + "\"\n" +
       "}";
     Stream < Object > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ());
-    Map < String, Object > map = value.collect(Collectors.toMap(k -> "embedding", v -> ((Map < String, List < Map < String, Object >>> ) v).get("data").get(0).get("embedding")));
+    Map < String, Object > map = value.collect(Collectors.toMap(k -> "embedding", v -> v));
     return Stream.of(new MapResult(map));
   }
 
@@ -55,7 +55,27 @@ public class OpenAI {
     String payload = new ObjectMapper().writeValueAsString(configuration);
 
     Stream < Object > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ());
-    Map < String, Object > map = value.collect(Collectors.toMap(k -> "results", v -> ((Map < String, List < Map < String, Object >>> ) v).get("choices").get(0).get("text")));
+    Map < String, Object > map = value.collect(Collectors.toMap(k -> "results", v -> v));
+    return Stream.of(new MapResult(map));
+  }
+
+  @Procedure
+  @Description("apoc.openai.chatCompletion(messages, api_key, configuration) - prompts the completion API")
+  public Stream < MapResult > chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    String endpoint = "https://api.openai.com/v1/chat/completions";
+    Map < String, Object > headers = new HashMap < > ();
+    headers.put("Content-Type", "application/json");
+    headers.put("Authorization", "Bearer " + apiKey);
+
+    configuration.put("messages", messages);
+    if (!configuration.containsKey("model")) {
+        configuration.put("model", "gpt-3.5-turbo");
+    }
+
+    String payload = new ObjectMapper().writeValueAsString(configuration);
+
+    Stream < Object > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ());
+    Map < String, Object > map = value.collect(Collectors.toMap(k -> "results", v -> v));
     return Stream.of(new MapResult(map));
   }
 }
