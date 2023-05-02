@@ -53,13 +53,44 @@ public class CypherInitializer implements AvailabilityListener {
         return db;
     }
 
-    private void awaitUntil(BooleanSupplier supplier, int maxTime) {
+    private boolean awaitUntil(BooleanSupplier supplier, int maxTime) {
         int time = 0;
         int sleep = 100;
+        boolean condition = supplier.getAsBoolean();
 
-        while (!supplier.getAsBoolean() && time < maxTime) {
+        while (!condition && time < maxTime) {
             Util.sleep(sleep);
             time += sleep;
+            condition = supplier.getAsBoolean();
+        }
+
+        return condition;
+    }
+
+
+    private void waitForSystemDbLifecycles() {
+        /* Await 2 min at max for the system database to show in
+           status CURRENT or REQUIRES_UPGRADE.
+           We do not do anything for the other possible status because
+           the dbms would not even be able to operate normally in them
+           (i.e. UNSUPPORTED_BUT_CAN_UPGRADE, UNSUPPORTED, UNSUPPORTED_FUTURE).
+
+           The reason for that is that the first time we initialize
+           it the built-in roles (and possibly other system databases
+           structures) will not be populated immediately in 4.4.
+           I.e. system.isAvailable can output true but some of the
+           Lifecycles may not have been run yet (UNINITIALIZED status)
+         */
+        boolean condition = awaitUntil( () ->
+                                        {
+                                            var components = dependencyResolver.resolveDependency( SystemGraphComponents.class );
+                                            var status = components.detect( db );
+                                            return (status == Status.CURRENT || status == Status.REQUIRES_UPGRADE);
+                                        }, 120000 );
+
+        if ( !condition )
+        {
+            userLog.warn( "time elapsed waiting for systemdb to have run all lifecycles, apoc.initializer commands could fail" );
         }
     }
 
@@ -76,28 +107,8 @@ public class CypherInitializer implements AvailabilityListener {
                 var initializers = collectInitializers(isSystemDatabase, config);
                 if (!isSystemDatabase) {
                     awaitApocProceduresRegistered();
-                } else {
-                    if (!initializers.isEmpty())
-                    {
-                        /* Await 1 min at max for the system database to show in
-                           status CURRENT or REQUIRES_UPGRADE.
-                           We do not do anything for the other possible status because
-                           the dbms would not even be able to operate normally in them
-                           (i.e. UNSUPPORTED_BUT_CAN_UPGRADE, UNSUPPORTED, UNSUPPORTED_FUTURE).
-
-                           The reason for that is that the first time we initialize
-                           it the built-in roles (and possibly other system databases
-                           structures) will not be populated immediately in 4.4.
-                           I.e. system.isAvailable can output true but some of the
-                           Lifecycles may not have been run yet (UNINITIALIZED status)
-                         */
-                        awaitUntil( () ->
-                                    {
-                                        var components = dependencyResolver.resolveDependency(SystemGraphComponents.class);
-                                        var status = components.detect(db);
-                                        return (status == Status.CURRENT || status == Status.REQUIRES_UPGRADE);
-                                    },  60000);
-                    }
+                } else if (!initializers.isEmpty()) {
+                    waitForSystemDbLifecycles();
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
