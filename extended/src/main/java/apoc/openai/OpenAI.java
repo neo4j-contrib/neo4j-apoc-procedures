@@ -38,7 +38,7 @@ public class OpenAI {
     configuration.put("input", texts);
 
     String payload = new ObjectMapper().writeValueAsString(configuration);
-    Stream < MapResult > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ()).map(v -> Map.of("embedding", v)).map(MapResult::new);
+    Stream < MapResult > value = JsonUtil.loadJson(endpoint, headers, payload, "", true, new ArrayList < > ()).map(v -> Map.of("result", ((Map<String, Object>) v).get("data"))).map(MapResult::new);
     return value;
   }
 
