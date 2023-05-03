@@ -49,9 +49,10 @@ public class ConfigTest {
     );
 
     @Rule
-    public final ProvideSystemProperty systemPropertyRule 
+    public final ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty("foo", "bar")
             .and("apoc.import.enabled", "true")
+            .and("apoc.trigger.enabled", "false")
             .and("apoc.trigger.refresh", "2000")
             .and("apoc.jobs.scheduled.num_threads", "4")
             .and("apoc.static.test", "one")

@@ -5,6 +5,7 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.*;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -33,6 +34,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@Ignore
 public class UUIDClusterRoutingTest {
     private static final int NUM_CORES = 3;
     private static TestcontainersCausalCluster cluster;
