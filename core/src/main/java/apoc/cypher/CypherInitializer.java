@@ -90,8 +90,7 @@ public class CypherInitializer implements AvailabilityListener {
 
         if ( !condition )
         {
-            userLog.warn( "time elapsed waiting for systemdb to have run all lifecycles, apoc.initializer commands could fail" );
-        }
+            userLog.warn("attempting to execute apoc.initializer without waiting for systemdb to finish initialization, waiting time elapsed. This may result in failing apoc.initializer commands." );        }
     }
 
     @Override
