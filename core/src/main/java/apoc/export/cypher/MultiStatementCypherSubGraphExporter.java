@@ -250,7 +250,8 @@ public class MultiStatementCypherSubGraphExporter {
     private List<String> exportIndexes() {
         return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
                 .map(map -> {
-                    if ("LOOKUP".equals(map.get("type"))) {
+                    String indexType = (String) map.get("type");
+                    if ("LOOKUP".equals(indexType)) {
                         return "";
                     }
                     List<String> props = (List<String>) map.get("properties");
@@ -266,7 +267,7 @@ public class MultiStatementCypherSubGraphExporter {
                     }
 
                     boolean isNode = "NODE".equals(map.get("entityType"));
-                    if ("FULLTEXT".equals(map.get("type"))) {
+                    if ("FULLTEXT".equals(indexType)) {
                         if (isNode) {
                             List<Label> labels = toLabels(tokenNames);
                             return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
@@ -280,9 +281,9 @@ public class MultiStatementCypherSubGraphExporter {
                     String tokenName = tokenNames.get(0);
                     final boolean ifNotExist = exportConfig.ifNotExists();
                     if (isNode) {
-                        return this.cypherFormat.statementForNodeIndex(tokenName, props, ifNotExist, idxName);
+                        return this.cypherFormat.statementForNodeIndex(indexType, tokenName, props, ifNotExist, idxName);
                     } else {
-                        return this.cypherFormat.statementForIndexRelationship(tokenName, props, ifNotExist, idxName);
+                        return this.cypherFormat.statementForIndexRelationship(indexType, tokenName, props, ifNotExist, idxName);
                     }
 
                 })
