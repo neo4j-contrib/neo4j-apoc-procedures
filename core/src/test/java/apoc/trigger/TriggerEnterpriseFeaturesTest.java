@@ -36,12 +36,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.trigger.TriggerHandler.TRIGGER_REFRESH;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
+import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,6 +57,7 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TriggerEnterpriseFeaturesTest {
     private static final String FOO_DB = "foo";
+    private static final String INIT_DB = "initdb";
 
     private static final String NO_ADMIN_USER = "nonadmin";
     private static final String NO_ADMIN_PWD = "test1234";
@@ -64,10 +67,15 @@ public class TriggerEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
+        final String cypherInitializer = String.format("%s.%s.0",
+                APOC_CONFIG_INITIALIZER, SYSTEM_DATABASE_NAME);
+        final String createInitDb = String.format("CREATE DATABASE %s IF NOT EXISTS", INIT_DB);
+
         // We build the project, the artifact will be placed into ./build/libs
         neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
                 .withEnv(APOC_TRIGGER_ENABLED, "true")
-                .withEnv(TRIGGER_REFRESH, String.valueOf(TRIGGER_DEFAULT_REFRESH));
+                .withEnv(TRIGGER_REFRESH, String.valueOf(TRIGGER_DEFAULT_REFRESH))
+                .withEnv(cypherInitializer, createInitDb);
         neo4jContainer.start();
         session = neo4jContainer.getSession();
 
@@ -168,6 +176,49 @@ public class TriggerEnterpriseFeaturesTest {
             testCall(defaultDbSession, "MATCH (n:Something) RETURN n.created",
                     r -> assertNull(r.get("created")));
         }
+    }
+
+    @Test
+    public void testDeleteTriggerAfterDatabaseDeletion() {
+        try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            final String dbToDelete = "todelete";
+
+            // create database with name `todelete`
+            sysSession.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", dbToDelete)));
+
+            testDeleteTriggerAfterDropDb(dbToDelete, sysSession);
+        }
+    }
+
+    @Test
+    public void testDeleteTriggerAfterDatabaseDeletionCreatedViaCypherInit() {
+        try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
+            // the database `initDb` is created via `apoc.initializer.*`
+            testDeleteTriggerAfterDropDb(INIT_DB, sysSession);
+        }
+    }
+
+    private static void testDeleteTriggerAfterDropDb(String dbToDelete, Session sysSession) {
+        final String defaultTriggerName = UUID.randomUUID().toString();
+
+        // install and show a trigger in the database and check existence
+        testCall(sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
+                Map.of("dbName", dbToDelete, "name", defaultTriggerName),
+                r -> assertEquals(defaultTriggerName, r.get("name"))
+        );
+
+        testCall(sysSession, "CALL apoc.trigger.show($dbName)",
+                Map.of("dbName", dbToDelete),
+                r -> assertEquals(defaultTriggerName, r.get("name"))
+        );
+
+        // drop database
+        sysSession.writeTransaction(tx -> tx.run(String.format("DROP DATABASE %s WAIT;", dbToDelete)));
+
+        // check that the trigger has been removed
+        testCallEmpty(sysSession, "CALL apoc.trigger.show($dbName)",
+                Map.of("dbName", dbToDelete)
+        );
     }
 
     @Test

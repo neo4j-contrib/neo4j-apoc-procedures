@@ -50,6 +50,10 @@ public class CoreApocGlobalComponents implements ApocGlobalComponents {
 
     @Override
     public Iterable<AvailabilityListener> getListeners(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
-        return Collections.singleton(new CypherInitializer(db, dependencies.log().getUserLog(CypherInitializer.class)));
+        return Collections.singleton(new CypherInitializer(db,
+                dependencies.log().getUserLog(CypherInitializer.class),
+                dependencies.databaseManagementService(),
+                dependencies.databaseEventListeners())
+        );
     }
 }
