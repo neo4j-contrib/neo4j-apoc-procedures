@@ -24,6 +24,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.hamcrest.Matchers;
 import org.junit.*;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -32,6 +33,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
 import java.util.List;
@@ -54,6 +56,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
@@ -71,9 +74,15 @@ public class UUIDNewProceduresTest {
     private static GraphDatabaseService db;
     private static DatabaseManagementService databaseManagementService;
 
+    // we cannot set via apocConfig().setProperty(apoc.uuid.refresh, ...) in `@Before`, because is too late
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule = setUuidApocConfs();
+
     @BeforeClass
     public static void beforeClass() throws Exception {
-        databaseManagementService = startDbWithUuidApocConfs(storeDir);
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
+                .setConfig(procedure_unrestricted, List.of("apoc*"))
+                .build();
 
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);

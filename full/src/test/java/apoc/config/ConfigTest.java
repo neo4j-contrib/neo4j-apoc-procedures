@@ -20,7 +20,6 @@ package apoc.config;
 
 import apoc.util.TestUtil;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -68,7 +67,7 @@ public class ConfigTest {
     );
 
     @Rule
-    public final ProvideSystemProperty systemPropertyRule 
+    public final ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty("foo", "bar")
             .and("apoc.import.enabled", "true")
             .and("apoc.trigger.refresh", "2000")
@@ -91,8 +90,7 @@ public class ConfigTest {
             assertEquals(EXPECTED_APOC_CONFS.keySet(), actualConfs);
         });
     }
-
-    @Ignore
+    
     @Test
     public void configMapTest(){
         TestUtil.testCall(db, "CALL apoc.config.map()", r -> {

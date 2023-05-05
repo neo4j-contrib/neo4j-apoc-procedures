@@ -27,6 +27,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -42,14 +43,12 @@ import org.neo4j.kernel.impl.coreapi.TransactionImpl;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerNewProcedures.*;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
@@ -75,18 +74,14 @@ public class TriggerNewProceduresTest {
     private static GraphDatabaseService db;
     private static DatabaseManagementService databaseManagementService;
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "2000") in `setUp`, because is too late
-        final File conf = new File(directory, "apoc.conf");
-        try (FileWriter writer = new FileWriter(conf)) {
-            writer.write(String.join("\n",
-                    "apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH,
-                    "apoc.trigger.enabled=true"));
-        }
+    // we cannot set via ApocConfig.apocConfig().setProperty("apoc.trigger.refresh", "2000") in `setUp`, because is too late
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule =
+            new ProvideSystemProperty("apoc.trigger.refresh", String.valueOf(TRIGGER_DEFAULT_REFRESH))
+                    .and("apoc.trigger.enabled", "true");
 
-        System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + directory.getAbsolutePath());
-        
+    @BeforeClass
+    public static void beforeClass() {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
                 .setConfig(procedure_unrestricted, List.of("apoc*"))
                 .build();
