@@ -19,15 +19,12 @@
 package apoc.uuid;
 
 import org.hamcrest.Matchers;
-import org.junit.rules.TemporaryFolder;
-import org.neo4j.dbms.api.DatabaseManagementService;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.neo4j.graphdb.GraphDatabaseService;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
-import static apoc.util.DbmsTestUtil.startDbWithApocConfs;
 import static apoc.util.SystemDbTestUtil.PROCEDURE_DEFAULT_REFRESH;
 import static apoc.util.SystemDbTestUtil.TIMEOUT;
 import static apoc.util.TestUtil.testCallEventually;
@@ -39,10 +36,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class UUIDTestUtils {
-    public static DatabaseManagementService startDbWithUuidApocConfs(TemporaryFolder storeDir) throws IOException {
-        return startDbWithApocConfs(storeDir,
-                APOC_UUID_REFRESH + "=" + PROCEDURE_DEFAULT_REFRESH,
-                APOC_UUID_ENABLED +  "=true");
+    public static ProvideSystemProperty setUuidApocConfs() {
+        return new ProvideSystemProperty(APOC_UUID_REFRESH, String.valueOf(PROCEDURE_DEFAULT_REFRESH))
+                .and(APOC_UUID_ENABLED, "true");
     }
 
     public static void awaitUuidDiscovered(GraphDatabaseService db, String label) {

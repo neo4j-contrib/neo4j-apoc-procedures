@@ -22,21 +22,20 @@ import apoc.ApocConfig;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
 import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
 import static apoc.util.TestUtil.waitDbsAvailable;
@@ -51,14 +50,13 @@ public class TriggerRestartTest {
     private GraphDatabaseService sysDb;
     private DatabaseManagementService databaseManagementService;
 
+    // we cannot set via apocConfig().setProperty(apoc.trigger.refresh, ...) in `@Before`, because is too late
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule =
+            new ProvideSystemProperty("apoc.trigger.refresh", String.valueOf(TRIGGER_DEFAULT_REFRESH));
+
     @Before
     public void setUp() throws IOException {
-        final File conf = store_dir.newFile("apoc.conf");
-        try (FileWriter writer = new FileWriter(conf)) {
-            writer.write("apoc.trigger.refresh=" + TRIGGER_DEFAULT_REFRESH);
-        }
-        System.setProperty(SUN_JAVA_COMMAND, "config-dir=" + store_dir.getRoot().getAbsolutePath());
-        
         databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);

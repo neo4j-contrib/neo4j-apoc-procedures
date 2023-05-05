@@ -22,19 +22,23 @@ import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.IOException;
+import java.util.List;
 
 import static apoc.util.TestUtil.waitDbsAvailable;
 import static apoc.uuid.UUIDTestUtils.*;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class UUIDRestartTest {
 
@@ -45,9 +49,15 @@ public class UUIDRestartTest {
     private GraphDatabaseService sysDb;
     private DatabaseManagementService databaseManagementService;
 
+    // we cannot set via apocConfig().setProperty(apoc.uuid.refresh, ...) in `@Before`, because is too late
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule = setUuidApocConfs();
+
     @Before
     public void setUp() throws IOException {
-        databaseManagementService = startDbWithUuidApocConfs(storeDir);
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
+                .setConfig(procedure_unrestricted, List.of("apoc*"))
+                .build();
 
         db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);

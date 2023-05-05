@@ -67,7 +67,7 @@ public class ConfigTest {
     );
 
     @Rule
-    public final ProvideSystemProperty systemPropertyRule 
+    public final ProvideSystemProperty systemPropertyRule
             = new ProvideSystemProperty("foo", "bar")
             .and("apoc.import.enabled", "true")
             .and("apoc.trigger.refresh", "2000")
