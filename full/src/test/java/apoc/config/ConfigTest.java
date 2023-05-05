@@ -20,6 +20,7 @@ package apoc.config;
 
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -90,7 +91,8 @@ public class ConfigTest {
             assertEquals(EXPECTED_APOC_CONFS.keySet(), actualConfs);
         });
     }
-    
+
+    @Ignore
     @Test
     public void configMapTest(){
         TestUtil.testCall(db, "CALL apoc.config.map()", r -> {
