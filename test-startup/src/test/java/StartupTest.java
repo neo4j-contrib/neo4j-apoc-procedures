@@ -93,7 +93,6 @@ public class StartupTest {
 
     }
 
-    @Ignore
     @Test
     public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
