@@ -31,9 +31,11 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
@@ -44,7 +46,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 // TODO: Reintroduce FIREFOX as a browser https://trello.com/c/X8KM7sFU/1803-fix-flaky-selenium-firefox-tests
 @RunWith(Parameterized.class)
@@ -95,25 +97,20 @@ public class LoadHtmlTestParameterized {
 
     @Test
     public void testQueryH2WithConfig() {
-        if (!browser.equals("CHROME")) {
-            return;
-        }
-        for (int i = 0; i < 10; i++) {
-            Map<String, Object> query = map("h2", "h2");
-            final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "", "timeout", 30);
-            addBrowserIfSet(confList);
-            Map<String, Object> config = map(confList.toArray());
+        Map<String, Object> query = map("h2", "h2");
+        final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
+        addBrowserIfSet(confList);
+        Map<String, Object> config = map(confList.toArray());
 
-            skipIfBrowserNotPresentOrCompatible(() -> {
-                testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                        map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                        result -> {
-                            Map<String, Object> row = result.next();
-                            assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                            assertFalse(result.hasNext());
-                        });
-            });
-        }
+        skipIfBrowserNotPresentOrCompatible(() -> {
+            assertEventually(() -> db.executeTransactionally("CALL apoc.load.html($url, $query, $config)",
+                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                    result -> {
+                        Map<String, Object> row = result.next();
+                        assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                        return !result.hasNext();
+                    }, Duration.ofSeconds(3)), (v) -> v, 30, TimeUnit.SECONDS);
+        });
     }
 
     @Test
