@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.database.SystemGraphComponent.Status;
+import org.neo4j.dbms.database.SystemGraphComponents;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
@@ -37,6 +39,8 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.BooleanSupplier;
+
 
 public class CypherInitializer implements AvailabilityListener {
 
@@ -67,6 +71,46 @@ public class CypherInitializer implements AvailabilityListener {
         return db;
     }
 
+    private boolean awaitUntil(BooleanSupplier supplier, int maxTime) {
+        int time = 0;
+        int sleep = 100;
+        boolean condition = supplier.getAsBoolean();
+
+        while (!condition && time < maxTime) {
+            Util.sleep(sleep);
+            time += sleep;
+            condition = supplier.getAsBoolean();
+        }
+
+        return condition;
+    }
+
+
+    private void waitForSystemDbLifecycles() {
+        /* Await 2 min at max for the system database to show in
+           status CURRENT or REQUIRES_UPGRADE.
+           We do not do anything for the other possible status because
+           the dbms would not even be able to operate normally in them
+           (i.e. UNSUPPORTED_BUT_CAN_UPGRADE, UNSUPPORTED, UNSUPPORTED_FUTURE).
+
+           The reason for that is that the first time we initialize
+           it the built-in roles (and possibly other system databases
+           structures) will not be populated immediately in 4.4.
+           I.e. system.isAvailable can output true but some of the
+           Lifecycles may not have been run yet (UNINITIALIZED status)
+         */
+        boolean condition = awaitUntil( () ->
+                                        {
+                                            var components = dependencyResolver.resolveDependency( SystemGraphComponents.class );
+                                            var status = components.detect( db );
+                                            return (status == Status.CURRENT || status == Status.REQUIRES_UPGRADE);
+                                        }, 120000 );
+
+        if ( !condition )
+        {
+            userLog.warn("attempting to execute apoc.initializer without waiting for system database to finish initialization, waiting time elapsed. This may result in failing apoc.initializer commands." );        }
+    }
+
     @Override
     public void available() {
 
@@ -76,10 +120,12 @@ public class CypherInitializer implements AvailabilityListener {
         Util.newDaemonThread(() -> {
             try {
                 final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+                Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+                var initializers = collectInitializers(isSystemDatabase, config);
                 if (!isSystemDatabase) {
                     awaitApocProceduresRegistered();
-                } else {
-                    awaitDbmsComponentsProcedureRegistered();
+                } else if (!initializers.isEmpty()) {
+                    waitForSystemDbLifecycles();
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
@@ -95,9 +141,8 @@ public class CypherInitializer implements AvailabilityListener {
                         userLog.info("Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
                     }
                 }
-                Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                for (String query : collectInitializers(isSystemDatabase, config)) {
+                for (String query : initializers) {
                     try {
                         // we need to apply a retry strategy here since in systemdb we potentially conflict with
                         // creating constraints which could cause our query to fail with a transient error.
@@ -153,12 +198,6 @@ public class CypherInitializer implements AvailabilityListener {
 
     private void awaitApocProceduresRegistered() {
         while (!areProceduresRegistered("apoc")) {
-            Util.sleep(100);
-        }
-    }
-
-    private void awaitDbmsComponentsProcedureRegistered() {
-        while (!areProceduresRegistered("dbms.components")) {
             Util.sleep(100);
         }
     }

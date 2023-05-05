@@ -272,7 +272,7 @@ public class TestContainerUtil {
                         return false;
                     }
                 },
-                (value) -> value, 30L, TimeUnit.SECONDS);
+                (value) -> value, 60L, TimeUnit.SECONDS);
     }
 
     /**
