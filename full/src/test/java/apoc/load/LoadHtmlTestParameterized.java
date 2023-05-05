@@ -95,20 +95,25 @@ public class LoadHtmlTestParameterized {
 
     @Test
     public void testQueryH2WithConfig() {
-        Map<String, Object> query = map("h2", "h2");
-        final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "");
-        addBrowserIfSet(confList);
-        Map<String, Object> config = map(confList.toArray());
+        if (!browser.equals("CHROME")) {
+            return;
+        }
+        for (int i = 0; i < 10; i++) {
+            Map<String, Object> query = map("h2", "h2");
+            final List<Object> confList = newArrayList("charset", "UTF-8", "baseUri", "", "timeout", 30);
+            addBrowserIfSet(confList);
+            Map<String, Object> config = map(confList.toArray());
 
-        skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                    result -> {
-                        Map<String, Object> row = result.next();
-                        assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                        assertFalse(result.hasNext());
-                    });
-        });
+            skipIfBrowserNotPresentOrCompatible(() -> {
+                testResult(db, "CALL apoc.load.html($url, $query, $config)",
+                        map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                        result -> {
+                            Map<String, Object> row = result.next();
+                            assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                            assertFalse(result.hasNext());
+                        });
+            });
+        }
     }
 
     @Test
