@@ -58,6 +58,8 @@ dependencies {
     compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
+    // If updated check if the transitive dependency to org.antlr:ST4:4.1 has also updated
+    // and remove the manual licensing check for it in licenses-3rdparties.gradle
     antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'

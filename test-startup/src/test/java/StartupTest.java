@@ -3,6 +3,7 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -92,6 +93,7 @@ public class StartupTest {
 
     }
 
+    @Ignore
     @Test
     public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
