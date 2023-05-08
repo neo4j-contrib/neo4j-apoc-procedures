@@ -297,10 +297,11 @@ public class TestContainerUtil {
                         assertEquals(2L, count);
                         return true;
                     } catch (Exception e) {
+                        System.out.println("UUID err = " + e);
                         return false;
                     }
                 },
-                (value) -> value, 60L, TimeUnit.SECONDS);
+                (value) -> value, 30L, TimeUnit.SECONDS);
     }
 
     /**
