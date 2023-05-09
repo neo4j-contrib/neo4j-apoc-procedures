@@ -52,12 +52,12 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
-	public String statementForNodeIndex(String label, Iterable<String> key, boolean ifNotExist, String idxName) {
+	public String statementForNodeIndex(String indexType, String label, Iterable<String> key, boolean ifNotExist, String idxName) {
 		return "";
 	}
 
 	@Override
-	public String statementForIndexRelationship(String type, Iterable<String> key, boolean ifNotExists, String idxName) {
+	public String statementForIndexRelationship(String indexType, String type, Iterable<String> key, boolean ifNotExists, String idxName) {
 		return "";
 	}
 

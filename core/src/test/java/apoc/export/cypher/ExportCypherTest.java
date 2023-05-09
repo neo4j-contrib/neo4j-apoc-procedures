@@ -847,6 +847,42 @@ public class ExportCypherTest {
         db.executeTransactionally("DROP INDEX rel_index_name");
     }
 
+    @Test
+    public void shouldSaveCorrectlyTypeIndexes() {
+        db.executeTransactionally("CREATE INDEX relIdxOne FOR ()-[r:KNOWS]-() ON (r.foo)");
+        db.executeTransactionally("CREATE TEXT INDEX relIdxTwo FOR ()-[r:KNOWS_TWO]-() ON (r.foo)");
+        db.executeTransactionally("CREATE BTREE INDEX relIdxThree FOR ()-[r:KNOWS_THREE]-() ON (r.foo)");
+
+        db.executeTransactionally("CREATE TEXT INDEX fooIndexText FOR (n:Foo) ON (n.nameOne)");
+        db.executeTransactionally("CREATE BTREE INDEX fooIndexRange FOR (n:Foo) ON (n.nameTwo)");
+
+
+        String expectedSchema = String.format("BEGIN%n" +
+                EXPECTED_BAR_FOO_INDEXES +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.nameTwo);%n" +
+                "CREATE TEXT INDEX FOR (node:Foo) ON (node.nameOne);%n" +
+                "CREATE BTREE INDEX FOR ()-[rel:KNOWS]-() ON (rel.foo);%n" +
+                "CREATE BTREE INDEX FOR ()-[rel:KNOWS_THREE]-() ON (rel.foo);%n" +
+                "CREATE TEXT INDEX FOR ()-[rel:KNOWS_TWO]-() ON (rel.foo);%n" +
+                EXPECTED_BAR_UNIQUE_CONSTRAINTS +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+
+        String expected = EXPECTED_NODES + expectedSchema + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP;
+
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null, $config)",
+                map("config", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")),
+                (r) -> assertEquals(expected, r.get("cypherStatements"))
+        );
+
+        db.executeTransactionally("DROP INDEX relIdxOne");
+        db.executeTransactionally("DROP INDEX relIdxTwo");
+        db.executeTransactionally("DROP INDEX relIdxThree");
+        db.executeTransactionally("DROP INDEX fooIndexText");
+        db.executeTransactionally("DROP INDEX fooIndexRange");
+
+    }
+
     private void relIndexTestCommon(String fileName, String expectedSchema, Map<String, Object> config) throws FileNotFoundException {
         Map<String, Object> exportConfig = map("separateFiles", true, "format", "neo4j-shell");
         exportConfig.putAll(config);
@@ -899,18 +935,22 @@ public class ExportCypherTest {
         static final String EXPECTED_NODES_EMPTY = String.format("BEGIN%n" +
                 "COMMIT%n");
 
-        static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
-                "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
+        public static final String EXPECTED_BAR_FOO_INDEXES = "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n";
+
+        public static final String EXPECTED_BAR_UNIQUE_CONSTRAINTS = "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n";
+
+        static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
+                EXPECTED_BAR_FOO_INDEXES +
+                EXPECTED_BAR_UNIQUE_CONSTRAINTS +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_SCHEMA_WITH_NAMES = "BEGIN%n" +
-                "CREATE INDEX%s FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX%s FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX%s FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX%s FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -949,16 +989,16 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES = "BEGIN\n" +
-                "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
-                "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
+                "CREATE BTREE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);\n" +
+                "CREATE BTREE INDEX fooIndex FOR (node:Foo) ON (node.name);\n" +
                 "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;\n" +
                 "CREATE CONSTRAINT uniqueConstraintComposite ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;\n" +
                 "COMMIT\n" +
@@ -969,7 +1009,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {place3d:point({x: 12.78, y: 56.7, z: 100.0, crs: 'wgs-84-3d'}), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -990,7 +1030,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556Z'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1011,7 +1051,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556+01:00'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1032,7 +1072,7 @@ public class ExportCypherTest {
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), `UNIQUE IMPORT ID`:4});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1063,9 +1103,9 @@ public class ExportCypherTest {
                 "COMMIT%n");
         
         static final String EXPECTED_SCHEMA_WITH_RELS_OPTIMIZED = String.format("BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
-                "CREATE INDEX FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1073,9 +1113,9 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT%n");
         
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_NAME_OPTIMIZED = String.format("BEGIN%n" +
-                "CREATE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
-                "CREATE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE BTREE INDEX barIndex FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX fooIndex FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX rel_index_name FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT consBar ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT uniqueConstraintComposite ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1083,9 +1123,9 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT%n");
         
         static final String EXPECTED_SCHEMA_WITH_RELS_AND_IF_NOT_EXISTS = String.format("BEGIN%n" +
-                "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
-                "CREATE INDEX IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1093,8 +1133,8 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_SCHEMA_OPTIMIZED = String.format("BEGIN%n" +
-                "CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1102,8 +1142,8 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_IF_NOT_EXISTS = String.format("BEGIN%n" +
-                "CREATE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1111,9 +1151,9 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT%n");
 
         static final String EXPECTED_SCHEMA_OPTIMIZED_WITH_RELS_IF_NOT_EXISTS_AND_NAME = String.format("BEGIN%n" +
-                "CREATE INDEX barIndex IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX fooIndex IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
-                "CREATE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
+                "CREATE BTREE INDEX barIndex IF NOT EXISTS FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX fooIndex IF NOT EXISTS FOR (node:Foo) ON (node.name);%n" +
+                "CREATE BTREE INDEX rel_index_name IF NOT EXISTS FOR ()-[rel:KNOWS]-() ON (rel.since, rel.foo);%n" +
                 "CREATE CONSTRAINT consBar IF NOT EXISTS ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT uniqueConstraintComposite IF NOT EXISTS ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT IF NOT EXISTS ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
@@ -1281,8 +1321,8 @@ public class ExportCypherTest {
                 "MATCH (end:Bar{name: row.end.name})%n" +
                 "CREATE (start)-[r:KNOWS]->(end)  SET r += row.properties;%n");
 
-        static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
-                "CREATE INDEX FOR (node:Foo) ON (node.name);%n" +
+        static final String EXPECTED_UPDATE_ALL_UNWIND = String.format("CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
+                "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
