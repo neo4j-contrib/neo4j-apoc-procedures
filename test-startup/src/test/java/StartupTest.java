@@ -95,6 +95,7 @@ public class StartupTest {
 
     @Test
     public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
+        for (int i = 0; i < 10; i++) {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startNeo4jContainerSession(() -> createEnterpriseDB(APOC_CORE, !TestUtil.isRunningInCI(), true)
                 .withEnv("apoc.initializer.system.0", "CREATE USER dummy IF NOT EXISTS SET PASSWORD \"pass12345\" CHANGE NOT REQUIRED")
@@ -107,6 +108,7 @@ public class StartupTest {
                                      30, TimeUnit.SECONDS
                     );
                 });
+        }
     }
     
     private void startNeo4jContainerSession(Supplier<Neo4jContainerExtension> neo4jContainerCreation,
