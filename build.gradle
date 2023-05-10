@@ -3,7 +3,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '4.0.3'  apply false
     id "com.bmuschko.nexus" version "2.3.1"
     id 'maven-publish'
-    id 'antlr'
     id "org.sonarqube" version "2.7"
     id "com.github.hierynomus.license-report" version"0.15.0"
 }
