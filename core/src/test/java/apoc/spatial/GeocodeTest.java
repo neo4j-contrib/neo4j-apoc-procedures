@@ -181,6 +181,7 @@ public class GeocodeTest {
     @Test
     public void testGeocodeOSM() throws Exception {
         for (int i = 0; i < 20; i++) {
+            System.out.println("i = " + i);
         testGeocodeWithThrottling("osm", false);
 
         }
@@ -215,6 +216,7 @@ public class GeocodeTest {
             }
         } else {
             for (Object address : (List) tests.get("addresses")) {
+                System.out.println("address = " + address);
                 testGeocodeAddress((Map) address, (String) config.getOrDefault("provider", provider), time, config);
             }
         }
@@ -350,7 +352,9 @@ public class GeocodeTest {
 
                 long delta = System.currentTimeMillis() - start;
                 System.out.println("delta = " + delta);
-                time.set(delta);
+//                time.set(delta);
+
+                time.addAndGet( System.currentTimeMillis() - start );
                 return true;
             } catch (Exception e) {
                 String msg = e.getMessage();
