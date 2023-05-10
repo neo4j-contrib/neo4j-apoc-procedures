@@ -64,11 +64,15 @@ public class GeocodeTest {
     // -- with config map
     @Test
     public void testWrongUrlButViaOtherProvider() throws Exception {
+        for (int i = 0; i < 20; i++) {
+            System.out.println("i = " + i);
         // wrong url but doesn't fail because provider is osm, not opencage
-        testGeocodeWithThrottling("osm", false, 
+        testGeocodeWithThrottling("osm", false,
                 map("url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY111"));
+
+        }
     }
-    
+
     @Test(expected = QueryExecutionException.class)
     public void testWrongUrlWithOpenCage() throws Exception {
         // overwrite ApocConfig provider
@@ -108,7 +112,7 @@ public class GeocodeTest {
             assertGeocodeAllowedUrl(true);
         });
     }
-    
+
     @Test
     public void testGeocodeWithBlockedAddressWithConfigMap() {
         Stream.of("https", "http", "ftp").forEach(protocol -> {
@@ -176,7 +180,10 @@ public class GeocodeTest {
 
     @Test
     public void testGeocodeOSM() throws Exception {
+        for (int i = 0; i < 20; i++) {
         testGeocodeWithThrottling("osm", false);
+
+        }
     }
 
     @Test
@@ -189,7 +196,9 @@ public class GeocodeTest {
     }
     
     private void testGeocodeWithThrottling(String supplier, Boolean reverseGeocode, Map<String, Object> config) throws Exception {
+        System.out.println("GeocodeTest.testGeocodeWithThrottling");
         long fast = testGeocode(supplier, 100, reverseGeocode, config);
+        System.out.println("fast done...");
         long slow = testGeocode(supplier, 2000, reverseGeocode, config);
         assertTrue("Fast " + supplier + " took " + fast + "ms and slow took " + slow + "ms, but expected slow to be at least twice as long", (1.0 * slow / fast) > 1.2);
     }
@@ -339,7 +348,9 @@ public class GeocodeTest {
                             return null;
                         });
 
-                time.addAndGet( System.currentTimeMillis() - start );
+                long delta = System.currentTimeMillis() - start;
+                System.out.println("delta = " + delta);
+                time.set(delta);
                 return true;
             } catch (Exception e) {
                 String msg = e.getMessage();
