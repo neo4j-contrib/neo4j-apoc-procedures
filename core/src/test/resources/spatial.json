@@ -41,6 +41,10 @@
     {
       "address": "this place should really not exist",
       "noresults": true
+    },
+    {
+      "address": "",
+      "noresults": true
     }
   ],
 
