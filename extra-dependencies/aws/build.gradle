@@ -1,0 +1,22 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+archivesBaseName = 'apoc-aws-dependencies'
+description = """APOC AWS Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+dependencies {
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+}
