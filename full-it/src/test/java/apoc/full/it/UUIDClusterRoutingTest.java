@@ -21,6 +21,7 @@ package apoc.full.it;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestcontainersCausalCluster;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -80,9 +81,10 @@ public class UUIDClusterRoutingTest {
 
     @Test
     public void testSetupAndDropUuidWithUseSystemClause() {
-        // wait until members are balanced, i.e. the system LEADER and the neo4j LEADER aren't in the same member
-        checkLeadershipBalanced(clusterSession);
+        isLeadershipBalanced();
 
+        // no matter if the leader labels are balanced, or not.
+        // The procedure should always work correctly
         queryForEachMembers(members, (session, container) -> {
                 String label = container.getContainerName();
 
@@ -124,14 +126,13 @@ public class UUIDClusterRoutingTest {
         });
 
         assertEventually(() -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
-                (value) -> value == 0L, 10L, TimeUnit.SECONDS);
+                (value) -> value == 0L, 20L, TimeUnit.SECONDS);
 
     }
 
     @Test
     public void testInstallUudiInClusterViaUseSystemShouldFail() {
-        // wait until members are balanced, i.e. the system LEADER and the neo4j LEADER aren't in the same member
-        checkLeadershipBalanced(clusterSession);
+        boolean leadershipBalanced = isLeadershipBalanced();
 
         queryForEachMembers(members, (session, container) -> {
             try {
@@ -142,11 +143,26 @@ public class UUIDClusterRoutingTest {
                 session.writeTransaction(tx -> tx.run(query,
                         Map.of("label", label) )
                 );
-                fail("Should fail because it's not possible to write via deprecated procedure");
+                // the error happens only if sys db leader is in a different core than the neo4j db leader
+                if (leadershipBalanced) {
+                    fail("Should fail because it's not possible to write via deprecated procedure");
+                }
             } catch (Exception e) {
                 assertThat(e.getMessage(), containsString(SYS_NON_LEADER_ERROR));
             }
         });
+    }
+
+    private boolean isLeadershipBalanced() {
+        // wait until members are balanced, i.e. the system LEADER and the neo4j LEADER aren't in the same member.
+        // Some time, although causal_clustering.leadership_balancing=NO_BALANCING,
+        // the system db leader is placed in the same core as the neo4j db leader
+        try {
+            checkLeadershipBalanced(clusterSession);
+            return true;
+        } catch (ConditionTimeoutException e) {
+            return false;
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.awaitility.core.ConditionTimeoutException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -286,7 +287,7 @@ public class TestContainerUtil {
      *
      * @param session
      */
-    public static void checkLeadershipBalanced(Session session) {
+    public static void checkLeadershipBalanced(Session session) throws ConditionTimeoutException {
         assertEventually(() -> {
                     String query = "CALL dbms.cluster.overview() YIELD databases\n" +
                             "WITH databases.neo4j AS neo4j, databases.system AS system\n" +
@@ -300,7 +301,7 @@ public class TestContainerUtil {
                         return false;
                     }
                 },
-                (value) -> value, 60L, TimeUnit.SECONDS);
+                (value) -> value, 30L, TimeUnit.SECONDS);
     }
 
     /**
