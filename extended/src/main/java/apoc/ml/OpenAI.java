@@ -1,4 +1,4 @@
-package apoc.openai;
+package apoc.ml;
 
 import apoc.Extended;
 import apoc.util.JsonUtil;
@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Extended
 public class OpenAI {
 
+    public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
+
     public static class EmbeddingResult {
         public final long index;
         public final String text;
@@ -35,7 +37,9 @@ public class OpenAI {
     }
 
     private static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath) throws JsonProcessingException, MalformedURLException {
-        String endpoint = "https://api.openai.com/v1/";
+        if (apiKey == null || apiKey.isBlank())
+            throw new IllegalArgumentException("API Key must not be empty");
+        String endpoint = System.getProperty(APOC_ML_OPENAI_URL,"https://api.openai.com/v1/");
         Map<String, Object> headers = Map.of(
                 "Content-Type", "application/json",
                 "Authorization", "Bearer " + apiKey
@@ -51,8 +55,8 @@ public class OpenAI {
         return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of());
     }
 
-    @Procedure
-    @Description("apoc.openai.getEmbedding([texts], api_key, model) - returns the embeddings for a given text")
+    @Procedure("apoc.ml.openai.embedding")
+    @Description("apoc.openai.embedding([texts], api_key, configuration) - returns the embeddings for a given text")
     public Stream<EmbeddingResult> getEmbedding(@Name("texts") List<String> texts, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         // https://platform.openai.com/docs/api-reference/embeddings/create
     /*
@@ -77,8 +81,8 @@ public class OpenAI {
     }
 
 
-    @Procedure
-    @Description("apoc.openai.completion(prompt, api_key, configuration) - prompts the completion API")
+    @Procedure("apoc.ml.openai.completion")
+    @Description("apoc.ml.openai.completion(prompt, api_key, configuration) - prompts the completion API")
     public Stream<MapResult> completion(@Name("prompt") String prompt, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         // https://platform.openai.com/docs/api-reference/completions/create
     /*
@@ -92,8 +96,8 @@ public class OpenAI {
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
 
-    @Procedure
-    @Description("apoc.openai.chatCompletion(messages, api_key, configuration) - prompts the completion API")
+    @Procedure("apoc.ml.openai.chat")
+    @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         return executeRequest(apiKey, configuration, "chat/completions", "gpt-3.5-turbo", "messages", messages, "$")
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
