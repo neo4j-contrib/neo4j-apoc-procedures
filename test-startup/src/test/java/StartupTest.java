@@ -3,7 +3,6 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -19,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
@@ -57,13 +57,16 @@ public class StartupTest {
                     assertTrue(procedureCount > 0);
                     assertTrue(functionCount > 0);
                     assertTrue(coreCount > 0);
-                });
+                }, neo4jContainer -> {}
+        );
     }
 
     @Test
     public void compare_with_sources() {
         startNeo4jContainerSession(() -> createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI()),
-                this::checkCoreProcsAndFuncsExistence);
+                this::checkCoreProcsAndFuncsExistence,
+                neo4jContainer -> {}
+        );
 
     }
 
@@ -82,14 +85,16 @@ public class StartupTest {
                     // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
                     final List<String> actualFullProcAndFunNames = session.run("CALL apoc.help('') YIELD core, type, name WHERE core = false RETURN name").list(i -> i.get("name").asString());
                     assertEquals(sorted(expectedFullProcAndFunNames), sorted(actualFullProcAndFunNames));
-                });
+                },
+                neo4jContainer -> {}
+        );
     }
 
     @Test
     public void checkCoreWithExtraDependenciesJars() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startNeo4jContainerSession(() -> createEnterpriseDB(APOC_CORE, !TestUtil.isRunningInCI(), true),
-                this::checkCoreProcsAndFuncsExistence);
+                this::checkCoreProcsAndFuncsExistence, (neo4jContainer) -> {});
 
     }
 
@@ -106,18 +111,29 @@ public class StartupTest {
                          result.size() > 0 && result.get(0).get( "roles" ).asList().contains("reader" ),
                                      30, TimeUnit.SECONDS
                     );
-                });
+
+
+                }, neo4jContainer -> {
+                    String logs = neo4jContainer.getLogs();
+                    assertTrue(logs.contains("successfully initialized: CREATE USER dummy IF NOT EXISTS SET PASSWORD '******' CHANGE NOT REQUIRED"));
+                    assertTrue(logs.contains("successfully initialized: GRANT ROLE reader TO dummy"));
+                    // The password should have been redacted
+                    assertFalse(logs.contains("pass12345"));
+                }
+        );
     }
     
     private void startNeo4jContainerSession(Supplier<Neo4jContainerExtension> neo4jContainerCreation,
-                                            Consumer<Session> sessionConsumer) {
+                                            Consumer<Session> sessionConsumer,
+                                            Consumer<Neo4jContainerExtension> containerConsumer) {
         try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.get()) {
             neo4jContainer.start();
             assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
             
             final Session session = neo4jContainer.getSession();
-            
+
             sessionConsumer.accept(session);
+            containerConsumer.accept(neo4jContainer);
         } catch (Exception ex) {
             // if Testcontainers wasn't able to retrieve the docker image we ignore the test
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
