@@ -37,6 +37,11 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.AssertableLogProvider;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -45,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -62,19 +68,70 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.driver.internal.util.Iterables.count;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class PeriodicTest {
+    public static class MockLogger {
+        @Context public Log log;
+
+        @Procedure("apoc.mockLog")
+        public void mockLog(@Name("value") String value) {
+            log.info(value);
+        }
+    }
 
     public static final long RUNDOWN_COUNT = 1000;
     public static final int BATCH_SIZE = 399;
 
+    public static AssertableLogProvider logProvider = new AssertableLogProvider();
+
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule(logProvider);
 
     @Before
     public void initDb() throws Exception {
-        TestUtil.registerProcedure(db, Periodic.class, Schemas.class, Cypher.class);
+        TestUtil.registerProcedure(db, Periodic.class, Schemas.class, Cypher.class, MockLogger.class);
         db.executeTransactionally("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)");
+    }
+
+    @Test
+    public void testRepeatWithVoidProcedure() {
+        String logVal = "repeatVoid";
+        String query = "CALL apoc.periodic.repeat('repeat-1', 'CALL apoc.mockLog($logVal)', 1, {params: {logVal: $logVal}})";
+        testLogIncrease(query, logVal);
+    }
+
+    @Test
+    public void testRepeatWithVoidProcedureAndReturn() {
+        String logVal = "repeatVoidWithReturn";
+        String query = "CALL apoc.periodic.repeat('repeat-2', 'CALL apoc.mockLog($logVal) RETURN 1', 1, {params: {logVal: $logVal}})";
+        testLogIncrease(query, logVal);
+    }
+
+    @Test
+    public void testSubmitWithVoidProcedure() {
+        String logVal = "submitVoid";
+        String query = "CALL apoc.periodic.submit('submit-1', 'CALL apoc.mockLog($logVal) RETURN 1', {params: {logVal: $logVal}})";
+        testLogIncrease(query, logVal);
+    }
+
+    @Test
+    public void testSubmitWithVoidProcedureAndReturn() {
+        String logVal = "submitVoidWithReturn";
+        String query = "CALL apoc.periodic.submit('submit-1', 'CALL apoc.mockLog($logVal)', {params: {logVal: $logVal}})";
+        testLogIncrease(query, logVal);
+    }
+
+    private void testLogIncrease(String query, String logVal) {
+        // execute a periodic procedure with `CALL apoc.mockLog(...)` as an inner procedure
+        db.executeTransactionally(query, Map.of("logVal", logVal));
+
+        // check custom log in logProvider
+        assertEventually(() -> {
+            String serialize = logProvider.serialize();
+            return serialize.contains(logVal);
+        }, (val) -> val, 5L, TimeUnit.SECONDS);
+
     }
 
     @Test
@@ -108,15 +165,15 @@ public class PeriodicTest {
     @Test
     public void testSubmitWithSchemaProcedure() {
         String errMessage = "Supported inner procedure modes for the operation are [READ, WRITE, DEFAULT]";
-        
+
         // built-in neo4j procedure
         final String createCons = "CALL db.createUniquePropertyConstraint('uniqueConsName', ['Alpha', 'Beta'], ['foo', 'bar'], 'lucene-1.0')";
         testSchemaOperationCommon(createCons, errMessage);
-        
+
         // apoc procedures
         testSchemaOperationCommon("CALL apoc.schema.assert({}, {})", errMessage);
         testSchemaOperationCommon("CALL apoc.cypher.runSchema('CREATE CONSTRAINT periodicIdx FOR (n:Bar) REQUIRE n.first_name IS UNIQUE', {})", errMessage);
-        
+
         // inner schema procedure
         final String innerSchema = "CALL { WITH 1 AS one CALL apoc.schema.assert({}, {}) YIELD key RETURN key } " +
                 "IN TRANSACTIONS OF 1000 rows RETURN 1";
@@ -160,15 +217,15 @@ public class PeriodicTest {
     @Test
     public void testApplyPlanner() {
         assertEquals("RETURN 1", applyPlanner("RETURN 1", Periodic.Planner.DEFAULT));
-        assertEquals("cypher planner=cost MATCH (n:cypher) RETURN n", 
+        assertEquals("cypher planner=cost MATCH (n:cypher) RETURN n",
                 applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.COST));
-        assertEquals("cypher planner=idp MATCH (n:cypher) RETURN n", 
+        assertEquals("cypher planner=idp MATCH (n:cypher) RETURN n",
                 applyPlanner("MATCH (n:cypher) RETURN n", Periodic.Planner.IDP));
-        assertEquals("cypher planner=dp  runtime=compiled MATCH (n) RETURN n", 
+        assertEquals("cypher planner=dp  runtime=compiled MATCH (n) RETURN n",
                 applyPlanner("cypher runtime=compiled MATCH (n) RETURN n", Periodic.Planner.DP));
-        assertEquals("cypher planner=dp  3.1 MATCH (n) RETURN n", 
+        assertEquals("cypher planner=dp  3.1 MATCH (n) RETURN n",
                 applyPlanner("cypher 3.1 MATCH (n) RETURN n", Periodic.Planner.DP));
-        assertEquals("cypher planner=idp  expressionEngine=compiled MATCH (n) RETURN n", 
+        assertEquals("cypher planner=idp  expressionEngine=compiled MATCH (n) RETURN n",
                 applyPlanner("cypher expressionEngine=compiled MATCH (n) RETURN n", Periodic.Planner.IDP));
         assertEquals("cypher expressionEngine=compiled  planner=cost  MATCH (n) RETURN n",
                 applyPlanner("cypher expressionEngine=compiled planner=idp MATCH (n) RETURN n", Periodic.Planner.COST));
@@ -341,13 +398,13 @@ public class PeriodicTest {
 
         String cypherIterate = "match (p:Person) return p";
         String cypherAction = "SET p.lastname =p.name REMOVE p.name";
-        testResult(db, "CALL apoc.periodic.iterate($cypherIterate, $cypherAction, $config)", 
+        testResult(db, "CALL apoc.periodic.iterate($cypherIterate, $cypherAction, $config)",
                 map("cypherIterate", cypherIterate, "cypherAction", cypherAction,
                         "config", map("batchSize", 10, "planner", "DP")),
                 result -> assertEquals(10L, Iterators.single(result).get("batches")));
 
         String cypherActionUnwind = "cypher runtime=slotted UNWIND $_batch AS batch WITH batch.p AS p  SET p.lastname =p.name";
-        
+
         testResult(db, "CALL apoc.periodic.iterate($cypherIterate, $cypherActionUnwind, $config)",
                 map("cypherIterate", cypherIterate, "cypherActionUnwind", cypherActionUnwind,
                         "config", map("batchSize", 10, "batchMode", "BATCH_SINGLE", "planner", "DP")),
