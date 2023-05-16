@@ -197,7 +197,8 @@ public class Periodic {
         validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = schedule(name, () -> {
-            db.executeTransactionally(statement, params);
+            // `resultAsString` in order to consume result
+            db.executeTransactionally(statement, params, Result::resultAsString);
         },0,rate);
         return Stream.of(info);
     }
