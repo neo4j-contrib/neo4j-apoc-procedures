@@ -1,6 +1,6 @@
 [[openai-api]]
 = OpenAI API Access
-:description: This section describes procedures that can be used to access the openai API.
+:description: This section describes procedures that can be used to access the OpenAI API.
 
 NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incurr costs on your OpenAI account.
 
@@ -28,9 +28,9 @@ CALL apoc.ml.openai.embedding(['Some Text'], $apiKey, {}) yield index, text, emb
 [%autowidth, opts=header]
 |===
 |name | description
-| messages | List of text strings
+| texts | List of text strings
 | apiKey | OpenAI API key
-| configuration | optional map for entries like model, ... TODO
+| configuration | optional map for entries like model and other request parameters
 |===
 
 
@@ -40,7 +40,7 @@ CALL apoc.ml.openai.embedding(['Some Text'], $apiKey, {}) yield index, text, emb
 |name | description
 | index | index entry in original list
 | text  | line of text from original list
-| embedding | 1536 element floating point embedding vector
+| embedding | 1536 element floating point embedding vector for ada-002 model
 |===
 
 == Text Completion API
@@ -51,12 +51,13 @@ It uses the `/completions/create` API which is https://platform.openai.com/docs/
 
 Additional configuration is passed to the API, the default model used is `text-davinci-003`.
 
+.Text Completion Call
 [source,cypher]
 ----
 CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, {config}) yield value;
 ----
 
-.Generate Embeddings Response
+.Text Completion Response
 ----
 { created=1684248202, model="text-davinci-003", id="cmpl-7GqBWwX49yMJljdmnLkWxYettZoOy",
   usage={completion_tokens=2, prompt_tokens=12, total_tokens=14},
@@ -67,9 +68,9 @@ CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $a
 [%autowidth, opts=header]
 |===
 |name | description
-| message | Text to complete
+| prompt | Text to complete
 | apiKey | OpenAI API key
-| configuration | optional map for entries like model, ... TODO
+| configuration | optional map for entries like model, temperature, and other request parameters
 |===
 
 .Results
@@ -110,12 +111,12 @@ choices=[{finish_reason="stop", index=0, message={role="assistant", content="Ear
 |name | description
 | messages | List of maps of instructions with `{role:"assistant|user|system", content:"text}`
 | apiKey | OpenAI API key
-| configuration | optional map for entries like model, ... TODO
+| configuration | optional map for entries like model, temperature, and other request parameters
 |===
 
 .Results
 [%autowidth, opts=header]
 |===
 |name | description
-| value | result entry from OpenAI (containing created, id, mdoel, object, usage(tokens), choices(message, index, finish_reason))
+| value | result entry from OpenAI (containing created, id, model, object, usage(tokens), choices(message, index, finish_reason))
 |===
