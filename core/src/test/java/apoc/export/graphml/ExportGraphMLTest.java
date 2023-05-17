@@ -49,21 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static apoc.ApocConfig.EXPORT_TO_FILE_ERROR;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_DATA;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_FALSE;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_READ_NODE_EDGE;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TINKER;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_EMPTY;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_NO_DATA_KEY;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_PATH;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_PATH_CAMEL_CASE;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_PATH_CAPTION;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_PATH_CAPTION_TINKER;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_PATH_WRONG_CAPTION;
-import static apoc.export.graphml.ExportGraphMLTestUtil.EXPECTED_TYPES_WITHOUT_CHAR_DATA_KEYS;
-import static apoc.export.graphml.ExportGraphMLTestUtil.assertXMLEquals;
-import static apoc.export.graphml.ExportGraphMLTestUtil.setUpGraphMl;
+import static apoc.export.graphml.ExportGraphMLTestUtil.*;
 import static apoc.util.BinaryTestUtil.getDecompressedData;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.MapUtil.map;
@@ -87,6 +73,17 @@ import static org.neo4j.graphdb.Label.label;
  * @since 22.05.16
  */
 public class ExportGraphMLTest {
+    private static final String exportQueryStartAndRel =
+            "CALL apoc.export.graphml.query('MATCH (start:Start)-[rel:REL]->(end:End) RETURN start, rel', $file, $config)";
+    private static final String exportQueryRelOnly =
+            "CALL apoc.export.graphml.query('MATCH (start:Start)-[rel:REL]->(end:End) RETURN rel', $file, $config)";
+
+    private static final String exportDataWithRelOnly = "MATCH (start:Start)-[rel:REL]->(end:End) " +
+            "CALL apoc.export.graphml.data([], [rel], $file, {}) " +
+            "YIELD nodes, relationships, properties RETURN *";
+    private static final String exportDataWithStartAndRel = "MATCH (start:Start)-[rel:REL]->(end:End) " +
+            "CALL apoc.export.graphml.data([start], [rel], $file, $config) " +
+            "YIELD nodes, relationships, properties RETURN *";
 
     @Rule
     public TestName testName = new TestName();
@@ -597,6 +594,97 @@ public class ExportGraphMLTest {
                     assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
                 });
         assertXMLEquals(output, EXPECTED_TYPES_PATH);
+    }
+
+    @Test
+    public void testExportOnlyRel() {
+        db.executeTransactionally("CREATE (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+
+        Map<String, Object> params = Map.of("config", Map.of());
+        assertExportRelOnly(exportQueryRelOnly, params);
+
+        // check that apoc.export.cypher.data returns consistent results
+        assertExportRelOnly(exportDataWithRelOnly, params);
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    @Test
+    public void testExportOnlyRelWithNodesOfRelsTrue() {
+        db.executeTransactionally("CREATE (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+
+        Map<String, Object> params = Map.of("config", Map.of("nodesOfRelationships", true));
+
+        assertExportRelOnly(exportQueryRelOnly, params);
+
+        // check that apoc.export.cypher.data returns consistent results
+        assertExportRelOnly(exportDataWithRelOnly, params);
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    @Test
+    public void testExportStartAndRel() {
+        db.executeTransactionally("CREATE (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+
+        Map<String, Object> params = Map.of("config", Map.of());
+        assertExportWithoutEndNode(exportQueryStartAndRel, params);
+
+        // check that apoc.export.graphml.data returns consistent results
+        assertExportWithoutEndNode(exportDataWithStartAndRel, params);
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    @Test
+    public void testExportStartAndRelWithNodesOfRelsTrue() {
+        db.executeTransactionally("CREATE (:Start {startId: 1})-[:REL {foo: 'bar'}]->(:End {endId: '1'})");
+
+        // check that with the `nodesOfRelationships` the end node is returned as well
+        Map<String, Object> params = Map.of("config", Map.of("nodesOfRelationships", true));
+
+        commonDataAndQueryAssertions(exportQueryStartAndRel, params,
+                EXPECTED_START_AND_REL_QUERY, 2L, 1L, 3L);
+
+        // apoc.export.graphml.data doesn't accept `nodesOfRelationships` config,
+        // so it returns the same result as the above one
+        assertExportWithoutEndNode(exportDataWithStartAndRel, params);
+
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    private void assertExportWithoutEndNode(String exportQuery, Map<String, Object> params) {
+        String expectedWithoutEndNode = String.format(HEADER +
+                START_NODE_KEYS_QUERY + LABEL_KEY_QUERY + EDGES_KEYS_QUERY +
+                GRAPH +
+                START_NODE_QUERY + EDGES_QUERY +
+                FOOTER);
+
+        commonDataAndQueryAssertions(exportQuery, params,
+                expectedWithoutEndNode, 1L, 1L, 2L);
+    }
+
+    private void assertExportRelOnly(String exportQuery, Map<String, Object> config) {
+        String expectedWithoutNodes = String.format(HEADER + EDGES_KEYS_QUERY + GRAPH + EDGES_QUERY + FOOTER);
+
+        commonDataAndQueryAssertions(exportQuery, config,
+                expectedWithoutNodes, 0L, 1L, 1L);
+    }
+
+    private void commonDataAndQueryAssertions(String query, Map<String, Object> config,
+                                              String expectedOutput, long nodes, long relationships, long properties) {
+        File output = new File(directory, "testFile.graphml");
+
+        Map<String, Object> params = Util.map("file", output.getAbsolutePath());
+        params.putAll(config);
+
+        TestUtil.testCall(db, query, params,
+                r -> {
+                    assertEquals(nodes, r.get("nodes"));
+                    assertEquals(relationships, r.get("relationships"));
+                    assertEquals(properties, r.get("properties"));
+                });
+        assertXMLEquals(output, expectedOutput);
     }
 
     @Test

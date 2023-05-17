@@ -44,8 +44,8 @@ public class ExportGraphMLTestUtil {
     private static final String KEY_TYPES_EMPTY = "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
             "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n" +
             "<key id=\"labels\" for=\"node\" attr.name=\"labels\" attr.type=\"string\"/>%n";
-    private static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
-    private static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
+    public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
+    public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
             "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
     private static final String KEY_TYPES_FALSE = "<key id=\"born\" for=\"node\" attr.name=\"born\"/>%n" +
             "<key id=\"values\" for=\"node\" attr.name=\"values\"/>%n" +
@@ -122,7 +122,7 @@ public class ExportGraphMLTestUtil {
             "<node id=\"B\" labels=\":Unit\"><data key=\"Path\">C:\\bright\\itecembed\\obj\\ada\\b3_status.ads</data></node>\n" +
             "<edge source=\"A\" target=\"B\"><!-- <data key=\"Path\">C:\\bright\\itecembed\\obj\\ada\\b3_status.ads</data> --></edge>";
 
-    private static final String FOOTER = "</graph>%n" +
+    public static final String FOOTER = "</graph>%n" +
             "</graphml>";
 
     private static final String DATA_PATH = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":12.78,\"longitude\":56.7,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
@@ -159,6 +159,20 @@ public class ExportGraphMLTestUtil {
     public static final String EXPECTED_TYPES_EMPTY = String.format(HEADER + KEY_TYPES_EMPTY + GRAPH + DATA_EMPTY + FOOTER);
     public static final String EXPECTED_TYPES_NO_DATA_KEY = String.format(HEADER + KEY_TYPES_NO_DATA_KEY + GRAPH + DATA_NO_DATA_KEY + FOOTER);
 
+    public static final String EDGES_QUERY = "<edge id=\"e1\" source=\"n3\" target=\"n4\" label=\"REL\"><data key=\"label\">REL</data><data key=\"foo\">bar</data></edge>%n";
+    public static final String EDGES_KEYS_QUERY = "<key id=\"foo\" for=\"edge\" attr.name=\"foo\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\"/>%n";
+
+    public static final String START_NODE_QUERY = "<node id=\"n3\" labels=\":Start\"><data key=\"labels\">:Start</data><data key=\"startId\">1</data></node>%n";
+    public static final String START_NODE_KEYS_QUERY = "<key id=\"startId\" for=\"node\" attr.name=\"startId\"/>%n";
+    public static final String LABEL_KEY_QUERY = "<key id=\"labels\" for=\"node\" attr.name=\"labels\"/>%n";
+    public static final String END_NODE_QUERY = "<node id=\"n4\" labels=\":End\"><data key=\"labels\">:End</data><data key=\"endId\">1</data></node>%n";
+    public static final String END_NODE_KEYS_QUERY = "<key id=\"endId\" for=\"node\" attr.name=\"endId\"/>%n";
+    public static final String EXPECTED_START_AND_REL_QUERY = String.format(HEADER +
+            END_NODE_KEYS_QUERY + START_NODE_KEYS_QUERY + LABEL_KEY_QUERY + EDGES_KEYS_QUERY +
+            GRAPH +
+            START_NODE_QUERY + END_NODE_QUERY + EDGES_QUERY +
+            FOOTER);
     
     public static void assertXMLEquals(Object output, String xmlString) {
         List<String> attrsWithNodeIds = Arrays.asList("id", "source", "target");
