@@ -15,7 +15,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.4.0.18'
+    version = '4.4.0.19'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
