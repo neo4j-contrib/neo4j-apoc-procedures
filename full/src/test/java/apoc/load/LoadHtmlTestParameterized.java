@@ -31,22 +31,18 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
 import static apoc.load.LoadHtmlTest.skipIfBrowserNotPresentOrCompatible;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testResult;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 // TODO: Reintroduce FIREFOX as a browser https://trello.com/c/X8KM7sFU/1803-fix-flaky-selenium-firefox-tests
 @RunWith(Parameterized.class)
@@ -79,8 +75,7 @@ public class LoadHtmlTestParameterized {
 
         Map<String, Object> config = browserSet() ? Map.of("browser", browser) : emptyMap();
 
-        skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url,$query, $config)",
+        skipIfBrowserNotPresentOrCompatible(db, "CALL apoc.load.html($url,$query, $config)",
                     map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                     result -> {
                         Map<String, Object> row = result.next();
@@ -92,7 +87,6 @@ public class LoadHtmlTestParameterized {
                         assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
                         assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
                     });
-        });
     }
 
     @Test
@@ -102,15 +96,12 @@ public class LoadHtmlTestParameterized {
         addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        skipIfBrowserNotPresentOrCompatible(() -> {
-            assertEventually(() -> db.executeTransactionally("CALL apoc.load.html($url, $query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                    result -> {
-                        Map<String, Object> row = result.next();
-                        assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
-                        return !result.hasNext();
-                    }, Duration.ofSeconds(3)), (v) -> v, 30, TimeUnit.SECONDS);
-        });
+        skipIfBrowserNotPresentOrCompatible(db, "CALL apoc.load.html($url, $query, $config)",
+                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(map("h2", asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                });
     }
 
     @Test
@@ -120,28 +111,26 @@ public class LoadHtmlTestParameterized {
         addBrowserIfSet(confList);
         Map<String, Object> config = map(confList.toArray());
 
-        skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
-                    result -> {
-                        Map<String, Object> row = result.next();
-                        Map<String, Object> value = (Map<String, Object>) row.get("value");
+        skipIfBrowserNotPresentOrCompatible(db, "CALL apoc.load.html($url, $query, $config)",
+                map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+                result -> {
+                    Map<String, Object> row = result.next();
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
 
-                        List<Map<String, Object>> toc = (List) value.get("toc");
-                        Map<String, Object> first = toc.get(0);
+                    List<Map<String, Object>> toc = (List) value.get("toc");
+                    Map<String, Object> first = toc.get(0);
 
-                        // Should be <ul>
-                        assertEquals("ul", first.get("tagName"));
+                    // Should be <ul>
+                    assertEquals("ul", first.get("tagName"));
 
-                        // Should have four children
-                        assertEquals(4, ((List) first.get("children")).size());
+                    // Should have four children
+                    assertEquals(4, ((List) first.get("children")).size());
 
-                        Map<String, Object> firstChild = (Map)((List) first.get("children")).get(0);
+                    Map<String, Object> firstChild = (Map) ((List) first.get("children")).get(0);
 
-                        assertEquals("li", firstChild.get("tagName"));
-                        assertEquals(1, ((List) firstChild.get("children")).size());
-                    });
-        });
+                    assertEquals("li", firstChild.get("tagName"));
+                    assertEquals(1, ((List) firstChild.get("children")).size());
+                });
     }
 
     private void addBrowserIfSet(List<Object> confList) {

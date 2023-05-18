@@ -25,16 +25,22 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.util.MapUtil.map;
@@ -46,6 +52,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class LoadHtmlTest {
 
@@ -120,22 +127,22 @@ public class LoadHtmlTest {
 
     @Test
     public void testWithWaitUntilAndOneElementNotFound() {
-        skipIfBrowserNotPresentOrCompatible(() -> {
-            testCall(db, "CALL apoc.load.html($url,$query,$config)",
-                    map("url", URL_HTML_JS,
-                            "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
-                            "config", map("browser", "CHROME", "wait", 5)),
-                    result -> {
-                        Map<String, Object> value = (Map<String, Object>) result.get("value");
-                        List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
-                        List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
-                        assertTrue(notExistent.isEmpty());
-                        assertEquals(1, existent.size());
-                        final Map<String, Object> tag = existent.get(0);
-                        assertEquals("This is a new text node", tag.get("text"));
-                        assertEquals("strong", tag.get("tagName"));
-                    });
-        });
+        skipIfBrowserNotPresentOrCompatible(db, "CALL apoc.load.html($url,$query,$config)",
+                map("url", URL_HTML_JS,
+                        "query", map("elementExistent", "strong", "elementNotExistent", ".asdfgh"),
+                        "config", map("browser", "CHROME", "wait", 5)),
+                r -> {
+                    Map<String, Object> result = r.next();
+                    Map<String, Object> value = (Map<String, Object>) result.get("value");
+                    List<Map<String, Object>> notExistent = (List<Map<String, Object>>) value.get("elementNotExistent");
+                    List<Map<String, Object>> existent = (List<Map<String, Object>>) value.get("elementExistent");
+                    assertTrue(notExistent.isEmpty());
+                    assertEquals(1, existent.size());
+                    final Map<String, Object> tag = existent.get(0);
+                    assertEquals("This is a new text node", tag.get("text"));
+                    assertEquals("strong", tag.get("tagName"));
+                    assertFalse(r.hasNext());
+                });
     }
     
     @Test
@@ -507,12 +514,12 @@ public class LoadHtmlTest {
     }
 
     private void testCallGeneratedJsWithBrowser(String browser) {
-        skipIfBrowserNotPresentOrCompatible(() -> {
-        testCall(db, "CALL apoc.load.html($url,$query,$config)",
+        skipIfBrowserNotPresentOrCompatible(db, "CALL apoc.load.html($url,$query,$config)",
                 map("url", URL_HTML_JS,
                         "query", map("td", "td", "strong", "strong"),
                         "config", map("browser", browser, "driverVersion", "0.30.0")),
-                result -> {
+                r -> {
+                    Map<String, Object> result = r.next();
                     Map<String, Object> value = (Map<String, Object>) result.get("value");
                     List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
                     List<Map<String, Object>> strongList = (List<Map<String, Object>>) value.get("strong");
@@ -527,13 +534,30 @@ public class LoadHtmlTest {
                     final Map<String, Object> tagStrong = strongList.get(0);
                     assertEquals("This is a new text node", tagStrong.get("text"));
                     assertEquals("strong", tagStrong.get("tagName"));
+                    assertFalse(r.hasNext());
                 });
-        });
     }
 
-    public static void skipIfBrowserNotPresentOrCompatible(Runnable runnable) {
+    public static void skipIfBrowserNotPresentOrCompatible(GraphDatabaseService db, String query, Map<String, Object> params, Consumer<Result> resultConsumer) {
         try {
-            runnable.run();
+            assertEventually(() -> {
+                try {
+                    return db.executeTransactionally(query, params, result -> {
+                        resultConsumer.accept(result);
+                        return true;
+                    }, Duration.ofSeconds(5));
+                } catch (TransactionTerminatedException e) {
+                    // those query should generally take less than a second.
+                    // We retry query if it takes more than 5 seconds,
+                    // since it can potentially return a flaky `org.openqa.selenium.TimeoutException` after 600 second
+                    boolean txTimeout = e.getMessage()
+                            .contains("The transaction has not completed within the specified timeout");
+                    if (txTimeout) {
+                        return false;
+                    }
+                    throw e;
+                }
+            }, (v) -> v, 30, TimeUnit.SECONDS);
         } catch (RuntimeException e) {
             // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
             final String msg = e.getMessage();
