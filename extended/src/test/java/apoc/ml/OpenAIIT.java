@@ -8,13 +8,9 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
