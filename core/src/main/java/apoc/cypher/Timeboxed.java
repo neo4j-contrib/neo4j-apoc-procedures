@@ -84,11 +84,11 @@ public class Timeboxed {
                     final Map<String, Object> map = result.next();
                     offerToQueue(queue, map, timeout);
                 }
-                offerToQueue(queue, POISON, timeout);
                 innerTx.commit();
             } catch (TransactionTerminatedException e) {
                 log.warn("query " + cypher + " has been terminated");
             } finally {
+                offerToQueue(queue, POISON, timeout);
                 txAtomic.set(null);
             }
         });

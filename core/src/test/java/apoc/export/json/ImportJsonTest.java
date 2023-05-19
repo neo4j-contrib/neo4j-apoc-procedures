@@ -65,6 +65,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
+import static org.neo4j.configuration.SettingValueParsers.BYTES;
 
 
 public class ImportJsonTest {
@@ -77,6 +79,9 @@ public class ImportJsonTest {
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
             .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"))
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("4G"))
+            .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
+            .withSetting(GraphDatabaseSettings.memory_tracking, true)
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     public ImportJsonTest() throws IOException {

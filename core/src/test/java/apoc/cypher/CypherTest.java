@@ -196,7 +196,7 @@ public class CypherTest {
 
     @Test
     public void testRunTimeboxedWithTermination() {
-        final String query = "CALL apoc.cypher.runTimeboxed('unwind range (0, 10) as id CALL apoc.util.sleep(2000) return 0', null, 20000)";
+        final String query = "CALL apoc.cypher.runTimeboxed('unwind range (0, 10) as id CALL apoc.util.sleep(2000) return 0', null, 30000)";
         checkTerminationGuard(db, query);
     }
 

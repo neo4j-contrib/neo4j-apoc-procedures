@@ -66,7 +66,7 @@ public class XmlTest {
             .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
             .withSetting(GraphDatabaseSettings.memory_tracking, true)
             .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
-            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("1G"));
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("2G"))
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
