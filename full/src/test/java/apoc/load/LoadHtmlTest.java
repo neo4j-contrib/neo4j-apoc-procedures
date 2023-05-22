@@ -550,7 +550,7 @@ public class LoadHtmlTest {
                     // those query should generally take less than a second.
                     // We retry query if it takes more than 5 seconds,
                     // since it can potentially return a flaky `org.openqa.selenium.TimeoutException` after 600 second
-                    boolean txTimeout = e.getMessage()
+                    boolean txTimeout = ExceptionUtils.getRootCause(e).getMessage()
                             .contains("The transaction has not completed within the specified timeout");
                     if (txTimeout) {
                         return false;
