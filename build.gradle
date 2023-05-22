@@ -70,8 +70,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:4.4.20-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:4.4.20'
+                'neo4jDockerImage' : project.hasProperty("neo4jVersionOverride") ? 'neo4j:' + project.getProperty("neo4jVersionOverride") + '-enterprise' : 'neo4j:4.4.20-enterprise',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jVersionOverride") ? 'neo4j:' + project.getProperty("neo4jVersionOverride") : 'neo4j:4.4.20'
 
         maxHeapSize = "8G"
         forkEvery = 50
