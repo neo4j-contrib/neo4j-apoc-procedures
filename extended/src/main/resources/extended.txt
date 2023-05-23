@@ -73,6 +73,9 @@ apoc.log.warn
 apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
+apoc.ml.openai.chat
+apoc.ml.openai.completion
+apoc.ml.openai.embedding
 apoc.model.jdbc
 apoc.mongo.aggregate
 apoc.mongo.count
