@@ -546,7 +546,8 @@ public class LoadHtmlTest {
                         resultConsumer.accept(result);
                         return true;
                     }, Duration.ofSeconds(5));
-                } catch (TransactionTerminatedException e) {
+                } catch (Exception e) {
+                    System.out.println("e = " + e);
                     // those query should generally take less than a second.
                     // We retry query if it takes more than 5 seconds,
                     // since it can potentially return a flaky `org.openqa.selenium.TimeoutException` after 600 second
