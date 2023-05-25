@@ -65,10 +65,10 @@ public class GeocodeTest {
     @Test
     public void testWrongUrlButViaOtherProvider() throws Exception {
         // wrong url but doesn't fail because provider is osm, not opencage
-        testGeocodeWithThrottling("osm", false, 
+        testGeocodeWithThrottling("osm", false,
                 map("url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY111"));
     }
-    
+
     @Test(expected = QueryExecutionException.class)
     public void testWrongUrlWithOpenCage() throws Exception {
         // overwrite ApocConfig provider
@@ -108,7 +108,7 @@ public class GeocodeTest {
             assertGeocodeAllowedUrl(true);
         });
     }
-    
+
     @Test
     public void testGeocodeWithBlockedAddressWithConfigMap() {
         Stream.of("https", "http", "ftp").forEach(protocol -> {
@@ -267,9 +267,15 @@ public class GeocodeTest {
             for (String field : new String[]{"address", "noresults"}) {
                 checkJsonFields(map, field);
             }
+            // with the `{"address": "", "noresults": true}` entry
+            // the time passed with throttle 100 and 2000 are about equal, unlike the other cases,
+            // so it is better not to add the time passed in this case
+            AtomicLong time1 = "".equals( map.get("address") )
+                    ? null
+                    : time;
             waitForServerResponseOK(geocodeQuery,
                     map("url", map.get("address").toString()),
-                    time,
+                    time1,
                     (res) -> assertFalse(res.hasNext())
             );
         } else if (map.containsKey("count")) {
@@ -339,7 +345,9 @@ public class GeocodeTest {
                             return null;
                         });
 
-                time.addAndGet( System.currentTimeMillis() - start );
+                if (time != null) {
+                    time.addAndGet(System.currentTimeMillis() - start);
+                }
                 return true;
             } catch (Exception e) {
                 String msg = e.getMessage();
