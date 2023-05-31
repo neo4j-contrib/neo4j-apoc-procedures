@@ -56,7 +56,7 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
     - name: Init gradle
-      run: ./gradlew --no-daemon --init-script init.gradle clean
+      run: ./gradlew --init-script init.gradle shadow
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
