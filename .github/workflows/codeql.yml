@@ -48,6 +48,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
     - name: Init gradle
       run: ./gradlew --init-script init.gradle shadow
 
