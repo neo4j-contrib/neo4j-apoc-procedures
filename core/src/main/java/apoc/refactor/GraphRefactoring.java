@@ -618,13 +618,15 @@ public class GraphRefactoring {
     private void mergeNodes(Node source, Node target, RefactorConfig conf, List<Long> excludeRelIds) {
         try {
             Map<String, Object> properties = source.getAllProperties();
+            final Iterable<Label> labels = source.getLabels();
 
-            copyRelationships(source, copyLabels(source, target), true, conf.isCreatingNewSelfRel());
+            copyRelationships(source, target, true, conf.isCreatingNewSelfRel());
             if (conf.getMergeRelsAllowed()) {
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.OUTGOING, excludeRelIds);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, conf, Direction.INCOMING, excludeRelIds);
             }
             source.delete();
+            labels.forEach(target::addLabel);
             PropertiesManager.mergeProperties(properties, target, conf);
         } catch (NotFoundException e) {
             log.warn("skipping a node for merging: " + e.getCause().getMessage());
