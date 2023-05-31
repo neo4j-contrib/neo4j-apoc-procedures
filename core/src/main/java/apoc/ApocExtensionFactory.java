@@ -37,6 +37,7 @@ import org.neo4j.logging.internal.LogService;
 import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.service.Services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +90,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         // maps a component class to database name to resolver
         private final Map<Class, Map<String, Object>> resolvers = new ConcurrentHashMap<>();
         private final Collection<ApocGlobalComponents> apocGlobalComponents;
+        private final Collection<AvailabilityListener> registeredListeners = new ArrayList<>();
 
 
         public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
@@ -137,6 +139,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
             for (ApocGlobalComponents c: apocGlobalComponents) {
                 for (AvailabilityListener listener: c.getListeners(db, dependencies)) {
+                    registeredListeners.add( listener );
                     availabilityGuard.addListener(listener);
                 }
             }
@@ -153,6 +156,10 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                     }
                 });
             });
+
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            registeredListeners.forEach(availabilityGuard::removeListener);
+            registeredListeners.clear();
         }
     }
 }
