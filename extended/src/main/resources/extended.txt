@@ -76,6 +76,9 @@ apoc.metrics.storage
 apoc.ml.openai.chat
 apoc.ml.openai.completion
 apoc.ml.openai.embedding
+apoc.ml.vertexai.chat
+apoc.ml.vertexai.completion
+apoc.ml.vertexai.embedding
 apoc.model.jdbc
 apoc.mongo.aggregate
 apoc.mongo.count
