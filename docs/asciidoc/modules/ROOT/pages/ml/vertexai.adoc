@@ -1,0 +1,127 @@
+[[vertexai-api]]
+= Google Cloud Vertex.AI API Access
+:description: This section describes procedures that can be used to access the Vertex.AI API.
+
+NOTE: You need to create a Google Cloud project in your account an enable the Vertex.AI services. As an access-token you can run `gcloud auth print-access-token`. Using these services will incurr costs on your Google Cloud account.
+
+== Generate Embeddings API
+
+This procedure `apoc.ml.vertexai.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 768 element vector.
+It uses the embedding endpoint which is https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-text-embeddings[documented here^].
+
+Additional configuration is passed to the API, the default model used is `textembedding-gecko`.
+
+.Generate Embeddings Call
+[source,cypher]
+----
+CALL apoc.ml.vertexai.embedding(['Some Text'], $accessToken, $project, {}) yield index, text, embedding;
+----
+
+.Generate Embeddings Response
+[%autowidth, opts=header]
+|===
+|index | text | embedding
+|0 | "Some Text" | [-0.0065358975, -7.9563365E-4, .... -0.010693862, -0.005087272]
+|===
+
+.Parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| texts | List of text strings
+| accessToken | Vertex.AI API access token
+| project | Google Cloud project
+| configuration | optional map for entries like model and other request parameters like `region`
+|===
+
+
+.Results
+[%autowidth, opts=header]
+|===
+|name | description
+| index | index entry in original list
+| text  | line of text from original list
+| embedding | 768 element floating point embedding vector for the textembedding-gecko model
+|===
+
+== Text Completion API
+
+This procedure `apoc.ml.vertexai.completion` can continue/complete a given text.
+
+It uses the completion model API which is https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompts[documented here^].
+
+Additional configuration is passed to the API, the default model used is `text-bison`.
+
+.Text Completion Call
+[source,cypher]
+----
+CALL apoc.ml.vertexai.completion('What color is the sky? Answer in one word: ', $apiKey, $project, {})
+----
+
+.Text Completion Response
+----
+{value={safetyAttributes={blocked=false, scores=[0.1], categories=[Sexual]},
+recitationResult={recitations=[], recitationAction=NO_ACTION}, content=blue}}
+----
+
+.Parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| prompt | Text to complete
+| accessToken | Vertex.AI API access token
+| project | Google Cloud project
+| configuration | optional map for entries like model, region, temperature, topK, topP, maxOutputTokens, and other request parameters
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+|name | description
+| value | result entry from Vertex.AI (content, safetyAttributes(blocked, categories, scores), recitationResult(recitationAction, recitations))
+|===
+
+== Chat Completion API
+
+This procedure `apoc.ml.vertexai.chat` takes a list of maps of chat exchanges between assistant and user (with optional system context), and will return the next message in the flow.
+
+It uses the chat model API which is https://cloud.google.com/vertex-ai/docs/generative-ai/chat/test-chat-prompts[documented here^].
+
+Additional configuration is passed to the API, the default model used is `chat-bison`.
+
+.Chat Completion Call
+[source,cypher]
+----
+CALL apoc.ml.vertexai.chat(
+/*messages*/
+[{author:"user", content:"What planet do timelords live on?"}],
+$apiKey, $project,
+{temperature:0},
+/*context*/ "Fictional universe of Doctor Who. Only answer with a single word!",
+/*examples*/ [{input:{content:"What planet do humans live on?"}, output:{content:"Earth"}}])
+yield value
+----
+
+.Chat Completion Response
+----
+{value={candidates=[{author=1, content=Gallifrey.}], safetyAttributes={blocked=false, scores=[0.1, 0.1, 0.1], categories=[Religion & Belief, Sexual, Toxic]}, recitationResults=[{recitations=[], recitationAction=NO_ACTION}]}}
+----
+
+.Parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| messages | List of maps of instructions with `{author:"bot|user", content:"text"}`
+| accessToken | Vertex.AI API access token
+| project | Google Cloud project
+| configuration | optional map for entries like region, model, temperature, topK, topP, maxOutputTokens and other parameters
+| context | optional context and system prompt for the completion
+| examples | optional list of examples: `[{input:{content:"input text"},output:{content:"expected output text"}]`
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+|name | description
+| value | result entry from Vertex.AI (containing candidates(author, content), safetyAttributes(categories, scores, blocked), recitationResults(recitationAction, recitations))
+|===
