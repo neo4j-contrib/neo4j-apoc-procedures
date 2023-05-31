@@ -57,6 +57,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref:nlp/azure.adoc[]
 
 * xref:ml/index.adoc[]
+    ** xref:ml/vertexai.adoc[]
     ** xref:ml/openai.adoc[]
 
 * xref:background-operations/index.adoc[]
