@@ -71,6 +71,7 @@ include::partial$generated-documentation/nav.adoc[]
 * xref:operational/index.adoc[]
     ** xref::operational/init-script.adoc[]
     ** xref::operational/log.adoc[]
+    ** xref::operational/rebind.adoc[]
 
 * xref:misc/index.adoc[]
     ** xref::misc/static-values.adoc[]

@@ -1,0 +1,84 @@
+APOC provides a list of functions to rebind nodes and relationships:
+
+* `apoc.node.rebind(node)`
+* `apoc.rel.rebind(rel)`
+* `apoc.any.rebind(map/list/paths/...)`
+
+== Why use these functions
+
+Unlike versions up to 3.5, 
+in Neo4j 4+ the entities hold a reference to their originating transaction.
+
+This can cause problems when for example, we create a node (called n1) in a transaction, open a new transaction in which we create another node (called n2) and execute
+via `org.neo4j.graphdb.Node.createRelationshipTo()`,
+that is `n1.createRelationshipTo(n2)`.
+
+
+Is what happens when we perform the following operation:
+
+[source,cypher]
+----
+// node creation
+CREATE (:Article {content: 'contentBody'});
+
+// iterate all (:Article) nodes and new transaction and rel creation
+CALL apoc.periodic.iterate('MATCH (art:Article) RETURN art',
+'CREATE (node:Category) with art, node call apoc.create.relationship(art, "CATEGORY", {b: 1}, node) yield rel return rel', {});
+----
+
+Basically, we create a node `(:Article)`,
+then the second parameter of the xref::overview/apoc.periodic/apoc.periodic.iterate.adoc[apoc.periodic.iterate] open a new transaction and create a node `(:Category)`,
+and finally we try to create a relationship between `(:Article)` and `(:Category)` via xref::overview/apoc.create/apoc.create.relationship.adoc[apoc.create.relationship] (which uses under the hood the `org.neo4j.graphdb.Node.createRelationshipTo()` ).
+
+If we try to execute the second query the apoc.periodic.iterate will return an `errorMessage` similar to this:
+----
+Failed to invoke procedure `apoc.create.relationship`: Caused by: org.neo4j.graphdb.NotFoundException: Node[10] is deleted and cannot be used to create a relationship": 1
+----
+
+
+== How to solve
+
+To solve the previous `apoc.periodic,iterate`, 
+we can leverage return the internal id from the first statement and then match the node via id, 
+that means doing a `MATCH (n) WHERE id(n) = id(nodeId)`
+(this operation is called rebinding).
+
+That is:
+[source,cypher]
+----
+CALL apoc.periodic.iterate('MATCH (art:Article) RETURN id(art) as id',
+'CREATE (node:Category) WITH id, node MATCH (art) where id(art) = id 
+    WITH art, node call apoc.create.relationship(art, "CATEGORY", {b: 1}, node) yield rel return rel', {});
+----
+
+Alternatively, we can wrap with the `apoc.node.rebind` function the node that have to be rebound, like this:
+[source,cypher]
+----
+CALL apoc.periodic.iterate('MATCH (art:Article) RETURN art',
+'CREATE (node:Category) with art, node call apoc.create.relationship(art, "CATEGORY", {b: 1}, node) yield rel return rel', {});
+----
+
+Regarding relationships, we can use `apoc.rel.rebind`:
+[source,cypher]
+----
+// other operations...
+MATCH (:Start)-[rel:REL]->(:End) /*...*/ RETURN apoc.rel.rebind(rel)
+----
+
+We can also use the `apoc.any.rebind(ANY)` to rebind multiple entities placed in maps, lists, paths, or a combination of these three.
+This will return the same structure passed in the argument, but with rebound entities.
+For example:
+
+.Map of entities
+[source,cypher]
+----
+CREATE (a:Foo)-[r1:MY_REL]->(b:Bar)-[r2:ANOTHER_REL]->(c:Baz) WITH a,b,c,r1,r2
+RETURN apoc.any.rebind({first: a, second: b, third: c, rels: [r1, r2]}) as rebind
+----
+
+.List of paths
+[source,cypher]
+----
+CREATE p1=(a:Foo)-[r1:MY_REL]->(b:Bar), p2=(:Bar)-[r2:ANOTHER_REL]->(c:Baz)
+RETURN apoc.any.rebind([p1, p2]) as rebind
+----

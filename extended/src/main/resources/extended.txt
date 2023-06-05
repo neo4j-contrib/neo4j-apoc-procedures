@@ -154,8 +154,11 @@ apoc.uuid.remove
 apoc.uuid.removeAll
 apoc.uuid.setup
 apoc.uuid.show
+apoc.any.rebind
 apoc.coll.avgDuration
 apoc.data.email
+apoc.node.rebind
+apoc.rel.rebind
 apoc.static.get
 apoc.static.getAll
 apoc.trigger.nodesByLabel
