@@ -265,7 +265,7 @@ public class SchemasEnterpriseFeaturesTest {
         testCall(session, "CALL apoc.schema.assert({},{})", (r) -> {
             assertEquals("Movie", r.get("label"));
             assertEquals(expectedKeys("title"), r.get("keys"));
-            assertTrue("should be unique", (boolean) r.get("unique"));
+            assertFalse((boolean) r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
         });
 
@@ -288,7 +288,7 @@ public class SchemasEnterpriseFeaturesTest {
         testCall(session, "CALL apoc.schema.assert({},{})", (r) -> {
             assertEquals("Acted", r.get("label"));
             assertEquals(expectedKeys("since"), r.get("keys"));
-            assertTrue("should be unique", (boolean) r.get("unique"));
+            assertFalse((boolean) r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
         });
 

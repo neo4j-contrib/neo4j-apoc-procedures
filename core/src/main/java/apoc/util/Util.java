@@ -44,6 +44,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransactionTerminatedException;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -1230,4 +1231,10 @@ public class Util {
                 (i) -> Util.valueEquals(i, value)
         );
     }
+
+    public static boolean constraintIsUnique(ConstraintType type) {
+        return type == ConstraintType.NODE_KEY ||
+                type == ConstraintType.UNIQUENESS;
+    }
+
 }
