@@ -202,7 +202,7 @@ public class Atomic {
 
         retry(executionContext, (context) -> {
             oldValue[0] = entity.getProperty(property);
-            String statement = "WITH $container as n with n set n." + property + "=" + operation + ";";
+            String statement = "WITH $container as n with n set n." + Util.sanitize(property, true) + "=" + operation + ";";
             Map<String, Object> properties = MapUtil.map("container", entity);
             return context.tx.execute(statement, properties);
         }, times);
