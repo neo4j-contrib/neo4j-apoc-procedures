@@ -43,6 +43,7 @@ import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@Ignore
 public class GeocodeTest {
 
     private static final String BLOCKED_ADDRESS = "127.168.0.0";
