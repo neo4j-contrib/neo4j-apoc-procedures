@@ -10,4 +10,6 @@ dependencies {
     testImplementation project(':test-utils')
     testImplementation project(':core').sourceSets.test.output
     testImplementation project(':full').sourceSets.test.output
+
+    testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
 }
