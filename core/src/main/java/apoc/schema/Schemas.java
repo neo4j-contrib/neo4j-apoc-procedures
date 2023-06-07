@@ -136,8 +136,12 @@ public class Schemas {
         Schema schema = tx.schema();
 
         for (ConstraintDefinition definition : schema.getConstraints()) {
+            ConstraintType constraintType = definition.getConstraintType();
             String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
-            AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
+            AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys()));
+            if (Util.constraintIsUnique(constraintType)) {
+                info = info.unique();
+            }
             if (!checkIfConstraintExists(label, constraints, info)) {
                 if (dropExisting) {
                     definition.drop();
