@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.schema;
+package apoc.it.core;
 
 import apoc.util.Neo4jContainerExtension;
 import org.apache.commons.lang3.StringUtils;

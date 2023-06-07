@@ -1,3 +1,5 @@
+package apoc.it;
+
 import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
@@ -39,7 +41,7 @@ public class StartupTest {
 
     static {
         final String file = StartupTest.class.getClassLoader().getResource(".").getFile();
-        final int endIndex = file.indexOf("test-startup");
+        final int endIndex = file.indexOf("it");
         final String basePath = file.substring(0, endIndex);
         APOC_FULL = getProjectPath(basePath, "full");
         APOC_CORE = getProjectPath(basePath, "core");

@@ -1,0 +1,22 @@
+name: "Test gradle project"
+
+inputs:
+  project-name:
+    description: "Name of gradle project to test"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/actions/setup-jdk
+    - uses: ./.github/actions/setup-gradle-cache
+    - name: Run tests
+      shell: bash
+      run: ./gradlew ${{inputs.project-name}}:test --parallel
+    - name: Archive test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{inputs.project-name}}-test-results
+        path: ${{inputs.project-name}}/build/reports/tests/test/
+        if-no-files-found: ignore

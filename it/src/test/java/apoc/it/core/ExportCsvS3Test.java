@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.export.csv;
+package apoc.it.core;
 
+import apoc.export.csv.ExportCSV;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
@@ -46,7 +47,7 @@ public class ExportCsvS3Test extends S3BaseTest {
         baseBeforeClass();
 
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
-        TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
+        TestUtil.registerProcedure( db, ExportCSV.class, Graphs.class);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
     }

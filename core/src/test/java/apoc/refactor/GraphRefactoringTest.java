@@ -77,10 +77,10 @@ import static org.neo4j.graphdb.Label.label;
  * @since 25.03.16
  */
 public class GraphRefactoringTest {
-    protected static final String CLONE_NODES_QUERY = "match (n:MyBook) with n call apoc.refactor.cloneNodes([n], true) " +
+    public static final String CLONE_NODES_QUERY = "match (n:MyBook) with n call apoc.refactor.cloneNodes([n], true) " +
             "YIELD output, error RETURN output, error";
-    protected static final String CLONE_SUBGRAPH_QUERY = "MATCH (n:MyBook) with n call apoc.refactor.cloneSubgraph([n], [], {}) YIELD output, error RETURN output, error";
-    protected static final String EXTRACT_QUERY = "MATCH p=(:Start)-[r:TO_MOVE]->(:End) with r call apoc.refactor.extractNode([r], ['MyBook'], 'OUT', 'IN') " +
+    public static final String CLONE_SUBGRAPH_QUERY = "MATCH (n:MyBook) with n call apoc.refactor.cloneSubgraph([n], [], {}) YIELD output, error RETURN output, error";
+    public static final String EXTRACT_QUERY = "MATCH p=(:Start)-[r:TO_MOVE]->(:End) with r call apoc.refactor.extractNode([r], ['MyBook'], 'OUT', 'IN') " +
             "YIELD output, error RETURN output, error";
 
     @Rule

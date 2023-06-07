@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.export.csv;
+package apoc.it.core;
 
+import apoc.export.csv.CsvTestUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
@@ -80,7 +81,7 @@ public class ExportCsvIT {
         testCall(session, "CALL apoc.export.csv.query($query, null, $config)", map("query", query,
                 "config", map("stream", true)),
                 (r) -> {
-                    List<String[]> csv = CsvTestUtil.toCollection(r.get("data").toString());
+                    List<String[]> csv = CsvTestUtil.toCollection( r.get( "data").toString());
                     assertEquals(2, csv.size());
                     assertArrayEquals(new String[]{"pk","copyright"}, csv.get(0));
                     assertArrayEquals(new String[]{"5921569",copyright}, csv.get(1));

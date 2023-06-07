@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.export.cypher;
+package apoc.it.core;
 
+import apoc.export.cypher.ExportCypherTestUtils;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
 import apoc.util.s3.S3TestUtil;
@@ -48,7 +49,7 @@ public class ExportCypherS3Test extends S3BaseTest {
 
     @Before
     public void setUp() throws Exception {
-      ExportCypherTestUtils.setUp(db, testName);
+      ExportCypherTestUtils.setUp( db, testName);
     }
 
     // -- Whole file test -- //

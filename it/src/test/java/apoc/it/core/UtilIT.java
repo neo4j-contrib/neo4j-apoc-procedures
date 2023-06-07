@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.util;
+package apoc.it.core;
 
 import apoc.ApocConfig;
+import apoc.util.Util;
 import inet.ipaddr.IPAddressString;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
@@ -72,7 +73,7 @@ public class UtilIT {
         String url = getServerUrl(httpServer);
 
         // when
-        String page = IOUtils.toString(Util.openInputStream(url, null, null, null), Charset.forName("UTF-8"));
+        String page = IOUtils.toString( Util.openInputStream( url, null, null, null), Charset.forName( "UTF-8"));
 
         // then
         assertTrue(page.contains("<title>Google</title>"));
