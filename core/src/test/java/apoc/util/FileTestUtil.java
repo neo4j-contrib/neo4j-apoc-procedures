@@ -19,11 +19,15 @@
 package apoc.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
 public class FileTestUtil {
-    
+
     public static void assertStreamEquals(File directoryExpected, String fileName, String actualText) {
         String expectedText = TestUtil.readFileToString(new File(directoryExpected, fileName));
         String[] actualArray = actualText.split("\n");
@@ -31,6 +35,14 @@ public class FileTestUtil {
         assertEquals(expectArray.length, actualArray.length);
         for (int i = 0; i < actualArray.length; i++) {
             assertEquals(JsonUtil.parse(expectArray[i],null, Object.class), JsonUtil.parse(actualArray[i],null, Object.class));
+        }
+    }
+
+    public static Path createTempFolder() {
+        try {
+            return Files.createTempDirectory( UUID.randomUUID().toString() );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
