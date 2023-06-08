@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ['core', 'full', 'processor', 'test-utils', 'it']
+        project: ['core', 'full', 'processor', 'test-utils', 'core-it', 'full-it']
     env:
       ENTERPRISE_TAR: enterprise-docker.tar
       COMMUNITY_TAR: community-docker.tar
