@@ -19,6 +19,7 @@
 package apoc.it.core;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.hamcrest.MatcherAssert;
@@ -29,6 +30,7 @@ import org.junit.Test;
 import org.neo4j.driver.Session;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -59,7 +61,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
-            neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
+            neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI())
                     .withInitScript("init_neo4j_export_csv.cypher");
             neo4jContainer.start();
         }, Exception.class);

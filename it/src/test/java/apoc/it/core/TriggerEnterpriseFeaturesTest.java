@@ -19,6 +19,7 @@
 package apoc.it.core;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,6 +32,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +74,7 @@ public class TriggerEnterpriseFeaturesTest {
         final String createInitDb = String.format("CREATE DATABASE %s IF NOT EXISTS", INIT_DB);
 
         // We build the project, the artifact will be placed into ./build/libs
-        neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI())
                 .withEnv(APOC_TRIGGER_ENABLED, "true")
                 .withEnv(TRIGGER_REFRESH, String.valueOf(TRIGGER_DEFAULT_REFRESH))
                 .withEnv(cypherInitializer, createInitDb);

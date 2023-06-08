@@ -11,7 +11,6 @@ import org.neo4j.driver.Session;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -31,25 +30,9 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
  */
 public class StartupTest {
 
-    private static final File APOC_FULL;
-    private static final File APOC_CORE;
-
-    private static File getProjectPath(String basePath, String project) {
-        return Paths.get( basePath.concat(project) )
-                .toFile();
-    }
-
-    static {
-        final String file = StartupTest.class.getClassLoader().getResource(".").getFile();
-        final int endIndex = file.indexOf("it");
-        final String basePath = file.substring(0, endIndex);
-        APOC_FULL = getProjectPath(basePath, "full");
-        APOC_CORE = getProjectPath(basePath, "core");
-    }
-
     @Test
     public void check_basic_deployment() {
-        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI())
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                         .withNeo4jConfig("dbms.transaction.timeout", "5s"),
                 session -> {
                     int procedureCount = session.run("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' RETURN count(*) AS count").peek().get("count").asInt();
@@ -65,7 +48,7 @@ public class StartupTest {
 
     @Test
     public void compare_with_sources() {
-        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI()),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI()),
                 this::checkCoreProcsAndFuncsExistence,
                 neo4jContainer -> {}
         );
@@ -76,11 +59,11 @@ public class StartupTest {
     public void checkFullWithExtraDependenciesJars() throws IOException {
 
         // we retrieve every full procedure and function via the extended.txt file
-        final File extendedFile = new File(APOC_FULL, "src/main/resources/extended.txt");
+        final File extendedFile = new File(TestContainerUtil.fullDir, "src/main/resources/extended.txt");
         final List<String> expectedFullProcAndFunNames = FileUtils.readLines(extendedFile, StandardCharsets.UTF_8);
         
         // we check that with apoc-full jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_FULL, !TestUtil.isRunningInCI(), true),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI(), true),
                 session -> {
                     checkCoreProcsAndFuncsExistence(session);
 
@@ -95,7 +78,7 @@ public class StartupTest {
     @Test
     public void checkCoreWithExtraDependenciesJars() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_CORE, !TestUtil.isRunningInCI(), true),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true),
                 this::checkCoreProcsAndFuncsExistence, (neo4jContainer) -> {});
 
     }
@@ -103,7 +86,7 @@ public class StartupTest {
     @Test
     public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(APOC_CORE, !TestUtil.isRunningInCI(), true)
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true)
                 .withEnv("apoc.initializer.system.0", "CREATE USER dummy IF NOT EXISTS SET PASSWORD \"pass12345\" CHANGE NOT REQUIRED")
                 .withEnv("apoc.initializer.system.1", "GRANT ROLE reader TO dummy"),
                 session -> {

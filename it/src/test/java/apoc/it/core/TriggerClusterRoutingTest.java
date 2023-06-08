@@ -51,7 +51,8 @@ public class TriggerClusterRoutingTest {
     @BeforeClass
     public static void setupCluster() {
         cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), Map.of(
+                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.CORE),
+                        3, 1, Collections.emptyMap(), Map.of(
                         "NEO4J_dbms_routing_enabled", "true",
                         "apoc.trigger.enabled", "true"
                 ));

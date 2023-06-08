@@ -19,10 +19,14 @@
 package apoc.it.core;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.List;
+
 import org.neo4j.driver.Session;
 
 import static apoc.refactor.GraphRefactoringTest.CLONE_NODES_QUERY;
@@ -47,7 +51,7 @@ public class GraphRefactoringEnterpriseTest {
     public static void beforeAll() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(true);
+            neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);

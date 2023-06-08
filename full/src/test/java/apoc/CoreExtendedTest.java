@@ -47,7 +47,7 @@ public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
@@ -74,7 +74,7 @@ public class CoreExtendedTest {
     @Test
     public void matchesSpreadsheet() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(!TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
 
             neo4jContainer.start();

@@ -44,7 +44,7 @@ public class CypherProceduresClusterTest {
     public static void setupCluster() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
+                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.CORE), 3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);
         Assume.assumeNotNull(cluster);
         assumeTrue("Neo4j Cluster should be up-and-running", cluster.isRunning());

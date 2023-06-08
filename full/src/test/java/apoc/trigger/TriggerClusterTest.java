@@ -31,6 +31,7 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +54,7 @@ public class TriggerClusterTest {
     public static void setupCluster() {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap(
+                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.CORE), 3, 1, Collections.emptyMap(), MapUtil.stringMap(
                         "apoc.trigger.refresh", "100",
                         "apoc.trigger.enabled", "true"
                 )),

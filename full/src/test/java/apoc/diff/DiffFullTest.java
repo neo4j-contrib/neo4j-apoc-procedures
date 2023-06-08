@@ -74,7 +74,7 @@ public class DiffFullTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        neo4jContainer = createEnterpriseDB(true)
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true)
                 .withInitScript("init_neo4j_diff.cypher")
                 .withLogging()
                 .withoutAuthentication();

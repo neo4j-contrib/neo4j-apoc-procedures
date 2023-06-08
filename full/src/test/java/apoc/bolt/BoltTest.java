@@ -73,7 +73,7 @@ public class BoltTest {
     public static void setUp() throws Exception {
         assumeFalse(isRunningInCI());
         TestUtil.ignoreException(() -> {
-            neo4jContainer = TestContainerUtil.createEnterpriseDB(isRunningInCI())
+            neo4jContainer = TestContainerUtil.createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), isRunningInCI())
                     .withInitScript("init_neo4j_bolt.cypher")
                     .withLogging()
                     .withAdminPassword("neo4j2020");

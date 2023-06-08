@@ -37,17 +37,38 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TestContainerUtil {
 
-    private TestContainerUtil() {}
-
-    private static File pluginsFolder;
-    private static File baseDir = Paths.get(".").toFile();
-
-    public static TestcontainersCausalCluster createEnterpriseCluster(int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
-        return TestcontainersCausalCluster.create(numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
+    public enum Neo4jVersion {
+        ENTERPRISE,
+        COMMUNITY
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging)  {
-        return createEnterpriseDB(baseDir, withLogging);
+    public enum ApocPackage {
+        CORE,
+        FULL
+    }
+
+    // read neo4j version from build.gradle
+    public static final String neo4jEnterpriseDockerImageVersion = System.getProperty("neo4jDockerImage");
+    public static final String neo4jCommunityDockerImageVersion = System.getProperty("neo4jCommunityDockerImage");
+
+    public static final String password = "apoc12345";
+
+    private TestContainerUtil() {}
+
+    public static File baseDir = Paths.get("..").toFile();
+    public static File pluginsFolder = new File(baseDir, "build/plugins");
+    private static File coreDir = new File(baseDir, "core");
+    public static File fullDir = new File(baseDir, "full");
+
+    public static String dockerImageForNeo4j(Neo4jVersion version) {
+        if (version == Neo4jVersion.COMMUNITY)
+            return neo4jCommunityDockerImageVersion;
+        else
+            return neo4jEnterpriseDockerImageVersion;
+    }
+
+    public static TestcontainersCausalCluster createEnterpriseCluster(List<ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
+        return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
     
     private static void addExtraDependencies() {
@@ -59,44 +80,61 @@ public class TestContainerUtil {
         // add all extra deps to the plugin docker folder
         final File directory = new File(extraDepsDir, "build/allJars");
         final IOFileFilter instance = TrueFileFilter.TRUE;
-        copyFilesToPlugin(directory, instance);
+        copyFilesToPlugin(directory, instance, pluginsFolder);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging)  {
-        return createEnterpriseDB(baseDir, withLogging, false);
+    public static Neo4jContainerExtension createEnterpriseDB(List<ApocPackage> apocPackages, boolean withLogging) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, false);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(File baseDir, boolean withLogging, boolean withExtraDeps)  {
-        executeGradleTasks(baseDir, "shadowJar");
+    public static Neo4jContainerExtension createEnterpriseDB(List<ApocPackage> apocPackages, boolean withLogging, boolean withExtraDeps) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, withExtraDeps);
+    }
+
+    public static Neo4jContainerExtension createCommunityDB(List<ApocPackage> apocPackages, boolean withLogging, boolean withExtraDeps) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.COMMUNITY, withExtraDeps);
+    }
+
+    public static Neo4jContainerExtension createNeo4jContainer(List<ApocPackage> apocPackages, boolean withLogging, Neo4jVersion version, boolean withExtraDeps) {
+        String dockerImage = dockerImageForNeo4j(version);
+
+        try {
+            FileUtils.deleteDirectory(pluginsFolder);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File projectDir;
         // We define the container with external volumes
         File importFolder = new File("import");
         importFolder.mkdirs();
-
-        // read neo4j version from build.gradle and use this as default
-        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.4.20-enterprise");
-
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
-        pluginsFolder = new File(baseDir, "build/plugins");
         pluginsFolder.mkdirs();
-
-        final File directory = new File(baseDir, "build/libs");
-        final IOFileFilter fileFilter = new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar"));
-        
-        copyFilesToPlugin(directory, fileFilter);
-        
-        if (withExtraDeps) {
-            addExtraDependencies();
-        }
-        
         String canonicalPath = null;
+
         try {
             canonicalPath = importFolder.getCanonicalPath();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.println("neo4jDockerImageVersion = " + neo4jDockerImageVersion);
-        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
+        for (ApocPackage apocPackage: apocPackages) {
+            if (apocPackage == ApocPackage.CORE) {
+                projectDir = coreDir;
+            } else {
+                projectDir = fullDir;
+            }
+
+            executeGradleTasks(projectDir, "shadowJar");
+
+            copyFilesToPlugin(new File(projectDir, "build/libs"), new WildcardFileFilter(Arrays.asList("*-all.jar", "*-core.jar")), pluginsFolder);
+        }
+
+        System.out.println("neo4jDockerImageVersion = " + dockerImage);
+        if (withExtraDeps) {
+            addExtraDependencies();
+        }
+
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(dockerImage)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withTmpFs(Map.of("/logs", "rw", "/data", "rw", pluginsFolder.toPath().toAbsolutePath().toString(), "rw"))
                 .withAdminPassword("apoc")
@@ -131,7 +169,7 @@ public class TestContainerUtil {
         return neo4jContainer;
     }
 
-    private static void copyFilesToPlugin(File directory, IOFileFilter instance) {
+    public static void copyFilesToPlugin(File directory, IOFileFilter instance, File pluginsFolder) {
         Collection<File> files = FileUtils.listFiles(directory, instance, null);
         for (File file: files) {
             try {
@@ -144,11 +182,9 @@ public class TestContainerUtil {
 
     public static void executeGradleTasks(File baseDir, String... tasks) {
         try (ProjectConnection connection = GradleConnector.newConnector()
-                .forProjectDirectory(baseDir)
-                .useBuildDistribution()
-                .connect()) {
-//            String version = connection.getModel(ProjectPublications.class).getPublications().getAt(0).getId().getVersion();
-
+                                                           .forProjectDirectory(baseDir)
+                                                           .useBuildDistribution()
+                                                           .connect()) {
             BuildLauncher buildLauncher = connection.newBuild().forTasks(tasks);
 
             String neo4jVersionOverride = System.getenv("NEO4JVERSION");
@@ -165,10 +201,6 @@ public class TestContainerUtil {
 
             buildLauncher.run();
         }
-    }
-
-    public static void executeGradleTasks(String... tasks) {
-        executeGradleTasks(baseDir, tasks);
     }
 
     public static void testCall(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
@@ -224,10 +256,6 @@ public class TestContainerUtil {
                 throw t;
             }
         });
-    }
-
-    public static void testResultInReadTransaction(Session session, String call, Consumer<Iterator<Map<String, Object>>> resultConsumer) {
-        testResultInReadTransaction(session, call, null, resultConsumer);
     }
 
     public static void testResultInReadTransaction(Session session, String call, Map<String,Object> params, Consumer<Iterator<Map<String, Object>>> resultConsumer) {

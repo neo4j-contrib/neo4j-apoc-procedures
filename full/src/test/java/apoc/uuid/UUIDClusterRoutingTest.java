@@ -62,7 +62,8 @@ public class UUIDClusterRoutingTest {
     @BeforeClass
     public static void setupCluster() {
         cluster = TestContainerUtil
-                .createEnterpriseCluster(NUM_CORES, 0, Collections.emptyMap(),
+                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.CORE),
+                        NUM_CORES, 0, Collections.emptyMap(),
                         Map.of("NEO4J_dbms_routing_enabled", "true",
                                 APOC_UUID_ENABLED, "true",
                                 APOC_UUID_REFRESH, "1000"
