@@ -31,6 +31,8 @@ dependencies {
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
     compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
 
+    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.14.0'
+
     // Test Containers
     compile group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
     compile group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
