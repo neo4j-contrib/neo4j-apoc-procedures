@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package apoc.util;
 
 import com.github.dockerjava.api.exception.NotFoundException;
@@ -57,6 +75,9 @@ public class TestContainerUtil {
 
     public static File baseDir = Paths.get("..").toFile();
     public static File pluginsFolder = new File(baseDir, "build/plugins");
+    public static File importFolder = new File(baseDir, "build/import");
+    private static File coreDir = new File(baseDir, System.getProperty("coreDir"));
+    public static File extendedDir = new File(baseDir, "extended");
     private static File coreDir = new File(baseDir, "core");
     public static File fullDir = new File(baseDir, "full");
 
@@ -70,13 +91,13 @@ public class TestContainerUtil {
     public static TestcontainersCausalCluster createEnterpriseCluster(List<ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
         return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
-    
+
     private static void addExtraDependencies() {
         final File projectRootDir = Paths.get("..").toFile();
         File extraDepsDir = new File(projectRootDir, "extra-dependencies");
         // build the extra-dependencies
         executeGradleTasks(extraDepsDir, "buildDependencies");
-        
+
         // add all extra deps to the plugin docker folder
         final File directory = new File(extraDepsDir, "build/allJars");
         final IOFileFilter instance = TrueFileFilter.TRUE;
@@ -105,7 +126,6 @@ public class TestContainerUtil {
         }
         File projectDir;
         // We define the container with external volumes
-        File importFolder = new File("import");
         importFolder.mkdirs();
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         pluginsFolder.mkdirs();
@@ -238,7 +258,7 @@ public class TestContainerUtil {
     public static void testCallEmpty(Session session, String call, Map<String,Object> params) {
         testResult(session, call, params, (res) -> assertFalse("Expected no results", res.hasNext()) );
     }
-    
+
     public static void testCallInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer) {
         testCallInReadTransaction(session, call, null, consumer);
     }
