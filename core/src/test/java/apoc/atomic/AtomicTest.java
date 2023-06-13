@@ -21,6 +21,7 @@ package apoc.atomic;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -370,4 +372,61 @@ public class AtomicTest {
 		long salary = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.salary1 as salary;");
         assertEquals(100L, salary);
     }
+
+	@Test
+	public void testPropertyNamesWithSpecialCharacters(){
+		db.executeTransactionally("" +
+			"CREATE (p:Person { " +
+				"`person.name`:'Tom', " +
+				"`person.age`: 1, " +
+				"`person.friends`: [\"Fred\", \"George\"], " +
+				"`person.nickname`: 'Tom' " +
+				"})");
+
+		String match = "MATCH (n:Person {`person.name`:'Tom'})";
+		String returnStmt = "YIELD oldValue, newValue RETURN oldValue, newValue";
+
+		// ADD
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.add(n, 'person.age', 1) " + returnStmt, (r) -> {
+					Assert.assertEquals(1L, r.get("oldValue"));
+					Assert.assertEquals(2L, r.get("newValue"));
+				});
+		// SUBTRACT
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.subtract(n,'person.age', 1) " + returnStmt, (r) -> {
+					Assert.assertEquals(2L, r.get("oldValue"));
+					Assert.assertEquals(1L, r.get("newValue"));
+				});
+		// CONCAT
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.concat(n,'person.nickname', \"my\") "+ returnStmt, (r) -> {
+					Assert.assertEquals("Tom", r.get("oldValue"));
+					Assert.assertEquals("Tommy", r.get("newValue"));
+				});
+		// INSERT
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.insert(n,'person.friends', 1, \"Ron\") " + returnStmt, (r) -> {
+					assertArrayEquals(new String[]{"Fred", "George"},(String[]) r.get("oldValue"));
+					assertArrayEquals(new String[]{"Fred", "Ron", "George"},(String[]) r.get("newValue"));
+				});
+		// REMOVE
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.remove(n,'person.friends', 1) " + returnStmt, (r) -> {
+					assertEquals(List.of("Fred", "Ron", "George"), r.get("oldValue"));
+					assertArrayEquals(new String[]{"Fred", "George"},(String[]) r.get("newValue"));
+				});
+		// UPDATE
+		TestUtil.testCall(
+				db,
+				match + " CALL apoc.atomic.update(n,'person.age','n.`person.age` * 3') " + returnStmt, (r) -> {
+					Assert.assertEquals(1L, r.get("oldValue"));
+					Assert.assertEquals(3L, r.get("newValue"));
+				});
+	}
 }

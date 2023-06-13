@@ -15,7 +15,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.4.0.18'
+    version = '4.4.0.19'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -70,12 +70,12 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise' : 'neo4j:4.4.20-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") : 'neo4j:4.4.20'
+                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise' : 'neo4j:4.4.20-enterprise',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") : 'neo4j:4.4.20'
 
         maxHeapSize = "5G"
         forkEvery = 50
-        maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
+        maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
         minHeapSize = "128m"
 
         // This would apply only to TeamCity

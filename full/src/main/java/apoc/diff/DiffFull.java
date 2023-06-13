@@ -324,7 +324,7 @@ public class DiffFull {
             return config.isFindById() ? findEntityById(it, node.getId()) : null;
         }
         Map<String, Object> keys = getNodeKeys(node, constraintDefinition);
-        return StreamSupport.stream(it.spliterator(), true)
+        return StreamSupport.stream(it.spliterator(), false)
                 .filter(entity -> entity.getProperties(Iterables.asArray(String.class, keys.keySet())).equals(keys))
                 .findFirst()
                 .orElse(null);

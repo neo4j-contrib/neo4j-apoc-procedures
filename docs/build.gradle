@@ -29,7 +29,7 @@ plugins {
     id 'org.neo4j.doc.build.docbook' version '1.0-alpha12'
 }
 
-if (!project.hasProperty('apocVersion')) { ext.apocVersion = '4.4.0.18' }
+if (!project.hasProperty('apocVersion')) { ext.apocVersion = '4.4.0.19' }
 
 ext {
     versionParts = apocVersion.split('-')

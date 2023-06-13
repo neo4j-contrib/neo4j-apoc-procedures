@@ -22,6 +22,7 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
@@ -142,7 +143,8 @@ public class PeriodicUtils {
         Map<String,Object> params = (Map) config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = submitJob(name, () -> {
             try {
-                db.executeTransactionally(statement, params);
+                // `resultAsString` in order to consume result
+                db.executeTransactionally(statement, params, Result::resultAsString);
             } catch(Exception e) {
                 log.warn("in background task via submit", e);
                 throw new RuntimeException(e);

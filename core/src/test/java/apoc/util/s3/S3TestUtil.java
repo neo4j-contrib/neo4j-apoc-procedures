@@ -61,18 +61,23 @@ public class S3TestUtil {
     }
 
     public static void assertStringFileEquals(String expected, String s3Url) {
+        assertS3KeyEventually(() -> {
+            final String actual = readS3FileToString(s3Url);
+            assertEquals(expected, actual);
+        });
+    }
+
+    public static void assertS3KeyEventually(Runnable runnable) {
         Assert.assertEventually(() -> {
-            final String actual;
             try {
-                actual = readS3FileToString(s3Url);
+                runnable.run();
+                return true;
             } catch (AmazonClientException e) {
                 if (e.getMessage().contains("The specified key does not exist")) {
                     return false;
                 }
                 throw e;
             }
-            assertEquals(expected, actual);
-            return true;
         }, v -> v, 30L, TimeUnit.SECONDS);
     }
 }
