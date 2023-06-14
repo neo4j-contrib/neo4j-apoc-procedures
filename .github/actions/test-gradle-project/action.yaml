@@ -12,7 +12,7 @@ runs:
     - uses: ./.github/actions/setup-gradle-cache
     - name: Run tests
       shell: bash
-      run: ./gradlew ${{inputs.project-name}}:test --parallel
+      run: ./gradlew ${{inputs.project-name}}:check --parallel
     - name: Archive test results
       uses: actions/upload-artifact@v3
       if: always()

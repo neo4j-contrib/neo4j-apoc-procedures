@@ -99,15 +99,23 @@ Apache-2.0
   jPowerShell-3.0.jar
   jProcesses-1.6.5.jar
   jackson-annotations-2.13.4.jar
+  jackson-annotations-2.14.0.jar
   jackson-core-2.13.4.jar
+  jackson-core-2.14.0.jar
   jackson-core-asl-1.9.13.jar
   jackson-databind-2.13.4.2.jar
-  jackson-dataformat-cbor-2.13.4.jar
+  jackson-databind-2.14.0.jar
+  jackson-dataformat-cbor-2.14.0.jar
+  jackson-dataformat-csv-2.14.0.jar
   jackson-datatype-jsr310-2.13.4.jar
+  jackson-datatype-jsr310-2.14.0.jar
   jackson-jaxrs-base-2.13.4.jar
+  jackson-jaxrs-base-2.14.0.jar
   jackson-jaxrs-json-provider-2.13.4.jar
+  jackson-jaxrs-json-provider-2.14.0.jar
   jackson-mapper-asl-1.9.13.jar
   jackson-module-jaxb-annotations-2.13.4.jar
+  jackson-module-jaxb-annotations-2.14.0.jar
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   java-util-1.9.0.jar
@@ -119,7 +127,7 @@ Apache-2.0
   javax.inject-1.jar
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
-  jettison-1.5.3.jar
+  jettison-1.5.4.jar
   jetty-http-9.4.48.v20220622.jar
   jetty-io-9.4.48.v20220622.jar
   jetty-security-9.4.48.v20220622.jar
@@ -719,7 +727,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
 BSD-3-Clause
-  antlr-2.7.7.jar
   antlr-runtime-3.5.2.jar
   antlr4-4.7.2.jar
   antlr4-runtime-4.7.2.jar
