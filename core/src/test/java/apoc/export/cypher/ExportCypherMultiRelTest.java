@@ -119,7 +119,7 @@ public class ExportCypherMultiRelTest {
 
     @Test
     public void updateAllWithOptimization() {
-        String expectedCypherStatement = SCHEMA_WITH_UNIQUE_IMPORT_ID + NODES_UNWIND_UPDATE_STRUCTURE + RELS_UNWIND_UPDATE_ALL_MULTI_RELS + CLEANUP_SMALL_BATCH;
+        String expectedCypherStatement = SCHEMA_WITH_UNIQUE_IMPORT_ID + NODES_UNWIND_UPDATE_STRUCTURE + RELS_UNWIND_UPDATE_ALL_MULTI_RELS + "\n" + CLEANUP_SMALL_BATCH;
         final Map<String, Object> map = withOptimizationSmallBatch(
                 map("cypherFormat", "updateAll"));
 
