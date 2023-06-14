@@ -199,6 +199,22 @@ tasks.register("generateLicensesFiles") {
             it.dependencies.sort { it }.each { noticeFile << "  $it\n" }
         }
 
+        // Compare this file to what we have stored already, fail if they differ so that the PR fails and we are forced
+        // to update it instead!
+        File storedLicenseFile = new File("$project.rootDir/LICENSES.txt")
+        boolean throwError = false
+
+        if (licensesFile.readLines().size() != storedLicenseFile.readLines().size()) {
+            throwError = true
+        }
+
+        for (def i = 0; i < licensesFile.readLines().size(); i++) {
+            if (throwError) break
+            if (licensesFile.readLines().get(i) != storedLicenseFile.readLines().get(i)) {
+                throwError = true
+            }
+        }
+
         // Copy files to root project so they can be tracked
         copy {
             from licenseFile
@@ -207,6 +223,12 @@ tasks.register("generateLicensesFiles") {
         copy {
             from noticesFile
             into "$project.rootDir"
+        }
+
+        // Throw after copy task gets run and the file is updated ready for commit :)
+        // Note: You might need to do a `./gradlew clean` first if your file isn't updating!
+        if (throwError) {
+            throw new GradleException("The LICENSES.txt file has updated depenencies, please update by running `./gradlew generateLicensesFiles` and committing the changes.")
         }
     }
 }
