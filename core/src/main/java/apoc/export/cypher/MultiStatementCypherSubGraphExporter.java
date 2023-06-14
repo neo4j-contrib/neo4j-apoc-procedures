@@ -49,32 +49,6 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
  */
 public class MultiStatementCypherSubGraphExporter {
 
-    /*private enum IndexType {
-        NODE_LABEL_PROPERTY("node_label_property"),
-        NODE_UNIQUE_PROPERTY("node_unique_property"),
-        REL_TYPE_PROPERTY("relationship_type_property"),
-        NODE_FULLTEXT("node_fulltext"),
-        RELATIONSHIP_FULLTEXT("relationship_fulltext");
-
-        private final String typeName;
-
-        IndexType(String typeName) {
-            this.typeName = typeName;
-        }
-
-        static IndexType from(String type, String entityType, String uniqueness) {
-            if (uniqueness.equals("UNIQUE") && entityType.equals("NODE")) {
-                return NODE_UNIQUE_PROPERTY
-            }
-
-            return Stream.of(IndexType.values()).filter(type -> type.typeName().equals(stringType)).findFirst().orElseThrow();
-        }
-
-        public String typeName() {
-            return typeName;
-        }
-    }*/
-
     private final SubGraph graph;
     private final Map<String, Set<String>> uniqueConstraints = new HashMap<>();
     private Set<String> indexNames        = new LinkedHashSet<>();
@@ -129,6 +103,7 @@ public class MultiStatementCypherSubGraphExporter {
             default:
                 artificialUniques += countArtificialUniques(graph.getNodes());
                 exportSchema(schemaWriter, config);
+                reporter.update(0, 0, 0);
                 exportNodesUnwindBatch(nodesWriter, reporter);
                 exportRelationshipsUnwindBatch(relationshipsWriter, reporter);
                 break;
@@ -410,7 +385,7 @@ public class MultiStatementCypherSubGraphExporter {
         return artificialUniques;
     }
 
-    private long countArtificialUniques(Iterable<Node> n) {
+    public long countArtificialUniques(Iterable<Node> n) {
         long artificialUniques = 0;
         for (Node node : n) {
             artificialUniques = getArtificialUniques(node, artificialUniques);
@@ -421,11 +396,10 @@ public class MultiStatementCypherSubGraphExporter {
     private long getArtificialUniques(Node node, long artificialUniques) {
         Iterator<Label> labels = node.getLabels().iterator();
         boolean uniqueFound = false;
-        while (labels.hasNext()) {
+        while (labels.hasNext() && !uniqueFound) {
             Label next = labels.next();
             String labelName = next.name();
             uniqueFound = CypherFormatterUtils.isUniqueLabelFound(node, uniqueConstraints, labelName);
-
         }
         if (!uniqueFound) {
             artificialUniques++;

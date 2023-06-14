@@ -192,68 +192,89 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		return result.toString();
 	}
 
-	public void buildStatementForNodes(String nodeClause, String setClause,
-									   Iterable<Node> nodes, Map<String, Set<String>> uniqueConstraints,
+	public void buildStatementForNodes(String nodeClause,
+									   String setClause,
+									   Iterable<Node> nodes,
+									   Map<String, Set<String>> uniqueConstraints,
 									   ExportConfig exportConfig,
-									   PrintWriter out, Reporter reporter,
+									   PrintWriter out,
+									   Reporter reporter,
 									   GraphDatabaseService db) {
-		AtomicInteger nodeCount = new AtomicInteger(0);
-		Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
-			try (Transaction tx = db.beginTx()) {
-				node = tx.getNodeById(node.getId());
-				Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints).keySet();
-				Set<String> labels = getLabels(node);
-				tx.commit();
-				return new AbstractMap.SimpleImmutableEntry<>(labels, idProperties);
-			}
-		};
-		Map<Map.Entry<Set<String>, Set<String>>, List<Node>> groupedData = StreamSupport.stream(nodes.spliterator(), true)
-				.collect(Collectors.groupingByConcurrent(keyMapper));
-
-		AtomicInteger propertiesCount = new AtomicInteger(0);
-
-		AtomicInteger batchCount = new AtomicInteger(0);
-		groupedData.forEach((key, nodeList) -> {
-			AtomicInteger unwindCount = new AtomicInteger(0);
-			final int nodeListSize = nodeList.size();
-			final Node last = nodeList.get(nodeListSize - 1);
-			nodeCount.addAndGet(nodeListSize);
-			for (int index = 0; index < nodeList.size(); index++) {
-				Node node = nodeList.get(index);
-				writeBatchBegin(exportConfig, out, batchCount);
-				writeUnwindStart(exportConfig, out, unwindCount);
-				batchCount.incrementAndGet();
-				unwindCount.incrementAndGet();
-				Map<String, Object> props = node.getAllProperties();
-				// start element
-				out.append("{");
-
-				// id
-				Map<String, Object> idMap = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints);
-				writeNodeIds(out, idMap);
-
-				// properties
-				out.append(", ");
-				out.append("properties:");
-
-				propertiesCount.addAndGet(props.size());
-				props.keySet().removeAll(idMap.keySet());
-				writeProperties(out, props);
-
-				// end element
-				out.append("}");
-				if (last.equals(node) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
-					closeUnwindNodes(nodeClause, setClause, uniqueConstraints, exportConfig, out, key, last);
-					writeBatchEnd(exportConfig, out, batchCount);
-					unwindCount.set(0);
-				} else {
-					out.append(", ");
+		// Batch stream results, process BATCH_COUNT nodes at a time
+		boolean shouldContinue = true;
+		AtomicInteger totalNodeCount = new AtomicInteger(0);
+		while (shouldContinue) {
+			AtomicInteger nodesInBatch = new AtomicInteger(0);
+			Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
+				try (Transaction tx = db.beginTx()) {
+					totalNodeCount.incrementAndGet();
+					nodesInBatch.incrementAndGet();
+					node = tx.getNodeById(node.getId());
+					Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints).keySet();
+					Set<String> labels = getLabels(node);
+					tx.commit();
+					return new AbstractMap.SimpleImmutableEntry<>(labels, idProperties);
 				}
-			}
-		});
-		addCommitToEnd(exportConfig, out, batchCount);
+			};
+			Map<Map.Entry<Set<String>, Set<String>>, List<Node>> groupedData =
+					StreamSupport.stream(
+									com.google.common.collect.Iterables.limit(
+											com.google.common.collect.Iterables.skip(nodes, totalNodeCount.get()),
+											exportConfig.getBatchSize()).spliterator(),
+									true)
+							.collect(Collectors.groupingByConcurrent(keyMapper));
 
-		reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
+			// Each loop will collect at most the batch size in nodes to process
+			// This is done using a limit on the stream. If the limit returns less than
+			// the batch size, this means we have no more nodes to process after this round and
+			// can stop.
+			if (nodesInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
+
+			AtomicInteger propertiesCount = new AtomicInteger(0);
+
+			AtomicInteger batchCount = new AtomicInteger(0);
+			AtomicInteger nodeCount = new AtomicInteger(0);
+			groupedData.forEach((key, nodeList) -> {
+				AtomicInteger unwindCount = new AtomicInteger(0);
+				final int nodeListSize = nodeList.size();
+				final Node last = nodeList.get(nodeListSize - 1);
+				nodeCount.addAndGet(nodeListSize);
+				for (Node node : nodeList) {
+					writeBatchBegin(exportConfig, out, batchCount);
+					writeUnwindStart(exportConfig, out, unwindCount);
+					batchCount.incrementAndGet();
+					unwindCount.incrementAndGet();
+					Map<String, Object> props = node.getAllProperties();
+					// start element
+					out.append("{");
+
+					// id
+					Map<String, Object> idMap = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints);
+					writeNodeIds(out, idMap);
+
+					// properties
+					out.append(", ");
+					out.append("properties:");
+
+					propertiesCount.addAndGet(props.size());
+					props.keySet().removeAll(idMap.keySet());
+					writeProperties(out, props);
+
+					// end element
+					out.append("}");
+					if (last.equals(node) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
+						closeUnwindNodes(nodeClause, setClause, uniqueConstraints, exportConfig, out, key, last);
+						writeBatchEnd(exportConfig, out, batchCount);
+						unwindCount.set(0);
+					} else {
+						out.append(", ");
+					}
+				}
+			});
+			addCommitToEnd(exportConfig, out, batchCount);
+
+			reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
+		}
 	}
 
 	private void closeUnwindNodes(String nodeClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Map.Entry<Set<String>, Set<String>> key, Node last) {
@@ -302,95 +323,113 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	}
 
 	public void buildStatementForRelationships(String relationshipClause,
-											   String setClause, Iterable<Relationship> relationship,
-											   Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig,
-											   PrintWriter out, Reporter reporter,
+											   String setClause,
+											   Iterable<Relationship> relationship,
+											   Map<String, Set<String>> uniqueConstraints,
+											   ExportConfig exportConfig,
+											   PrintWriter out,
+											   Reporter reporter,
 											   GraphDatabaseService db) {
-		AtomicInteger relCount = new AtomicInteger(0);
+		boolean shouldContinue = true;
+		AtomicInteger totalRelCount = new AtomicInteger(0);
+		while (shouldContinue) {
+			AtomicInteger relsInBatch = new AtomicInteger(0);
 
-		Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
-			try (Transaction tx = db.beginTx()) {
-				rel = tx.getRelationshipById(rel.getId());
-				Node start = rel.getStartNode();
-				Set<String> startLabels = getLabels(start);
+			Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
+				totalRelCount.incrementAndGet();
+				relsInBatch.incrementAndGet();
+				try (Transaction tx = db.beginTx()) {
+					rel = tx.getRelationshipById(rel.getId());
+					Node start = rel.getStartNode();
+					Set<String> startLabels = getLabels(start);
 
-				// define the end labels
-				Node end = rel.getEndNode();
-				Set<String> endLabels = getLabels(end);
+					// define the end labels
+					Node end = rel.getEndNode();
+					Set<String> endLabels = getLabels(end);
 
-				// define the type
-				String type = rel.getType().name();
+					// define the type
+					String type = rel.getType().name();
 
-				// create the path
-				Map<String, Object> key = Util.map("type", type,
-						"start", new AbstractMap.SimpleImmutableEntry<>(startLabels, CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints).keySet()),
-						"end", new AbstractMap.SimpleImmutableEntry<>(endLabels, CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints).keySet()));
+					// create the path
+					Map<String, Object> key = Util.map("type", type,
+							"start", new AbstractMap.SimpleImmutableEntry<>(startLabels, CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints).keySet()),
+							"end", new AbstractMap.SimpleImmutableEntry<>(endLabels, CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints).keySet()));
 
-				tx.commit();
-				return key;
-			}
-		};
-		Map<Map<String, Object>, List<Relationship>> groupedData = StreamSupport.stream(relationship.spliterator(), true)
-				.collect(Collectors.groupingByConcurrent(keyMapper));
-
-		AtomicInteger propertiesCount = new AtomicInteger(0);
-		AtomicInteger batchCount = new AtomicInteger(0);
-
-		String start = "start";
-		String end = "end";
-		groupedData.forEach((path, relationshipList) -> {
-			AtomicInteger unwindCount = new AtomicInteger(0);
-			final int relSize = relationshipList.size();
-			relCount.addAndGet(relSize);
-			final Relationship last = relationshipList.get(relSize - 1);
-			for (int index = 0; index < relationshipList.size(); index++) {
-				Relationship rel = relationshipList.get(index);
-				writeBatchBegin(exportConfig, out, batchCount);
-				writeUnwindStart(exportConfig, out, unwindCount);
-				batchCount.incrementAndGet();
-				unwindCount.incrementAndGet();
-				Map<String, Object> props = rel.getAllProperties();
-				// start element
-				out.append("{");
-
-				// start node
-				Node startNode = rel.getStartNode();
-				writeRelationshipNodeIds(uniqueConstraints, out, start, startNode);
-
-				Node endNode = rel.getEndNode();
-				final boolean withMultipleRels = exportConfig.isMultipleRelationshipsWithType() && 
-						relationshipList.stream()
-								.anyMatch(r -> !r.equals(rel) && r.getEndNode().equals(endNode) && r.getStartNode().equals(startNode));
-				out.append(", ");
-				if (withMultipleRels) {
-					String uniqueId = String.format("%s: %s, ", ID_REL_KEY, rel.getId());
-					out.append(uniqueId);
+					tx.commit();
+					return key;
 				}
+			};
+			Map<Map<String, Object>, List<Relationship>> groupedData =
+					StreamSupport.stream(
+									com.google.common.collect.Iterables.limit(
+											com.google.common.collect.Iterables.skip(relationship, totalRelCount.get()),
+											exportConfig.getBatchSize()).spliterator(),
+									true)
+							.collect(Collectors.groupingByConcurrent(keyMapper));
 
-				// end node
-				writeRelationshipNodeIds(uniqueConstraints, out, end, endNode);
+			// Each loop will collect at most the batch size in rels to process
+			// This is done using a limit on the stream. If the limit returns less than
+			// the batch size, this means we have no more rels to process after this round and
+			// can stop.
+			if (relsInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
 
-				// properties
-				out.append(", ");
-				out.append("properties:");
-				writeProperties(out, props);
-				propertiesCount.addAndGet(props.size());
+			AtomicInteger propertiesCount = new AtomicInteger(0);
+			AtomicInteger batchCount = new AtomicInteger(0);
 
-				// end element
-				out.append("}");
+			String start = "start";
+			String end = "end";
+			AtomicInteger relCount = new AtomicInteger(0);
+			groupedData.forEach((path, relationshipList) -> {
+				AtomicInteger unwindCount = new AtomicInteger(0);
+				final int relSize = relationshipList.size();
+				relCount.addAndGet(relSize);
+				final Relationship last = relationshipList.get(relSize - 1);
+				for (Relationship rel : relationshipList) {
+					writeBatchBegin(exportConfig, out, batchCount);
+					writeUnwindStart(exportConfig, out, unwindCount);
+					batchCount.incrementAndGet();
+					unwindCount.incrementAndGet();
+					Map<String, Object> props = rel.getAllProperties();
+					// start element
+					out.append("{");
 
-				if (last.equals(rel) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
-					closeUnwindRelationships(relationshipClause, setClause, uniqueConstraints, exportConfig, out, start, end, path, last, withMultipleRels);
-					writeBatchEnd(exportConfig, out, batchCount);
-					unwindCount.set(0);
-				} else {
+					// start node
+					Node startNode = rel.getStartNode();
+					writeRelationshipNodeIds(uniqueConstraints, out, start, startNode);
+
+					Node endNode = rel.getEndNode();
+					final boolean withMultipleRels = exportConfig.isMultipleRelationshipsWithType();
 					out.append(", ");
-				}
-			}
-		});
-		addCommitToEnd(exportConfig, out, batchCount);
+					if (withMultipleRels) {
+						String uniqueId = String.format("%s: %s, ", ID_REL_KEY, rel.getId());
+						out.append(uniqueId);
+					}
 
-		reporter.update(0, relCount.get(), propertiesCount.longValue());
+					// end node
+					writeRelationshipNodeIds(uniqueConstraints, out, end, endNode);
+
+					// properties
+					out.append(", ");
+					out.append("properties:");
+					writeProperties(out, props);
+					propertiesCount.addAndGet(props.size());
+
+					// end element
+					out.append("}");
+
+					if (last.equals(rel) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
+						closeUnwindRelationships(relationshipClause, setClause, uniqueConstraints, exportConfig, out, start, end, path, last, withMultipleRels);
+						writeBatchEnd(exportConfig, out, batchCount);
+						unwindCount.set(0);
+					} else {
+						out.append(", ");
+					}
+				}
+			});
+			addCommitToEnd(exportConfig, out, batchCount);
+
+			reporter.update(0, relCount.get(), propertiesCount.longValue());
+		}
 	}
 
 	private void closeUnwindRelationships(String relationshipClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, String start, String end, Map<String, Object> path, Relationship last, boolean withMultipleRels) {

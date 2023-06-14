@@ -23,6 +23,7 @@ import apoc.util.BinaryTestUtil;
 import apoc.util.CompressionAlgo;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Assert;
@@ -32,7 +33,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -73,7 +76,7 @@ public class ExportCypherTest {
 
     private static final Map<String, Object> exportConfig = map("useOptimizations", map("type", "none"), "separateFiles", true, "format", "neo4j-admin");
 
-    private static File directory = new File("target/import");
+    private static final File directory = new File("target/import");
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -91,6 +94,39 @@ public class ExportCypherTest {
     @Before
     public void setUp() throws Exception {
         ExportCypherTestUtils.setUp(db, testName);
+    }
+
+    @Test
+    public void testRoundTripCypherExportAll() {
+        final String cypherStatements = Util.readResourceFile("exportAll.cypher");
+        db.executeTransactionally(
+                "CALL apoc.cypher.runMany($statements, {})",
+                map("statements", cypherStatements)
+        );
+
+        String fileName = "all.cypher";
+        final String query = "CALL apoc.export.cypher.all($fileName, {batchSize: 100, format: 'cypher-shell', saveIndexNames: true, saveConstraintNames: true, multipleRelationshipsWithType: true})";
+
+        TestUtil.testCall(db, query, map("fileName", fileName), (r) -> assertEquals(fileName, r.get("file")));
+
+        assertEquals(cypherStatements, readFile("all.cypher").strip());
+    }
+
+    @Test
+    public void testUniqueNodeLabels() {
+        // Check the unique node test doesn't fail if the node has extra non-unique constrained labels
+        String createExtraNodes = "MATCH (n) SET n:EXTRA_LABEL";
+        db.executeTransactionally(createExtraNodes);
+
+        try(Transaction tx = db.beginTx()) {
+            MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(
+                    new DatabaseSubGraph(tx),
+                    new ExportConfig(null),
+                    db
+            );
+
+            assertEquals(exporter.countArtificialUniques(tx.getAllNodes()), 2);
+        }
     }
 
     @Test
@@ -246,7 +282,7 @@ public class ExportCypherTest {
         String expectedWithEndNode = expectedNodesWithEndNode + EXPECTED_SCHEMA_ONLY_START + EXPECTED_REL_ONLY + EXPECTED_CLEAN_UP;
 
         commonDataAndQueryAssertions(exportQuery, params,
-                expectedWithEndNode, 2L, 1L, 5L);
+                expectedWithEndNode, 2L, 5L);
 
         // apoc.export.cypher.data doesn't accept `nodesOfRelationships` config,
         // so it returns the same result as the above one
@@ -255,16 +291,16 @@ public class ExportCypherTest {
 
     private void assertExportWithoutEndNode(Map<String, Object> params, String exportData) {
         commonDataAndQueryAssertions(exportData, params,
-                EXPECTED_WITHOUT_END_NODE, 1L, 1L, 3L);
+                EXPECTED_WITHOUT_END_NODE, 1L, 3L);
     }
 
     private void assertExportRelOnly(Map<String, Object> params, String exportData) {
         commonDataAndQueryAssertions(exportData, params,
-                EXPECTED_REL_ONLY, 0L, 1L, 1L);
+                EXPECTED_REL_ONLY, 0L, 1L);
     }
 
     private void commonDataAndQueryAssertions(String query, Map<String, Object> config,
-                                              String expectedOutput, long nodes, long relationships, long properties) {
+                                              String expectedOutput, long nodes, long properties) {
         String fileName = "testFile.cypher";
 
         Map<String, Object> params = map("file", fileName);
@@ -272,7 +308,7 @@ public class ExportCypherTest {
 
         TestUtil.testCall(db, query, params, r -> {
                     assertEquals(nodes, r.get("nodes"));
-                    assertEquals(relationships, r.get("relationships"));
+                    assertEquals(1L, r.get("relationships"));
                     assertEquals(properties, r.get("properties"));
                 });
         assertEquals(expectedOutput, readFile(fileName));
@@ -750,7 +786,7 @@ public class ExportCypherTest {
     }
 
     @Test
-    public void testExportQueryCypherShellUnwindBatchParamsWithOddBatchSizeOddDataset() throws Exception {
+    public void testExportQueryCypherShellUnwindBatchParamsWithOddBatchSizeOddDataset() {
         db.executeTransactionally("CREATE (:Bar {name:'bar3',age:35}), (:Bar {name:'bar4',age:36})");
         String fileName = "allPlainOddNew.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,{format:'cypher-shell', useOptimizations: { type: 'unwind_batch_params', unwindBatchSize: 2}, batchSize:3})",
@@ -768,7 +804,6 @@ public class ExportCypherTest {
         db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value', 'value2'])");
 
         String query = "MATCH (t:TempNode) return t";
-        String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);
         String expected = String.format(":begin%n" +
                 "CREATE FULLTEXT INDEX MyCoolNodeFulltextIndex FOR (n:TempNode|TempNode2) ON EACH [n.value, n.value2];%n" +
@@ -788,7 +823,7 @@ public class ExportCypherTest {
 
         // when
         TestUtil.testCall(db, exportQuery,
-                map("query", query, "file", file, "config", config),
+                map("query", query, "file", null, "config", config),
                 (r) -> {
                     // then
                     assertEquals(expected, r.get("cypherStatements"));
@@ -807,13 +842,12 @@ public class ExportCypherTest {
         db.executeTransactionally("CREATE (s:TempNode)-[:REL{rel_value: 'the rel value'}]->(e:TempNode2)");
         db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('MyCoolRelFulltextIndex',['REL'],['rel_value'])");
         String query = "MATCH (t:TempNode) return t";
-        String file = null;
         Map<String, Object> config = map("awaitForIndexes", 3000);
 
         try {
             // when
             TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
-                    map("query", query, "file", file, "config", config),
+                    map("query", query, "file", null, "config", config),
                     (r) -> {});
         } catch (Exception e) {
             String expected = "Full-text indexes on relationships are not supported, please delete them in order to complete the process";
@@ -1386,17 +1420,21 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED_BATCH_SIZE_UNWIND = String.format("BEGIN%n" +
+                "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                "UNWIND [{name:\"bar\", properties:{age:42}}] AS row%n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
                 "UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 "UNWIND [{_id:2, properties:{age:12}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
-                "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
+                "UNWIND [{_id:4, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                "COMMIT%n" +
-                "BEGIN%n" +
-                "UNWIND [{name:\"bar\", properties:{age:42}}, {name:\"bar2\", properties:{age:44}}] AS row%n" +
+                "UNWIND [{name:\"bar2\", properties:{age:44}}] AS row%n" +
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
@@ -1405,10 +1443,6 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED_BATCH_SIZE_ODD = String.format("BEGIN%n" +
-                "UNWIND [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}] AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                "COMMIT%n" +
-                "BEGIN%n" +
                 "UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
                 "COMMIT%n" +
@@ -1419,16 +1453,15 @@ public class ExportCypherTest {
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
+                "UNWIND [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
                 "UNWIND [{name:\"bar2\", properties:{age:44}}] AS row%n" +
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
                 "COMMIT%n");
 
         static final String EXPECTED_NODES_OPTIMIZED_PARAMS_BATCH_SIZE_ODD = String.format(
-                ":begin%n" +
-                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                ":commit%n" +
                 ":begin%n" +
                 ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
                 "UNWIND $rows AS row%n" +
@@ -1441,6 +1474,11 @@ public class ExportCypherTest {
                 ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
                 "UNWIND $rows AS row%n" +
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
+                "UNWIND $rows AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 ":commit%n" +
                 ":begin%n" +
                 ":param rows => [{name:\"bar2\", properties:{age:44}}]%n" +
@@ -1639,18 +1677,19 @@ public class ExportCypherTest {
                 "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
                 "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n");
 
-        static final String EXPECTED_NODES_PARAMS_ODD = String.format(":begin%n" +
-                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
+        static final String EXPECTED_NODES_PARAMS_ODD = String.format(
+                ":begin%n" +
+                ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
                 "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}]%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                ":param rows => [{_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
                 "UNWIND $rows AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
                 ":commit%n" +
                 ":begin%n" +
-                ":param rows => [{_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}, {_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
+                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
                 "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
                 ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
                 "UNWIND $rows AS row%n" +
                 "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
