@@ -145,7 +145,6 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
-    compile group: 'com.github.javafaker', name: 'javafaker', version: '1.0.2'
 
     // schemacrawler
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'

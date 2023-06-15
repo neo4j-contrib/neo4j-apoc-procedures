@@ -87,7 +87,6 @@ Apache-2.0
   failureaccess-1.0.1.jar
   flatbuffers-java-1.12.0.jar
   fst-2.50.jar
-  generex-1.0.2.jar
   geronimo-jcache_1.0_spec-1.0-alpha-1.jar
   gson-2.9.0.jar
   guava-31.0.1-jre.jar
@@ -149,7 +148,6 @@ Apache-2.0
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   java-util-1.9.0.jar
-  javafaker-1.0.2.jar
   javapoet-1.13.0.jar
   javassist-3.25.0-GA.jar
   javax-websocket-client-impl-9.4.48.v20220622.jar
@@ -263,7 +261,6 @@ Apache-2.0
   shiro-crypto-hash-1.11.0.jar
   shiro-event-1.11.0.jar
   shiro-lang-1.11.0.jar
-  snakeyaml-1.32-android.jar
   snakeyaml-1.32.jar
   snappy-java-1.1.8.2.jar
   token-provider-1.0.1.jar
@@ -288,7 +285,6 @@ BSD 2-Clause
   jersey-hk2-2.34.jar
 
 BSD-2-Clause
-  automaton-1.11-8.jar
   dnsjava-2.1.7.jar
   jline-3.9.0.jar
   jsch-0.1.55.jar
