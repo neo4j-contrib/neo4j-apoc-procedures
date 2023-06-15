@@ -6,6 +6,7 @@ import apoc.result.MapResult;
 import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
+import apoc.util.QueueUtil;
 import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
@@ -93,13 +94,14 @@ public class CypherExtended {
 
     // This runs the files sequentially
     private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation) {
+        boolean reportError = Util.toBoolean(config.get("reportError"));
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         var result = fileNames.stream().flatMap(fileName -> {
             final Reader reader = readerForFile(fileName);
             final Scanner scanner = createScannerFor(reader);
-            return runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity)
+            return runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity, reportError, fileName)
                     .onClose(() -> Util.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
         });
 
@@ -120,12 +122,12 @@ public class CypherExtended {
         return runFiles(fileNames, config, parameters, schemaOperation);
     }
 
-    private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity) {
+    private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity, boolean reportError, String fileName) {
         BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(queueCapacity, internalQueue -> {
             if (schemaOperation) {
-                runSchemaStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
+                runSchemaStatementsInTx(scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
             } else {
-                runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
+                runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
             }
         }, RowResult.TOMBSTONE);
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
@@ -155,23 +157,52 @@ public class CypherExtended {
         return queue;
     }
 
-    private void runDataStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
+    private void runDataStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout, boolean reportError, String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
-            if (!isSchemaOperation(stmt)) {
+            boolean schemaOperation;
+            try {
+                schemaOperation = isSchemaOperation(stmt);
+            } catch (Exception e) {
+                getError(queue, reportError, e, fileName);
+                return;
+            }
+
+            if (!schemaOperation) {
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools , () -> db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
+                    Util.inThread(pools , () -> {
+                        try {
+                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout));
+                        } catch (Exception e) {
+                            return getError(queue, reportError, e, fileName);
+                        }
+                    });
                 }
                 else {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
                             return consumeResult(result, queue, addStatistics, timeout);
+                        } catch (Exception e) {
+                            return getError(queue, reportError, e, fileName);
                         }
                     });
                 }
             }
         }
+    }
+
+    private Object getError(BlockingQueue<RowResult> queue, boolean reportError, Exception e, String fileName) {
+        if (reportError) {
+            String error = String.format("Error in `%s`:\n%s ",
+                    fileName, e.getMessage()
+            );
+
+            RowResult result = new RowResult(-1, Map.of("error", error));
+            QueueUtil.put(queue, result, 10);
+            return null;
+        }
+        throw new RuntimeException(e);
     }
 
     private Scanner createScannerFor(Reader reader) {
@@ -180,14 +211,23 @@ public class CypherExtended {
         return scanner;
     }
 
-    private void runSchemaStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
+    private void runSchemaStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout, boolean reportError, String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
-            if (isSchemaOperation(stmt)) {
+            boolean schemaOperation;
+            try {
+                schemaOperation = isSchemaOperation(stmt);
+            } catch (Exception e) {
+                getError(queue, reportError, e, fileName);
+                return;
+            }
+            if (schemaOperation) {
                 Util.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
                         return consumeResult(result, queue, addStatistics, timeout);
+                    } catch (Exception e) {
+                        return getError(queue, reportError, e, fileName);
                     }
                 });
             }

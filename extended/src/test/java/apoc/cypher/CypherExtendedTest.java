@@ -8,6 +8,8 @@ import apoc.util.collection.Iterators;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -34,6 +36,7 @@ import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
 import static org.neo4j.driver.internal.util.Iterables.count;
@@ -66,6 +69,10 @@ public class CypherExtendedTest {
     @After
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        clearSchema();
+    }
+
+    private void clearSchema() {
         try (Transaction tx = db.beginTx()) {
             tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
             tx.schema().getIndexes().forEach(IndexDefinition::drop);
@@ -138,17 +145,8 @@ public class CypherExtendedTest {
     public void testRunFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('create_delete.cypher')",
                 r -> {
-                    Map<String, Object> row = r.next();
-                    assertEquals(-1L, row.get("row"));
-                    Map result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("nodesCreated")));
-                    assertEquals(1L, toLong(result.get("labelsAdded")));
-                    assertEquals(1L, toLong(result.get("propertiesSet")));
-                    row = r.next();
-                    result = (Map) row.get("result");
-                    assertEquals(-1L, row.get("row"));
-                    assertEquals(1L, toLong(result.get("nodesDeleted")));
-                    assertEquals(false, r.hasNext());
+                    assertCreateDeleteFile(r);
+                    assertFalse(r.hasNext());
                 });
     }
 
@@ -225,7 +223,7 @@ public class CypherExtendedTest {
         testResult(db, "MATCH (p:Page) WITH collect(p) as pages\n" +
                     "CALL apoc.cypher.mapParallel2(\"MATCH (_)-[:Link]->(p1)<-[:Link]-(p2)\n" +
                     "RETURN  p2.title as title\", {}, pages, 1) yield value\n" +
-                    "RETURN value.title limit 5", 
+                    "RETURN value.title limit 5",
                 r -> assertEquals(5, Iterators.count(r)));
     }
     
@@ -288,6 +286,225 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void testParallelWithFailingStatement() {
+        String call = """
+                MATCH (t:Test {a: ""}) WITH collect(t) as nodes
+                call apoc.cypher.parallel("RETURN date(n.a)", {n: nodes}, "n")
+                yield value return value""";
+        testFailingParallelCommon(call);
+    }
+
+    @Test
+    public void testParallel2WithFailingStatement() {
+        String call = """
+                MATCH (t:Test {a: ""}) WITH collect(t) as nodes
+                call apoc.cypher.parallel2("RETURN date(n.a)", {n: nodes}, "n")
+                yield value return value""";
+        testFailingParallelCommon(call);
+    }
+
+    @Test
+    public void testMapParallelWithFailingStatement() {
+        String call = """
+                MATCH (t:Test) WITH collect(t) as nodes
+                CALL apoc.cypher.mapParallel("MATCH (_) RETURN date(_.a)", {}, nodes)
+                YIELD value RETURN value""";
+        testFailingParallelCommon(call);
+    }
+
+    private static void testFailingParallelCommon(String query) {
+        db.executeTransactionally("CREATE (t:Test {a: ''});");
+
+        QueryExecutionException error = assertThrows(QueryExecutionException.class,
+                () -> testCall(db, query, (r) -> {})
+        );
+
+        assertThat(error.getMessage(), containsString("Text cannot be parsed to a Date"));
+    }
+
+    @Test
+    public void testRunFileWithFailingStatement() {
+        String failingFile = "wrong_statements_runtime.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+        testRunFailingFileCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testRunFileWithFailingPeriodicStatement() {
+        String failingFile = "wrong_call_in_transactions.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+        testRunFailingFileCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testRunFileWithFailingExplain() {
+        // error during CypherExtended.isSchemaOperation method
+        String failingFile = "wrong_statements.cypher";
+        String cypherError = "Invalid input ')': expected";
+        testRunFailingFileCommon(failingFile, cypherError);
+    }
+
+    private void testRunFailingFileCommon(String failingFile, String cypherError) {
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Fail) REQUIRE n.foo IS UNIQUE");
+        db.executeTransactionally("CREATE (n:Fail {foo: 1})");
+
+        // the failed file is skipped
+        testCallEmpty(db, "CALL apoc.cypher.runFile($file)", Map.of("file", failingFile));
+
+        // the failed file produces an "error" row
+        testCall(db, "CALL apoc.cypher.runFile($file, {reportError: true})", Map.of("file", failingFile), r -> {
+            assertErrorResult(cypherError, r);
+        });
+    }
+
+    @Test
+    public void testRunSchemaFileWithFailingStatement() {
+        db.executeTransactionally("CREATE CONSTRAINT uniqueConstraint FOR (n:Person) REQUIRE n.name IS UNIQUE");
+        String failingFile = "constraints.cypher";
+
+        // the failed file is skipped
+        testCallEmpty(db, "CALL apoc.cypher.runSchemaFile($file)",
+                Map.of("file", failingFile));
+
+        // the failed file produces an "error" row
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
+                Map.of("file", failingFile),
+                row -> {
+                    String cypherError = "Error in `constraints.cypher`:\n" +
+                                         "An equivalent constraint already exists";
+                    assertErrorResult(cypherError, row);
+                });
+    }
+
+    @Test
+    public void testRunSchemaFileWithFailingExplain() {
+        // error during CypherExtended.isSchemaOperation method
+        String failingFile = "wrong_schema_statements_runtime.cypher";
+
+        // the failed file is skipped
+        testCallEmpty(db, "CALL apoc.cypher.runSchemaFile($file)",
+                Map.of("file", failingFile));
+
+        clearSchema();
+
+        // the failed file produces an "error" row
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
+                Map.of("file", failingFile),
+                row -> {
+                    String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" +
+                                       "Variable `bar` not defined";
+                    assertErrorResult(cypherError, row);
+                });
+    }
+
+    @Test
+    public void testRunSchemaFilesWithFailingStatement() {
+        String failingFile = "constraints.cypher";
+        String cypherError = "Error in `constraints.cypher`:\n" +
+                             "An equivalent constraint already exists";
+
+        testRunFailingSchemaFilesCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testRunSchemaFilesWithFailingExplain() {
+        // error during CypherExtended.isSchemaOperation method
+        String failingFile = "wrong_schema_statements_runtime.cypher";
+        String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" +
+                             "Variable `bar` not defined";
+
+        testRunFailingSchemaFilesCommon(failingFile, cypherError);
+    }
+
+    private void testRunFailingSchemaFilesCommon(String failingFile, String cypherError) {
+        List<String> files = List.of("constraints.cypher", failingFile, "schema.cypher");
+
+        testResult(db, "CALL apoc.cypher.runSchemaFiles($files)",
+                Map.of("files", files),
+                r -> {
+                    assertConstraintsCypherFile(r);
+                    assertSchemaCypherFile(r);
+                    assertFalse(r.hasNext());
+                });
+
+        clearSchema();
+
+        // the failed file produces an "error" row
+        testResult(db, "CALL apoc.cypher.runSchemaFiles($files, {reportError: true})",
+                Map.of("files", files),
+                r -> {
+                    assertConstraintsCypherFile(r);
+
+                    Map<String, Object> row = r.next();
+                    assertErrorResult(cypherError, row);
+
+                    assertSchemaCypherFile(r);
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    private void assertConstraintsCypherFile(Result r) {
+        Map<String, Object> row = r.next();
+        Map result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("constraintsAdded")));
+        row = r.next();
+        result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("constraintsAdded")));
+    }
+
+
+    @Test
+    public void testRunFilesWithFailingStatement() {
+        String failingFile = "wrong_statements_runtime.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+
+        testRunFailingFilesCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testRunFilesWithFailingPeriodicStatement() {
+        String failingFile = "wrong_call_in_transactions.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+        testRunFailingFilesCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testRunFilesWithFailingExplain() {
+        // error during CypherExtended.isSchemaOperation method
+        String failingFile = "wrong_statements.cypher";
+        String cypherError = "Invalid input ')': expected";
+        testRunFailingFilesCommon(failingFile, cypherError);
+    }
+
+    private void testRunFailingFilesCommon(String failingFile, String cypherError) {
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Fail) REQUIRE n.foo IS UNIQUE");
+        db.executeTransactionally("CREATE (n:Fail {foo: 1})");
+
+        List<String> files = List.of("create_delete.cypher", failingFile, "create_delete.cypher");
+
+        // the failed file is skipped
+        testResult(db, "CALL apoc.cypher.runFiles($files)",
+                Map.of("files", files),
+                r -> {
+                    assertCreateDeleteFile(r);
+                    assertCreateDeleteFile(r);
+                    assertFalse(r.hasNext());
+                });
+
+        // the failed file produces an "error" row
+        testResult(db, "CALL apoc.cypher.runFiles($files, {reportError: true})",
+                Map.of("files", files),
+                r -> {
+                    assertCreateDeleteFile(r);
+
+                    Map<String, Object> next = r.next();
+                    assertErrorResult(cypherError, next);
+                    assertCreateDeleteFile(r);
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
     public void testSchemaRunFile() {
         final int expectedBefore;
         try (Transaction tx = db.beginTx()) {
@@ -296,24 +513,28 @@ public class CypherExtendedTest {
         
         testResult(db, "CALL apoc.cypher.runSchemaFile('schema.cypher')",
                 r -> {
-                    Map<String, Object> row = r.next();
-                    Map result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("indexesAdded")));
-                    row = r.next();
-                    result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("indexesAdded")));
-                    row = r.next();
-                    result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("indexesAdded")));
-                    row = r.next();
-                    result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                    assertSchemaCypherFile(r);
                     assertFalse(r.hasNext());
                 });
 
         try (Transaction tx = db.beginTx()) {
             assertEquals(expectedBefore + 4, count(tx.schema().getIndexes()));
         }
+    }
+
+    private void assertSchemaCypherFile(Result r) {
+        Map<String, Object> row = r.next();
+        Map result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("indexesAdded")));
+        row = r.next();
+        result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("indexesAdded")));
+        row = r.next();
+        result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("indexesAdded")));
+        row = r.next();
+        result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("indexesAdded")));
     }
 
     @Test
@@ -375,5 +596,24 @@ public class CypherExtendedTest {
                     assertEquals(50l, single.get("total"));
                 });
 
+    }
+
+    private static void assertErrorResult(String cypherError, Map<String, Object> r) {
+        assertEquals(-1L, r.get("row"));
+        Map<String, String> result = (Map<String, String>) r.get("result");
+        assertThat(result.get("error"), containsString(cypherError));
+    }
+
+    private void assertCreateDeleteFile(Result r) {
+        Map<String, Object> row = r.next();
+        assertEquals(-1L, row.get("row"));
+        Map result = (Map) row.get("result");
+        assertEquals(1L, toLong(result.get("nodesCreated")));
+        assertEquals(1L, toLong(result.get("labelsAdded")));
+        assertEquals(1L, toLong(result.get("propertiesSet")));
+        row = r.next();
+        result = (Map) row.get("result");
+        assertEquals(-1L, row.get("row"));
+        assertEquals(1L, toLong(result.get("nodesDeleted")));
     }
 }
