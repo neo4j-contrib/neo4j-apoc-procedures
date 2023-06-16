@@ -21,11 +21,13 @@ package apoc.full.it;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.importFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -76,6 +79,9 @@ public class CoreExtendedTest {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
+
+            File apocCoreCsv = new File(ClassLoader.getSystemResource("apoc-core-extended.csv").getFile());
+            FileUtils.copyFileToDirectory(apocCoreCsv, importFolder);
 
             neo4jContainer.start();
 
