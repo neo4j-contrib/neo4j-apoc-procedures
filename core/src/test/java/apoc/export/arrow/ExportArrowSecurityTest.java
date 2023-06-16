@@ -23,7 +23,7 @@ import apoc.export.SecurityTestUtil;
 import apoc.meta.Meta;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import com.nimbusds.jose.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -194,7 +194,7 @@ public class ExportArrowSecurityTest {
         @Parameterized.Parameters(name = PARAM_NAMES)
         public static Collection<Object[]> data() {
             List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream().map(i -> Pair.of(i, MAIN_DIR_CONSUMER)).collect(Collectors.toList());
-            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).toList();
+            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
             collect.addAll(collect2);
 
             return ExportArrowSecurityTest.getParameterData(collect);

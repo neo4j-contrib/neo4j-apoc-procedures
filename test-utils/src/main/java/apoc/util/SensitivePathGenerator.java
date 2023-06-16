@@ -1,6 +1,6 @@
 package apoc.util;
 
-import org.neo4j.internal.helpers.collection.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.nio.file.Path;

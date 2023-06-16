@@ -26,7 +26,7 @@ import apoc.export.json.ExportJson;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import com.nimbusds.jose.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -111,7 +111,7 @@ public class ExportCoreSecurityTest {
                                         new Object[] { procName, procPair.getLeft(), procPair.getRight(), fileName.getLeft(), fileName.getRight() }
                                 )
                         )
-                ).toList();
+                ).collect(Collectors.toList());
     }
 
     /**
@@ -187,7 +187,7 @@ public class ExportCoreSecurityTest {
 
             List<Pair<String, Consumer<Map>>> notExistingDirList = casesNotExistingDir.stream()
                     .map(i -> Pair.of(i, EXCEPTION_NOT_FOUND_CONSUMER))
-                    .toList();
+                    .collect(Collectors.toList());
 
             dataPairs.addAll(notExistingDirList);
         }
@@ -305,7 +305,7 @@ public class ExportCoreSecurityTest {
         @Parameterized.Parameters(name = PARAM_NAMES)
         public static Collection<Object[]> data() {
             List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream().map(i -> Pair.of(i, MAIN_DIR_CONSUMER)).collect(Collectors.toList());
-            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).toList();
+            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
             collect.addAll(collect2);
 
             return getParameterData(collect);
