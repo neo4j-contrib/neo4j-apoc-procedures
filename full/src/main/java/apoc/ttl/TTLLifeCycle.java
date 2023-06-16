@@ -82,7 +82,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
             );
 
             long nodesDeleted = db.executeTransactionally(
-                    "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DELETE n', {batchSize: $batchSize})",
+                    "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DETACH DELETE n', {batchSize: $batchSize})",
                     params,
                     result -> Iterators.single(result.columnAs("total"))
             );
