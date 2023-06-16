@@ -111,7 +111,7 @@ yield value
 [%autowidth, opts=header]
 |===
 |name | description
-| messages | List of maps of instructions with `{author:"bot|user", content:"text"}`
+| messages | List of maps of instructions with `{author:"bot\|user", content:"text"}`
 | accessToken | Vertex.AI API access token
 | project | Google Cloud project
 | configuration | optional map for entries like region, model, temperature, topK, topP, maxOutputTokens and other parameters
