@@ -39,6 +39,7 @@ dependencies {
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
     compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', commonExclusions
+    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.23.1', commonExclusions
 }
 
 
