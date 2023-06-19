@@ -24,6 +24,19 @@ apoc.schema.relationships(config = {} :: MAP?) :: (name :: STRING?, type :: STRI
 |config|MAP?|{}
 |===
 
+== Config parameters
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| relationships | List<String> | [] | Relationship types to include. Default is to include all relationship types.
+| excludeRelationships | List<String> | [] | Relationship types to exclude. Default is to include all relationship types.
+|===
+
+**It's not possible to valuate both `relationships` and `excludeRelationships`.
+In this case, the error `Parameters relationships and excludeRelationships are both valued.` will be returned.**
+
 == Output parameters
 [.procedures, opts=header]
 |===

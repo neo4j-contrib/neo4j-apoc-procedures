@@ -4,7 +4,7 @@
 
 
 
-To drop or create index or constraint, you can use the following procedure:
+To drop, create, or show indexes and constraints, you can use the following procedure:
 
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
@@ -36,50 +36,63 @@ To retrieve indexes and constraints information for all the node labels in your 
 [source,cypher]
 ----
 CALL apoc.schema.nodes()
-YIELD name, label, properties, status, type
 ----
 
 Where the outputs are:
+[opts=header, cols="1,2,5"]
+|===
+| name | type | description
+| name | `String` | the name of the index/constraint
+| label | `String` or `List<String>` | the label (or list of labels) of the index/constraint
+| properties | `List<String>` | the property keys that are affected by the index/constraint
+| status | `String` | indexes can have one of the following values: `ONLINE`, `POPULATING` and `FAILED`.
+    Constraints have an empty string as a value
+| type | `String` | the index or constraint type. See the table below for possible values
+| failure | `String` | In case of index with status "FAILED" returns the failure message of a failed index
+    (matches the output of `SHOW INDEX YIELD failureMessage`).
+    Otherwise, it returns "NO FAILURE"
+| populationProgress | `float` | the percentage of affected entities that were scanned by the index
+    (matches the output of `SHOW INDEX YIELD populationPercent`).
+    Constraints have `0.0` as a value
+| size | `long` | number of entities affected by the index. Constraints have `0` as a value.
+| valuesSelectivity | `double` | number of distinct property values existing for the affected property keys divided by `size`.
 
-  * name of the index/constraint,
-  * label
-  * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
-  * status, for index can be one of the following values: ONLINE, POPULATING and FAILED
-  * type, always "INDEX" for indexes, constraint type for constraints
-  * failure, the failure description of a failed index
-  * populationProgress, the population progress of the index in percentage
-  * size, the size of the index
-  * valuesSelectivity, computes the selectivity of the unique values
-  * userDescription, a user friendly description of what this index indexes
+    For example, with an index `CREATE INDEX FOR (n:Node) ON (n.foo)`,
+    the number of distinct property values is `MATCH (n:Node) RETURN count(DISTINCT n.foo)`.
 
-To retrieve the constraint information for all the relationship types in your database, you can use the following procedure:
+    Constraints have `0.0` as a value
+| userDescription | `String` | a description of the index/constraint
+|===
+
+
+include::partial$schema/schema.nodes.type.adoc[]
+
+
+To retrieve the indexes and constraint information for all the relationship types in your database, you can use the following procedure:
 
 [source,cypher]
 ----
 CALL apoc.schema.relationships()
-YIELD name, type, properties, status
 ----
 
 Where the outputs are:
+[opts=header, cols="1,2,5"]
+|===
+| name | type | description
+| name | `String` | the name of the index/constraint
+| type | `String` | the index or constraint type. See the table below for possible values
+| properties | `List<String>` | the property keys that are affected by the index/constraint
+| status | `String` | indexes can have one of the following values: `ONLINE`, `POPULATING` and `FAILED`.
+Constraints have an empty string as a value
+| relationshipType | `String` or `List<String>` | the type  (or list of types) of the index/constraint
+|===
 
-  * name of the constraint
-  * type of the relationship
-  * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
-  * status
+include::partial$schema/schema.relationships.type.adoc[]
 
-Config optional param is a map and its possible values are:
-
-  * labels : list of labels to retrieve index/constraint information
-  * excludeLabels: list of labels to exclude from retrieve index/constraint information
-  * relationships: list of relationships type to retrieve constraint information
-  * excludeRelationships: list of relationships' type to exclude from retrieve constraint information
-
-**Exclude has more power than include, so if excludeLabels and labels are both valued, procedure considers excludeLabels only, the same for relationships.**
 
 [source,cypher]
 ----
 CALL apoc.schema.nodes({labels:['Book']})
-YIELD name, label, properties, status, type
 ----
 
 
@@ -118,7 +131,7 @@ The output return the constraint on the relationship is present or not
 
 === List Schema assert
 
-When you:
+When you run the following query:
 
 [source,cypher]
 ----
@@ -129,7 +142,7 @@ you will receive this result:
 
 image::apoc.schema.assert.index.png[scaledwidth="100%"]
 
-When you:
+When you run the following query:
 
 [source,cypher]
 ----
@@ -140,7 +153,7 @@ you will receive this result:
 
 image::apoc.schema.assert.constraint.png[scaledwidth="100%"]
 
-When you:
+When you run the following query:
 
 [source,cypher]
 ----
@@ -158,14 +171,14 @@ Given the following cypher statements:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)
-CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE
-CREATE INDEX ON :Person(name)
-CREATE INDEX ON :Publication(name)
-CREATE INDEX ON :Source(name)
+CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.foobar IS NOT NULL
+CREATE CONSTRAINT FOR (bar:Bar) REQUIRE bar.foo IS UNIQUE
+CREATE INDEX FOR (n:Person) ON (n.name)
+CREATE INDEX FOR (n:Publication) ON (n.name)
+CREATE INDEX FOR (n:Source) ON (n.name)
 ----
 
-When you
+When you run the following query:
 
 [source,cypher]
 ----
@@ -183,11 +196,11 @@ Given the following cypher statements:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)
-CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)
+CREATE CONSTRAINT FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL
+CREATE CONSTRAINT FOR ()-[starred:STARRED]-() REQUIRE starred.month IS NOT NULL
 ----
 
-When you
+When you run the following query:
 
 [source,cypher]
 ----

@@ -1,0 +1,13 @@
+The `type` result can have one of the following values:
+
+.type output
+[opts="header"]
+|===
+| name                              | Schema type
+| "RELATIONSHIP_PROPERTY_EXISTENCE" | Relationship property existence constraints
+| "FULLTEXT"                        | Full-text index
+| "TEXT"                            | Text index
+| "RANGE"                           | Range index
+| "POINT"                           | Point index
+| "LOOKUP"                          | Lookup index
+|===
