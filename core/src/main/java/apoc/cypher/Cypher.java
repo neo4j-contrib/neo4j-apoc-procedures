@@ -20,6 +20,7 @@ package apoc.cypher;
 
 import apoc.Pools;
 import apoc.result.MapResult;
+import apoc.util.EntityUtil;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -192,7 +193,8 @@ public class Cypher {
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                queue.put(new RowResult(row++, result.next()));
+                Map<String, Object> mapResult = EntityUtil.anyRebind(tx, result.next());
+                queue.put(new RowResult(row++, mapResult));
             }
             if (addStatistics) {
                 queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));

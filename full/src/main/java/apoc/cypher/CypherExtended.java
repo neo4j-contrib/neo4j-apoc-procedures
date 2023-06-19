@@ -21,6 +21,7 @@ package apoc.cypher;
 import apoc.Extended;
 import apoc.Pools;
 import apoc.result.MapResult;
+import apoc.util.EntityUtil;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
@@ -219,7 +220,8 @@ public class CypherExtended {
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                queue.put(new RowResult(row++, result.next()));
+                Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
+                queue.put(new RowResult(row++, res));
             }
             if (addStatistics) {
                 queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
@@ -401,7 +403,7 @@ public class CypherExtended {
         }
         return futures.stream().flatMap(f -> {
             try {
-                return f.get().stream().map(MapResult::new);
+                return EntityUtil.anyRebind(tx, f.get()).stream().map(MapResult::new);
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Error executing in parallel " + statement, e);
             }

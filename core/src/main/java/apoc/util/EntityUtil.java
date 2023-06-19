@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EntityUtil {
-    
+
     public static <T> T anyRebind(Transaction tx, T any) {
         if (any instanceof Map) {
             return (T) ((Map<String, Object>) any).entrySet().stream()

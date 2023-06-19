@@ -51,8 +51,6 @@ import static org.junit.Assume.assumeTrue;
  */
 public class ExportCypherEnterpriseFeaturesTest {
 
-    private static File directory = new File("import"); // it's the directory bounded to the /import dir inside the Neo4jContainer
-
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
 
@@ -166,7 +164,7 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
                 // The constraints are exported in arbitrary order, so we cannot assert on the entire file
-        String actual = readFileToString(new File(directory, fileName));
+        String actual = readFileToString(new File(importFolder, fileName));
         MatcherAssert.assertThat(actual, Matchers.containsString(expectedStatement));
         EXPECTED_CONSTRAINTS.forEach(
                 constraint -> assertTrue(String.format("Constraint '%s' not in result", constraint), actual.contains(constraint))

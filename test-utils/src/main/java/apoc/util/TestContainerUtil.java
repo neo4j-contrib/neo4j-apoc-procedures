@@ -57,6 +57,7 @@ public class TestContainerUtil {
 
     public static File baseDir = Paths.get("..").toFile();
     public static File pluginsFolder = new File(baseDir, "build/plugins");
+    public static File importFolder = new File(baseDir, "build/import");
     private static File coreDir = new File(baseDir, "core");
     public static File fullDir = new File(baseDir, "full");
 
@@ -70,13 +71,13 @@ public class TestContainerUtil {
     public static TestcontainersCausalCluster createEnterpriseCluster(List<ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
         return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
-    
+
     private static void addExtraDependencies() {
         final File projectRootDir = Paths.get("..").toFile();
         File extraDepsDir = new File(projectRootDir, "extra-dependencies");
         // build the extra-dependencies
         executeGradleTasks(extraDepsDir, "buildDependencies");
-        
+
         // add all extra deps to the plugin docker folder
         final File directory = new File(extraDepsDir, "build/allJars");
         final IOFileFilter instance = TrueFileFilter.TRUE;
@@ -105,7 +106,6 @@ public class TestContainerUtil {
         }
         File projectDir;
         // We define the container with external volumes
-        File importFolder = new File("import");
         importFolder.mkdirs();
         // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
         pluginsFolder.mkdirs();
@@ -238,7 +238,7 @@ public class TestContainerUtil {
     public static void testCallEmpty(Session session, String call, Map<String,Object> params) {
         testResult(session, call, params, (res) -> assertFalse("Expected no results", res.hasNext()) );
     }
-    
+
     public static void testCallInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer) {
         testCallInReadTransaction(session, call, null, consumer);
     }
