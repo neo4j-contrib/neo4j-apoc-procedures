@@ -28,6 +28,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
@@ -36,10 +37,13 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.util.Util.labelStrings;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ExpandPathTest {
@@ -397,5 +401,113 @@ public class ExpandPathTest {
 					List<Map<String, Object>> maps = Iterators.asList(result);
 					assertEquals(1, maps.size());
 				});
+	}
+
+	@Test
+	public void testLabelWithSpecialChar() {
+		db.executeTransactionally(
+				"CREATE (n:`http://example.com/abc#Object` {one: 'alpha'}) WITH n\n" +
+				"CREATE (n)-[:REL]->(:`http://www.w3.org/2002/07/owl#Class`:OwlClass {two: 'beta'}),\n" +
+				" (n)-[:REL]->(:foo:bar {two: 'gamma'}),\n" +
+				" (n)-[:REL]->(:foo:baz {two: 'delta'})"
+		);
+
+		String pathFilter = ">|<";
+		// match using a single label (`http://www.w3.org/2002/07/owl#Class`)
+		String labelFilter = "/http\\://www.w3.org/2002/07/owl#Class|/foo:bar|/another";
+
+		Map<String, Object> config = Map.of("pathFilter", pathFilter,
+				"labelFilter", labelFilter);
+
+		TestUtil.testResult(db,
+				"MATCH (node:`http://example.com/abc#Object`) CALL apoc.path.expand(node, $pathFilter, $labelFilter, 0, 2) " +
+						"YIELD path " +
+						"return nodes(path) AS nodes",
+				config,
+				this::specialCharAssertions);
+
+		// with apoc.path.expandConfig
+		TestUtil.testResult(db,
+				"MATCH (node:`http://example.com/abc#Object`) CALL apoc.path.expandConfig(node, $config) " +
+						"YIELD path " +
+						"return distinct nodes(path) AS nodes",
+				Map.of("config", config),
+				this::specialCharAssertions);
+	}
+
+	@Test
+	public void testCompoundLabelWithSpecialChar() {
+		db.executeTransactionally(
+				"CREATE (n:`http://compound.example/abc#Object` {one: 'alpha'}) WITH n\n" +
+				"CREATE (n)-[:REL]->(o:`/http://www.w3.org/2002/07/owl#Class`:OwlClass:`Go:ku` {two: 'beta'}),\n" +
+				" (n)-[:REL]->(:foo:bar {two: 'gamma'}),\n" +
+				" (n)-[:REL]->(:foo:baz {two: 'delta'})"
+		);
+
+		// match using multiple labels (`http://www.w3.org/2002/07/owl#Class`, `OwlClass` and `Go:ku`)
+		String labelFilter = "//http\\://www.w3.org/2002/07/owl#Class:OwlClass:Go\\:ku|/foo:bar|/another";
+
+		Map<String, Object> config = Map.of("labelFilter", labelFilter);
+
+		TestUtil.testResult(db,
+				"MATCH (node:`http://compound.example/abc#Object`) CALL apoc.path.expand(node, null, $labelFilter, 0, 2) " +
+						"YIELD path " +
+						"return distinct nodes(path) AS nodes",
+				config,
+				this::specialCharAssertions);
+
+		// with apoc.path.expandConfig
+		TestUtil.testResult(db,
+				"MATCH (node:`http://compound.example/abc#Object`) " +
+						"CALL apoc.path.expandConfig(node, $config) " +
+						"YIELD path " +
+						"RETURN distinct nodes(path) AS nodes",
+				Map.of("config", config),
+				this::specialCharAssertions);
+	}
+
+	@Test
+	public void testLabelWithTwoDots() {
+		db.executeTransactionally("CREATE (n:Multiple:End)-[:REL]->(o:`foo:bar` {two: 'beta'})");
+
+		String labelFilter = "foo:bar";
+		String labelFilterEscaped = "foo\\:bar";
+		Map<String, Object> config = Map.of("labelFilter", labelFilter);
+		Map<String, Object> configEscaped = Map.of("labelFilter", labelFilterEscaped);
+
+		// this doesn't work because search for compound labels, `foo` and `bar`
+		TestUtil.testCallEmpty(db, "MATCH (n:Multiple:End) CALL apoc.path.expand(n, null, $labelFilter, 1, 2) YIELD path RETURN path", config);
+
+		// this works correctly, because search for `foo:bar` label
+		TestUtil.testCall(db, "MATCH (n:Multiple:End) CALL apoc.path.expand(n, null, $labelFilter, 1, 2) YIELD path RETURN path", configEscaped, r -> {
+			Path path = (Path) r.get("path");
+			Iterator<Node> iterator = path.nodes().iterator();
+
+			Node node = iterator.next();
+			assertEquals(List.of("End", "Multiple"), labelStrings(node));
+
+			node = iterator.next();
+			assertEquals(List.of("foo:bar"), labelStrings(node));
+
+			assertFalse(iterator.hasNext());
+		});
+	}
+
+	private void specialCharAssertions(Result result) {
+		Map<String, Object> row = result.next();
+		assertSinglePath(row);
+		row = result.next();
+		assertSinglePath(row);
+		assertFalse(result.hasNext());
+	}
+
+	private static void assertSinglePath(Map<String, Object> row) {
+		List<Node> nodes = (List<Node>) row.get("nodes");
+		assertEquals(2, nodes.size());
+		Map<String, Object> allProperties = nodes.get(0).getAllProperties();
+		assertEquals(Map.of("one", "alpha"), allProperties);
+		Map<String, Object> allPropertiesEnd = nodes.get(1).getAllProperties();
+		String beta = (String) allPropertiesEnd.get("two");
+		assertTrue("Property `two` has value " + beta, List.of("beta", "gamma").contains(beta));
 	}
 }
