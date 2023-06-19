@@ -33,8 +33,9 @@ def commonExclusions = {
 }
 
 dependencies {
-    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.2', commonExclusions
-    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.2', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.5', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', commonExclusions
+    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '3.23.1', commonExclusions
 }
 
 
