@@ -18,7 +18,6 @@
  */
 package apoc.schema;
 
-import apoc.result.AssertSchemaResult;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import apoc.util.Util;
 import org.assertj.core.api.Assertions;
@@ -38,12 +37,10 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.ignoreException;
 import static apoc.util.TestUtil.registerProcedure;
