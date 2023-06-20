@@ -79,7 +79,7 @@ public class ImportJsonTest {
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getCanonicalFile().toPath())
             .withSetting(GraphDatabaseSettings.procedure_unrestricted, List.of("apoc.*"))
-            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("4G"))
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("2G"))
             .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
             .withSetting(GraphDatabaseSettings.memory_tracking, true)
             .withSetting(ApocSettings.apoc_import_file_enabled, true);

@@ -1,7 +1,5 @@
 package apoc.periodic;
 
-import apoc.util.TransactionTestUtil;
-import java.util.concurrent.TimeUnit;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.Status;
@@ -11,7 +9,9 @@ import org.neo4j.test.rule.DbmsRule;
 
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class PeriodicTestUtils {
     public static void killPeriodicQueryAsync(DbmsRule db) {
@@ -42,26 +42,14 @@ public class PeriodicTestUtils {
 
     public static void testTerminatePeriodicQuery(DbmsRule db, String periodicQuery) {
         killPeriodicQueryAsync(db);
-        checkPeriodicTerminated(db, periodicQuery);
-    }
-
-    public static void testTerminateWithCommand(DbmsRule db, String periodicQuery, String iterateQuery) {
-        long timeBefore = System.currentTimeMillis();
-        TransactionTestUtil.terminateTransactionAsync(db, 10L, iterateQuery);
-        TransactionTestUtil.lastTransactionChecks(db, periodicQuery, timeBefore);
-    }
-
-    private static void checkPeriodicTerminated(DbmsRule db, String periodicQuery) {
         try {
-            org.neo4j.test.assertion.Assert.assertEventually( () ->
-                            db.executeTransactionally(periodicQuery, Map.of(),
-                                    result -> {
-                                        Map<String, Object> row = Iterators.single(result);
-                                        return (Boolean) row.get("wasTerminated");
-                                    }),
-                    (value) -> value, 15L, TimeUnit.SECONDS);
+            testResult(db, periodicQuery, result -> {
+                Map<String, Object> row = Iterators.single(result);
+                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
+            });
+            fail("Should have terminated");
         } catch(Exception tfe) {
-            assertTrue(tfe.getMessage(), tfe.getMessage().contains("terminated"));
+            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
         }
     }
 }

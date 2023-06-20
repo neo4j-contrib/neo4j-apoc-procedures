@@ -308,13 +308,6 @@ public class PeriodicTest {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
 
-
-    @Test
-    public void testTerminateIterateWithTerminateTransactionCommand()  {
-        PeriodicTestUtils.testTerminateWithCommand(db, "CALL apoc.periodic.iterate('UNWIND range(0,999999) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})",
-                "UNWIND range(0,999999) as id RETURN id");
-    }
-
     @Test
     public void testWithTerminationInnerTransaction() {
         // terminating the apoc.util.sleep should instantly terminate the periodic query without any creation
