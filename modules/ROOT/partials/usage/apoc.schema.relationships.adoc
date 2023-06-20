@@ -1,0 +1,61 @@
+include::partial$schema/schema.relationships.type.adoc[]
+
+.Community Edition example
+
+Given the following schema:
+
+[source,cypher]
+----
+CREATE FULLTEXT INDEX fullIdx FOR ()-[n:MOVIE|BOOK]-() ON EACH [n.title, n.description];
+
+CREATE POINT INDEX pointIdx FOR ()-[n:PLACE]-() ON (n.address);
+
+CREATE TEXT INDEX textIdx FOR ()-[n:GAME]-() ON (n.title);
+
+CREATE RANGE INDEX rangeIdx FOR ()-[n:FOO_BAR]-() ON (n.name);
+----
+
+It is possible to execute the following query:
+
+[source,cypher]
+----
+CALL apoc.schema.relationships()
+----
+
+
+
+.Results
+[opts="header"]
+|===
+| name                                  | type       | properties               | status   | relationshipType
+| ":PLACE(address)"                     | "POINT"    | ["address"]              | "ONLINE" | "PLACE"
+| ":GAME(title)"                        | "TEXT"     | ["title"]                | "ONLINE" | "GAME"
+| ":[BOOK, MOVIE],(title,description)"  | "FULLTEXT" | ["title", "description"] | "ONLINE" | ["BOOK", "MOVIE"]
+| ":FOO_BAR(name)"                      | "RANGE"    | ["name"]	                | "ONLINE" | "FOO_BAR"
+|===
+
+.Enterprise Edition example
+
+Given the following schema:
+
+[source,cypher]
+----
+CREATE CONSTRAINT likesDay
+FOR ()-[like:LIKED]-()
+REQUIRE (like.day) IS NOT NULL;
+----
+
+It is possible to execute the following query:
+
+[source,cypher]
+----
+CALL apoc.schema.relationships()
+----
+
+
+.Results
+[opts="header"]
+|===
+| name                                                             | type                              | properties | status | relationshipType
+| "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT liked.day IS NOT NULL" | "RELATIONSHIP_PROPERTY_EXISTENCE" | ["day"]    | ""     | ["BOOK", "MOVIE"]
+|===

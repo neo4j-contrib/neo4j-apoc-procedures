@@ -1,5 +1,6 @@
 ¦xref::overview/apoc.schema/apoc.schema.relationships.adoc[apoc.schema.relationships icon:book[]] +
 
-`CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel, properties, status`
+`apoc.schema.relationships(config Map<String, Any>)` - returns the indexes and constraints information for all the relationship types in the database.
+It is possible to define a set of relationship types to include or exclude in the config parameters.
 ¦label:procedure[]
 ¦label:apoc-core[]

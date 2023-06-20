@@ -1,0 +1,15 @@
+The `type` result can have one of the following values:
+
+.type output
+[opts="header"]
+|===
+| name                      | Schema type
+| "UNIQUENESS"              | Unique node property constraint
+| "NODE_PROPERTY_EXISTENCE" | Node property existence constraint
+| "NODE_KEY"                | Node key constraint
+| "FULLTEXT"                | Full-text index
+| "TEXT"                    | Text index
+| "RANGE"                   | Range index
+| "POINT"                   | Point index
+| "LOOKUP"                  | Lookup index
+|===

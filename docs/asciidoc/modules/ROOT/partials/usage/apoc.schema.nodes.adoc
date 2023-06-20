@@ -1,17 +1,30 @@
-The examples in this section are based on a database that has applied the following constraints:
+include::partial$schema/schema.nodes.type.adoc[]
+
+
+.Community Edition example
+
+Given the following schema:
 
 [source,cypher]
 ----
-CREATE CONSTRAINT personName ON (person:Person)
-ASSERT person.name IS UNIQUE;
+CREATE CONSTRAINT personName FOR (person:Person)
+REQUIRE person.name IS UNIQUE;
 
-CREATE CONSTRAINT userId ON (user:User)
-ASSERT user.id IS UNIQUE;
+CREATE CONSTRAINT userId FOR (user:User)
+REQUIRE user.id IS UNIQUE;
+
+CREATE FULLTEXT INDEX fullIdx FOR (n:Movie|Book) ON EACH [n.title, n.description];
+
+CREATE POINT INDEX pointIdx FOR (n:Place) ON (n.address);
+
+CREATE TEXT INDEX textIdx FOR (n:Game) ON (n.title);
 ----
+
+It is possible to execute the following query:
 
 [source,cypher]
 ----
-CALL apoc.schema.nodes();
+CALL apoc.schema.nodes()
 ----
 
 
@@ -19,6 +32,45 @@ CALL apoc.schema.nodes();
 [opts="header"]
 |===
 | name            | label    | properties | status   | type         | failure      | populationProgress | size | valuesSelectivity | userDescription
-| ":Person(name)" | "Person" | ["name"]   | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 7    | 1.0               | "Index( id=1, name='personName', type='UNIQUE BTREE', schema=(:Person \{name}), indexProvider='native-btree-1.0' )"
-| ":User(id)"     | "User"   | ["id"]     | "ONLINE" | "UNIQUENESS" | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=3, name='userId', type='UNIQUE BTREE', schema=(:User \{id}), indexProvider='native-btree-1.0' )"
+| ":Person(name)"   | "Person" | ["name"]    | ""       | "UNIQUENESS" | "NO FAILURE" | 0.0                | 0    | 0.0               | "Constraint( id=8, name='personName', type='UNIQUENESS', schema=(:Person \{name}), ownedIndex=7 )"
+| ":User(id)"       | "User"   | ["id"]      | ""       | "UNIQUENESS" | "NO FAILURE" | 0.0                | 0    | 0.0               | "Constraint( id=4, name='userId', type='UNIQUENESS', schema=(:User \{id}), ownedIndex=3 )"
+| ":Game(title)"    | "Game"   | ["title"]   | "ONLINE" | "TEXT"       | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=9, name='textIdx', type='GENERAL TEXT', schema=(:Game \{title}), indexProvider='text-2.0' )"
+| ":Person(name)"   | "Person" | ["name"]    | "ONLINE" | "BTREE"      | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=7, name='personName', type='UNIQUE BTREE', schema=(:Person \{name}), indexProvider='range-1.0', owningConstraint=8 )"
+| ":Place(address)" | "Place"  | ["address"] | "ONLINE" | "POINT"      | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=6, name='pointIdx', type='GENERAL POINT', schema=(:Place \{address}), indexProvider='point-1.0' )"
+| ":User(id)"       | "User"   | ["id"]      | "ONLINE" | "BTREE"      | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=3, name='userId', type='UNIQUE BTREE', schema=(:User \{id}), indexProvider='range-1.0', owningConstraint=4 )"
 |===
+
+
+Please note that the unique node property constraints (i.e. `personName` and `userId`) return two results,
+one for the constraint itself (the rows with type `"UNIQUENESS"`)
+and one for the index that is created at the same time as the constraint (with type `"RANGE"`).
+
+
+.Enterprise Edition example
+
+Given the following schema:
+
+[source,cypher]
+----
+CREATE CONSTRAINT node_cons IF NOT EXISTS FOR (bar:Bar) REQUIRE bar.foobar IS NOT NULL;
+
+CREATE CONSTRAINT FOR (f:Test) REQUIRE (f.bar,f.foo) IS NODE KEY;
+----
+
+It is possible to execute the following query:
+
+[source,cypher]
+----
+CALL apoc.schema.nodes()
+----
+
+.Results
+[opts="header"]
+|===
+| name              | label    | properties     | status   | type                      | failure      | populationProgress | size | valuesSelectivity | userDescription
+| ":Bar(foobar)"    | "Bar"    | ["foobar"]     | ""       | "NODE_PROPERTY_EXISTENCE" | "NO FAILURE" | 0.0                | 0    | 0.0               | "Constraint( id=7, name='node_cons', type='NODE PROPERTY EXISTENCE', schema=(:Bar {foobar}) )"
+| ":Test(bar,foo)"  | "Test"   | ["bar", "foo"] | ""       | "NODE_KEY"                | "NO FAILURE" | 0.0                | 0    | 0.0               | "Constraint( id=9, name='constraint_d926cedc', type='NODE KEY', schema=(:Test {bar, foo}), ownedIndex=8 )"
+| ":Test(bar,foo)"  | "Test"   | ["bar", "foo"] | "ONLINE" | "RANGE"                   | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=8, name='constraint_d926cedc', type='RANGE', schema=(:Test {bar, foo}), indexProvider='range-1.0', owningConstraint=9 )"
+|===
+
+Similarly to unique node property constraints, the node key constraints return two results (with types `"NODE_KEY"` and `"RANGE"`)

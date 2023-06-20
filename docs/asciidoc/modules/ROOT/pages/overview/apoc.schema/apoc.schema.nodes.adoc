@@ -24,6 +24,20 @@ apoc.schema.nodes(config = {} :: MAP?) :: (name :: STRING?, label :: ANY?, prope
 |config|MAP?|{}
 |===
 
+== Config parameters
+The procedure supports the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| labels | List<String> | [] | list of labels to retrieve index/constraint information. Default is to include all labels.
+| excludeLabels | List<String> | [] | list of labels to exclude from retrieve index/constraint information. Default is to include all labels.
+|===
+
+**It's not possible to evaluate both `labels` and `excludeLabels`.
+In this case, the error `Parameters labels and excludeLabels are both valued.` will be thrown.**
+
 == Output parameters
 [.procedures, opts=header]
 |===

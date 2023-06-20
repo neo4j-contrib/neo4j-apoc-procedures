@@ -1,5 +1,6 @@
 ¦xref::overview/apoc.schema/apoc.schema.nodes.adoc[apoc.schema.nodes icon:book[]] +
 
-`CALL apoc.schema.nodes([config]) yield name, label, properties, status, type`
+`apoc.schema.nodes(config Map<String, Any>)` - returns all indexes and constraints information for all node labels in the database.
+It is possible to define a set of labels to include or exclude in the config parameters.
 ¦label:procedure[]
 ¦label:apoc-core[]
