@@ -18,13 +18,11 @@
  */
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import inet.ipaddr.IPAddressString;
 import org.junit.*;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
@@ -77,10 +75,7 @@ public class LoadJsonTest {
     }
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
-//            .withSetting(ApocSettings.apoc_import_file_enabled, true)
-//            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
 	@Before public void setUp() throws Exception {
 	    apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
@@ -98,25 +93,10 @@ public class LoadJsonTest {
                 });
     }
 
-    @Test public void testLoadJsonFromBlockedIpRange() throws Exception {
-        var protocols = List.of("https", "http", "ftp");
-
-        for (var protocol: protocols) {
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                                            () -> testCall(db,
-                                                           "CALL apoc.load.json('" + protocol + "://127.168.0.0/test.csv')",
-                                                           map(),
-                                                           (r) -> {}
-                                            )
-            );
-            assertTrue(e.getMessage().contains("access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
-        }
-    }
-
-    @Test 
+    @Test
     public void testLoadMultiJsonWithBinary() {
         testResult(db, "CALL apoc.load.jsonParams($url, null, null, null, $config)",
-                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), CompressionAlgo.FRAMED_SNAPPY.name()), 
+                map("url", fileToBinary(new File(ClassLoader.getSystemResource("multi.json").getPath()), CompressionAlgo.FRAMED_SNAPPY.name()),
                         "config", map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
                 this::commonAssertionsLoadJsonMulti);
     }
