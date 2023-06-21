@@ -184,4 +184,29 @@ The previous behaviour was to split the columns and then escape them. The result
 | 0      | ["Selma", "9"]     | {name: "Selma", age: "9"}
 |===
 
+==== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `SHOW TRANSACTIONS` command to check progresses.
+This will return the last executed csv result.
+
+[source,cypher]
+----
+SHOW TRANSACTIONS YIELD statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.csv' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| - lineNo: 217 +
+  - list: [217, :Status, , , ] +
+  - strings: [] +
+  - map: {_id=217, _labels=:Status, _start=, _end=, _type=} +
+  - stringMap: {}
+|===
+
+
+The result of `SHOW TRANSACTIONS` will be like below:
+
+image::apoc.statusDetails.png[width=800]
 

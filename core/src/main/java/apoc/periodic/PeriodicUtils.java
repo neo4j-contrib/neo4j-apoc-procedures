@@ -46,6 +46,8 @@ import java.util.stream.Stream;
 import static apoc.periodic.Periodic.JobInfo;
 
 public class PeriodicUtils {
+    public static final String COMMITTED = "committed";
+    public static final String FAILED = "failed";
 
     private PeriodicUtils() {
 
@@ -80,7 +82,7 @@ public class PeriodicUtils {
             GraphDatabaseService db, TerminationGuard terminationGuard, Log log, Pools pools,
             int batchsize, boolean parallel, boolean iterateList, long retries,
             Iterator<Map<String, Object>> iterator, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer,
-            int concurrency, int failedParams, String periodicId) {
+            int concurrency, int failedParams, String periodicId, Transaction tx) {
 
         ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
@@ -109,6 +111,10 @@ public class PeriodicUtils {
                         retries,
                         retryCount -> collector.incrementRetried(),
                         onComplete -> {
+                            // in this case we update statusDetails for each batch, instead of counting rows/lines
+                            Util.setKernelStatus(tx, true,
+                                    Map.of(COMMITTED, collector.getBatches() - collector.getFailedBatches().get(),
+                                            FAILED, collector.getFailedBatches().get()));
                             collector.incrementBatches();
                             executeBatch.release();
                             activeFutures.decrementAndGet();

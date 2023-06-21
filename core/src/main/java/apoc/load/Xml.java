@@ -82,6 +82,7 @@ import java.util.stream.Stream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
+import static apoc.util.Util.map;
 
 public class Xml {
 
@@ -263,6 +264,10 @@ public class Xml {
         }
 
         if (!elementMap.isEmpty()) {
+            final int counter = stack.size();
+            final Map<String, Object> statusMap = map("record", counter);
+            statusMap.putAll(elementMap);
+            Util.setKernelStatusPeriodically(tx, counter, statusMap);
             stack.addLast(elementMap);
         }
     }
@@ -473,11 +478,15 @@ public class Xml {
         private final Deque<ParentAndChildPair> parents = new ArrayDeque<>();
         private org.neo4j.graphdb.Node last;
         private org.neo4j.graphdb.Node lastWord;
+        private long counter = 0;
         private int currentCharacterIndex = 0;
+        private final Map<String, Long> statusDetail = new HashMap<>();
+        private final Transaction tx;
 
-        public ImportState(org.neo4j.graphdb.Node initialNode) {
+        public ImportState(org.neo4j.graphdb.Node initialNode, Transaction tx) {
             this.last = initialNode;
             this.lastWord = initialNode;
+            this.tx = tx;
         }
 
         public void push(ParentAndChildPair parentAndChildPair) {
@@ -503,7 +512,7 @@ public class Xml {
         public boolean isEmpty() {
             return parents.isEmpty();
         }
-
+        
         public void updateLast(org.neo4j.graphdb.Node thisNode) {
             ParentAndChildPair parentAndChildPair = parents.peek();
             final org.neo4j.graphdb.Node parent = parentAndChildPair.getParent();
@@ -516,8 +525,16 @@ public class Xml {
             } else {
                 previousChild.createRelationshipTo(thisNode, RelationshipType.withName("NEXT_SIBLING"));
             }
+            statusDetail.merge("nodes", 1L, Long::sum);
+            statusDetail.merge("relationships", 1L, Long::sum);
+            Util.setKernelStatusPeriodically(tx, ++counter, statusDetail);
             parentAndChildPair.setPreviousChild(thisNode);
             last = thisNode;
+        }
+        
+        public void updateNumTags() {
+            statusDetail.merge("elements", 1L, Long::sum);
+            Util.setKernelStatusPeriodically(tx, counter, statusDetail);
         }
 
         public void addCurrentCharacterIndex(int length) {
@@ -547,7 +564,7 @@ public class Xml {
         if (urlOrBinary instanceof String) {
             root.setProperty("url", urlOrBinary);
         }
-        ImportState state = new ImportState(root);
+        ImportState state = new ImportState(root, tx);
         state.push(new ParentAndChildPair(root));
 
         while (xml.hasNext()) {
@@ -588,7 +605,6 @@ public class Xml {
                     break;
 
                 case XMLStreamConstants.END_ELEMENT:
-
                     String charactersForTag = importConfig.getCharactersForTag().get(xml.getName().getLocalPart());
                     if (charactersForTag!=null) {
                         createCharactersNode(charactersForTag, state, importConfig);
@@ -597,6 +613,7 @@ public class Xml {
                     if (parent.getPreviousChild()!=null) {
                         parent.getPreviousChild().createRelationshipTo(parent.getParent(), RelationshipType.withName("LAST_CHILD_OF"));
                     }
+                    state.updateNumTags();
                     break;
 
                 case XMLStreamConstants.END_DOCUMENT:

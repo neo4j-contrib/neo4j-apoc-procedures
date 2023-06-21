@@ -44,10 +44,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static apoc.periodic.PeriodicUtils.*;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType;
-import static apoc.periodic.PeriodicUtils.submitJob;
-import static apoc.periodic.PeriodicUtils.submitProc;
-import static apoc.periodic.PeriodicUtils.wrapTask;
 import static apoc.util.Util.merge;
 
 public class Periodic {
@@ -73,7 +71,7 @@ public class Periodic {
 
         iterate("MATCH ()-[r]->() RETURN id(r) as id", "MATCH ()-[r]->() WHERE id(r) = id DELETE r", config);
         iterate("MATCH (n) RETURN id(n) as id", "MATCH (n) WHERE id(n) = id DELETE n", config);
-
+        
         if (Util.toBoolean(config.get("dropSchema"))) {
             Schema schema = tx.schema();
             schema.getConstraints().forEach(ConstraintDefinition::drop);
@@ -121,6 +119,8 @@ public class Periodic {
                     return 0L;
                 }
             }), commitErrors, failedCommits, 0L);
+            Util.setKernelStatus(tx, true,
+                    Map.of(COMMITTED, batches.get() - failedBatches.get(), FAILED, failedBatches.get()));
             total += updates;
             if (updates > 0) executions++;
             if (log.isDebugEnabled()) {
@@ -277,7 +277,7 @@ public class Periodic {
                         Iterators.count(r); // XXX: consume all results
                         return r.getQueryStatistics();
                     },
-                    concurrency, failedParams, periodicId);
+                    concurrency, failedParams, periodicId, tx);
         }
     }
 

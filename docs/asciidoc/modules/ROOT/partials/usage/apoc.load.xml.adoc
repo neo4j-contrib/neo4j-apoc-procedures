@@ -528,4 +528,30 @@ RETURN value
     ]
 }
 ----
+
 |===
+
+
+==== Status details
+
+For long running procedures, we can use the `statusDetails` field present in `SHOW TRANSACTIONS` procedure to check progresses.
+This will return the last executed xml result.
+
+[source,cypher]
+----
+SHOW TRANSACTIONS YIELD statusDetails, currentQuery WHERE currentQuery STARTS WITH 'CALL apoc.load.xml' RETURN statusDetails
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| - curr. element: 373 +
+- _type: data +
+- key: born +
+- _text: 1951
+|===
+
+The result of `SHOW TRANSACTIONS` will be like below:
+
+image::apoc.statusDetails.png[width=800]

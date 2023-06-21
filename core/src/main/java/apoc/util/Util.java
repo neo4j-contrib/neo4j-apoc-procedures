@@ -22,6 +22,7 @@ import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
 import apoc.export.util.CountingInputStream;
+import apoc.export.util.FormatUtils;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -49,6 +50,8 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.logging.Log;
 import org.neo4j.graphdb.ExecutionPlanDescription;
 import org.neo4j.graphdb.Result;
@@ -1189,6 +1192,19 @@ public class Util {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <T> void setKernelStatus(Transaction tx, boolean updateResult, Map<String, T> status) {
+        // we don't write anything if transaction is not an InternalTransaction
+        if (updateResult && tx instanceof InternalTransaction) {
+            final KernelTransaction ktx = ((InternalTransaction) tx).kernelTransaction();
+            ktx.setStatusDetails(FormatUtils.asHyphenSeparatedList(status));
+        }
+    }
+
+    public static <T> void setKernelStatusPeriodically(Transaction tx, long counter, Map<String, T> map) {
+        boolean updateResult = counter != 0 && counter % 1000 == 0;
+        setKernelStatus(tx, updateResult, map);
     }
 
     public static String toCypherMap(Map<String, Object> map) {

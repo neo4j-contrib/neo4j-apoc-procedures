@@ -135,7 +135,7 @@ public class ExportCypher {
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();
-        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo, tx);
         boolean separatedFiles = !onlySchema && c.separateFiles();
         ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles, c);
 

@@ -32,6 +32,7 @@ import org.apache.arrow.vector.ipc.ArrowFileWriter;
 import org.apache.arrow.vector.ipc.ArrowWriter;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
@@ -53,12 +54,12 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
 
     Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, IN data);
 
-    default Stream<ProgressInfo> export(IN data, ArrowConfig config) {
+    default Stream<ProgressInfo> export(IN data, ArrowConfig config, Transaction tx) {
         final BlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(10);
         final OutputStream out = FileUtils.getOutputStream(getFileName());
         ProgressInfo progressInfo = new ProgressInfo(getFileName(), getSource(data), "arrow");
         progressInfo.batchSize = config.getBatchSize();
-        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo, tx);
         Util.inTxFuture(getExecutorService(), getGraphDatabaseApi(), txInThread -> {
             int batchCount = 0;
             List<Map<String, Object>> rows = new ArrayList<>(config.getBatchSize());

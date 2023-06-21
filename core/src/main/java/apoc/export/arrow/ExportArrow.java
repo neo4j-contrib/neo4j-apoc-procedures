@@ -66,7 +66,7 @@ public class ExportArrow {
     @Procedure("apoc.export.arrow.stream.all")
     @Description("apoc.export.arrow.stream.all(config) - exports whole database as arrow byte[] result")
     public Stream<ByteArrayResult> all(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        return new ExportArrowService(db, pools, terminationGuard, logger).stream(new DatabaseSubGraph(tx), new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).stream(new DatabaseSubGraph(tx), new ArrowConfig(config));
     }
 
     @Procedure("apoc.export.arrow.stream.graph")
@@ -86,7 +86,7 @@ public class ExportArrow {
         } else {
             throw new IllegalArgumentException("Supported inputs are VirtualGraph, Map");
         }
-        return new ExportArrowService(db, pools, terminationGuard, logger).stream(subGraph, new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).stream(subGraph, new ArrowConfig(config));
     }
 
     @Procedure("apoc.export.arrow.stream.query")
@@ -94,13 +94,13 @@ public class ExportArrow {
     public Stream<ByteArrayResult> query(@Name("query") String query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Map<String, Object> params = config == null ? Collections.emptyMap() : (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         Result result = tx.execute(query, params);
-        return new ExportArrowService(db, pools, terminationGuard, logger).stream(result, new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).stream(result, new ArrowConfig(config));
     }
 
     @Procedure("apoc.export.arrow.all")
     @Description("apoc.export.arrow.all(fileName, config) - exports whole database as arrow file")
     public Stream<ProgressInfo> all(@Name("fileName") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        return new ExportArrowService(db, pools, terminationGuard, logger).file(fileName, new DatabaseSubGraph(tx), new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).file(fileName, new DatabaseSubGraph(tx), new ArrowConfig(config));
     }
 
     @Procedure("apoc.export.arrow.graph")
@@ -120,7 +120,7 @@ public class ExportArrow {
         } else {
             throw new IllegalArgumentException("Supported inputs are VirtualGraph, Map");
         }
-        return new ExportArrowService(db, pools, terminationGuard, logger).file(fileName, subGraph, new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).file(fileName, subGraph, new ArrowConfig(config));
     }
 
     @Procedure("apoc.export.arrow.query")
@@ -128,6 +128,6 @@ public class ExportArrow {
     public Stream<ProgressInfo> query(@Name("fileName") String fileName, @Name("query") String query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Map<String, Object> params = config == null ? Collections.emptyMap() : (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         Result result = tx.execute(query, params);
-        return new ExportArrowService(db, pools, terminationGuard, logger).file(fileName, result, new ArrowConfig(config));
+        return new ExportArrowService(db, pools, terminationGuard, logger, tx).file(fileName, result, new ArrowConfig(config));
     }
 }

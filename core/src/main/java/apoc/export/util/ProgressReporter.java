@@ -19,9 +19,13 @@
 package apoc.export.util;
 
 import apoc.result.ProgressInfo;
+import apoc.util.JsonUtil;
+import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.graphdb.Transaction;
 
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -33,6 +37,7 @@ public class ProgressReporter implements Reporter {
     private final SizeCounter sizeCounter;
     private final PrintWriter out;
     private final long batchSize;
+    public final Transaction tx;
     long time;
     int counter;
     long totalEntities = 0;
@@ -41,12 +46,13 @@ public class ProgressReporter implements Reporter {
     private final ProgressInfo progressInfo;
     private Consumer<ProgressInfo> consumer;
 
-    public ProgressReporter(SizeCounter sizeCounter, PrintWriter out, ProgressInfo progressInfo) {
+    public ProgressReporter(SizeCounter sizeCounter, PrintWriter out, ProgressInfo progressInfo, Transaction tx) {
         this.sizeCounter = sizeCounter;
         this.out = out;
         this.time = start;
         this.progressInfo = progressInfo;
         this.batchSize = progressInfo.batchSize;
+        this.tx = tx;
     }
 
     public ProgressReporter withConsumer(Consumer<ProgressInfo> consumer) {
@@ -75,6 +81,7 @@ public class ProgressReporter implements Reporter {
         progressInfo.update(nodes, relationships, properties);
         totalEntities += nodes + relationships;
         acceptBatch();
+        updateStatus();
     }
 
     public void acceptBatch() {
@@ -127,7 +134,17 @@ public class ProgressReporter implements Reporter {
     public void nextRow() {
         this.progressInfo.nextRow();
         this.totalEntities++;
+        updateStatusPeriodically();
         acceptBatch();
     }
 
+    private void updateStatusPeriodically() {
+        final Map<String, Object> statusMap = JsonUtil.convertToMap(this.progressInfo);
+        Util.setKernelStatusPeriodically(tx, progressInfo.nodes + progressInfo.relationships + progressInfo.properties, statusMap);
+    }
+
+    private void updateStatus() {
+        final Map<String, Object> statusMap = JsonUtil.convertToMap(this.progressInfo);
+        Util.setKernelStatus(tx, true, statusMap);
+    }
 }

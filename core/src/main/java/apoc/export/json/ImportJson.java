@@ -26,6 +26,7 @@ import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -40,6 +41,9 @@ import java.util.stream.Stream;
 public class ImportJson {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public Transaction tx;
 
     @Context
     public Pools pools;
@@ -59,7 +63,7 @@ public class ImportJson {
                         file =  (String) urlOrBinaryFile;
                         source = "file";
                     }
-                    ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "json"));
+                    ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "json"), tx);
 
                     try (final CountingReader reader = FileUtils.readerFor(urlOrBinaryFile, importJsonConfig.getCompressionAlgo());
                          final Scanner scanner = new Scanner(reader).useDelimiter("\n|\r");

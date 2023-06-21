@@ -29,6 +29,7 @@ import org.apache.arrow.vector.ipc.ArrowWriter;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -69,10 +70,10 @@ public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubG
     }
 
     @Override
-    public Stream<ByteArrayResult> export(SubGraph subGraph, ArrowConfig config) {
+    public Stream<ByteArrayResult> export(SubGraph subGraph, ArrowConfig config, Transaction tx) {
         Map<String, Object> configMap = createConfigMap(subGraph, config);
         this.schemaFor(List.of(configMap));
-        return ExportArrowStreamStrategy.super.export(subGraph, config);
+        return ExportArrowStreamStrategy.super.export(subGraph, config, tx);
     }
 
     @Override
