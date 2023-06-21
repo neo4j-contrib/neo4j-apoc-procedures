@@ -29,6 +29,8 @@ import java.net.URLConnection;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+
 /**
  * @author mh
  * @since 26.01.18
@@ -40,15 +42,17 @@ public interface StreamConnection {
     String getName();
 
     default CountingInputStream toCountingInputStream(String algo) throws IOException {
+        InputStream iStream = toLimitedIStream( getInputStream() , getLength() );
+
         if ("gzip".equals(getEncoding()) || getName().endsWith(".gz")) {
-            return new CountingInputStream(new GZIPInputStream(getInputStream()), getLength());
+            return new CountingInputStream(new GZIPInputStream(iStream), getLength());
         }
         if ("deflate".equals(getName())) {
-            return new CountingInputStream(new DeflaterInputStream(getInputStream()), getLength());
+            return new CountingInputStream(new DeflaterInputStream(iStream), getLength());
         }
         try {
             final InputStream inputStream = CompressionAlgo.valueOf(algo == null ? CompressionAlgo.NONE.name() : algo)
-                    .getInputStream(getInputStream());
+                    .getInputStream(iStream);
             return new CountingInputStream(inputStream, getLength());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -64,7 +68,7 @@ public interface StreamConnection {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return con.getInputStream();
+            return toLimitedIStream( con.getInputStream(), getLength() );
         }
 
         @Override
@@ -104,7 +108,7 @@ public interface StreamConnection {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return FileUtils.openInputStream(file);
+            return toLimitedIStream( FileUtils.openInputStream(file), getLength() );
         }
 
         @Override

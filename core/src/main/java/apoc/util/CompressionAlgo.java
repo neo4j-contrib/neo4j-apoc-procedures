@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 
 public enum CompressionAlgo {
 
@@ -71,7 +72,7 @@ public enum CompressionAlgo {
 
     public String decompress(byte[] byteArray, Charset charset) throws Exception {
         try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
-             InputStream inputStream = getInputStream(stream)) {
+             InputStream inputStream = toLimitedIStream( getInputStream(stream), byteArray.length )) {
             return IOUtils.toString(inputStream, charset);
         }
     }
@@ -89,7 +90,7 @@ public enum CompressionAlgo {
 
         try {
             ByteArrayInputStream stream = new ByteArrayInputStream(data);
-            InputStream inputStream = getInputStream(stream);
+            InputStream inputStream = toLimitedIStream( getInputStream(stream), data.length );
             return new CountingInputStream(inputStream, stream.available());
         } catch (Exception e) {
             throw new RuntimeException(e);

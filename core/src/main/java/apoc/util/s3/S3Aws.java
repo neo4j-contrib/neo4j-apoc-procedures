@@ -34,6 +34,8 @@ import com.amazonaws.services.s3.model.S3Object;
 import java.io.InputStream;
 import java.util.Objects;
 
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+
 public class S3Aws {
 
     AmazonS3 s3Client;
@@ -70,7 +72,7 @@ public class S3Aws {
         return new StreamConnection() {
             @Override
             public InputStream getInputStream() {
-                return s3Object.getObjectContent();
+                return toLimitedIStream( s3Object.getObjectContent(), getLength() );
             }
 
             @Override
