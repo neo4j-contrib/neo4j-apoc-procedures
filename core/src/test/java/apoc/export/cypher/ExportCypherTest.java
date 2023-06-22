@@ -1085,8 +1085,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         private static final String EXPECTED_NODES_MERGE = String.format("BEGIN%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.name=\"foo\", n.born=date('2018-10-31'), n:Foo;%n" +
                 "MERGE (n:Bar{name:\"bar\"}) SET n.age=42;%n" +
+                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.name=\"foo\", n.born=date('2018-10-31'), n:Foo;%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:2}) SET n.age=12, n:Bar;%n" +
                 "COMMIT%n");
 
@@ -1181,8 +1181,8 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT\n";
 
         public static final String EXPECTED_CYPHER_POINT = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {place3d:point({x: 12.78, y: 56.7, z: 100.0, crs: 'wgs-84-3d'}), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1202,8 +1202,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_DATE = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {date:date('2018-10-30'), datetime:datetime('2018-10-30T12:50:35.556+01:00'), localTime:localdatetime('2018-10-30T19:32:24'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556Z'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {date:date('2018-10-30'), datetime:datetime('2018-10-30T12:50:35.556+01:00'), localTime:localdatetime('2018-10-30T19:32:24'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1223,8 +1223,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_TIME = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {local:localtime('12:50:35.556'), name:\"foo\", t:time('12:50:35.556+01:00'), `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556+01:00'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {local:localtime('12:50:35.556'), name:\"foo\", t:time('12:50:35.556+01:00'), `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1244,8 +1244,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_DURATION = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +

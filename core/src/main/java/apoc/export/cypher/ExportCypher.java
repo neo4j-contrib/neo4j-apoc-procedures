@@ -27,6 +27,7 @@ import apoc.result.ProgressInfo;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.QueueUtil;
 import apoc.util.Util;
+import org.neo4j.cypher.export.CypherDatabaseSubGraph;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
@@ -110,13 +111,8 @@ public class ExportCypher {
     @Description("apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file")
     public Stream<DataProgressInfo> query(@Name("query") String query, @Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
-        ExportConfig c = new ExportConfig(config);
-        Result result = tx.execute(query);
-        SubGraph graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween(), false);
-
-        String source = String.format("statement: nodes(%d), rels(%d)",
-                Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
-        return exportCypher(fileName, source, graph, c, false);
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportCypher(fileName, source, new CypherDatabaseSubGraph(tx, query), new ExportConfig(config), false);
     }
 
     @Procedure
