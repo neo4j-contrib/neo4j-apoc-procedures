@@ -23,30 +23,30 @@ import org.apache.commons.io.input.BOMInputStream;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
+
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 
 /**
  * @author mh
  * @since 22.05.16
  */
 public class CountingInputStream extends FilterInputStream implements SizeCounter {
+
     public static final int BUFFER_SIZE = 1024 * 1024;
     private final long total;
     private long count=0;
     private long newLines;
 
-    public CountingInputStream(File file) throws IOException {
-        super(toBufferedStream(Files.newInputStream(file.toPath())));
-        this.total = file.length();
-    }
-    public CountingInputStream(InputStream stream, long total) throws FileNotFoundException {
-        super(toBufferedStream(stream));
+    public CountingInputStream(InputStream stream, long total) {
+        super(toBufferedStream(stream, total));
         this.total = total;
     }
 
-    private static BufferedInputStream toBufferedStream(InputStream stream) {
+    private static BufferedInputStream toBufferedStream(InputStream stream, long total) {
         final BOMInputStream bomInputStream = new BOMInputStream(stream);
-        return new BufferedInputStream(bomInputStream, BUFFER_SIZE);
+
+        InputStream sizeInputStream = toLimitedIStream(bomInputStream, total);
+        return new BufferedInputStream(sizeInputStream, BUFFER_SIZE);
     }
 
     @Override

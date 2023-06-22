@@ -79,6 +79,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.FileUtils.getInputStreamFromBinary;
 import static apoc.util.Util.ERROR_BYTES_OR_STRING;
@@ -183,9 +184,12 @@ public class Xml {
             apocConfig.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             var sc = Util.openInputStream(url, null, null, null);
-            inputStream = sc.getStream();
+            inputStream = toLimitedIStream(sc.getStream(), sc.getTotal());
         } else if (urlOrBinary instanceof byte[]) {
-            inputStream = getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo());
+            inputStream = toLimitedIStream(
+                    getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo()),
+                    ((byte[]) urlOrBinary).length
+            );
         } else {
             throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }

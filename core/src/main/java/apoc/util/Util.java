@@ -121,6 +121,7 @@ import java.util.stream.StreamSupport;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
@@ -375,7 +376,7 @@ public class Util {
     }
 
     public static boolean isRedirect(HttpURLConnection con) throws IOException {
- int responseCode = con.getResponseCode();
+        int responseCode = con.getResponseCode();
         boolean isRedirectCode = responseCode >= 300 && responseCode <= 307 && responseCode != 306 && responseCode != HTTP_NOT_MODIFIED;
         if (isRedirectCode) {
             URL location = new URL(con.getHeaderField("Location"));
@@ -429,6 +430,7 @@ public class Util {
             zipFileName = tokens[1];
             sc = getStreamConnection(urlAddress, headers, payload);
             stream = getFileStreamIntoCompressedFile(sc.getInputStream(), zipFileName, archiveType);
+            stream = toLimitedIStream(stream, sc.getLength());
         }else
             throw new IllegalArgumentException("filename can't be null or empty");
 
