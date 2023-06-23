@@ -73,4 +73,34 @@ CALL apoc.schema.nodes()
 | ":Test(bar,foo)"  | "Test"   | ["bar", "foo"] | "ONLINE" | "RANGE"                   | "NO FAILURE" | 100.0              | 0    | 1.0               | "Index( id=8, name='constraint_d926cedc', type='RANGE', schema=(:Test {bar, foo}), indexProvider='range-1.0', owningConstraint=9 )"
 |===
 
-Similarly to unique node property constraints, the node key constraints return two results (with types `"NODE_KEY"` and `"RANGE"`)
+Similarly to unique node property constraints, the node key constraints return two results (with types `"NODE_KEY"` and `"RANGE"`).
+
+
+.Failure example
+
+Given a node with a string property larger than 32kb, i.e. `(:LabelTest {prop: <LARGE_STRING_MORE_THAN_32_KB>})`,
+and the following index:
+
+[source,cypher]
+----
+CREATE INDEX FOR (n:LabelTest) ON (n.prop)
+----
+
+It is possible to execute the following query which will show, in the `failure` column, a failure message similar to the command output of `SHOW INDEX YIELD failureMessage`:
+
+[source,cypher]
+----
+CALL apoc.schema.nodes()
+----
+
+.Results
+[opts="header"]
+|===
+| name               | label    | properties     | status   | type                      | failure      | populationProgress | size | valuesSelectivity | userDescription
+| ":LabelTest(prop)" | "LabelTest" | ["prop"] | "FAILED" | "RANGE"
+| "java.lang.IllegalArgumentException: Property value is too large to index, please see index documentation for limitations. Index: Index( id=6, name='index_58741a3d', type='RANGE', schema=(:LabelTest {prop}), indexProvider='range-1.0' ), entity id: 321, property size: 104815, value: [String("2023-06-19T10:14:05.9391146Z apoc.it.core.SchemasEnterpriseFeaturesTest STANDARD_ERROR
+2023....
+at org.neo4j.kernel.api.index.IndexValueValidator.throwSizeViolationException
+...
+| 0.0 | 0 | 1.0 | "Index( id=6, name='index_58741a3d', type='RANGE', schema=(:LabelTest \{prop}), indexProvider='range-1.0' )"
+|===
