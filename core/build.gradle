@@ -115,10 +115,10 @@ dependencies {
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.5', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.6', withoutServers
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // explicit update comomns.io version
@@ -140,7 +140,7 @@ dependencies {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
-    compile group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.2'
 
