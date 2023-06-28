@@ -10,7 +10,7 @@ dependencies {
     compile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     compile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
-    compile group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
 
     // If updated check if we can remove the manual licensing check for it in licenses-3rdparties.gradle
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.1.1'
@@ -21,11 +21,11 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.5', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.6', withoutServers
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.5', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', withoutServers
+    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.6', withoutServers
 
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
     compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
