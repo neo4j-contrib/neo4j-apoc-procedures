@@ -24,6 +24,7 @@ import apoc.export.util.Reporter;
 import apoc.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
+import org.neo4j.procedure.TerminationGuard;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -219,7 +220,7 @@ public class XmlGraphMLReader {
         this.tx = tx;
     }
 
-    public long parseXML(Reader input) throws XMLStreamException {
+    public long parseXML(Reader input, TerminationGuard terminationGuard) throws XMLStreamException {
         Map<String, Long> cache = new HashMap<>(1024*32);
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
@@ -235,6 +236,7 @@ public class XmlGraphMLReader {
         try {
 
             while (reader.hasNext()) {
+                terminationGuard.check();
                 XMLEvent event;
                 try {
                     event = (XMLEvent) reader.next();

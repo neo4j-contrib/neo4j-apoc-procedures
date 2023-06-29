@@ -59,6 +59,7 @@ import java.util.stream.Stream;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TransactionTestUtil.checkTerminationGuard;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -79,7 +80,7 @@ public class ImportCsvTest {
             .withSetting(ApocSettings.apoc_export_file_enabled, true)
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
             .withSetting(GraphDatabaseSettings.db_temporal_timezone, DEFAULT_TIMEZONE)
-            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("250m"))
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("2G"))
             .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
             .withSetting(GraphDatabaseSettings.memory_tracking, true)
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(BASE_URL_FILES).toPath().toAbsolutePath());
@@ -198,6 +199,17 @@ public class ImportCsvTest {
                 map("nodeFile", "file:/largeFile.csv",
                         "config", map("batchSize", 100L)),
                 (r) -> assertEquals(277442L, r.get("nodes")));
+    }
+    
+    @Test
+    public void testImportCsvTerminate() {
+        // multiple files
+        String files = Stream.of( "Person", "Movie", "Foo", "Bar", "Baz", "Aaa", "Bbb", "Ccc")
+                .map(i -> "{fileName: $nodeFile, labels: ['" + i + "']}")
+                .collect(Collectors.joining(","));
+        checkTerminationGuard(db, "CALL apoc.import.csv([" + files +"], [], {})",
+                    map("nodeFile", "file:/largeFile.csv",
+                            "config", map("batchSize", 100L)));
     }
 
     @Test
