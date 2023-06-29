@@ -20,6 +20,7 @@ package apoc.cypher;
 
 import apoc.Pools;
 import apoc.result.MapResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -29,6 +30,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -54,6 +56,9 @@ public class Timeboxed {
     @Context
     public Pools pools;
 
+    @Context
+    public TerminationGuard terminationGuard;
+
     private final static Map<String,Object> POISON = Collections.singletonMap("__magic", "POISON");
 
     @Procedure
@@ -70,14 +75,20 @@ public class Timeboxed {
                 txAtomic.set(innerTx);
                 Result result = innerTx.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
                 while (result.hasNext()) {
+                    if (Util.transactionIsTerminated(terminationGuard)) {
+                        txAtomic.get().close();
+                        offerToQueue(queue, POISON, timeout);
+                        return;
+                    }
+
                     final Map<String, Object> map = result.next();
                     offerToQueue(queue, map, timeout);
                 }
-                offerToQueue(queue, POISON, timeout);
                 innerTx.commit();
             } catch (TransactionTerminatedException e) {
                 log.warn("query " + cypher + " has been terminated");
             } finally {
+                offerToQueue(queue, POISON, timeout);
                 txAtomic.set(null);
             }
         });

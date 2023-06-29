@@ -41,6 +41,9 @@ public class ImportCsv {
     @Context
     public Log log;
 
+    @Context
+    public TerminationGuard terminationGuard;
+
     public ImportCsv(GraphDatabaseService db) {
         this.db = db;
     }
@@ -66,7 +69,7 @@ public class ImportCsv {
                     }
                     final CsvLoaderConfig clc = CsvLoaderConfig.from(config);
                     final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "csv"));
-                    final CsvEntityLoader loader = new CsvEntityLoader(clc, reporter, log);
+                    final CsvEntityLoader loader = new CsvEntityLoader(clc, reporter, log, terminationGuard);
 
                     final Map<String, Map<String, Long>> idMapping = new HashMap<>();
                     for (Map<String, Object> node : nodes) {

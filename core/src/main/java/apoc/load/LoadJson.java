@@ -28,6 +28,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +42,9 @@ public class LoadJson {
 
     private static final String AUTH_HEADER_KEY = "Authorization";
     private static final String LOAD_TYPE = "json";
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     @Context
     public GraphDatabaseService db;
@@ -75,26 +79,34 @@ public class LoadJson {
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         String compressionAlgo = (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name());
         List<String> pathOptions = (List<String>) config.get("pathOptions");
-        return loadJsonStream(urlOrKeyOrBinary, headers, payload, path, failOnError, compressionAlgo, pathOptions);
+        return loadJsonStream(urlOrKeyOrBinary, headers, payload, path, failOnError, compressionAlgo, pathOptions, terminationGuard);
     }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
-        return loadJsonStream(url, headers, payload, "", true, null, null);
+        return loadJsonStream(url, headers, payload, "", true, null, null, null);
     }
-    public static Stream<MapResult> loadJsonStream(@Name("urlOrKeyOrBinary") Object urlOrKeyOrBinary, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, String compressionAlgo, List<String> pathOptions) {
+    public static Stream<MapResult> loadJsonStream(@Name("urlOrKeyOrBinary") Object urlOrKeyOrBinary, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path, boolean failOnError, String compressionAlgo, List<String> pathOptions, TerminationGuard terminationGuard) {
         if (urlOrKeyOrBinary instanceof String) {
             headers = null != headers ? headers : new HashMap<>();
             headers.putAll(Util.extractCredentialsIfNeeded((String) urlOrKeyOrBinary, failOnError));
         }
         Stream<Object> stream = JsonUtil.loadJson(urlOrKeyOrBinary,headers,payload, path, failOnError, compressionAlgo, pathOptions);
         return stream.flatMap((value) -> {
+            if (terminationGuard != null) {
+                terminationGuard.check();
+            }
             if (value instanceof Map) {
                 return Stream.of(new MapResult((Map) value));
             }
             if (value instanceof List) {
                 if (((List)value).isEmpty()) return Stream.empty();
                 if (((List) value).get(0) instanceof Map)
-                    return ((List) value).stream().map((v) -> new MapResult((Map) v));
+                    return ((List) value).stream().map((v) -> {
+                        if (terminationGuard != null) {
+                            terminationGuard.check();
+                        }
+                        return new MapResult((Map) v);
+                    });
                 return Stream.of(new MapResult(Collections.singletonMap("result",value)));
             }
             if(!failOnError)

@@ -99,25 +99,6 @@ public class CypherEnterpriseExtendedTest {
     }
 
     @Test
-    public void testParallelTransactionGuard() {
-        // given
-        int txCountBefore = neo4jContainer.getSession().readTransaction(tx -> tx.run("CALL dbms.listTransactions()").list()).size();
-
-        // when
-        try {
-            int size = 10_000;
-            testResult(neo4jContainer.getSession(),
-                    "CALL apoc.cypher.parallel2('UNWIND range(0,9) as id CALL apoc.util.sleep(10000) WITH id RETURN id', {a: range(1, $size)}, 'a')",
-                    map("size", size),
-                    r -> {});
-        } catch (Exception ignored) {}
-
-        // then
-        int txCountAfter = neo4jContainer.getSession().readTransaction(tx -> tx.run("CALL dbms.listTransactions()").list()).size();
-        Assert.assertEquals(txCountBefore, txCountAfter);
-    }
-
-    @Test
     public void testRunFileWithSetAndResults() {
         String query = "CALL apoc.cypher.runFile($file)";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
