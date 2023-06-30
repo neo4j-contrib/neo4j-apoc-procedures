@@ -1,4 +1,4 @@
-== `apoc.diff.graphs` procedure
+= The `apoc.diff.graphs` procedure
 
 The procedure accepts 2 string argument, the `source` and the `dest`, representing 2 queries to compare,
 and an optional `config` map as a 3rd parameter.
