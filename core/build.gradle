@@ -144,16 +144,19 @@ dependencies {
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.2'
 
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1', {
+    def arrowExclusions = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
         exclude group: 'io.netty', module: 'netty-common'
     }
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1', {
-        exclude group: 'com.google.guava', module: 'guava'
-        exclude group: 'io.netty', module: 'netty-common'
-        exclude group: 'io.netty', module: 'netty-buffer'
+
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1', arrowExclusions
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1', arrowExclusions
+    compile group: 'io.netty', name: 'netty-buffer', {
+        version {
+            strictly '4.1.94.Final'
+        }
     }
     testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
     testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
