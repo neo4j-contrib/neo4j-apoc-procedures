@@ -170,6 +170,7 @@ Apache-2.0
   netty-all-4.1.89.Final.jar
   netty-buffer-4.1.86.Final.jar
   netty-buffer-4.1.89.Final.jar
+  netty-buffer-4.1.94.Final.jar
   netty-codec-4.1.86.Final.jar
   netty-codec-4.1.89.Final.jar
   netty-codec-dns-4.1.89.Final.jar
@@ -186,6 +187,7 @@ Apache-2.0
   netty-codec-xml-4.1.89.Final.jar
   netty-common-4.1.86.Final.jar
   netty-common-4.1.89.Final.jar
+  netty-common-4.1.94.Final.jar
   netty-handler-4.1.86.Final.jar
   netty-handler-4.1.89.Final.jar
   netty-handler-proxy-4.1.89.Final.jar
