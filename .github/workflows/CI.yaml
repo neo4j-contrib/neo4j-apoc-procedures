@@ -41,6 +41,17 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
+  license-checks:
+    runs-on: ubuntu-latest
+    needs: compile
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-jdk
+      - uses: ./.github/actions/setup-gradle-cache
+      - name: Check LICENSE and NOTICE files
+        run: ./gradlew validateLicenses generateLicensesFiles
+
   tests:
     strategy:
       fail-fast: false
