@@ -115,10 +115,10 @@ dependencies {
 
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.5', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.6', withoutServers
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // explicit update comomns.io version
@@ -140,20 +140,23 @@ dependencies {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
-    compile group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
+    compile group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
 
     compile group: 'xerces', name: 'xercesImpl', version: '2.12.2'
 
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1', {
+    def arrowExclusions = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
         exclude group: 'io.netty', module: 'netty-common'
     }
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1', {
-        exclude group: 'com.google.guava', module: 'guava'
-        exclude group: 'io.netty', module: 'netty-common'
-        exclude group: 'io.netty', module: 'netty-buffer'
+
+    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1', arrowExclusions
+    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1', arrowExclusions
+    compile group: 'io.netty', name: 'netty-buffer', {
+        version {
+            strictly '4.1.94.Final'
+        }
     }
     testCompile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
     testCompile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
