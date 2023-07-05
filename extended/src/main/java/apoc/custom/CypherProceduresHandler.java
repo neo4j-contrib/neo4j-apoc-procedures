@@ -173,7 +173,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 Mode.valueOf((String) node.getProperty(ExtendedSystemPropertyKeys.mode.name())),
                 false,
                 null,
-                new String[0],
                 description,
                 null,
                 false,
