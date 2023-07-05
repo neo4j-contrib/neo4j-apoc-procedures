@@ -40,19 +40,12 @@ Apache-2.0
   WMI4Java-1.6.3.jar
   accessors-smart-2.4.9.jar
   annotations-17.0.0.jar
-<<<<<<< HEAD
   apiguardian-api-1.1.0.jar
-=======
->>>>>>> a312e4495 ([TFMonhHx] Forces new version of netty (#450))
   arrow-format-12.0.1.jar
   arrow-memory-core-12.0.1.jar
   arrow-memory-netty-12.0.1.jar
   arrow-vector-12.0.1.jar
-<<<<<<< HEAD
   assertj-core-3.18.1.jar
-=======
-  assertj-core-3.24.2.jar
->>>>>>> a312e4495 ([TFMonhHx] Forces new version of netty (#450))
   audience-annotations-0.5.0.jar
   avro-1.7.7.jar
   awaitility-4.1.0.jar
@@ -133,22 +126,9 @@ Apache-2.0
   j2objc-annotations-2.8.jar
   jPowerShell-3.0.jar
   jProcesses-1.6.5.jar
-  jackson-annotations-2.13.4.jar
-  jackson-annotations-2.15.1.jar
-  jackson-core-2.13.4.jar
-  jackson-core-2.15.1.jar
+  jackson-annotations-2.15.2.jar
+  jackson-core-2.15.2.jar
   jackson-core-asl-1.9.13.jar
-<<<<<<< HEAD
-  jackson-databind-2.13.4.2.jar
-  jackson-databind-2.15.1.jar
-  jackson-dataformat-cbor-2.15.1.jar
-  jackson-dataformat-csv-2.15.1.jar
-  jackson-datatype-jsr310-2.15.1.jar
-  jackson-jaxrs-base-2.13.4.jar
-  jackson-jaxrs-base-2.15.1.jar
-  jackson-jaxrs-json-provider-2.13.4.jar
-  jackson-jaxrs-json-provider-2.15.1.jar
-=======
   jackson-databind-2.15.2.jar
   jackson-dataformat-cbor-2.15.2.jar
   jackson-dataformat-csv-2.15.2.jar
@@ -156,10 +136,8 @@ Apache-2.0
   jackson-datatype-jsr310-2.15.2.jar
   jackson-jaxrs-base-2.15.2.jar
   jackson-jaxrs-json-provider-2.15.2.jar
->>>>>>> a312e4495 ([TFMonhHx] Forces new version of netty (#450))
   jackson-mapper-asl-1.9.13.jar
-  jackson-module-jaxb-annotations-2.13.4.jar
-  jackson-module-jaxb-annotations-2.15.1.jar
+  jackson-module-jaxb-annotations-2.15.2.jar
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   java-util-1.9.0.jar
@@ -171,15 +149,15 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.48.v20220622.jar
-  jetty-io-9.4.48.v20220622.jar
-  jetty-security-9.4.48.v20220622.jar
-  jetty-server-9.4.48.v20220622.jar
-  jetty-servlet-9.4.48.v20220622.jar
-  jetty-util-9.4.48.v20220622.jar
-  jetty-util-ajax-9.4.48.v20220622.jar
-  jetty-webapp-9.4.48.v20220622.jar
-  jetty-xml-9.4.48.v20220622.jar
+  jetty-http-9.4.51.v20230217.jar
+  jetty-io-9.4.51.v20230217.jar
+  jetty-security-9.4.51.v20230217.jar
+  jetty-server-9.4.51.v20230217.jar
+  jetty-servlet-9.4.51.v20230217.jar
+  jetty-util-9.4.51.v20230217.jar
+  jetty-util-ajax-9.4.51.v20230217.jar
+  jetty-webapp-9.4.51.v20230217.jar
+  jetty-xml-9.4.51.v20230217.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.425.jar
@@ -220,16 +198,11 @@ Apache-2.0
   metrics-core-3.2.4.jar
   netty-3.10.6.Final.jar
   netty-all-4.1.89.Final.jar
-<<<<<<< HEAD
   netty-buffer-4.1.86.Final.jar
   netty-buffer-4.1.89.Final.jar
+  netty-buffer-4.1.94.Final.jar
   netty-codec-4.1.86.Final.jar
   netty-codec-4.1.89.Final.jar
-=======
-  netty-buffer-4.1.93.Final.jar
-  netty-buffer-4.1.94.Final.jar
-  netty-codec-4.1.93.Final.jar
->>>>>>> a312e4495 ([TFMonhHx] Forces new version of netty (#450))
   netty-codec-dns-4.1.89.Final.jar
   netty-codec-haproxy-4.1.89.Final.jar
   netty-codec-http-4.1.86.Final.jar
@@ -242,16 +215,11 @@ Apache-2.0
   netty-codec-socks-4.1.89.Final.jar
   netty-codec-stomp-4.1.89.Final.jar
   netty-codec-xml-4.1.89.Final.jar
-<<<<<<< HEAD
   netty-common-4.1.86.Final.jar
   netty-common-4.1.89.Final.jar
+  netty-common-4.1.94.Final.jar
   netty-handler-4.1.86.Final.jar
   netty-handler-4.1.89.Final.jar
-=======
-  netty-common-4.1.93.Final.jar
-  netty-common-4.1.94.Final.jar
-  netty-handler-4.1.93.Final.jar
->>>>>>> a312e4495 ([TFMonhHx] Forces new version of netty (#450))
   netty-handler-proxy-4.1.89.Final.jar
   netty-handler-ssl-ocsp-4.1.89.Final.jar
   netty-resolver-4.1.86.Final.jar
@@ -386,15 +354,15 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License - Version 1.0
   javax-websocket-client-impl-9.4.51.v20230217.jar
   javax-websocket-server-impl-9.4.51.v20230217.jar
-  jetty-http-9.4.48.v20220622.jar
-  jetty-io-9.4.48.v20220622.jar
-  jetty-security-9.4.48.v20220622.jar
-  jetty-server-9.4.48.v20220622.jar
-  jetty-servlet-9.4.48.v20220622.jar
-  jetty-util-9.4.48.v20220622.jar
-  jetty-util-ajax-9.4.48.v20220622.jar
-  jetty-webapp-9.4.48.v20220622.jar
-  jetty-xml-9.4.48.v20220622.jar
+  jetty-http-9.4.51.v20230217.jar
+  jetty-io-9.4.51.v20230217.jar
+  jetty-security-9.4.51.v20230217.jar
+  jetty-server-9.4.51.v20230217.jar
+  jetty-servlet-9.4.51.v20230217.jar
+  jetty-util-9.4.51.v20230217.jar
+  jetty-util-ajax-9.4.51.v20230217.jar
+  jetty-webapp-9.4.51.v20230217.jar
+  jetty-xml-9.4.51.v20230217.jar
   websocket-api-9.4.51.v20230217.jar
   websocket-client-9.4.51.v20230217.jar
   websocket-common-9.4.51.v20230217.jar
