@@ -9,6 +9,7 @@ project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
 
 startParameter.excludedTaskNames = [
+        ':core:compileJava',
         ':core:build',
         ':common:build',
         ':processor:build',
