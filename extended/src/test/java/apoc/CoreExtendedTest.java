@@ -54,7 +54,8 @@ public class CoreExtendedTest {
     public void matchesSpreadsheet() {
         try {
             Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.EXTENDED), true)
-                    .withNeo4jConfig("dbms.transaction.timeout", "60s");
+                    .withNeo4jConfig("dbms.transaction.timeout", "60s")
+                    .withEnv(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
 

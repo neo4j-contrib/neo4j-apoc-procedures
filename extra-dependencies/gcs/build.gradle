@@ -1,0 +1,22 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+archivesBaseName = 'apoc-gcs-dependencies'
+description = """APOC Google Cloud Storage Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+dependencies {
+    implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.3'
+}

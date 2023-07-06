@@ -143,6 +143,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+task copyImportFiles {
+    copy {
+        from "import"
+        into "${project.rootDir}/build/import"
+    }
+}
+tasks.shadowJar.dependsOn tasks.copyImportFiles
+
 publishing {
     repositories {
         maven {
