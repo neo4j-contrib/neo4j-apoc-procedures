@@ -36,7 +36,7 @@ public class OpenAI {
         }
     }
 
-    private static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath) throws JsonProcessingException, MalformedURLException {
+    static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath) throws JsonProcessingException, MalformedURLException {
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API Key must not be empty");
         String endpoint = System.getProperty(APOC_ML_OPENAI_URL,"https://api.openai.com/v1/");
