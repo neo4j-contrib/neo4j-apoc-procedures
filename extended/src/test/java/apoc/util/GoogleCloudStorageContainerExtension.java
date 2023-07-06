@@ -1,4 +1,4 @@
-package apoc.util.s3;
+package apoc.util;
 
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
