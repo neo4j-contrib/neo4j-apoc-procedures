@@ -27,6 +27,7 @@ import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,20 +43,39 @@ public class CypherDatabaseSubGraph implements SubGraph
 
     private final String query;
 
-    private final Iterable<Label> labels;
+    private final List<Label> labels;
 
-    private final Iterable<RelationshipType> relationshipTypes;
+    private final List<RelationshipType> relationshipTypes;
 
+    private final Iterable<Node> nodes;
+
+    private final Iterable<Relationship> relationships;
 
     public CypherDatabaseSubGraph(Transaction transaction, String query )
     {
         this.transaction = transaction;
         this.query = query;
-        this.labels = StreamSupport.stream( getNodes().spliterator(), false )
+        this.nodes = StreamSupport.stream(
+                transaction.execute(query).stream().flatMap(
+                                row -> row.values().stream().filter(value -> value instanceof Node))
+                        .map(node -> (Node) node)
+                        .distinct()
+                        .spliterator()
+                , false
+        ).collect( Collectors.toList());
+        this.relationships = StreamSupport.stream(
+                transaction.execute(query).stream().flatMap(
+                                row -> row.values().stream().filter(value -> value instanceof Relationship))
+                        .map(node -> (Relationship) node)
+                        .distinct()
+                        .spliterator()
+                , false
+        ).collect( Collectors.toList());
+        this.labels = StreamSupport.stream( getNodesP().spliterator(), false )
                 .flatMap(node ->  StreamSupport.stream(node.getLabels().spliterator(), false))
                 .distinct()
                 .collect( Collectors.toList());
-        this.relationshipTypes = StreamSupport.stream( getRelationships().spliterator(), false )
+        this.relationshipTypes = StreamSupport.stream( getRelationshipsP().spliterator(), false )
                 .map(relationship ->  relationship.getType())
                 .distinct()
                 .collect( Collectors.toList());
@@ -66,12 +86,11 @@ public class CypherDatabaseSubGraph implements SubGraph
         return new CypherDatabaseSubGraph( transaction, query );
     }
 
-    @Override
-    public Iterable<Node> getNodes()
+    private Iterable<Node> getNodesP()
     {
         return StreamSupport.stream(
                 transaction.execute(query).stream().flatMap(
-                        row -> row.values().stream().filter(value -> value instanceof Node))
+                                row -> row.values().stream().filter(value -> value instanceof Node))
                         .map(node -> (Node) node)
                         .distinct()
                         .spliterator()
@@ -79,8 +98,8 @@ public class CypherDatabaseSubGraph implements SubGraph
         ).collect( Collectors.toList());
     }
 
-    @Override
-    public Iterable<Relationship> getRelationships(){
+    private Iterable<Relationship> getRelationshipsP()
+    {
         return StreamSupport.stream(
                 transaction.execute(query).stream().flatMap(
                                 row -> row.values().stream().filter(value -> value instanceof Relationship))
@@ -89,6 +108,17 @@ public class CypherDatabaseSubGraph implements SubGraph
                         .spliterator()
                 , false
         ).collect( Collectors.toList());
+    }
+
+    @Override
+    public Iterable<Node> getNodes()
+    {
+        return this.nodes;
+    }
+
+    @Override
+    public Iterable<Relationship> getRelationships(){
+        return this.relationships;
     }
 
     @Override
