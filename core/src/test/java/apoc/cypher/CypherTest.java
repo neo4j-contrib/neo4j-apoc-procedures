@@ -53,6 +53,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testFail;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.TransactionTestUtil.checkTerminationGuard;
 import static apoc.util.Util.map;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -189,6 +190,12 @@ public class CypherTest {
                 "CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, $timeout)",
                 singletonMap("timeout", 100),
                 result -> result.hasNext()));
+    }
+
+    @Test
+    public void testRunTimeboxedWithTermination() {
+        final String query = "CALL apoc.cypher.runTimeboxed('unwind range (0, 10) as id CALL apoc.util.sleep(2000) return 0', null, 30000)";
+        checkTerminationGuard(db, query);
     }
 
     @Test

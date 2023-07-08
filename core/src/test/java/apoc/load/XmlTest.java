@@ -21,6 +21,7 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
+import apoc.util.TransactionTestUtil;
 import apoc.xml.XmlTestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -51,6 +53,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
+import static org.neo4j.configuration.SettingValueParsers.BYTES;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class XmlTest {
@@ -59,7 +63,10 @@ public class XmlTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
+            .withSetting(GraphDatabaseSettings.memory_tracking, true)
+            .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
+            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("2G"));
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -75,6 +82,12 @@ public class XmlTest {
                 (row) -> {
                     assertEquals(XmlTestUtils.XML_AS_NESTED_MAP, row.get("value"));
                 });
+    }
+
+    @Test
+    public void testTerminateLoadXml() {
+        final String file = ClassLoader.getSystemResource("largeFile.graphml").toString();
+        TransactionTestUtil.checkTerminationGuard(db, "call apoc.load.xml($file)", Map.of("file", file));
     }
 
     @Test
@@ -554,5 +567,11 @@ public class XmlTest {
             assertEquals(except.getMessage(), "XML documents with a DOCTYPE are not allowed.");
             throw e;
         }
+    }
+
+    @Test
+    public void testTerminateImportXml() {
+        final String file = ClassLoader.getSystemResource("largeFile.graphml").toString();
+        TransactionTestUtil.checkTerminationGuard(db,  3L, "call apoc.import.xml($file)", Map.of("file", file));
     }
 }

@@ -26,12 +26,8 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.api.exceptions.Status;
-import org.neo4j.kernel.impl.api.KernelTransactions;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -130,45 +126,6 @@ public class PeriodicExtendedTest {
     @Test
     public void testTerminateRockNRoll() {
         PeriodicTestUtils.testTerminatePeriodicQuery(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
-    }
-
-    public void testTerminatePeriodicQuery(String periodicQuery) {
-        killPeriodicQueryAsync();
-        try {
-            testResult(db, periodicQuery, result -> {
-                Map<String, Object> row = Iterators.single(result);
-                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
-            });
-            fail("Should have terminated");
-        } catch(Exception tfe) {
-            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
-        }
-    }
-
-    public void killPeriodicQueryAsync() {
-        new Thread(() -> {
-            int retries = 10;
-            try {
-                while (retries-- > 0 && !terminateQuery("apoc.periodic")) {
-                    Thread.sleep(10);
-                }
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }).start();
-    }
-
-    boolean terminateQuery(String pattern) {
-        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
-        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class);
-        long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
-                .filter(kernelTransactionHandle ->
-                        kernelTransactionHandle.executingQuery().map(query -> query.rawQueryText().contains(pattern))
-                                .orElse(false)
-                )
-                .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
-                .count();
-        return numberOfKilledTransactions > 0;
     }
 
     @Test

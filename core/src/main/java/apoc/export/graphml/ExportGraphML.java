@@ -93,7 +93,7 @@ public class ExportGraphML {
 
             if (exportConfig.storeNodeIds()) graphMLReader.storeNodeIds();
             
-            graphMLReader.parseXML(FileUtils.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo()));
+            graphMLReader.parseXML(FileUtils.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo()), terminationGuard);
             return reporter.getTotal();
         });
         return Stream.of(result);
