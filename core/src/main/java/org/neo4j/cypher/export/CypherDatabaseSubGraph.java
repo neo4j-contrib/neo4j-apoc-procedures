@@ -42,10 +42,23 @@ public class CypherDatabaseSubGraph implements SubGraph
 
     private final String query;
 
+    private final Iterable<Label> labels;
+
+    private final Iterable<RelationshipType> relationshipTypes;
+
+
     public CypherDatabaseSubGraph(Transaction transaction, String query )
     {
         this.transaction = transaction;
         this.query = query;
+        this.labels = StreamSupport.stream( getNodes().spliterator(), false )
+                .flatMap(node ->  StreamSupport.stream(node.getLabels().spliterator(), false))
+                .distinct()
+                .collect( Collectors.toList());
+        this.relationshipTypes = StreamSupport.stream( getRelationships().spliterator(), false )
+                .map(relationship ->  relationship.getType())
+                .distinct()
+                .collect( Collectors.toList());
     }
 
     public static SubGraph from( Transaction transaction, String query )
@@ -134,18 +147,12 @@ public class CypherDatabaseSubGraph implements SubGraph
 
     @Override
     public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
-        return StreamSupport.stream( getRelationships().spliterator(), false )
-                .map(relationship ->  relationship.getType())
-                .distinct()
-                .collect( Collectors.toList());
+        return this.relationshipTypes;
     }
 
     @Override
     public Iterable<Label> getAllLabelsInUse() {
-        return StreamSupport.stream( getNodes().spliterator(), false )
-                .flatMap(node ->  StreamSupport.stream(node.getLabels().spliterator(), false))
-                .distinct()
-                .collect( Collectors.toList());
+        return this.labels;
     }
 
     @Override
