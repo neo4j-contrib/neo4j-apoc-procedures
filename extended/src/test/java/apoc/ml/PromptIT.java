@@ -7,7 +7,9 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
@@ -26,6 +28,11 @@ public class PromptIT {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @BeforeClass
+    public static void check() {
+        Assume.assumeNotNull("No OPENAI_KEY environment configured", OPENAI_KEY);
+    }
 
     @Before
     public void setUp() {
@@ -75,7 +82,7 @@ public class PromptIT {
 
     @Test
     public void testCypher() {
-        int numOfQueries = 3;
+        int numOfQueries = 4;
         testResult(db, """
                 CALL apoc.ml.cypher($query, $numOfQueries, $apiKey)
                 """,
