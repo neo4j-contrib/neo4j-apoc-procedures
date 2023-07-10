@@ -9,7 +9,10 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -19,8 +22,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-
-import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 
 @Extended
 public class Prompt {
@@ -136,16 +137,13 @@ public class Prompt {
 
     @NotNull
     private String prompt(String userQuestion, String systemPrompt, String assistantPrompt, String schema, String apiKey) throws JsonProcessingException, MalformedURLException {
-        String key = apocConfig.getString(APOC_OPENAI_KEY, apiKey);
-        if (key == null || key.isBlank()) throw new RuntimeException("No Openai API Key configured or provided");
         List<Map<String, String>> prompt = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank()) prompt.add(Map.of("role", "system", "content", systemPrompt));
         if (schema != null && !schema.isBlank()) prompt.add(Map.of("role", "system", "content", "The graph database schema consists of these elements\n" + schema));
         if (userQuestion != null && !userQuestion.isBlank()) prompt.add(Map.of("role", "user", "content", userQuestion));
         if (assistantPrompt != null && !assistantPrompt.isBlank()) prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
-
-        String result = OpenAI.executeRequest(key, Map.of(), "chat/completions",
-                        "gpt-3.5-turbo", "messages", prompt, "$")
+        String result = OpenAI.executeRequest(apiKey, Map.of(), "chat/completions",
+                        "gpt-3.5-turbo", "messages", prompt, "$", apocConfig)
                 .map(v -> (Map<String, Object>) v)
                 .flatMap(m -> ((List<Map<String, Object>>) m.get("choices")).stream())
                 .map(m -> (String) (((Map<String, Object>) m.get("message")).get("content")))

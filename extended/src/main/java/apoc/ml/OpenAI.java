@@ -1,8 +1,10 @@
 package apoc.ml;
 
+import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -18,9 +20,13 @@ import apoc.result.MapResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
+
 
 @Extended
 public class OpenAI {
+    @Context
+    public ApocConfig apocConfig;
 
     public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
 
@@ -36,7 +42,8 @@ public class OpenAI {
         }
     }
 
-    static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath) throws JsonProcessingException, MalformedURLException {
+    static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ApocConfig apocConfig) throws JsonProcessingException, MalformedURLException {
+        apiKey = apocConfig.getString(APOC_OPENAI_KEY, apiKey);
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API Key must not be empty");
         String endpoint = System.getProperty(APOC_ML_OPENAI_URL,"https://api.openai.com/v1/");
@@ -71,7 +78,7 @@ public class OpenAI {
       "model": "text-embedding-ada-002",
       "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
     */
-        Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data");
+        Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data", apocConfig);
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
@@ -92,14 +99,14 @@ public class OpenAI {
       "usage": { "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12 }
     }
     */
-        return executeRequest(apiKey, configuration, "completions", "text-davinci-003", "prompt", prompt, "$")
+        return executeRequest(apiKey, configuration, "completions", "text-davinci-003", "prompt", prompt, "$", apocConfig)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
 
     @Procedure("apoc.ml.openai.chat")
     @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return executeRequest(apiKey, configuration, "chat/completions", "gpt-3.5-turbo", "messages", messages, "$")
+        return executeRequest(apiKey, configuration, "chat/completions", "gpt-3.5-turbo", "messages", messages, "$", apocConfig)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create
     /*
