@@ -40,7 +40,7 @@ public class Prompt {
             """;
 
     static final String SYSTEM_PROMPT = """
-                    You are an expert in the Neo4j graph query language Cypher.
+            You are an expert in the Neo4j graph query language Cypher.
             Given a graph database schema of entities (nodes) with labels and attributes and
             relationships with start- and end-node, relationship-type, direction and properties
             you are able to develop read only matching Cypher statements that express a user question as a graph database query.
