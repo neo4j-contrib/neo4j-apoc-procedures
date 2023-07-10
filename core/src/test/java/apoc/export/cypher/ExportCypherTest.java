@@ -149,14 +149,14 @@ public class ExportCypherTest {
         final String query = "CALL apoc.export.cypher.all(null,{compression: '" + algo.name() + "', useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})";
         assertExportAllCypherStreaming(algo, query);
     }
-    
+
     @Test
     public void testExportAllWithStreamingSeparatedAndCompressedFile() {
         final CompressionAlgo algo = CompressionAlgo.BZIP2;
         final Map<String, Object> config = map("compression", algo.name(),
-                "useOptimizations", map("type", "none"), 
+                "useOptimizations", map("type", "none"),
                 "stream", true, "separateFiles", true, "format", "neo4j-admin");
-        
+
         TestUtil.testCall(db, "CALL apoc.export.cypher.all(null, $config)", map("config", config), r -> {
             assertEquals(EXPECTED_NODES, getDecompressedData(algo, r.get("nodeStatements")));
             assertEquals(EXPECTED_RELATIONSHIPS, getDecompressedData(algo, r.get("relationshipStatements")));
@@ -307,10 +307,10 @@ public class ExportCypherTest {
         params.putAll(config);
 
         TestUtil.testCall(db, query, params, r -> {
-                    assertEquals(nodes, r.get("nodes"));
-                    assertEquals(1L, r.get("relationships"));
-                    assertEquals(properties, r.get("properties"));
-                });
+            assertEquals(nodes, r.get("nodes"));
+            assertEquals(1L, r.get("relationships"));
+            assertEquals(properties, r.get("properties"));
+        });
         assertEquals(expectedOutput, readFile(fileName));
     }
 
@@ -343,9 +343,9 @@ public class ExportCypherTest {
     public void testExportGraphCypher() throws Exception {
         String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                "CALL apoc.export.cypher.graph(graph, $file,$exportConfig) " +
-                "YIELD nodes, relationships, properties, file, source,format, time " +
-                "RETURN *", map("file", fileName, "exportConfig", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")),
+                        "CALL apoc.export.cypher.graph(graph, $file,$exportConfig) " +
+                        "YIELD nodes, relationships, properties, file, source,format, time " +
+                        "RETURN *", map("file", fileName, "exportConfig", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")),
                 (r) -> assertResults(fileName, r, "graph"));
         assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
@@ -380,7 +380,7 @@ public class ExportCypherTest {
         final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
         config.put("saveIndexNames", true);
         String fileName = "all.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)", 
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all($file,$config)",
                 map("file", fileName, "config", config),
                 (r) -> assertResults(fileName, r, "database"));
         final String expectedFile = String.format(EXPECTED_SCHEMA_WITH_NAMES, " barIndex", " fooIndex", StringUtils.EMPTY, StringUtils.EMPTY);
@@ -537,7 +537,7 @@ public class ExportCypherTest {
         final Map<String, Object> config = new HashMap<>(ExportCypherTest.exportConfig);
         config.putAll(map("saveConstraintNames", true, "saveIndexNames", true));
         String fileName = "onlySchema.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$config)", 
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema($file,$config)",
                 map("file", fileName, "config", config), (r) -> {});
         assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL_WITH_NAMES, readFile(fileName));
     }
@@ -755,7 +755,7 @@ public class ExportCypherTest {
                 (r) -> assertResultsOdd(fileName, r));
         assertEquals(EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD, readFile(fileName));
     }
-    
+
     @Test
     public void testExportWithCompressionQueryCypherShellUnwindBatchParamsWithOddDataset() {
         final CompressionAlgo algo = CompressionAlgo.BZIP2;
@@ -896,7 +896,7 @@ public class ExportCypherTest {
                     assertEquals(expected, unwind);
                 });
     }
-    
+
     @Test
     public void shouldQuotePropertyNameStartingWithDollarCharacter() {
         db.executeTransactionally("CREATE (n:Bar:Baz{name: 'A', `$lock`: true})");
@@ -914,7 +914,7 @@ public class ExportCypherTest {
                     assertEquals(expected, unwind);
                 });
     }
-  
+
     @Test
     public void shouldHandleTwoLabelsWithOneUniqueConstraintEach() {
         db.executeTransactionally("CREATE CONSTRAINT ON (b:Base) ASSERT b.id IS UNIQUE");
@@ -971,7 +971,7 @@ public class ExportCypherTest {
                     assertEquals(expected, unwind);
                 });
     }
-    
+
     @Test
     public void shouldSaveCorrectlyRelIndexesOptimized() throws FileNotFoundException {
         String fileName = "relIndex.cypher";
@@ -984,7 +984,7 @@ public class ExportCypherTest {
 
         db.executeTransactionally("DROP INDEX rel_index_name");
     }
-    
+
     @Test
     public void shouldSaveCorrectlyRelIndexesWithNameOptimized() throws FileNotFoundException {
         String fileName = "relIndex.cypher";
@@ -1085,8 +1085,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         private static final String EXPECTED_NODES_MERGE = String.format("BEGIN%n" +
-                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.name=\"foo\", n.born=date('2018-10-31'), n:Foo;%n" +
                 "MERGE (n:Bar{name:\"bar\"}) SET n.age=42;%n" +
+                "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.name=\"foo\", n.born=date('2018-10-31'), n:Foo;%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:2}) SET n.age=12, n:Bar;%n" +
                 "COMMIT%n");
 
@@ -1104,8 +1104,8 @@ public class ExportCypherTest {
 
         private static final String EXPECTED_CONSTRAINTS_AND_AWAIT =
                 "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name) IS UNIQUE;%n" +
-                "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
-                EXPECTED_UNIQUE_IMPORT_CONSTRAINT_AND_AWAIT;
+                        "CREATE CONSTRAINT%s ON (node:Bar) ASSERT (node.name, node.age) IS UNIQUE;%n" +
+                        EXPECTED_UNIQUE_IMPORT_CONSTRAINT_AND_AWAIT;
 
         public static final String EXPECTED_BAR_FOO_INDEXES = "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
                 "CREATE BTREE INDEX FOR (node:Foo) ON (node.name);%n";
@@ -1181,8 +1181,8 @@ public class ExportCypherTest {
                 "SCHEMA AWAIT\n";
 
         public static final String EXPECTED_CYPHER_POINT = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {place3d:point({x: 12.78, y: 56.7, z: 100.0, crs: 'wgs-84-3d'}), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {name:\"foo\", place2d:point({x: 2.3, y: 4.5, crs: 'cartesian'}), place3d1:point({x: 2.3, y: 4.5, z: 1.2, crs: 'cartesian-3d'}), `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1202,8 +1202,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_DATE = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {date:date('2018-10-30'), datetime:datetime('2018-10-30T12:50:35.556+01:00'), localTime:localdatetime('2018-10-30T19:32:24'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556Z'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {date:date('2018-10-30'), datetime:datetime('2018-10-30T12:50:35.556+01:00'), localTime:localdatetime('2018-10-30T19:32:24'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1223,8 +1223,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_TIME = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {local:localtime('12:50:35.556'), name:\"foo\", t:time('12:50:35.556+01:00'), `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {datetime:datetime('2018-10-30T12:50:35.556+01:00'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {local:localtime('12:50:35.556'), name:\"foo\", t:time('12:50:35.556+01:00'), `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1244,8 +1244,8 @@ public class ExportCypherTest {
                 "COMMIT%n");
 
         public static final String EXPECTED_CYPHER_DURATION = String.format("BEGIN%n" +
-                "CREATE (:Test:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "CREATE (:Bar:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), `UNIQUE IMPORT ID`:4});%n" +
+                "CREATE (:Test:`UNIQUE IMPORT LABEL` {duration:duration('P5M1DT12H'), name:\"foo\", `UNIQUE IMPORT ID`:3});%n" +
                 "COMMIT%n" +
                 "BEGIN%n" +
                 "CREATE BTREE INDEX FOR (node:Bar) ON (node.first_name, node.last_name);%n" +
@@ -1392,12 +1392,12 @@ public class ExportCypherTest {
 
         static final String EXPECTED_RELATIONSHIPS_PARAMS_ODD = String.format(
                 "BEGIN%n" +
-                ":param rows => [{start: {_id:0}, end: {name:\"bar\"}, properties:{since:2016}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})%n" +
-                "MATCH (end:Bar{name: row.end.name})%n" +
-                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
-                "COMMIT%n");
+                        ":param rows => [{start: {_id:0}, end: {name:\"bar\"}, properties:{since:2016}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})%n" +
+                        "MATCH (end:Bar{name: row.end.name})%n" +
+                        "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
+                        "COMMIT%n");
 
         static final String DROP_UNIQUE_OPTIMIZED = String.format("BEGIN%n" +
                 "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
@@ -1463,28 +1463,28 @@ public class ExportCypherTest {
 
         static final String EXPECTED_NODES_OPTIMIZED_PARAMS_BATCH_SIZE_ODD = String.format(
                 ":begin%n" +
-                ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                ":commit%n" +
-                ":begin%n" +
-                ":param rows => [{_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                ":commit%n" +
-                ":begin%n" +
-                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                ":commit%n" +
-                ":begin%n" +
-                ":param rows => [{name:\"bar2\", properties:{age:44}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                ":commit%n");
+                        ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                        ":commit%n" +
+                        ":begin%n" +
+                        ":param rows => [{_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                        ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                        ":commit%n" +
+                        ":begin%n" +
+                        ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
+                        ":commit%n" +
+                        ":begin%n" +
+                        ":param rows => [{name:\"bar2\", properties:{age:44}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                        ":commit%n");
 
         public static final String EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND = String.format("UNWIND [{_id:3, properties:{age:17}}] AS row%n" +
                 "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) ON CREATE SET n += row.properties SET n:Bar;%n" +
@@ -1632,12 +1632,12 @@ public class ExportCypherTest {
         static final String EXPECTED_INDEX_AWAIT_COMPOUND_CONSTRAINT =  String.format("CALL db.awaitIndex(':`Person`(`name`,`surname`)');%n");
 
         public static final List<String> EXPECTED_CONSTRAINTS = List.of(
-             "CREATE CONSTRAINT SingleUnique FOR (node:Label) REQUIRE (node.prop) IS UNIQUE;",
-             "CREATE CONSTRAINT CompositeUnique FOR (node:Label) REQUIRE (node.prop1, node.prop2) IS UNIQUE;",
-             "CREATE CONSTRAINT SingleExists FOR (node:Label2) REQUIRE (node.prop) IS NOT NULL;",
-             "CREATE CONSTRAINT SingleExistsRel FOR ()-[rel:TYPE2]-() REQUIRE (rel.prop) IS NOT NULL;",
-             "CREATE CONSTRAINT SingleNodeKey FOR (node:Label3) REQUIRE (node.prop) IS NODE KEY;",
-             "CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;"
+                "CREATE CONSTRAINT SingleUnique FOR (node:Label) REQUIRE (node.prop) IS UNIQUE;",
+                "CREATE CONSTRAINT CompositeUnique FOR (node:Label) REQUIRE (node.prop1, node.prop2) IS UNIQUE;",
+                "CREATE CONSTRAINT SingleExists FOR (node:Label2) REQUIRE (node.prop) IS NOT NULL;",
+                "CREATE CONSTRAINT SingleExistsRel FOR ()-[rel:TYPE2]-() REQUIRE (rel.prop) IS NOT NULL;",
+                "CREATE CONSTRAINT SingleNodeKey FOR (node:Label3) REQUIRE (node.prop) IS NODE KEY;",
+                "CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;"
         );
 
         public static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
@@ -1671,37 +1671,37 @@ public class ExportCypherTest {
 
         public static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format(
                 "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
-                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
-                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +
-                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
-                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
-                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n");
+                        "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                        "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] AS row%n" +
+                        "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                        "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                        "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n");
 
         static final String EXPECTED_NODES_PARAMS_ODD = String.format(
                 ":begin%n" +
-                ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                ":param rows => [{_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
-                ":commit%n" +
-                ":begin%n" +
-                ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
-                ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                ":commit%n" +
-                ":begin%n" +
-                ":param rows => [{name:\"bar2\", properties:{age:44}}, {name:\"bar3\", properties:{age:35}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                ":param rows => [{name:\"bar4\", properties:{age:36}}]%n" +
-                "UNWIND $rows AS row%n" +
-                "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
-                ":commit%n");
+                        ":param rows => [{_id:0, properties:{born:date('2018-10-31'), name:\"foo\"}}, {_id:1, properties:{born:date('2017-09-29'), name:\"foo2\"}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                        ":param rows => [{_id:2, properties:{born:date('2016-03-12'), name:\"foo3\"}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;%n" +
+                        ":commit%n" +
+                        ":begin%n" +
+                        ":param rows => [{_id:4, properties:{age:12}}, {_id:5, properties:{age:4}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;%n" +
+                        ":param rows => [{name:\"bar\", properties:{age:42}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                        ":commit%n" +
+                        ":begin%n" +
+                        ":param rows => [{name:\"bar2\", properties:{age:44}}, {name:\"bar3\", properties:{age:35}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                        ":param rows => [{name:\"bar4\", properties:{age:36}}]%n" +
+                        "UNWIND $rows AS row%n" +
+                        "CREATE (n:Bar{name: row.name}) SET n += row.properties;%n" +
+                        ":commit%n");
 
         static final String EXPECTED_DROP_PARAMS_ODD = String.format(":begin%n" +
                 "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT %1$d REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
