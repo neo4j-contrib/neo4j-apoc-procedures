@@ -50,6 +50,7 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -849,6 +850,8 @@ public class SchemasTest {
 
         // create the failed index and check that has state "FAILED"
         db.executeTransactionally("CREATE INDEX failedIdx FOR (n:LabelTest) ON (n.prop)");
+        assertThrows(IllegalStateException.class, this::awaitIndexesOnline);
+
         testCall(db, "SHOW INDEXES YIELD name, state WHERE name = 'failedIdx'", (r) -> {
             assertEquals("FAILED", r.get("state"));
         });
@@ -876,6 +879,8 @@ public class SchemasTest {
 
         // create the failed index and check that has state "FAILED"
         db.executeTransactionally("CREATE INDEX failedIdx FOR ()-[r:REL_TEST]-() ON (r.prop)");
+        assertThrows(IllegalStateException.class, this::awaitIndexesOnline);
+
         testCall(db, "SHOW INDEXES YIELD name, state WHERE name = 'failedIdx'", (r) -> {
             assertEquals("FAILED", r.get("state"));
         });
