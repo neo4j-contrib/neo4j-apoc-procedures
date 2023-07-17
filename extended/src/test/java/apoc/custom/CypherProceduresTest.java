@@ -53,7 +53,7 @@ public class CypherProceduresTest  {
 
     @Before
     public void setup() {
-        TestUtil.registerProcedure(db, CypherProcedures.class, BuiltInDbmsProcedures.class);
+        TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
     @AfterAll
