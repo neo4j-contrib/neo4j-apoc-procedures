@@ -26,7 +26,7 @@ public class LoadHtmlBrowser {
         setupWebDriverManager(WebDriverManager.chromedriver(), config);
 
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.setHeadless(isHeadless);
+        chromeOptions.addArguments("--headless=new");
         chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new ChromeDriver(chromeOptions));
     }
@@ -35,7 +35,7 @@ public class LoadHtmlBrowser {
         setupWebDriverManager(WebDriverManager.firefoxdriver(), config);
         
         FirefoxOptions firefoxOptions = new FirefoxOptions();
-        firefoxOptions.setHeadless(isHeadless);
+        firefoxOptions.addArguments("-headless");
         firefoxOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new FirefoxDriver(firefoxOptions));
     }
