@@ -1,0 +1,17 @@
+allprojects {
+    plugins.withType(JavaLibraryPlugin) {
+        repositories {
+            maven {
+                name = 'teamcity-neo4j-4.4'
+                url =  System.getenv('TEAMCITY_FOUR_FOUR_URL')
+                credentials {
+                    username System.getenv('TEAMCITY_USER')
+                    password System.getenv('TEAMCITY_PASSWORD')
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+    }
+}
