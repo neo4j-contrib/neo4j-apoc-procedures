@@ -254,12 +254,13 @@ public class Signatures {
             final Constructor<?>[] constructors = clazz.getConstructors();
             for (Constructor c: constructors) {
                 System.out.println("c.getParameters() = " + Arrays.toString(c.getParameters()));
+                System.out.println("c.getParameters Names() = " + Arrays.stream(c.getParameters()).map(i -> i.getName()).collect(Collectors.joining(", ")));
             }
         } catch (Exception e) {
             System.out.println("e = " + e);
         }
         return null;
-
+//
 //        return new ProcedureSignature(name,
 //                inputSignature,
 //                outputSignature,
