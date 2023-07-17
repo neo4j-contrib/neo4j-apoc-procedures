@@ -91,7 +91,9 @@ dependencies {
     compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0'
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
     compileOnly 'org.mongodb:mongodb-driver:3.2.2', {
         exclude group: 'io.netty'
     }
