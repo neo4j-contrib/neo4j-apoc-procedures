@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Download neo4j 4.4 docker container
-        if: matrix.project == 'it'
+        if: matrix.project == 'core-it' ||  matrix.project == 'full-it' ||  matrix.project == 'core'
         run: |
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_FOUR_FOUR_URL} -o ${ENTERPRISE_TAR} &
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_FOUR_FOUR_URL} -o ${COMMUNITY_TAR} &
