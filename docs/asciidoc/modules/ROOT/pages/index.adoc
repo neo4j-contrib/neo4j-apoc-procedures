@@ -21,6 +21,7 @@ The guide covers the following areas:
 * xref::introduction/index.adoc[] -- An Introduction to the APOC Extended library.
 * xref::installation/index.adoc[] -- Installation instructions for the APOC Extended library.
 * xref::usage/index.adoc[] -- A usage example.
+* xref::security-guidelines/index.adoc[] -- Guidelines on securing the APOC Extended library, and its environment.
 * xref::overview/index.adoc[] -- A list of all APOC Extended procedures and functions.
 * xref::config/index.adoc[] -- Configuration options used by the APOC Extended library.
 * xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
