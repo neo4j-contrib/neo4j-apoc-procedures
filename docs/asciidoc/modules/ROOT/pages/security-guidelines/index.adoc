@@ -131,10 +131,7 @@ to giving users the ability to run any Cypher query.
 
 Examples of such procedures include:
 
-- xref:overview/apoc.do/index.adoc[`apoc.do.*`]
 - xref:overview/apoc.cypher/index.adoc[`apoc.cypher.*`]
-- xref:overview/apoc.periodic/index.adoc[`apoc.periodic.*`]
-- xref:overview/apoc.trigger/apoc.trigger.install.adoc[`apoc.trigger.install`]
 ====
 
 It is recommended to adhere to the default behavior where users are only allowed to execute procedures and functions
@@ -153,8 +150,7 @@ specific directories.
 If not required by the workload, users should restrict procedures from being able to interact with the file system
 altogether.
 
-Examples of procedures that can read from the file system include xref:overview/apoc.import/index.adoc[`apoc.import.\*`]
-and xref:overview/apoc.load/index.adoc[`apoc.load.*`].
+Examples of procedures that can read from the file system include xref:overview/apoc.load/index.adoc[`apoc.load.*`].
 Examples of procedures that can write to the file system include xref:overview/apoc.export/index.adoc[`apoc.export.*`].
 Examples of Cypher clauses that allow the database to read from the file system include
 link:https://neo4j.com/docs/cypher-manual/current/clauses/load-csv/[`LOAD CSV`].
@@ -268,25 +264,25 @@ These procedures represent an additional challenge for APOC users, who need to b
 the limited safety guarantees they are able to provide.
 
 In the first example below, an initial query invokes the
-xref:overview/apoc.refactor/apoc.refactor.rename.label.adoc[`apoc.refactor.rename.label`] procedure, which in turn
+xref:overview/apoc.uuid/apoc.uuid.install.adoc[`apoc.uuid.install`] procedure, which in turn
 builds a second query behind the scenes and executes it.
 The second query fetches all nodes, removes a label, and then reattaches a different label.
 
 [source,cypher]
 ----
-CALL apoc.refactor.rename.label("Person", "Actor", [])
-// executes MATCH (n:`Person`) REMOVE n:`Person` SET n:`Actor`
+CALL apoc.uuid.install("Person", {})
+// executes a query similar to this: `MATCH (n:Person) SET n.uuid`
 ----
 
 In the second example below, an initial query invokes the
-xref:overview/apoc.cypher/apoc.cypher.run.adoc[`apoc.cypher.run`] procedure, which in turn builds a second query behind
+xref:overview/apoc.cypher/apoc.cypher.runFile.adoc[`apoc.cypher.runFile`] procedure, which in turn builds a second query behind
 the scenes and then executes it.
 The second query fetches all nodes and returns them.
 
 [source,cypher]
 ----
-CALL apoc.cypher.run("MATCH (n) RETURN n", {})
-// executes MATCH (n) RETURN n
+CALL apoc.cypher.runFile("test.cypher", {})
+// executes `MATCH (n) RETURN n`
 ----
 
 Both of the procedures in the above examples build and execute new queries derived from the inputs they receive.
@@ -303,25 +299,17 @@ recommended to carefully follow the aforementioned Cypher Injection guidance.
 
 .Examples of procedures that do not require sanitization
 
-- xref:overview/apoc.create/apoc.create.node.adoc[`apoc.create.node`]
-- xref:overview/apoc.create/apoc.create.nodes.adoc[`apoc.create.nodes`]
-- xref:overview/apoc.create/apoc.create.addLabels.adoc[`apoc.create.addLabels`]
-- xref:overview/apoc.create/apoc.create.relationship.adoc[`apoc.create.relationship`]
-- xref:overview/apoc.map/apoc.map.fromNodes.adoc[`apoc.map.fromNodes`]
-- xref:overview/apoc.merge/apoc.merge.node.adoc[`apoc.merge.node`]
-- xref:overview/apoc.merge/apoc.merge.relationship.adoc[`apoc.merge.relationship`]
-- xref:overview/apoc.refactor/apoc.refactor.rename.label.adoc[`apoc.refactor.rename.label`]
-- xref:overview/apoc.refactor/apoc.refactor.rename.nodeProperty.adoc[`apoc.refactor.rename.nodeProperty`]
-- xref:overview/apoc.refactor/apoc.refactor.rename.type.adoc[`apoc.refactor.rename.type`]
+- xref:overview/apoc.get/apoc.get.nodes.adoc[`apoc.get.nodes`]
+- xref:overview/apoc.get/apoc.get.rels.adoc[`apoc.get.rels`]
 
 .Examples of procedures that do require sanitization
 
-- xref:overview/apoc.cypher/apoc.cypher.doIt.adoc[`apoc.cypher.doIt`]
-- xref:overview/apoc.cypher/apoc.cypher.run.adoc[`apoc.cypher.run`]
-- xref:overview/apoc.do/apoc.do.case.adoc[`apoc.do.case`]
-- xref:overview/apoc.do/apoc.do.when.adoc[`apoc.do.when`]
-- xref:overview/apoc.graph/apoc.graph.fromCypher.adoc[`apoc.graph.fromCypher`]
-- xref:overview/apoc.periodic/apoc.periodic.commit.adoc[`apoc.periodic.commit`]
-- xref:overview/apoc.periodic/apoc.periodic.iterate.adoc[`apoc.periodic.iterate`]
-- xref:overview/apoc.trigger/apoc.trigger.install.adoc[`apoc.trigger.install`]
+- xref:overview/apoc.cypher/apoc.cypher.runFile.adoc[`apoc.cypher.runFile`]
+- xref:overview/apoc.cypher/apoc.cypher.runFiles.adoc[`apoc.cypher.runFiles`]
+- xref:overview/apoc.cypher/apoc.cypher.runSchemaFile.adoc[`apoc.cypher.runSchemaFile`]
+- xref:overview/apoc.cypher/apoc.cypher.runSchemaFiles.adoc[`apoc.cypher.runSchemaFiles`]
+- xref:overview/apoc.cypher/apoc.cypher.parallel.adoc[`apoc.cypher.parallel`]
+- xref:overview/apoc.cypher/apoc.cypher.parallel2.adoc[`apoc.cypher.parallel2`]
+- xref:overview/apoc.cypher/apoc.cypher.mapParallel.adoc[`apoc.cypher.mapParallel`]
+- xref:overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[`apoc.cypher.mapParallel2`]
 
