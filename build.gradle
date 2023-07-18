@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id 'java-library'
     id 'com.github.johnrengelman.shadow' version '4.0.3'  apply false
     id "com.bmuschko.nexus" version "2.3.1"
     id 'maven-publish'
@@ -20,7 +20,9 @@ allprojects {
     description = """neo4j-apoc-procedures"""
 }
 
-apply plugin: 'java'
+apply plugin: 'java-library'
+if (System.env.CI != null)
+    apply from: 'teamcity-repository.gradle'
 
 repositories {
 
@@ -35,7 +37,7 @@ repositories {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     repositories {
 
@@ -70,8 +72,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise-debian' : 'neo4j:4.4.22-enterprise',
-                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-debian': 'neo4j:4.4.22'
+                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise-debian' : 'neo4j:4.4.24-enterprise-debian',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-debian': 'neo4j:4.4.24-debian'
 
         maxHeapSize = "5G"
         forkEvery = 50
@@ -117,7 +119,7 @@ apply from: "licenses-3rdparties.gradle"
 ext {
     publicDir =  "${project.rootDir}"
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.4.22"
+    neo4jVersion = "4.4.24"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.17.6'

@@ -8,6 +8,10 @@ on:
 
 env:
   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  TEAMCITY_FOUR_FOUR_URL: ${{ secrets.TEAMCITY_FOUR_FOUR_URL }}
+  TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
+  TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
+
 
 jobs:
   compile:
@@ -58,6 +62,8 @@ jobs:
       matrix:
         project: ['core', 'full', 'processor', 'test-utils', 'core-it', 'full-it']
     env:
+      DOCKER_ENTERPRISE_FOUR_FOUR_URL: ${{ secrets.DOCKER_ENTERPRISE_FOUR_FOUR_URL }}
+      DOCKER_COMMUNITY_FOUR_FOUR_URL: ${{ secrets.DOCKER_COMMUNITY_FOUR_FOUR_URL }}
       ENTERPRISE_TAR: enterprise-docker.tar
       COMMUNITY_TAR: community-docker.tar
 
@@ -65,6 +71,15 @@ jobs:
     needs: compile
     steps:
       - uses: actions/checkout@v3
+      - name: Download neo4j 4.4 docker container
+        if: matrix.project == 'core-it' ||  matrix.project == 'full-it' ||  matrix.project == 'core'
+        run: |
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_FOUR_FOUR_URL} -o ${ENTERPRISE_TAR} &
+          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_FOUR_FOUR_URL} -o ${COMMUNITY_TAR} &
+          wait
+          docker load --input ${ENTERPRISE_TAR}
+          docker load --input ${COMMUNITY_TAR}
+
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
         with:
