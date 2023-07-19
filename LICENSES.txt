@@ -2815,9 +2815,11 @@ and/or involve the use of third party software.
 
 ------------------------------------------------------------------------------
 MIT
-  bcpkix-jdk15on-1.69.jar
-  bcprov-jdk15on-1.69.jar
-  bcutil-jdk15on-1.69.jar
+  bcpkix-jdk15on-1.68.jar
+  bcpkix-jdk18on-1.75.jar
+  bcprov-jdk15on-1.68.jar
+  bcprov-jdk18on-1.75.jar
+  bcutil-jdk18on-1.75.jar
   cassandra-1.17.6.jar
   checker-qual-3.33.0.jar
   couchbase-1.17.6.jar
