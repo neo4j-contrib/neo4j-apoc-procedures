@@ -47,11 +47,11 @@ public class PromptIT {
     @Test
     public void testQuery() {
         testResult(db, """
-                CALL apoc.ml.query($query, $retries, $apiKey)
+                CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey})
                 """,
                 Map.of(
                         "query", "What movies did Tom Hanks play in?",
-                        "retries", 2,
+                        "retries", 2L,
                         "apiKey", OPENAI_KEY
                 ),
                 (r) -> {
@@ -69,7 +69,7 @@ public class PromptIT {
     @Test
     public void testSchema() {
         testResult(db, """
-                CALL apoc.ml.schema($apiKey)
+                CALL apoc.ml.schema({apiKey: $apiKey})
                 """,
                 Map.of(
                         "apiKey", OPENAI_KEY
@@ -82,9 +82,9 @@ public class PromptIT {
 
     @Test
     public void testCypher() {
-        int numOfQueries = 4;
+        long numOfQueries = 4L;
         testResult(db, """
-                CALL apoc.ml.cypher($query, $numOfQueries, $apiKey)
+                CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})
                 """,
                 Map.of(
                         "query", "Who are the actors which also directed a movie?",
@@ -93,13 +93,13 @@ public class PromptIT {
                 ),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().toList();
-                    Assertions.assertThat(list).hasSize(numOfQueries);
+                    Assertions.assertThat(list).hasSize((int) numOfQueries);
                     Assertions.assertThat(list.stream()
                                     .map(m -> m.get("query"))
                                     .filter(Objects::nonNull)
                                     .map(Object::toString)
                                     .filter(StringUtils::isNotEmpty))
-                            .hasSize(numOfQueries);
+                            .hasSize((int) numOfQueries);
                 });
     }
 

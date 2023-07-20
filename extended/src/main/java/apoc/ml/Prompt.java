@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
@@ -16,6 +17,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,6 +34,8 @@ public class Prompt {
     public Log log;
     @Context
     public ApocConfig apocConfig;
+    @Context
+    public ProcedureCallContext procedureCallContext;
 
     public static final String BACKTICKS = "```";
     public static final String EXPLAIN_SCHEMA_PROMPT = """
@@ -57,6 +61,11 @@ public class Prompt {
             this.value = value;
             this.query = query;
         }
+
+        public PromptMapResult(Map<String, Object> value) {
+            this.value = value;
+            this.query = null;
+        }
     }
 
     public class QueryResult {
@@ -79,24 +88,26 @@ public class Prompt {
 
     @Procedure(mode = Mode.READ)
     public Stream<PromptMapResult> query(@Name("question") String question,
-                                         @Name(value = "retries", defaultValue = "3") Long retries,
-                                         @Name(value = "apiKey", defaultValue = "null") String apiKey) {
-        String schema = loadSchema(tx);
+                                         @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+        String schema = loadSchema(tx, conf);
         String query = "";
+        long retries = (long) conf.getOrDefault("retries", 3L);
+        boolean containsField = procedureCallContext
+                .outputFields()
+                .collect(Collectors.toSet())
+                .contains("query");
         do {
             try {
-                QueryResult queryResult = tryQuery(question, apiKey, schema);
+                QueryResult queryResult = tryQuery(question, conf, schema);
+                query = queryResult.query;
                 // just let it fail so that retries can work if (queryResult.query.isBlank()) return Stream.empty();
                 /*
                 if (queryResult.hasError())
                     throw new QueryExecutionException(queryResult.error, null, queryResult.type);
                  */
-                query = queryResult.query;
-                Result result = tx.execute(query);
-                AtomicReference<String> ref = new AtomicReference<>(query);
-                return result.stream()
-                        .map(row -> new PromptMapResult(row, ref.getAndSet(null)))
-                        .onClose(result::close);
+                return tx.execute(queryResult.query)
+                        .stream()
+                        .map(row -> containsField ? new PromptMapResult(row, queryResult.query) : new PromptMapResult(row));
             } catch (QueryExecutionException quee) {
                 if (log.isDebugEnabled())
                     log.debug("Generated query for question %s\n%s\nfailed with %s".formatted(question, query, quee.getMessage()));
@@ -107,24 +118,25 @@ public class Prompt {
     }
 
     @Procedure
-    public Stream<StringResult> schema(@Name(value = "apiKey", defaultValue = "null") String apiKey) throws MalformedURLException, JsonProcessingException {
+    public Stream<StringResult> schema(@Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
         String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
-                EXPLAIN_SCHEMA_PROMPT, "This database schema ", loadSchema(tx), apiKey);
+                EXPLAIN_SCHEMA_PROMPT, "This database schema ", loadSchema(tx, conf), conf);
         return Stream.of(new StringResult(schemaExplanation));
     }
 
     @Procedure(mode = Mode.READ)
-    public Stream<QueryResult> cypher(@Name("question") String question, @Name(value = "count", defaultValue = "1") Long count,
-                                      @Name(value = "apiKey", defaultValue = "null") String apiKey) {
-        String schema = loadSchema(tx);
-        return LongStream.rangeClosed(1, count).mapToObj(i -> tryQuery(question, apiKey, schema));
+    public Stream<QueryResult> cypher(@Name("question") String question,
+                                      @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+        String schema = loadSchema(tx, conf);
+        long count = (long) conf.getOrDefault("count", 1L);
+        return LongStream.rangeClosed(1, count).mapToObj(i -> tryQuery(question, conf, schema));
     }
 
     @NotNull
-    private QueryResult tryQuery(String question, String apiKey, String schema) {
+    private QueryResult tryQuery(String question, Map<String, Object> conf, String schema) {
         String query = "";
         try {
-            query = prompt(question, SYSTEM_PROMPT, "Cypher Statement (in backticks):", schema, apiKey);
+            query = prompt(question, SYSTEM_PROMPT, "Cypher Statement (in backticks):", schema, conf);
             // doesn't work right now, fails with security context error
             // tx.execute("EXPLAIN " + query).close(); // TODO query plan / estimated rows?
             return new QueryResult(query, null, null);
@@ -136,14 +148,16 @@ public class Prompt {
     }
 
     @NotNull
-    private String prompt(String userQuestion, String systemPrompt, String assistantPrompt, String schema, String apiKey) throws JsonProcessingException, MalformedURLException {
+    private String prompt(String userQuestion, String systemPrompt, String assistantPrompt, String schema, Map<String, Object> conf) throws JsonProcessingException, MalformedURLException {
         List<Map<String, String>> prompt = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank()) prompt.add(Map.of("role", "system", "content", systemPrompt));
         if (schema != null && !schema.isBlank()) prompt.add(Map.of("role", "system", "content", "The graph database schema consists of these elements\n" + schema));
         if (userQuestion != null && !userQuestion.isBlank()) prompt.add(Map.of("role", "user", "content", userQuestion));
         if (assistantPrompt != null && !assistantPrompt.isBlank()) prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
+        String apiKey = (String) conf.get("apiKey");
+        String model = (String) conf.getOrDefault("model", "gpt-3.5-turbo");
         String result = OpenAI.executeRequest(apiKey, Map.of(), "chat/completions",
-                        "gpt-3.5-turbo", "messages", prompt, "$", apocConfig)
+                        model, "messages", prompt, "$", apocConfig)
                 .map(v -> (Map<String, Object>) v)
                 .flatMap(m -> ((List<Map<String, Object>>) m.get("choices")).stream())
                 .map(m -> (String) (((Map<String, Object>) m.get("message")).get("content")))
@@ -163,7 +177,7 @@ public class Prompt {
     }
 
     private final static String SCHEMA_QUERY = """
-            call apoc.meta.data({maxRels:10, sample:(count{()}/1000)+1})
+            call apoc.meta.data({maxRels: 10, sample: coalesce($sample, (count{()}/1000)+1)})
             YIELD label, other, elementType, type, property
             WITH label, elementType,\s
                  apoc.text.join(collect(case when NOT type = "RELATIONSHIP" then property+": "+type else null end),", ") AS properties,   \s
@@ -183,8 +197,10 @@ public class Prompt {
                 %s
             """;
 
-    private String loadSchema(Transaction tx) {
-        return tx.execute(SCHEMA_QUERY)
+    private String loadSchema(Transaction tx, Map<String, Object> conf) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("sample", conf.get("sample"));
+        return tx.execute(SCHEMA_QUERY, params)
                 .stream()
                 .map(m -> SCHEMA_PROMPT.formatted(m.get("nodes"), m.get("relationships"), m.get("patterns")))
                 .collect(Collectors.joining("\n"));
