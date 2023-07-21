@@ -70,6 +70,6 @@ and put it into `plugin` folder.
 
 
 [[restricted]]
-== Load and unrestrict procedures/functions
+== Load and Unrestrict
 
-include::partial$restricted.adoc[tags=warnings,leveloffset=1]
+include::partial$restricted.adoc[tags=restricted,leveloffset=1]

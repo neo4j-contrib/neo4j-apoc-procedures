@@ -3,12 +3,14 @@
 :description: This chapter gives an overview of all the configuration options used by the APOC Extended library.
 
 
-
+[#_location_of_config_options]
 == Location of config options
 
 All config options from <<config-reference>> can be provided either in:
 
+[options="header", cols="1,3a"]
 |===
+| Option | Description
 | environment variables | set via either `export key=val` or `--env` settings when used for docker.
 | `conf/apoc.conf` | located in the same folder as `neo4j.conf`
 |===
@@ -24,27 +26,282 @@ The meta-configuration is located in `src/main/resources/apoc-config.xml`.
 [[config-reference]]
 == Reference of config options
 
-Set these config options in `$NEO4J_HOME/conf/apoc.conf`, or by using environment variables.
+- link:#_apoc_export_file_enabled[apoc.export.file.enabled]: Enables writing local files to disk.
+- link:#_apoc_import_file_enabled[apoc.import.file.enabled]: Enables reading local files from disk.
+- link:#_apoc_import_file_use_neo4j_config[apoc.import.file.use_neo4j_config]: Uses Neo4j configuration settings when reading local files from disk.
+- link:#_apoc_http_timeout_connect[apoc.http.timeout.connect]: Sets an timeout for outbound HTTP connection establishment.
+- link:#_apoc_http_timeout_read[apoc.http.timeout.read]: Set a timeout for outbound HTTP reads.
+- link:#_apoc_jobs_scheduled_num_threads[apoc.jobs.scheduled.num_threads]: Scheduled execution thread pool size.
+- link:#_apoc_jobs_pool_num_threads[apoc.jobs.pool.num_threads]: Background execution thread pool size.
+- link:#_apoc_jobs_queue_size[apoc.jobs.queue.size]: Background execution job queue size.
+- link:#_apoc_couchbase_key_uri[apoc.couchbase.<key>.uri]: Store couchbase-urls under a key to be used by couchbase procedures
+- link:#_apoc_es_key_uri[apoc.es.<key>.uri]: store es-urls under a key to be used by elasticsearch procedures
+- link:#_apoc_jdbc_key_uri[apoc.jdbc.<key>.uri]: store jdbc-urls under a key to be used by apoc.load.jdbc
+- link:#_apoc_mongodb_key_uri[apoc.mongodb.<key>.uri]: store mongodb-urls under a key to be used by mongodb procedures
+- link:#_apoc_ttl_enabled[apoc.ttl.enabled]: Enable time to live background task
+- link:#_apoc_ttl_enabled_db[apoc.ttl.enabled.<name_db>]: Enable time to live background task for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true TTL is enabled for the db even if apoc.ttl.enabled is false, instead if is false is disabled for the db even if apoc.ttl.enabled is true
 
-All boolean options default to **false**. This means that they are *disabled*, unless mentioned otherwise.
+- link:#_apoc_ttl_schedule[apoc.ttl.schedule]: Set frequency in seconds to run ttl background task
+- link:#_apoc_ttl_schedule_db[apoc.ttl.schedule.<name_db>]: Set frequency in seconds to run ttl background task for a specific db. It has priority over apoc.ttl.schedule. Please note that this key has to be set necessarily in `apoc.conf`.
 
-[options="header",cols="5m,5"]
+
+- link:#_apoc_ttl_limit[apoc.ttl.limit]: Maximum number of nodes being deleted in one background transaction, that is the batchSize applied to apoc.periodic.iterate() during removing nodes
+- link:#_apoc_ttl_limit_db[apoc.ttl.limit.<name_db>]: Maximum number of nodes being deleted in one background transaction for a specific db, that is the batchSize applied to apoc.periodic.iterate() during removing nodes for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
+
+
+- link:#_apoc_uuid_enabled[apoc.uuid.enabled]: global switch to enable uuid handlers
+- link:#_apoc_uuid_enabled_db[apoc.uuid.enabled.<name_db>]: Enable/disable uuid handlers for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
+
+
+[#_apoc_export_file_enabled]
+.apoc.export.file.enabled
+[cols="<1s,<4"]
 |===
-| Property | Description
-| apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase
-procedures
-| apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
-| apoc.import.file.enabled=false/true | Enable reading local files from disk
-| apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is allowed and possibly constrained to a specific directory by reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `server.directories.import` respectively
-| apoc.jdbc.<key>.uri=jdbc-url-with-credentials | store jdbc-urls under a key to be used by apoc.load.jdbc
-| apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
-| apoc.ttl.enabled=false/true | Enable time to live background task
-| apoc.ttl.enabled.<name_db>=false/true (default true) | Enable time to live background task for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true TTL is enabled for the db even if apoc.ttl.enabled is false, instead if is false is disabled for the db even if apoc.ttl.enabled is true
-| apoc.ttl.schedule=<secs> (default `60`) | Set frequency in seconds to run ttl background task
-| apoc.ttl.schedule.<name_db>=<secs> (default `60`) | Set frequency in seconds to run ttl background task for a specific db. It has priority over apoc.ttl.schedule. Please note that this key has to be set necessarily in `apoc.conf`.
-| apoc.ttl.limit=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction, that is the batchSize applied to apoc.periodic.iterate() during removing nodes
-| apoc.ttl.limit.<name_db>=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction for a specific db, that is the batchSize applied to apoc.periodic.iterate() during removing nodes for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
-| apoc.uuid.enabled=false/true (default false) | global switch to enable uuid handlers
-| apoc.uuid.enabled.<name_db>=false/true (default true) | Enable/disable uuid handlers for a specific db. Please note that this key has to be set necessarily in `apoc.conf`. If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
+|Description
+a|Enables writing local files to disk.
+|Valid values
+a|Booleans
+|Default value
+m|+++false+++
+|===
 
+[#_apoc_import_file_enabled]
+.apoc.import.file.enabled
+[cols="<1s,<4"]
+|===
+|Description
+a|Enables reading local files from disk.
+|Valid values
+a|Booleans
+|Default value
+m|+++false+++
+|===
+
+[#_apoc_import_file_use_neo4j_config]
+.apoc.import.file.use_neo4j_config
+[cols="<1s,<4"]
+|===
+|Description
+a|If enabled, this setting controls whether file system access is allowed and possibly constrained to a specific
+directory by reading the two configuration parameters
+link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.security.allow_csv_import_from_file_urls[dbms.security.allow_csv_import_from_file_urls] and
+link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_server.directories.import[server.directories.import]
+respectively.
+|Valid values
+a|Booleans
+|Default value
+m|+++true+++
+|===
+
+[#_apoc_http_timeout_connect]
+.apoc.http.timeout.connect
+[cols="<1s,<4"]
+|===
+|Description
+a|Sets a specified timeout value, in milliseconds, to be used when communicating with a URI.
+If the timeout expires before the connection can be established, then an exception is raised.
+A timeout of zero is interpreted as an infinite timeout.
+|Valid values
+a|Integers
+|Default value
+m|+++10000+++
+|===
+
+[#_apoc_http_timeout_read]
+.apoc.http.timeout.read
+[cols="<1s,<4"]
+|===
+|Description
+a|Sets a specified timeout value, in milliseconds, to be used when communicating with a URI.
+If the timeout expires before the data is available to be read, then an exception is raised.
+A timeout of zero is interpreted as an infinite timeout.
+|Valid values
+a|Integers
+|Default value
+m|+++60000+++
+|===
+
+[#_apoc_jobs_scheduled_num_threads]
+.apoc.jobs.scheduled.num_threads
+[cols="<1s,<4"]
+|===
+|Description
+a|The `apoc.periodic.*` procedures rely on a scheduled executor that has a pool of threads
+with a default fixed size. The pool size can be configured using this configuration property.
+|Valid values
+a|Integers
+|Default value
+m|+++number of CPU cores / 4+++
+|===
+
+[#_apoc_jobs_pool_num_threads]
+.apoc.jobs.pool.num_threads
+[cols="<1s,<4"]
+|===
+|Description
+a|Number of threads in the default APOC thread pool used for background executions.
+|Valid values
+a|Integers
+|Default value
+m|+++number of CPU cores * 2+++
+|===
+
+[#_apoc_jobs_queue_size]
+.apoc.jobs.queue.size
+[cols="<1s,<4"]
+|===
+|Description
+a|Size of the `ThreadPoolExecutor` working queue.
+|Valid values
+a|Integers
+|Default value
+m|+++apoc.jobs.pool.num_threads * 5+++
+|===
+
+[#_apoc_couchbase_key_uri]
+.apoc.couchbase.<key>.uri
+[cols="<1s,<4"]
+|===
+|Description
+a|store couchbase-urls under a key to be used by the 1st parameter of the couchbase procedures
+|Valid values
+a|Strings
+|Default value
+m|+++null, that is pick the url from the the 1st parameter of the couchbase procedures+++
+|===
+
+[#_apoc_es_key_uri]
+.apoc.es.<key>.uri=es-url-with-credentials
+[cols="<1s,<4"]
+|===
+|Description
+a|store es-urls under a key to be used by the 1st parameter of the elasticsearch procedures
+|Valid values
+a|Strings
+|Default value
+m|+++null, that is pick the url from the 1st parameter of the elasticsearch procedures+++
+|===
+
+[#_apoc_jdbc_key_uri]
+.apoc.jdbc.<key>.uri
+[cols="<1s,<4"]
+|===
+|Description
+a|store jdbc-urls under a key to be used by the 1st parameter of the apoc.load.jdbc procedures
+|Valid values
+a|Strings
+|Default value
+m|+++null, that is pick the url from the 1st parameter of the apoc.load.jdbc procedures+++
+|===
+
+[#_apoc_mongodb_key_uri]
+.apoc.mongodb.<key>.uri
+[cols="<1s,<4"]
+|===
+|Description
+a|store jdbc-urls under a key to be used by the 1st parameter of the mongodb procedures
+|Valid values
+a|Strings
+|Default value
+m|+++null, that is pick the url from the 1st parameter of the mongodb procedures+++
+|===
+
+[#_apoc_ttl_enabled]
+.apoc.ttl.enabled
+[cols="<1s,<4"]
+|===
+|Description
+a|Enable time to live background task
+|Valid values
+a|Booleans
+|Default value
+m|+++false+++
+|===
+
+[#_apoc_ttl_enabled_db]
+.apoc.ttl.enabled.<name_db>
+[cols="<1s,<4"]
+|===
+|Description
+a|Enable time to live background task for a specific db.
+Please note that this key has to be set necessarily in `apoc.conf`.
+If is true TTL is enabled for the db even if apoc.ttl.enabled is false, instead if is false is disabled for the db even if apoc.ttl.enabled is true
+|Valid values
+a|Booleans
+|Default value
+m|+++apoc.ttl.enabled config value+++
+|===
+
+[#_apoc_ttl_schedule]
+.apoc.ttl.schedule
+[cols="<1s,<4"]
+|===
+|Description
+a|Set frequency in seconds to run ttl background task
+|Valid values
+a|Integers
+|Default value
+m|+++60+++
+|===
+
+[#_apoc_ttl_schedule_db]
+.apoc.ttl.schedule.<name_db>
+[cols="<1s,<4"]
+|===
+|Description
+a|Set frequency in seconds to run ttl background task for a specific db. It has priority over apoc.ttl.schedule. Please note that this key has to be set necessarily in `apoc.conf`.
+|Valid values
+a|Integers
+|Default value
+m|+++apoc.ttl.schedule config value+++
+|===
+
+[#_apoc_ttl_limit]
+.apoc.ttl.limit
+[cols="<1s,<4"]
+|===
+|Description
+a|Maximum number of nodes being deleted in one background transaction, that is the batchSize applied to apoc.periodic.iterate() during removing nodes
+|Valid values
+a|Integers
+|Default value
+m|+++1000+++
+|===
+
+[#_apoc_ttl_limit_db]
+.apoc.ttl.limit.<name_db>
+[cols="<1s,<4"]
+|===
+|Description
+a|Maximum number of nodes being deleted in one background transaction for a specific db, that is the batchSize applied to apoc.periodic.iterate() during removing nodes for a specific db. It has priority over apoc.ttl.limit. Please note that this key has to be set necessarily in `apoc.conf`.
+|Valid values
+a|Integers
+|Default value
+m|+++1000+++
+|===
+
+[#_apoc_uuid_enabled]
+.apoc.uuid.enabled
+[cols="<1s,<4"]
+|===
+|Description
+a|Global switch to enable uuid handlers
+|Valid values
+a|Booleans
+|Default value
+m|+++false+++
+|===
+
+[#_apoc_uuid_enabled_db]
+.apoc.jobs.queue.size
+[cols="<1s,<4"]
+|===
+|Description
+a|Enable/disable uuid handlers for a specific db.
+Please note that this key has to be set necessarily in `apoc.conf`.
+If is true UUID is enabled for the db even if apoc.uuid.enabled is false, instead if is false is disabled for the db even if apoc.uuid.enabled is true
+|Valid values
+a|Booleans
+|Default value
+m|+++apoc.uuid.enabled config value+++
 |===
