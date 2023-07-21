@@ -5,9 +5,7 @@ import org.antlr.v4.runtime.*;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.procedure.Mode;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +87,7 @@ public class Signatures {
         String warning = null; // "todo warning";
         boolean eager = false;
         boolean caseInsensitive = true;
-        return createProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, description, warning, eager, caseInsensitive, false, false, false);
+        return createProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, description, warning, eager, caseInsensitive, false, false, false, false);
     }
 
     public List<String> namespace(SignatureParser.NamespaceContext namespaceContext) {
@@ -243,36 +241,21 @@ public class Signatures {
                                                               boolean caseInsensitive,
                                                               boolean systemProcedure,
                                                               boolean internal,
-                                                              boolean allowExpiredCredentials) {
-        try {
-            // in Neo4j 4.0.5 org.neo4j.internal.kernel.api.procs.ProcedureSignature
-            // changed the signature adding a boolean at the end and without leaving the old signature
-            // in order to maintain the backwards compatibility with version prior to 4.0.5 we use the
-            // reflection to create a new instance of the class
-            // in Neo4j 4.3 another boolean was added
-            final Class<?> clazz = Class.forName("org.neo4j.internal.kernel.api.procs.ProcedureSignature");
-            final Constructor<?>[] constructors = clazz.getConstructors();
-            for (Constructor c: constructors) {
-                System.out.println("c.getParameters() = " + Arrays.toString(c.getParameters()));
-                System.out.println("c.getParameters Names() = " + Arrays.stream(c.getParameters()).map(i -> i.getName()).collect(Collectors.joining(", ")));
-            }
-        } catch (Exception e) {
-            System.out.println("e = " + e);
-        }
-        return null;
-//
-//        return new ProcedureSignature(name,
-//                inputSignature,
-//                outputSignature,
-//                mode,
-//                admin,
-//                deprecated,
-//                description,
-//                warning,
-//                eager,
-//                caseInsensitive,
-//                systemProcedure,
-//                internal,
-//                allowExpiredCredentials);
+                                                              boolean allowExpiredCredentials,
+                                                              boolean threadSafe) {
+        return new ProcedureSignature(name,
+                inputSignature,
+                outputSignature,
+                mode,
+                admin,
+                deprecated,
+                description,
+                warning,
+                eager,
+                caseInsensitive,
+                systemProcedure,
+                internal,
+                allowExpiredCredentials,
+                threadSafe);
     }
 }
