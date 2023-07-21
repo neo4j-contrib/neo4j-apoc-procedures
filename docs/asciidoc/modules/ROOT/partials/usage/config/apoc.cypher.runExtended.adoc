@@ -1,0 +1,12 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| reportError | boolean | false | Returns a entry row with key `error` and value the error occurred, if any.
+| statistics | boolean | true | Returns an additional row with the query statistics, leveraging the `org.neo4j.graphdb.QueryStatistics` api
+| timeout | long | 10 | The single query timeout (in seconds)
+| queueCapacity | long | 100 | The capacity of the `java.util.concurrent.BlockingQueue` used to aggregate the results.
+| parameters | Map<String, Object> | Empty map | Optional parameter map to be used with the `apoc.schema.runFile` and `apoc.schema.runFiles` procedures.
+|===

@@ -25,6 +25,9 @@ apoc.cypher.runSchemaFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEG
 |config|MAP?|{}
 |===
 
+== Config parameters
+include::partial$usage/config/apoc.cypher.runExtended.adoc[]
+
 == Output parameters
 [.procedures, opts=header]
 |===
