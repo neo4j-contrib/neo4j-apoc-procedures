@@ -4,7 +4,10 @@
 * xref::installation/index.adoc[]
         ** xref::installation/index.adoc#neo4j-server[Neo4j Server]
         ** xref::installation/index.adoc#docker[Docker]
-        ** xref::installation/index.adoc#restricted[Load and unrestrict procedures/functions]
+        ** xref::installation/index.adoc#restricted[Load and Unrestrict]
+        ** xref::installation/index.adoc#additional_dependencies[Additional Dependencies]
+
+* xref::security-guidelines/index.adoc[]
 
 * xref::usage/index.adoc[]
 * xref::overview/index.adoc[]

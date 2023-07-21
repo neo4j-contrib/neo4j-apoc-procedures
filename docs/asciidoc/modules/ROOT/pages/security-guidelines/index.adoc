@@ -1,0 +1,315 @@
+[[security-guideFlines]]
+= Security Guidelines
+
+:description: This page provides an overview of the security matters which concern our users.
+
+The goal of this page is to offer guidance on how to use APOC securely. An insecure usage of APOC can result in many
+common software vulnerabilities, including
+link:https://owasp.org/Top10/A05_2021-Security_Misconfiguration/[Security Misconfiguration],
+link:https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure.html[Sensitive Data Exposure],
+link:https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29[Server Side Request Forgery],
+and link:https://owasp.org/Top10/A03_2021-Injection/[Language Injection].
+
+Our guidelines suggest taking a principle-based approach to security matters, and are split into three sections.
+In the first section, we will first explore our overarching principles.
+In the second section, we will discuss how to create a secure environment for APOC before executing queries.
+Finally, in the third section we will cover how to use APOC safely within queries.
+
+[#_security_principles]
+== Security Principles
+
+The security principles covered in this section provide guiding rules for safely using APOC.
+Should any security challenges not covered on this page be encountered, users are encouraged to follow the principles
+outlined below.
+
+[#_the_principle_of_least_privilege]
+=== Principle of Least Privilege
+
+Also known as the principle of minimal privilege, the
+link:https://en.wikipedia.org/wiki/Principle_of_least_privilege[Principle of Least Privilege] dictates that a workload
+should only be given the minimal set of permissions it requires in order to operate.
+APOC offers a wide range of functionality which is unlikely to be used in its entirety by any given APOC installation.
+Users are recommended to only enable those procedures and functions that are strictly needed.
+Users are recommended to disable any other procedures and functions.
+
+By only enabling the bare minimum required, users will reduce the risk incurred by running vulnerable procedures, while
+also supporting their functional requirements.
+
+[#_the_principle_of_defense_in_depth]
+=== Principle of Defense in Depth
+
+Also known as the principle of redundancy, the
+link:https://en.wikipedia.org/wiki/Defence_in_depth[Principle of Defence in Depth] dictates that users secure their
+installations at every level of the software stack, even though it may seem redundant to do so.
+
+APOC is built on top of interfaces that are exposed and controlled both by the database and by the operating system.
+By securing an APOC installation using the defense in depth approach, the installations are wrapped in multiple layers
+of protection, thus mitigating the risk of failure of the protection mechanisms at any layer.
+If installations are protected by APOC, by the database, and also by the operating system, then it is less likely that
+the protected workloads can be exploited by a single bug.
+
+[#_installation]
+== Installation
+
+This section covers the steps to take to create a secure environment for APOC.
+It is concerned with securing APOC before writing queries.
+
+[#_securing_neo4j]
+=== Securing Neo4j
+
+As the functionality provided by APOC is built on top of the database, installations cannot be secure unless the
+database is secure.
+The first point of order is therefore to ensure the database installation is secure, which can be achieved by following
+the existing database
+link:https://neo4j.com/docs/operations-manual/current/security/checklist/[Security Checklist].
+This guide will revisit some steps that are covered by the checklist again in more detail.
+
+[#_securing_neo4j_extensions]
+=== Securing Neo4j Extensions
+
+APOC is a Neo4j extension with a lot more functionality than any given workload is likely to need.
+As is the case for any Neo4j extension, there are several control mechanisms that help ensure only required functions
+and procedures are installed onto the database.
+
+[#_securing_neo4j_extensions_via_config]
+==== Securing Neo4j Extensions via Configuration Settings
+
+The database exposes
+link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/[Configuration Settings]
+which can be configured in the `conf/neo4j.conf` configuration file.
+The configuration file controls which procedures and functions can be loaded into the database and then unrestricted.
+The configuration settings that control this behavior are shown below.
+
+[options="header",cols="2,3,1"]
+|===
+|Setting |Description |Default
+|link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.security.procedures.allowlist[dbms.security.procedures.allowlist]
+|A list of functions and procedure names to be loaded.
+m| +++"*"+++
+|link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.security.procedures.unrestricted[dbms.security.procedures.unrestricted]
+|A list of functions and procedure names that are allowed full access to the database.
+m| +++""+++
+|===
+
+It is recommended to adhere to the existing xref:installation/index.adoc#restricted[Installation Guidelines], which
+dictate how to load and unrestrict the minimal set of procedures that a workload requires.
+
+[#_securing_neo4j_extensions_via_rbac]
+==== Securing Neo4j Extensions via RBAC
+
+The database exposes a
+link:https://neo4j.com/docs/operations-manual/current/authentication-authorization/built-in-roles/[Role-Based Access Control]
+mechanism to fine-tune which user roles are allowed to carry out a given operation.
+This is a Neo4j Enterprise Edition feature which is not available to Community Edition users.
+
+There are
+link:https://neo4j.com/docs/operations-manual/current/authentication-authorization/manage-execute-permissions/[Execute Procedure]
+privileges concerning the ability users have to execute any given procedure.
+By default, all users have the privilege to execute any procedure with the users' own level of privilege.
+This means that users without read privileges are not able to read data via a procedure, and users without write
+privileges are not able to write data via a procedure.
+Similar privileges exist for
+link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-user-defined-function[Execute Functions].
+
+There are also
+link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-boosted-procedure[Execute Boosted Procedure]
+privileges concerning the ability of users to execute any given procedure with full privileges.
+This means that users who would not otherwise be allowed to read or write to the database are allowed to do so if
+granted the boosted procedure privilege.
+These privileges are equivalent to the
+link:https://neo4j.com/docs/cypher-manual/current/access-control/dbms-administration/#access-control-admin-procedure[Execute Admin Procedure]
+privileges. Similar privileges exist for
+link:https://neo4j.com/docs/cypher-manual/5/access-control/dbms-administration/#access-control-execute-boosted-user-defined-function[Execute Boosted Functions].
+
+[NOTE]
+====
+The execute boosted privilege is a powerful feature that has the potential to be misused.
+There are several powerful APOC procedures that have the ability to run whole queries derived from user input against
+the database.
+If users are granted the boosted privilege to execute any of these procedures with full privileges, this is equivalent
+to giving users the ability to run any Cypher query.
+
+Examples of such procedures include:
+
+- xref:overview/apoc.cypher/index.adoc[`apoc.cypher.*`]
+====
+
+It is recommended to adhere to the default behavior where users are only allowed to execute procedures and functions
+with their own level of privilege, and to avoid boosted procedure execution in APOC.
+When a role requires the privilege to perform certain operations, there are usually other privileges that can be granted
+in order to achieve the desired restriction, without relying on boosted execution.
+
+[#_securing_the_file_system]
+=== Securing the File System
+
+APOC contains several procedures which can read or write to specific files on the file system.
+If misconfigured, these procedures can lead to high-impact vulnerabilities, such as
+link:https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure.html[Sensitive Data Exposure].
+If required by the workload, users need to enable procedures to be able to interact with the file system, but only in
+specific directories.
+If not required by the workload, users should restrict procedures from being able to interact with the file system
+altogether.
+
+Examples of procedures that can read from the file system include xref:overview/apoc.load/index.adoc[`apoc.load.*`].
+Examples of procedures that can write to the file system include xref:overview/apoc.export/index.adoc[`apoc.export.*`].
+Examples of Cypher clauses that allow the database to read from the file system include
+link:https://neo4j.com/docs/cypher-manual/current/clauses/load-csv/[`LOAD CSV`].
+
+[#_securing_the_file_system_at_os]
+==== Securing the File System at the Operating System Level
+
+From the point of view of the operating system, there is only a single process being executed.
+APOC does not exist as a separate operating system process from the database process.
+This means that all operating system restrictions applied to the database will also be applied to APOC.
+Therefore, the guidance prescribed by the
+link:https://neo4j.com/docs/operations-manual/current/configuration/file-locations/#file-locations-permissions[File Permission Guidelines]
+for the database is also applicable to APOC.
+
+It is recommended to configure the database process to have only the minimal set of file system permissions required to
+carry out the workload.
+This means restricting the database process so that it is only able to interact with the file system if needed, and even
+then only with specifically targeted directories rather than the whole file system.
+
+[#_securing_the_file_system_at_database]
+==== Securing the File System at the Database Level
+
+APOC exposes xref::config/index.adoc[Configuration Settings] that control whether interactions with the file system are
+allowed, and from which directory. These settings can be configured in the `conf/apoc.conf` file, and are described
+below.
+
+[options="header",cols="2,3,1"]
+|===
+|Setting |Description |Default
+|xref:config/index.adoc#_apoc_export_file_enabled[apoc.export.file.enabled]
+|Enables writing files to the file system.
+m|+++false+++
+|xref:config/index.adoc#_apoc_import_file_enabled[apoc.import.file.enabled]
+|Enables reading files from the file system.
+m|+++false+++
+|xref:config/index.adoc#_apoc_import_file_use_neo4j_config[apoc.import.file_use_neo4j_config]
+|APOC will adhere to Neo4j configuration settings when reading or writing to the file system.
+m|+++true+++
+|===
+
+The database also exposes
+link:https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/[Configuration Settings] that
+control whether reading files from the file system is allowed, and from which directory.
+The settings can be configured in the `conf/neo4j.conf` file, and are described below.
+
+[options="header",cols="2,3,1"]
+|===
+|Setting |Description |Default
+|link:https://neo4j.com/docs/operations-manual/5/reference/configuration-settings/#config_dbms.security.allow_csv_import_from_file_urls[dbms.security.allow_csv_import_from_file_urls]
+|Enables reading files from the file system.
+m|+++false+++
+|link:https://neo4j.com/docs/operations-manual/5/reference/configuration-settings/#config_server.directories.import[server.directories.import]
+|Restricts reading files to the given directory.
+m|+++import+++
+|===
+
+When APOC verifies a file system interaction, it goes through a series of checks.
+It first checks whether it is allowed to read or write.
+If so, it then checks the directory in which it can perform the action.
+
+In determining whether it is allowed to read or write, APOC first verifies that its own configuration settings have been
+enabled, and then checks whether the database configuration setting has also been enabled.
+APOC only checks whether the database configuration setting has also been enabled when the
+xref:config/index.adoc#_apoc_import_file_use_neo4j_config[`apoc.import.file_use_neo4j_config`] configuration setting has
+been enabled.
+
+In determining the directory to which it is allowed to read or write, APOC checks whether the
+xref:config/index.adoc#_apoc_import_file_use_neo4j_config[`apoc.import.file_use_neo4j_config`] configuration setting
+has been enabled.
+If so, it will use the same directory restrictions as the database.
+If this configuration setting is not enabled, then APOC is allowed to read or write to anywhere on the file system.
+
+.Security Guidance
+
+Recommendations vary depending on whether a workload needs to read or write files.
+Some workloads do not require any file system interactions, others only require the database to be able to read files,
+and others require both the database and APOC to be able to read files.
+
+If a workload does not require any read or write permissions for the file system, then users should not change any of
+the configuration settings in either of the configuration files.
+By default, neither Neo4j nor APOC queries are allowed to read or write files.
+
+If a workload only requires the database to be able to read files and does not require APOC to be able to do the same,
+then users should only grant this ability to the database by setting
+`dbms.security.allow_csv_import_from_file_urls=true`.
+Users do not need to make any modifications to the APOC configuration settings since by default they do not allow APOC
+to read or write files to the file system.
+
+If a workload requires both the database and APOC to be able to read and write to the file system, then users should
+still try to be as restrictive as possible.
+While this will entail enabling read and write permissions in both configuration files, it is recommended to tune the
+APOC configuration setting `apoc.import.file_use_neo4j_config=true` along with the Neo4j configuration setting
+`server.directories.import=import`.
+
+[#_usage]
+== Usage
+
+The previous section offered guidelines on securing an APOC installation before executing queries.
+This section will offer advice about writing queries that contain high-risk APOC procedures and functions.
+
+[#_cypher_injection_via_apoc]
+=== Cypher Injection
+
+The Neo4j Knowledge Base offers excellent introductory guidelines on
+link:https://neo4j.com/developer/kb/protecting-against-cypher-injection/[Protecting Against Cypher Injection] which are
+recommended learnings in order to better appreciate the challenges related to Cypher injection.
+
+Many APOC procedures make direct use of Cypher, and under the hood, they will build and execute new queries derived
+from the inputs they receive.
+These procedures represent an additional challenge for APOC users, who need to be able to recognise them, and understand
+the limited safety guarantees they are able to provide.
+
+In the first example below, an initial query invokes the
+xref:overview/apoc.uuid/apoc.uuid.install.adoc[`apoc.uuid.install`] procedure, which in turn
+builds a second query behind the scenes and executes it.
+The second query fetches all nodes, removes a label, and then reattaches a different label.
+
+[source,cypher]
+----
+CALL apoc.uuid.install("Person", {})
+// executes a query similar to this: `MATCH (n:Person) SET n.uuid`
+----
+
+In the second example below, an initial query invokes the
+xref:overview/apoc.cypher/apoc.cypher.runFile.adoc[`apoc.cypher.runFile`] procedure, which in turn builds a second query behind
+the scenes and then executes it.
+The second query fetches all nodes and returns them.
+
+[source,cypher]
+----
+CALL apoc.cypher.runFile("test.cypher", {})
+// executes `MATCH (n) RETURN n`
+----
+
+Both of the procedures in the above examples build and execute new queries derived from the inputs they receive.
+The only difference between these two procedures is the inputs they receive.
+In the first example, the procedure knows the inputs represent
+link:https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#cypher-expressions-general[Cypher Literals].
+In the second example, the procedure knows the input represents a whole Cypher query. The inputs in the first example
+can be sanitized, whereas the input in the second example cannot be sanitized.
+
+APOC guarantees it will sanitize inputs that correspond to a Cypher literal.
+However, APOC cannot offer the same guarantees for inputs which correspond to a whole Cypher query.
+In the latter case, the responsibility to sanitize the Cypher queries is delegated to the user, and users are
+recommended to carefully follow the aforementioned Cypher Injection guidance.
+
+.Examples of procedures that do not require sanitization
+
+- xref:overview/apoc.get/apoc.get.nodes.adoc[`apoc.get.nodes`]
+- xref:overview/apoc.get/apoc.get.rels.adoc[`apoc.get.rels`]
+
+.Examples of procedures that do require sanitization
+
+- xref:overview/apoc.cypher/apoc.cypher.runFile.adoc[`apoc.cypher.runFile`]
+- xref:overview/apoc.cypher/apoc.cypher.runFiles.adoc[`apoc.cypher.runFiles`]
+- xref:overview/apoc.cypher/apoc.cypher.runSchemaFile.adoc[`apoc.cypher.runSchemaFile`]
+- xref:overview/apoc.cypher/apoc.cypher.runSchemaFiles.adoc[`apoc.cypher.runSchemaFiles`]
+- xref:overview/apoc.cypher/apoc.cypher.parallel.adoc[`apoc.cypher.parallel`]
+- xref:overview/apoc.cypher/apoc.cypher.parallel2.adoc[`apoc.cypher.parallel2`]
+- xref:overview/apoc.cypher/apoc.cypher.mapParallel.adoc[`apoc.cypher.mapParallel`]
+- xref:overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[`apoc.cypher.mapParallel2`]
+
