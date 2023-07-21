@@ -46,6 +46,10 @@ https://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board
 // end::name-history-text[]
 // end::name-history[]
 
+== Installation: with Neo4j Desktop
+
+include::docs/asciidoc/modules/ROOT/partials/neo4j-desktop.adoc[tags=install-desktop,leveloffset=2]
+
 == Feedback
 
 // tag::feedback[]
@@ -143,19 +147,10 @@ h| Output Return Columns |
 
 == Manual Installation: Download the latest release
 
-// tag::install[]
+include::docs/asciidoc/modules/ROOT/partials/neo4j-server.adoc[tags=install,leveloffset=1]
 
-Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installation.
-Make sure that the *first two version numbers match between Neo4j and APOC*.
-
-Go to https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[here] for all the APOC extended releases and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
-
-
-// end::install[]
 
 == Manual Configuration
-
-
 
 [WARNING]
 ====
@@ -169,63 +164,9 @@ For more details, see {docs}/installation#restricted[the APOC installation docum
 
 
 
-// tag::version-matrix[]
-=== Version Compatibility Matrix
-
-Since APOC relies in some places on Neo4j's internal APIs you need to use the right APOC version for your Neo4j installaton.
-
-APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version. 
-The trailing `<apoc>` part of the version number will be incremented with every apoc release.
-
-[opts=header]
-|===
-|apoc version | neo4j version
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.10.0[5.10.0^] | 5.10.0 (5.10.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.9.0[5.9.0^] | 5.9.0 (5.9.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.8.0[5.8.0^] | 5.8.0 (5.8.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.7.0[5.7.0^] | 5.7.0 (5.7.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.6.0[5.6.0^] | 5.6.0 (5.6.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.5.0[5.5.0^] | 5.5.0 (5.5.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.4.0[5.4.0^] | 5.4.0 (5.4.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.3.1[5.3.1^] | 5.3.0 (5.3.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0[5.2.0^] | 5.2.0 (5.2.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.1.0[5.1.0^] | 5.1.0 (5.1.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.19[4.4.0.19^] | 4.4.0 (4.4.x)
-|===
-
-// end::version-matrix[]
 === Using APOC with the Neo4j Docker image
 
-// tag::docker[]
-
-To use APOC with Docker; download the APOC release matching your Neo4j version and copy it to a local folder, supplying it as a data volume mounted at `/plugins`.
-
-.The following downloads the APOC Library into the `plugins` directory and then mounts that folder to the Neo4j Docker container
-[source,bash,subs=attributes]
-----
-mkdir plugins
-pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-{apoc-release}-extended.jar
-popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:{branch}
-----
-
-If you want to pass custom apoc config to your Docker instance, you can use environment variables, like here:
-
-[source,bash]
-----
-docker run \
-    -p 7474:7474 -p 7687:7687 \
-    -v $PWD/data:/data -v $PWD/plugins:/plugins \
-    --name neo4j-apoc \
-    -e NEO4J_apoc_export_file_enabled=true \
-    -e NEO4J_apoc_import_file_enabled=true \
-    -e NEO4J_apoc_import_file_use__neo4j__config=true \
-    neo4j
-----
-
-// end::docker[]
-// tag::build[]
+include::docs/asciidoc/modules/ROOT/partials/docker.adoc[tags=docker,leveloffset=1]
 
 === Build & install the current development branch from source
 

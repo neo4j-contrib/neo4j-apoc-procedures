@@ -1,10 +1,42 @@
-== Manual Installation: Download latest release
+
 
 // tag::install[]
 
 Since APOC relies on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installation.
+
+APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version.
+The trailing `<apoc>` part of the version number will be incremented with every apoc release.
+
 Make sure that the *first two version numbers match between Neo4j and APOC*.
 
-Go to https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[here] for all the APOC extended releases and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+Go https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[here] for all the APOC extended releases and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+
+After you move the jar file to the plugins folder you have to restart neo4j with `neo4j restart`
+
+// tag::version-matrix[]
+=== Version Compatibility Matrix
+
+APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version.
+The trailing `<apoc>` part of the version number will be incremented with every apoc release.
+
+The version compatibility matrix explains the mapping between Neo4j and APOC versions:
+
+[opts=header]
+|===
+|apoc version | neo4j version
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.10.0[5.10.0^] | 5.10.0 (5.10.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.9.0[5.9.0^] | 5.9.0 (5.9.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.8.0[5.8.0^] | 5.8.0 (5.8.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.7.0[5.7.0^] | 5.7.0 (5.7.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.6.0[5.6.0^] | 5.6.0 (5.6.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.5.0[5.5.0^] | 5.5.0 (5.5.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.4.0[5.4.0^] | 5.4.0 (5.4.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.3.1[5.3.1^] | 5.3.0 (5.3.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0[5.2.0^] | 5.2.0 (5.2.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.1.0[5.1.0^] | 5.1.0 (5.1.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.18[4.4.0.18^] | 4.4.0 (4.4.x)
+|===
+
+// end::version-matrix[]
 
 // end::install[]

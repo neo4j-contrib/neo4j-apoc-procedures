@@ -1,0 +1,11 @@
+// tag::install-desktop[]
+
+APOC Extended cannot be installed via the `Plugins` tab.
+The present "APOC" box installs APOC core instead, that is:
+
+image::{img}/desktop-apoc.jpg[width=500]
+
+In order to install APOC Extended, we necessarily have to download the compatible version https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[from here],
+and the put it manually into the `$NEO4J_HOME/plugins` folder.
+
+// end::install-desktop[]
