@@ -9,40 +9,16 @@ _APOC Extended_ can be downloaded using one of the methods described in the sect
 
 include::partial$neo4j-server.adoc[tags=install,leveloffset=2]
 
-After you move the jar file to the plugins folder you have to restart neo4j with `neo4j restart`
-
-// tag::version-matrix[]
-Since APOC relies on Neo4j's internal APIs, you need to use the right APOC version for your Neo4j installation.
-
-APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version.
-The trailing `<apoc>` part of the version number will be incremented with every apoc release.
-
-The version compatibility matrix explains the mapping between Neo4j and APOC versions:
-
-[opts=header]
-|===
-|apoc version | neo4j version
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.11.0[5.11.0^] | 5.11.0 (5.11.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.10.0[5.10.0^] | 5.10.0 (5.10.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.9.0[5.9.0^] | 5.9.0 (5.9.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.8.0[5.8.0^] | 5.8.0 (5.8.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.7.0[5.7.0^] | 5.7.0 (5.7.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.6.0[5.6.0^] | 5.6.0 (5.6.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.5.0[5.5.0^] | 5.5.0 (5.5.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.4.0[5.4.0^] | 5.4.0 (5.4.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.3.1[5.3.1^] | 5.3.0 (5.3.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0[5.2.0^] | 5.2.0 (5.2.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.1.0[5.1.0^] | 5.1.0 (5.1.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.19[4.4.0.19^] | 4.4.0 (4.4.x)
-|===
-
-// end::version-matrix[]
-
 If by mistake a jar not compatible with the neo4j version is inserted, a `log.warn` like this will appear in `neo4j.log`:
 ```
 The apoc version (<APOC_VERSION>) and the Neo4j DBMS versions [NEO4J_VERSION] are incompatible. 
 See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version
 ```
+
+[[neo4j-desktop]]
+== Neo4j Desktop
+
+include::partial$neo4j-desktop.adoc[tags=install-desktop,leveloffset=2]
 
 [[docker]]
 == Docker
