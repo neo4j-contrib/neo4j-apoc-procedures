@@ -87,6 +87,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
+    public static final String APOC_OPENAI_KEY = "apoc.openai.key";
     public enum UuidFormatType { hex, base64 }
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";  // TODO: check if really needed
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url"; // TODO: check if really needed

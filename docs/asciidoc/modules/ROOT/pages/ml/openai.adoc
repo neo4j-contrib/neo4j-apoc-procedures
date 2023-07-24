@@ -2,7 +2,7 @@
 = OpenAI API Access
 :description: This section describes procedures that can be used to access the OpenAI API.
 
-NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incurr costs on your OpenAI account.
+NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incur costs on your OpenAI account. You can set the api key globally by defining the `apoc.openai.key` configuration in `apoc.conf`
 
 == Generate Embeddings API
 
@@ -119,4 +119,215 @@ choices=[{finish_reason="stop", index=0, message={role="assistant", content="Ear
 |===
 |name | description
 | value | result entry from OpenAI (containing created, id, model, object, usage(tokens), choices(message, index, finish_reason))
+|===
+
+
+== Query with natural language
+
+This procedure `apoc.ml.query` takes a question in natural language and returns the results of that query.
+
+It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.query("What movies did Tom Hanks play in?") yield value, query
+RETURN *
+----
+
+.Example response
+[source, bash]
+----
++------------------------------------------------------------------------------------------------------------------------------+
+| value                                 | query                                                                                |
++------------------------------------------------------------------------------------------------------------------------------+
+| {m.title -> "You've Got Mail"}        | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Apollo 13"}              | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Joe Versus the Volcano"} | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "That Thing You Do"}      | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Cloud Atlas"}            | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "The Da Vinci Code"}      | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Sleepless in Seattle"}   | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "A League of Their Own"}  | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "The Green Mile"}         | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Charlie Wilson's War"}   | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "Cast Away"}              | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
+| {m.title -> "The Polar Express"}      | "cypher
+MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
+RETURN m.title
+" |
++------------------------------------------------------------------------------------------------------------------------------+
+12 rows
+----
+
+.Input Parameters
+[%autowidth, opts=header]
+|===
+| name | description
+| question | The question in the natural language
+| conf | An optional configuration map, please check the next section
+|===
+
+.Configuration map
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| retries | The number of retries in case of API call failures | no, default `3`
+| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
+| model | The Open AI model | no, default `gpt-3.5-turbo`
+| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+| name | description
+| value | the result of the query
+| cypher | the query used to compute the result
+|===
+
+
+== Describe the graph model with natural language
+
+This procedure `apoc.ml.schema` returns a description, in natural language, of the underlying dataset.
+
+It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.schema() yield value
+RETURN *
+----
+
+.Example response
+[source, bash]
+----
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| "The graph database schema represents a system where users can follow other users and review movies. Users (:Person) can either follow other users (:Person) or review movies (:Movie). The relationships allow users to express their preferences and opinions about movies. This schema can be compared to social media platforms where users can follow each other and leave reviews or ratings for movies they have watched. It can also be related to movie recommendation systems where user preferences and reviews play a crucial role in generating personalized recommendations." |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row
+----
+
+.Input Parameters
+[%autowidth, opts=header]
+|===
+| name | description
+| conf | An optional configuration map, please check the next section
+|===
+
+.Configuration map
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
+| model | The Open AI model | no, default `gpt-3.5-turbo`
+| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+| name | description
+| value | the description of the dataset
+|===
+
+
+== Create cypher queries from a natural language query
+
+This procedure `apoc.ml.cypher` takes a natural language question and transforms it into a number of requested cypher queries.
+
+It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.cypher("Who are the actors which also directed a movie?", 4) yield cypher
+RETURN *
+----
+
+.Example response
+[source, bash]
+----
++----------------------------------------------------------------------------------------------------------------+
+| query                                                                                                          |
++----------------------------------------------------------------------------------------------------------------+
+| "
+MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(d:Person)
+RETURN a.name as actor, d.name as director
+" |
+| "cypher
+MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(a)
+RETURN a.name
+"                               |
+| "
+MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(d:Person)
+RETURN a.name
+"                              |
+| "cypher
+MATCH (a:Person)-[:ACTED_IN]->(:Movie)<-[:DIRECTED]-(a)
+RETURN DISTINCT a.name
+"                       |
++----------------------------------------------------------------------------------------------------------------+
+4 rows
+----
+
+.Input Parameters
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| question | The question in the natural language | yes
+| conf | An optional configuration map, please check the next section
+|===
+
+.Configuration map
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| count | The number of queries to retrieve | no, default `1`
+| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
+| model | The Open AI model | no, default `gpt-3.5-turbo`
+| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+| name | description
+| value | the description of the dataset
 |===

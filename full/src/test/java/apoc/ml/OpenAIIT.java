@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OpenAIIT {
 
@@ -83,7 +84,7 @@ public class OpenAIIT {
 
             assertEquals(true, result.containsKey("usage"));
             assertEquals(true, ((Map)result.get("usage")).get("prompt_tokens") instanceof Number);
-            assertEquals("gpt-3.5-turbo-0301", result.get("model"));
+            assertTrue(result.get("model").toString().startsWith("gpt-3.5-turbo"));
             assertEquals("chat.completion", result.get("object"));
         });
 
