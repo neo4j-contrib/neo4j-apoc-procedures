@@ -29,6 +29,7 @@ public class ExtendedApocConfig extends LifecycleAdapter
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
+    public static final String APOC_OPENAI_KEY = "apoc.openai.key";
     public enum UuidFormatType { hex, base64 }
 
     // These were earlier added via the Neo4j config using the ApocSettings.java class
@@ -176,6 +177,9 @@ public class ExtendedApocConfig extends LifecycleAdapter
 
     public boolean getBoolean(String key, boolean defaultValue) {
         return getConfig().getBoolean(key, defaultValue);
+    }
+    public String getString(String key, String defaultValue) {
+        return getConfig().getString(key, defaultValue);
     }
 
     public <T extends Enum<T>> T getEnumProperty(String key, Class<T> cls, T defaultValue) {
