@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -84,19 +85,19 @@ public class LoadHtmlTest {
 
     @Test
     public void testParseGeneratedJs() {
-        testCallGeneratedJsWithBrowser("FIREFOX");
-        testCallGeneratedJsWithBrowser("CHROME");
+        testCallGeneratedJsWithBrowser(FIREFOX);
+        testCallGeneratedJsWithBrowser(CHROME);
     }
 
     @Test
     public void testParseGeneratedJsWrongConfigs() {
-        assertWrongConfig(INVALID_CONFIG_ERR,
+        assertWrongConfig(INVALID_CONFIG_ERR + "No enum constant io.github.bonigarcia.wdm.config.OperatingSystem.dunno",
                 map("browser", CHROME, "operatingSystem", "dunno"));
 
-        assertWrongConfig(INVALID_CONFIG_ERR,
+        assertWrongConfig(INVALID_CONFIG_ERR + "No enum constant io.github.bonigarcia.wdm.config.Architecture.dunno",
                 map("browser", FIREFOX, "architecture", "dunno"));
 
-        assertWrongConfig("Error HTTP 401 executing",
+        assertWrongConfig("Error HTTP 404 executing https://raw.githubusercontent.com/bonigarcia/webdrivermanager/master/docs/mirror/geckodriver",
                 map("browser", FIREFOX,
                         "gitHubToken", "12345",
                         "forceDownload", true));
@@ -107,8 +108,9 @@ public class LoadHtmlTest {
             testCall(db, "CALL apoc.load.html($url, $query, $config)",
                     map("url", URL_HTML_JS, "query", map("a", "a"), "config", config),
                     r -> fail("Should fails due to wrong configuration"));
-        } catch (RuntimeException e) {
-            assertTrue(e.getMessage().contains(msgError));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Curr message is: " + message, message.contains(msgError));
         }
     }
 
@@ -497,7 +499,7 @@ public class LoadHtmlTest {
             testCall(db, "CALL apoc.load.html($url,$query,$config)",
                     map("url", URL_HTML_JS,
                             "query", map("td", "td", "strong", "strong"),
-                            "config", map("browser", browser, "driverVersion", "0.30.0")),
+                            "config", map("browser", browser)),
                     result -> {
                         Map<String, Object> value = (Map<String, Object>) result.get("value");
                         List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");
@@ -522,8 +524,11 @@ public class LoadHtmlTest {
             runnable.run();
         } catch (RuntimeException e) {
             // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
+            Stream<String> notPresentOrIncompatible = Stream.of("cannot find Chrome binary", "Cannot find firefox binary",
+                    "browser start-up failure",
+                    "This version of ChromeDriver only supports Chrome version");
             final String msg = e.getMessage();
-            if (!msg.contains("cannot find Chrome binary") && !msg.contains("Cannot find firefox binary")) {
+            if (notPresentOrIncompatible.noneMatch(msg::contains)) {
                 throw e;
             }
         }
