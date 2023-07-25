@@ -1,2 +1,0 @@
-CREATE CONSTRAINT ON (n:Person) ASSERT n.name IS UNIQUE;
-CREATE CONSTRAINT another_cons ON (n:AnotherLabel) ASSERT n.name IS UNIQUE;
