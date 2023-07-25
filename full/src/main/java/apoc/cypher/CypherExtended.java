@@ -33,6 +33,7 @@ import apoc.result.MapResult;
 import apoc.util.EntityUtil;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
+import apoc.util.QueueUtil;
 import apoc.util.Util;
 import java.io.IOException;
 import java.io.Reader;
@@ -120,13 +121,22 @@ public class CypherExtended {
             Map<String, Object> config,
             Map<String, Object> parameters,
             boolean schemaOperation) {
+        boolean reportError = Util.toBoolean(config.get("reportError"));
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics", true));
         int timeout = Util.toInteger(config.getOrDefault("timeout", 10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity", 100));
         var result = fileNames.stream().flatMap(fileName -> {
             final Reader reader = readerForFile(fileName);
             final Scanner scanner = createScannerFor(reader);
-            return runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity)
+            return runManyStatements(
+                            scanner,
+                            parameters,
+                            schemaOperation,
+                            addStatistics,
+                            timeout,
+                            queueCapacity,
+                            reportError,
+                            fileName)
                     .onClose(() -> Util.close(
                             scanner,
                             (e) -> log.info(
@@ -163,14 +173,18 @@ public class CypherExtended {
             boolean schemaOperation,
             boolean addStatistics,
             int timeout,
-            int queueCapacity) {
+            int queueCapacity,
+            boolean reportError,
+            String fileName) {
         BlockingQueue<RowResult> queue = runInSeparateThreadAndSendTombstone(
                 queueCapacity,
                 internalQueue -> {
                     if (schemaOperation) {
-                        runSchemaStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
+                        runSchemaStatementsInTx(
+                                scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
                     } else {
-                        runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout);
+                        runDataStatementsInTx(
+                                scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
                     }
                 },
                 RowResult.TOMBSTONE);
@@ -208,25 +222,53 @@ public class CypherExtended {
             BlockingQueue<RowResult> queue,
             Map<String, Object> params,
             boolean addStatistics,
-            long timeout) {
+            long timeout,
+            boolean reportError,
+            String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
-            if (!isSchemaOperation(stmt)) {
+            boolean schemaOperation;
+            try {
+                schemaOperation = isSchemaOperation(stmt);
+            } catch (Exception e) {
+                collectError(queue, reportError, e, fileName);
+                return;
+            }
+
+            if (!schemaOperation) {
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(
-                            pools,
-                            () -> db.executeTransactionally(
-                                    stmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
+                    Util.inThread(pools, () -> {
+                        try {
+                            return db.executeTransactionally(
+                                    stmt, params, result -> consumeResult(result, queue, addStatistics, timeout));
+                        } catch (Exception e) {
+                            collectError(queue, reportError, e, fileName);
+                            return null;
+                        }
+                    });
                 } else {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
                             return consumeResult(result, queue, addStatistics, timeout);
+                        } catch (Exception e) {
+                            collectError(queue, reportError, e, fileName);
+                            return null;
                         }
                     });
                 }
             }
         }
+    }
+
+    private void collectError(BlockingQueue<RowResult> queue, boolean reportError, Exception e, String fileName) {
+        if (!reportError) {
+            throw new RuntimeException(e);
+        }
+        String error = String.format("Error in `%s`:\n%s ", fileName, e.getMessage());
+
+        RowResult result = new RowResult(-1, Map.of("error", error));
+        QueueUtil.put(queue, result, 10);
     }
 
     private Scanner createScannerFor(Reader reader) {
@@ -240,14 +282,26 @@ public class CypherExtended {
             BlockingQueue<RowResult> queue,
             Map<String, Object> params,
             boolean addStatistics,
-            long timeout) {
+            long timeout,
+            boolean reportError,
+            String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
-            if (isSchemaOperation(stmt)) {
+            boolean schemaOperation;
+            try {
+                schemaOperation = isSchemaOperation(stmt);
+            } catch (Exception e) {
+                collectError(queue, reportError, e, fileName);
+                return;
+            }
+            if (schemaOperation) {
                 Util.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
                         return consumeResult(result, queue, addStatistics, timeout);
+                    } catch (Exception e) {
+                        collectError(queue, reportError, e, fileName);
+                        return null;
                     }
                 });
             }
