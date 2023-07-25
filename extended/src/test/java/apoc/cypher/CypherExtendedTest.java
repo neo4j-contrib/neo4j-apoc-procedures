@@ -469,6 +469,26 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void testLongRunningRunFilesWithFailingPeriodicStatement() {
+        String failingFile = "wrong_call_in_transactions.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Fail) REQUIRE n.foo IS UNIQUE");
+        db.executeTransactionally("CREATE (n:Fail {foo: 1})");
+
+        List<String> files = List.of("long-create.cypher", failingFile, "long-create.cypher");
+
+        // the failed file is skipped
+        testCallEmpty(db, "CALL apoc.cypher.runFiles($files, {statistics: false})",
+                Map.of("files", files));
+
+        // the failed file produces an "error" row
+        testCall(db, "CALL apoc.cypher.runFiles($files, {statistics: false, reportError: true})",
+                Map.of("files", files),
+                r -> assertErrorResult(cypherError, r));
+    }
+
+    @Test
     public void testRunFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
