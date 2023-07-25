@@ -109,7 +109,7 @@ choices=[{finish_reason="stop", index=0, message={role="assistant", content="Ear
 [%autowidth, opts=header]
 |===
 |name | description
-| messages | List of maps of instructions with `{role:"assistant|user|system", content:"text}`
+| messages | List of maps of instructions with `{role:"assistant\|user\|system", content:"text}`
 | apiKey | OpenAI API key
 | configuration | optional map for entries like model, temperature, and other request parameters
 |===
@@ -277,7 +277,7 @@ It uses the `chat/completions` API which is https://platform.openai.com/docs/api
 .Query call
 [source,cypher]
 ----
-CALL apoc.ml.cypher("Who are the actors which also directed a movie?", 4) yield cypher
+CALL apoc.ml.cypher("Who are the actors which also directed a movie?", {count: 4}) yield cypher
 RETURN *
 ----
 
