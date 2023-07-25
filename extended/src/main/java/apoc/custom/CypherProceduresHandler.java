@@ -318,15 +318,20 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
     }
 
+    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+        return registerProcedure(signature, statement, true);
+    }
+
     /**
      *
      * @param signature
      * @param statement null indicates a removed procedure
      * @return
      */
-    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+    public boolean registerProcedure(ProcedureSignature signature, String statement, boolean override) {
         try {
-            globalProceduresRegistry.unregister(signature.name());
+            unregisterAndRegisterHomonymOne(signature, override);
+
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
@@ -362,9 +367,39 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
+    private synchronized void unregisterAndRegisterHomonymOne(Object signature, boolean override) {
+        boolean isProcedure = signature instanceof ProcedureSignature;
+        QualifiedName signatureName = isProcedure ? ((ProcedureSignature) signature).name() : ((UserFunctionSignature) signature).name();
+        // we unregister the previous function/procedure, if any
+        globalProceduresRegistry.unregister(signatureName);
+
+        // the 1st time we search for an analogous function/procedure as below
+        if (!override) {
+            return;
+        }
+
+        // if in sys-db there is a Procedure with the same name of the Function, or vice versa,
+        //  we re-register it, because the above unregister delete every fun and proc with that name.
+        // we use `registerWithoutOverride` to avoid recursion
+        readSignatures().filter(i -> {
+            QualifiedName name = null;
+            if (isProcedure && i instanceof UserFunctionDescriptor descriptor) {
+                name = descriptor.getSignature().name();
+            }
+            if (!isProcedure && i instanceof ProcedureDescriptor descriptor) {
+                name = descriptor.getSignature().name();
+            }
+            return signatureName.equals(name);
+        }).forEach(ProcedureOrFunctionDescriptor::registerWithoutOverride);
+    }
+
     public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
+        return registerFunction(signature, statement, forceSingle, true);
+    }
+
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean override) {
         try {
-            globalProceduresRegistry.unregister(signature.name());
+            unregisterAndRegisterHomonymOne(signature, override);
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
@@ -643,6 +678,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
 
         abstract public void register();
+
+        abstract public void registerWithoutOverride();
     }
 
     public class ProcedureDescriptor extends ProcedureOrFunctionDescriptor {
@@ -660,6 +697,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerProcedure(getSignature(), getStatement());
+        }
+
+        @Override
+        public void registerWithoutOverride() {
+            registerProcedure(getSignature(), getStatement(), false);
         }
     }
 
@@ -684,6 +726,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerFunction(getSignature(), getStatement(), isForceSingle());
+        }
+
+        @Override
+        public void registerWithoutOverride() {
+            registerFunction(getSignature(), getStatement(), isForceSingle(), false);
         }
     }
 }
