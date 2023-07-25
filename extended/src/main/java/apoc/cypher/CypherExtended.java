@@ -165,7 +165,7 @@ public class CypherExtended {
             try {
                 schemaOperation = isSchemaOperation(stmt);
             } catch (Exception e) {
-                addError(queue, reportError, e, fileName);
+                collectError(queue, reportError, e, fileName);
                 return;
             }
 
@@ -175,7 +175,7 @@ public class CypherExtended {
                         try {
                             return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout));
                         } catch (Exception e) {
-                            addError(queue, reportError, e, fileName);
+                            collectError(queue, reportError, e, fileName);
                             return null;
                         }
                     });
@@ -185,7 +185,7 @@ public class CypherExtended {
                         try (Result result = threadTx.execute(stmt, params)) {
                             return consumeResult(result, queue, addStatistics, timeout);
                         } catch (Exception e) {
-                            addError(queue, reportError, e, fileName);
+                            collectError(queue, reportError, e, fileName);
                             return null;
                         }
                     });
@@ -194,7 +194,7 @@ public class CypherExtended {
         }
     }
 
-    private void addError(BlockingQueue<RowResult> queue, boolean reportError, Exception e, String fileName) {
+    private void collectError(BlockingQueue<RowResult> queue, boolean reportError, Exception e, String fileName) {
         if (!reportError) {
             throw new RuntimeException(e);
         }
@@ -220,7 +220,7 @@ public class CypherExtended {
             try {
                 schemaOperation = isSchemaOperation(stmt);
             } catch (Exception e) {
-                addError(queue, reportError, e, fileName);
+                collectError(queue, reportError, e, fileName);
                 return;
             }
             if (schemaOperation) {
@@ -228,7 +228,7 @@ public class CypherExtended {
                     try (Result result = txInThread.execute(stmt, params)) {
                         return consumeResult(result, queue, addStatistics, timeout);
                     } catch (Exception e) {
-                        addError(queue, reportError, e, fileName);
+                        collectError(queue, reportError, e, fileName);
                         return null;
                     }
                 });
