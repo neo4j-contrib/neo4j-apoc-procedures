@@ -277,7 +277,7 @@ It uses the `chat/completions` API which is https://platform.openai.com/docs/api
 .Query call
 [source,cypher]
 ----
-CALL apoc.ml.cypher("Who are the actors which also directed a movie?", 4) yield cypher
+CALL apoc.ml.cypher("Who are the actors which also directed a movie?", {count: 4}) yield cypher
 RETURN *
 ----
 
