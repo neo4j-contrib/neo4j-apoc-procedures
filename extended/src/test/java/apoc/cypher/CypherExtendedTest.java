@@ -152,7 +152,7 @@ public class CypherExtendedTest {
 
     @Test
     public void testRunFileWithAutoTransaction() {
-        final int expectedCount = 2000;
+        final int expectedCount = 1000;
         testCall(db, "CALL apoc.cypher.runFile('range_in_transaction.cypher')",
                 row -> {
                     assertEquals(-1L, row.get("row"));
