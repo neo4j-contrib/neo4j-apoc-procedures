@@ -6,9 +6,3 @@ CREATE (n:NodeTwo {id:id});
 
 UNWIND RANGE(0,99999) as id
 CREATE (n:NodeThree {id:id});
-
-UNWIND RANGE(0,99999) as id
-CREATE (n:NodeFour {id:id});
-
-UNWIND RANGE(0,99999) as id
-CREATE (n:NodeFive {id:id});
