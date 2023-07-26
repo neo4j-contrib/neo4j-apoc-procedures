@@ -1,4 +1,4 @@
-unwind range(1, 2000) as row
+unwind range(1, 1000) as row
 with row
 CALL   {
 WITH row
