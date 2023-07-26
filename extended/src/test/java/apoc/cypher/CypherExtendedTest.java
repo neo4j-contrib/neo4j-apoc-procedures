@@ -152,7 +152,7 @@ public class CypherExtendedTest {
 
     @Test
     public void testRunFileWithAutoTransaction() {
-        final int expectedCount = 2000;
+        final int expectedCount = 1000;
         testCall(db, "CALL apoc.cypher.runFile('range_in_transaction.cypher')",
                 row -> {
                     assertEquals(-1L, row.get("row"));
@@ -466,6 +466,26 @@ public class CypherExtendedTest {
         String failingFile = "wrong_call_in_transactions.cypher";
         String cypherError = "already exists with label `Fail` and property `foo` = 1";
         testRunFailingFilesCommon(failingFile, cypherError);
+    }
+
+    @Test
+    public void testLongRunningRunFilesWithFailingPeriodicStatement() {
+        String failingFile = "wrong_call_in_transactions.cypher";
+        String cypherError = "already exists with label `Fail` and property `foo` = 1";
+
+        db.executeTransactionally("CREATE CONSTRAINT FOR (n:Fail) REQUIRE n.foo IS UNIQUE");
+        db.executeTransactionally("CREATE (n:Fail {foo: 1})");
+
+        List<String> files = List.of("long-create.cypher", failingFile, "long-create.cypher");
+
+        // the failed file is skipped
+        testCallEmpty(db, "CALL apoc.cypher.runFiles($files, {statistics: false})",
+                Map.of("files", files));
+
+        // the failed file produces an "error" row
+        testCall(db, "CALL apoc.cypher.runFiles($files, {statistics: false, reportError: true})",
+                Map.of("files", files),
+                r -> assertErrorResult(cypherError, r));
     }
 
     @Test
