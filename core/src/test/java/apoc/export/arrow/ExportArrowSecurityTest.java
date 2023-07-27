@@ -18,7 +18,7 @@
  */
 package apoc.export.arrow;
 
-import apoc.export.ExportCoreSecurityTest;
+import apoc.export.ExportCoreSecurityTestHarness;
 import apoc.export.SecurityTestUtil;
 import apoc.meta.Meta;
 import apoc.util.TestUtil;
@@ -44,15 +44,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static apoc.export.ExportCoreSecurityTest.FILENAME;
-import static apoc.export.ExportCoreSecurityTest.PARAM_NAMES;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.case07;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.EXCEPTION_NOT_FOUND_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.dataPairs;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.MAIN_DIR_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.SUB_DIR_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.mainDirCases;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.subDirCases;
+import static apoc.export.ExportCoreSecurityTestHarness.FILENAME;
+import static apoc.export.ExportCoreSecurityTestHarness.PARAM_NAMES;
+import static apoc.export.TestIllegalExternalFSAccess.case07;
+import static apoc.export.TestIllegalExternalFSAccess.EXCEPTION_NOT_FOUND_CONSUMER;
+import static apoc.export.TestIllegalExternalFSAccess.dataPairs;
+import static apoc.export.TestPathTraversalIsNormalisedWithinDirectory.MAIN_DIR_CONSUMER;
+import static apoc.export.TestPathTraversalIsNormalisedWithinDirectory.SUB_DIR_CONSUMER;
+import static apoc.export.TestPathTraversalIsNormalisedWithinDirectory.mainDirCases;
+import static apoc.export.TestPathTraversalIsNormalisedWithinDirectory.subDirCases;
 import static apoc.export.SecurityTestUtil.ERROR_KEY;
 import static apoc.export.SecurityTestUtil.PROCEDURE_KEY;
 import static apoc.export.SecurityTestUtil.getApocProcedure;
@@ -94,7 +94,7 @@ public class ExportArrowSecurityTest {
     }
 
     private static Collection<Object[]> getParameterData(List<Pair<String, Consumer<Map>>> fileAndErrors) {
-        return ExportCoreSecurityTest.getParameterData(fileAndErrors, EXPORT_PROCEDURES, APOC_EXPORT_PROCEDURE_NAME);
+        return ExportCoreSecurityTestHarness.getParameterData(fileAndErrors, EXPORT_PROCEDURES, APOC_EXPORT_PROCEDURE_NAME);
     }
 
     /**

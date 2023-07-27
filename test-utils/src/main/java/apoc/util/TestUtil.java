@@ -167,6 +167,21 @@ public class TestUtil {
         }
     }
 
+    public static <T> void registerProcedureWithApocConfig(GraphDatabaseService db, T apocConfig, Class<?>...procedures) {
+        GlobalProcedures globalProcedures = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(GlobalProcedures.class);
+        globalProcedures.registerComponent((Class<T>) apocConfig.getClass(), ctx -> apocConfig, true);
+
+        for (Class<?> procedure : procedures) {
+            try {
+                globalProcedures.registerProcedure(procedure, true);
+                globalProcedures.registerFunction(procedure, true);
+                globalProcedures.registerAggregationFunction(procedure, true);
+            } catch (KernelException e) {
+                throw new RuntimeException("while registering " + procedure, e);
+            }
+        }
+    }
+
     public static boolean hasCauses(Throwable t, Class<? extends Throwable>...types) {
         if (anyInstance(t, types)) return true;
         while (t != null && t.getCause() != t) {
