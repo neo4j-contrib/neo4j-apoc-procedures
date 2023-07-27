@@ -901,12 +901,6 @@ public class CypherProceduresTest  {
     }
 
     private void assertProcedureFails(String expectedMessage, String query) {
-        try {
-            testCall(db, query, row -> fail("The test should fail because of: " + expectedMessage));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(expectedMessage));
-        }
+        CypherProcedureTestUtil.assertProcedureFails(db, expectedMessage, query, Map.of());
     }
 }

@@ -12,13 +12,15 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static apoc.custom.CypherProceduresUtil.MAP_RESULT_TYPE;
+import static apoc.custom.CypherProceduresUtil.getBaseType;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 public class Signatures {
     public static final String NUMBER_TYPE = "INTEGER | FLOAT";
     public static final String SIGNATURE_SYNTAX_ERROR = "Syntax error(s) in signature definition %s. " +
             "\nNote that procedure/function name, possible map keys, input and output names must have at least 2 character:\n";
-    private static final String MAP_RESULT_TYPE = "MAPRESULT";
+    
     private final String prefix;
 
     public Signatures(String prefix) {
@@ -196,68 +198,12 @@ public class Signatures {
     }
 
     private Neo4jTypes.AnyType type(SignatureParser.Opt_typeContext opt_type) {
-        switch (opt_type.base_type().getText()) {
-            case "ANY":
-                return NTAny;
-            case "MAP":
-            case MAP_RESULT_TYPE:
-                return NTMap;
-            case "NODE":
-                return NTNode;
-            case "REL":
-                return NTRelationship;
-            case "RELATIONSHIP":
-                return NTRelationship;
-            case "EDGE":
-                return NTRelationship;
-            case "PATH":
-                return NTPath;
-            case "NUMBER":
-            case NUMBER_TYPE:
-                return NTNumber;
-            case "LONG":
-                return NTInteger;
-            case "INT":
-                return NTInteger;
-            case "INTEGER":
-                return NTInteger;
-            case "FLOAT":
-                return NTFloat;
-            case "DOUBLE":
-                return NTFloat;
-            case "BOOL":
-                return NTBoolean;
-            case "BOOLEAN":
-                return NTBoolean;
-            case "DATE":
-                return NTDate;
-            case "TIME":
-            case "ZONED TIME":
-                return NTTime;
-            case "LOCALTIME":
-            case "LOCAL TIME":
-                return NTLocalTime;
-            case "DATETIME":
-            case "ZONED DATETIME":
-                return NTDateTime;
-            case "LOCALDATETIME":
-            case "LOCAL DATETIME":
-                return NTLocalDateTime;
-            case "DURATION":
-                return NTDuration;
-            case "POINT":
-                return NTPoint;
-            case "GEO":
-                return NTGeometry;
-            case "GEOMETRY":
-                return NTGeometry;
-            case "STRING":
-                return NTString;
-            case "TEXT":
-                return NTString;
-            default:
-                return NTString;
-        }
+        return getBaseType(opt_type.base_type().getText());
+    }
+
+    public UserFunctionSignature asFunctionSignature(String signature, String description) {
+        SignatureParser.FunctionContext functionContext = parseFunction(signature);
+        return toFunctionSignature(functionContext, description);
     }
 
     public ProcedureSignature asProcedureSignature(String signature, String description, Mode mode) {
