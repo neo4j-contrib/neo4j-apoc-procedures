@@ -37,6 +37,11 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_ONLY;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.SCHEMA_WRITE;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType.WRITE;
+
 @Extended
 public class PeriodicExtended {
     @Context public GraphDatabaseService db;
@@ -51,8 +56,16 @@ public class PeriodicExtended {
         executionErrors.compute(msg, (s, i) -> i == null ? 1 : i + 1);
     }
 
+    @Procedure(mode = Mode.SCHEMA)
+    @Description("apoc.periodic.submitSchema(name, statement, $config) - equivalent to apoc.periodic.submit which can also accept schema operations")
+    public Stream<Periodic.JobInfo> submitSchema(@Name("name") String name, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> config) {
+        validateQuery(statement);
+        return PeriodicUtils.submitProc(name, statement, config, db, log, pools);
+    }
+
     private void validateQuery(String statement) {
-        db.executeTransactionally("EXPLAIN " + statement);
+        Util.validateQuery(db, statement,
+                READ_ONLY, WRITE, READ_WRITE, SCHEMA_WRITE);
     }
 
     /**
