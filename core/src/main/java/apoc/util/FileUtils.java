@@ -236,6 +236,9 @@ public class FileUtils {
             Path basePath = Paths.get(apocConfig().getImportDir());
             urlPath = relativizeIfSamePrefix(urlPath, basePath);
             resolvedPath = basePath.resolve(urlPath).toAbsolutePath().normalize();
+
+            System.out.println("resolvedPath: " + resolvedPath.toString());
+            System.out.println("basePath: " + basePath.toString());
             if (!pathStartsWithOther(resolvedPath, basePath)) {
                 throw new IOException(ACCESS_OUTSIDE_DIR_ERROR);
             }

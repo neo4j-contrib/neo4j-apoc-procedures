@@ -484,7 +484,7 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     public String getImportDir() {
-        return getString("dbms.directories.import");
+        return apocConfig().getString("dbms.directories.import");
     }
 
     public int getInt(String key, int defaultValue) {
