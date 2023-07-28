@@ -234,9 +234,13 @@ public class FileUtils {
         final Path resolvedPath;
         if (apocConfig().isImportFolderConfigured() && isImportUsingNeo4jConfig()) {
             Path basePath = Paths.get(apocConfig().getImportDir());
+            System.out.println("url: " + urlPath.toString());
+            System.out.println("basePath: " + basePath.toString());
+
             urlPath = relativizeIfSamePrefix(urlPath, basePath);
             resolvedPath = basePath.resolve(urlPath).toAbsolutePath().normalize();
 
+            System.out.println("urlPath: " + urlPath.toString());
             System.out.println("resolvedPath: " + resolvedPath.toString());
             System.out.println("basePath: " + basePath.toString());
             if (!pathStartsWithOther(resolvedPath, basePath)) {
