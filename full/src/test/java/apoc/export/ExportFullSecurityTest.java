@@ -202,13 +202,11 @@ public class ExportFullSecurityTest {
             this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
-        private static final String case1 = "'file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2fapoc/test.txt'";
-        private static final String case2 = "'file:///%2e%2e%2f%2ftest.txt'";
         private static final String case3 = "'../test.txt'";
         private static final String case4 = "'tests/../../test.txt'";
         private static final String case5 = "'tests/..//..//test.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5);
+        private static final List<String> cases = Arrays.asList(case3, case4, case5);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query",  cases.stream().map(
@@ -263,8 +261,9 @@ public class ExportFullSecurityTest {
         private static final String case4 = "'file:///..//..//..//..//apoc/test.txt'";
         private static final String case5 = "'file://" + directory.getAbsolutePath() + "//..//..//..//..//apoc/test.txt'";
         private static final String case6 = "'file:///%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f/apoc/test.txt'";
+        private static final String case7 = "'file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2fapoc/test.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6);
+        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query", cases.stream().map(
@@ -320,8 +319,9 @@ public class ExportFullSecurityTest {
         private static final String case6 = "'file:///tests//..//test.txt'";
         private static final String case7 = "'test.txt'";
         private static final String case8 = "'file:///..//..//..//..//test.txt'";
+        private static final String case9 = "'file:///%2e%2e%2f%2ftest.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8);
+        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8, case9);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query", cases.stream().map(
