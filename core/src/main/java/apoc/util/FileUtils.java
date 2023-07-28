@@ -234,7 +234,7 @@ public class FileUtils {
         final Path resolvedPath;
         if (apocConfig().isImportFolderConfigured() && isImportUsingNeo4jConfig()) {
             Path basePath = Paths.get(apocConfig().getImportDir());
-            System.out.println("url: " + urlPath.toString());
+            System.out.println("urlPath: " + urlPath.toString());
             System.out.println("basePath: " + basePath.toString());
 
             urlPath = relativizeIfSamePrefix(urlPath, basePath);
@@ -253,7 +253,13 @@ public class FileUtils {
     }
 
     private static Path relativizeIfSamePrefix(Path urlPath, Path basePath) {
+        var prefix = FilenameUtils.getPrefix(urlPath.toString());
+        System.out.println("prefix: " + prefix);
+        System.out.println("basePath inside relativizeIfSamePrefix: " + basePath.toAbsolutePath());
+        System.out.println("urlPath inside relativizeIfSamePrefix: " + urlPath);
+
         if (FilenameUtils.getPrefixLength(urlPath.toString()) > 0 && !urlPath.startsWith(basePath.toAbsolutePath())) {
+            System.out.println("Enters in the relativizeIfSamePrefix # if");
             // if the import folder is configured to be used as root folder we consider
             // it as root directory in order to reproduce the same LOAD CSV behaviour
             urlPath = urlPath.getRoot().relativize(urlPath);
