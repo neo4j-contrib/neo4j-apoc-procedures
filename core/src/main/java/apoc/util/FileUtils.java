@@ -262,7 +262,10 @@ public class FileUtils {
             System.out.println("Enters in the relativizeIfSamePrefix # if");
             // if the import folder is configured to be used as root folder we consider
             // it as root directory in order to reproduce the same LOAD CSV behaviour
+            System.out.println("urlPath before relativizing: " + urlPath);
+            System.out.println("urlPath.getRoot(): " + urlPath.getRoot());
             urlPath = urlPath.getRoot().relativize(urlPath);
+            System.out.println("urlPath after relativizing: " + urlPath);
         }
         return urlPath;
     }
