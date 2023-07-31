@@ -185,7 +185,7 @@ public class DocsTest {
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");
         docs.put("apoc.load.jdbc.*", "database-integration/load-jdbc.adoc");
-        docs.put("apoc.load.xml.*|apoc.xml.parse", "import/xml.adoc");
+        docs.put("apoc.load.xml.*|apoc.xml.parse", "import/load-xml.adoc");
         docs.put("apoc.lock.*", "graph-updates/locking.adoc");
         return docs;
     }

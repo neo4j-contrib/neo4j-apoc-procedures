@@ -43,11 +43,6 @@ include::example$generated-documentation/apoc.export.csv.query.adoc[]
 
 include::partial$enableFileExport.adoc[]
 
-[[export-csv-s3-export]]
-== Exporting to S3
-
-include::partial$enableS3Export.adoc[]
-
 [[export-csv-stream-export]]
 == Exporting a stream
 

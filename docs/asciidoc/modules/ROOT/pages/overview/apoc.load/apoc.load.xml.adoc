@@ -41,5 +41,5 @@ include::../../import/includes/enableFileImport.adoc[]
 == Usage Examples
 include::partial$usage/apoc.load.xml.adoc[]
 
-xref::import/xml.adoc[More documentation of apoc.load.xml,role=more information]
+xref::import/load-xml.adoc[More documentation of apoc.load.xml,role=more information]
 

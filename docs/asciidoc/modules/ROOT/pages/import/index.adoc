@@ -4,15 +4,19 @@
 
 
 
-The APOC library adds support for importing data from various data formats, including JSON, XML, and XLS.
+The APOC library adds support for loading and importing data from various data formats, including JSON, XML, and XLS.
+
+* Loading data implies it is streamed into memory and can only be used in conjunction with other statements that are part
+of the same query (`CREATE`, `MATCH`, etc).
+* Importing data, on the other hand, will provoke it is stored into disk and can be consulted and manipulated later on using neo4j queries.
 
 For more information on these procedures, see:
 
 * xref::import/web-apis.adoc[]
 * xref::import/load-json.adoc[]
 * xref::import/load-csv.adoc[]
+* xref::import/load-xls.adoc[]
+* xref::import/load-xml.adoc[]
+* xref::import/load-html.adoc[]
 * xref::import/import-csv.adoc[]
-* xref::import/xls.adoc[]
-* xref::import/xml.adoc[]
-* xref::import/html.adoc[]
-* xref::import/graphml.adoc[]
+* xref::import/import-graphml.adoc[]
