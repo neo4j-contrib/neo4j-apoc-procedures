@@ -3,6 +3,7 @@ package apoc.util;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -43,6 +44,9 @@ public class ExtendedTestContainerUtil
         // add all extra deps to the plugin docker folder
         final IOFileFilter instance = new WildcardFileFilter("*-all.jar");
         copyFilesToPlugin(directory, instance, TestContainerUtil.pluginsFolder);
+
+        Collection<File> files = FileUtils.listFiles(TestContainerUtil.pluginsFolder, new WildcardFileFilter("*"), null);
+        System.out.println("files = " + files);
     }
 
 }
