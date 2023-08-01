@@ -142,10 +142,16 @@ public class CypherInitializer implements AvailabilityListener {
                 final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
                 var initializers = collectInitializers(isSystemDatabase, config);
+
+                // Wait for procedures to be loaded for the cypher initializer
                 if (!isSystemDatabase) {
                     awaitApocProceduresRegistered();
-                } else if (!initializers.isEmpty()) {
-                    waitForSystemDbLifecycles();
+                } else {
+                    if (!initializers.isEmpty()) {
+                        waitForSystemDbLifecycles();
+                    }
+                    // Register listener to drop apoc nodes from system database once a database is deleted
+                    databaseEventListeners.registerDatabaseEventListener(new SystemFunctionalityListener());
                 }
 
                 if (defaultDb.equals(db.databaseName())) {
@@ -161,9 +167,6 @@ public class CypherInitializer implements AvailabilityListener {
                         userLog.info("Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
                     }
                 }
-
-                // create listener for each database
-                databaseEventListeners.registerDatabaseEventListener(new SystemFunctionalityListener());
 
                 for (String query : initializers) {
                     if (QueryUtil.isValidQuery(query)) {
