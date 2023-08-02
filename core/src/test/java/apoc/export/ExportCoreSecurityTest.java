@@ -155,10 +155,10 @@ public class ExportCoreSecurityTest {
         // non-failing cases, with apoc.import.file.use_neo4j_config=false
         public static final List<String> casesAllowed = Arrays.asList(case03, case04, case05);
 
-        private static final String case08 = "tests/../../" + FILENAME;
-        private static final String case09 = "tests/..//..//" + FILENAME;
+        private static final String case07 = "tests/../../" + FILENAME;
+        private static final String case08 = "tests/..//..//" + FILENAME;
 
-        public static final List<String> casesOutsideDir = Arrays.asList(case01, case02, case03, case04, case05, case08, case09);
+        public static final List<String> casesOutsideDir = Arrays.asList(case01, case02, case03, case04, case05, case07, case08);
 
         /*
          All of these will resolve to a local path after normalization which will point to

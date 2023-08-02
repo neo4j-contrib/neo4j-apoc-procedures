@@ -202,11 +202,11 @@ public class ExportFullSecurityTest {
             this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
-        private static final String case3 = "'../test.txt'";
-        private static final String case4 = "'tests/../../test.txt'";
-        private static final String case5 = "'tests/..//..//test.txt'";
+        private static final String case1 = "'../test.txt'";
+        private static final String case2 = "'tests/../../test.txt'";
+        private static final String case3 = "'tests/..//..//test.txt'";
 
-        private static final List<String> cases = Arrays.asList(case3, case4, case5);
+        private static final List<String> cases = Arrays.asList(case1, case2, case3);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query",  cases.stream().map(
