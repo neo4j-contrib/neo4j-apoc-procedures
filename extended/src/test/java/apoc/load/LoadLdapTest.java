@@ -17,8 +17,11 @@ import org.zapodot.junit.ldap.EmbeddedLdapRuleBuilder;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class LoadLdapTest {
     public static final String BIND_DSN = "uid=admin,cn=users,cn=accounts,dc=demo1,dc=freeipa";
@@ -60,13 +63,43 @@ public class LoadLdapTest {
     }
 
     @Test
+    public void testLoadLDAPWithApocConfig() {
+        String ldapValue = "%s %s %s".formatted(
+                "localhost:" + ldapConnection.getConnectedPort(),
+                BIND_DSN,
+                BIND_PWD);
+        apocConfig().setProperty("apoc.loadldap.myldap.config", ldapValue);
+
+        testCall(db, "call apoc.load.ldap($conn, $search)",
+                Map.of("conn", "myldap", "search", searchParams),
+                this::testLoadAssertionCommon);
+    }
+
+    @Test
+    public void testLoadLDAPWithWrongApocConfig() {
+        apocConfig().setProperty("apoc.loadldap.mykey.config", "host logindn pwd");
+
+        String expected = "No apoc.loadldap.wrongKey.config ldap access configuration specified";
+        try {
+            testCall(db, "call apoc.load.ldap('wrongKey', {})",
+                    r -> fail("Should fail due to: " + expected));
+        } catch (RuntimeException e) {
+            String actual = e.getMessage();
+            assertTrue("Current err. message is: " + actual, actual.contains(expected));
+        }
+    }
+
+    @Test
     public void testLoadLDAP() {
         testCall(db, "call apoc.load.ldap($conn, $search)",
-                Map.of("conn", connParams, "search", searchParams), r -> {
-                    final Map<String, String> expected = Map.of("uid", "training",
-                            "dn", "uid=training,dc=example,dc=com");
-                    assertEquals(expected, r.get("entry"));
-                });
+                Map.of("conn", connParams, "search", searchParams),
+                this::testLoadAssertionCommon);
+    }
+
+    private void testLoadAssertionCommon(Map<String, Object> r) {
+        final Map<String, String> expected = Map.of("uid", "training",
+                "dn", "uid=training,dc=example,dc=com");
+        assertEquals(expected, r.get("entry"));
     }
 
     @Test
