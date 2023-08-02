@@ -41,10 +41,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.LongStream;
 
+import static apoc.ApocConfig.APOC_MAX_DECOMPRESSION_RATIO;
+import static apoc.ApocConfig.DEFAULT_DECOMPRESSION_RATIO;
 import static apoc.export.util.LimitedSizeInputStream.SIZE_EXCEEDED_ERROR;
-import static apoc.export.util.LimitedSizeInputStream.SIZE_MULTIPLIER;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -62,13 +64,21 @@ public class LoadCoreEnterpriseTest {
         directory.mkdirs();
     }
 
+    private static Neo4jContainerExtension createNeo4jWithMaxCompressionRatio(Integer ratio) {
+        Neo4jContainerExtension container = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true)
+                .withNeo4jConfig("dbms.memory.heap.max_size", "1GB")
+                .withEnv(APOC_MAX_DECOMPRESSION_RATIO, String.valueOf(ratio));
+        container.start();
+
+        assertTrue(container.isRunning());
+
+        return container;
+    }
+
     @BeforeClass
     public static void beforeClass() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true)
-                .withNeo4jConfig("server.memory.heap.max_size", "1GB");
-        neo4jContainer.start();
-
-        assertTrue(neo4jContainer.isRunning());
+        neo4jContainer = createNeo4jWithMaxCompressionRatio(DEFAULT_DECOMPRESSION_RATIO);
+        session = neo4jContainer.getSession();
 
         loopAllCompressionAlgos(algo -> {
             writeCompressedFile(COMPRESSED_JSON_FILE + algo.name(), algo, writer -> {
@@ -78,7 +88,6 @@ public class LoadCoreEnterpriseTest {
                 writer.write("\"}");
             });
         });
-
         loopAllCompressionAlgos(algo -> {
             writeCompressedFile(COMPRESSED_XML_FILE + algo.name(), algo, writer -> {
                 writer.write("<?xml version=\"1.0\"?><catalog>");
@@ -87,8 +96,6 @@ public class LoadCoreEnterpriseTest {
                 writer.write("</catalog>");
             });
         });
-
-        session = neo4jContainer.getSession();
     }
 
     private static void writeCompressedFile(String fileName, CompressionAlgo algo, Consumer<PrintWriter> supplier) {
@@ -210,6 +217,23 @@ public class LoadCoreEnterpriseTest {
         });
     }
 
+    @Test
+    public void testLoadWorksWithIncreasedCompressionRatio() {
+        Neo4jContainerExtension neo4jContainer = createNeo4jWithMaxCompressionRatio(100000);
+        Session session = neo4jContainer.getSession();
+
+        loopAllCompressionAlgos(algo -> {
+            String algoName = algo.name();
+            String fileName = COMPRESSED_JSON_FILE + algoName;
+            testCall( session, "CALL apoc.load.json($file, '', {compression: $compression})",
+                      Map.of("file", fileName, "compression", algoName),
+                      r -> assertFalse(r.isEmpty()));
+        });
+
+        neo4jContainer.close();
+        session.close();
+    }
+
     private static void loopAllCompressionAlgos(Consumer<CompressionAlgo> compressionAlgoConsumer) {
         Arrays.stream(CompressionAlgo.values())
                 // ignored `FRAMED_SNAPPY` since it does not have efficient compression like the others
@@ -229,7 +253,7 @@ public class LoadCoreEnterpriseTest {
         );
 
         String sizeExceededError = String.format(SIZE_EXCEEDED_ERROR,
-                fileSize * SIZE_MULTIPLIER, SIZE_MULTIPLIER);
+                fileSize * DEFAULT_DECOMPRESSION_RATIO, DEFAULT_DECOMPRESSION_RATIO);
         Assertions.assertThat(e.getMessage()).contains(sizeExceededError);
     }
 }
