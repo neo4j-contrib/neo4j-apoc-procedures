@@ -97,7 +97,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
     public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
     public static final String APOC_MAX_DECOMPRESSION_RATIO = "apoc.max.decompression.ratio";
-    public static final Integer DEFAULT_MAX_DECOMPRESSION_RATIO = 100;
+    public static final Integer DEFAULT_MAX_DECOMPRESSION_RATIO = 200;
     /**
      * @deprecated
      * This has been replaced by database-specific initialisers.
