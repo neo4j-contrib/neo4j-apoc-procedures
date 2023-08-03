@@ -43,7 +43,7 @@ CALL apoc.load.csv("pathToCompressedFile/file.zip!pathToCsvFileInZip/fileName.cs
 CALL apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/{branch}/core/src/test/resources/testload.tgz?raw=true!person.json");
 ----
 
-== Using Amazon Web Services's S3, Google Cloud Storage (GCS) or HDFS protocols
+== Using S3, GCS or HDFS protocols
 
 To use any of these protocols, additional extra dependency jars need to be downloaded and copied into the plugins directory _<NEO4J_HOME>/plugins_, respectively:
 
@@ -52,14 +52,14 @@ To use any of these protocols, additional extra dependency jars need to be downl
 | Protocol | Needed extra dependency
 | S3       | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-aws-dependencies-{apoc-release}.jar[apoc-aws-dependencies-{apoc-release}.jar]
 | GCS      | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-gcs-dependencies-{apoc-release}.jar[apoc-gcs-dependencies-{apoc-release}.jar]
-| Hadoop   | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-hadoop-dependencies-{apoc-release}.jar[apoc-hadoop-dependencies-{apoc-release}.jar]
+| HDFS     | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-hadoop-dependencies-{apoc-release}.jar[apoc-hadoop-dependencies-{apoc-release}.jar]
 |===
 
 After copying the jars into the plugins directory, the database will need to be restarted.
 
 === Using S3 protocol
 
-include::partial$enableS3Export.adoc[]
+include::partial$s3-protocol.adoc[]
 
 === Using Google Cloud Storage
 

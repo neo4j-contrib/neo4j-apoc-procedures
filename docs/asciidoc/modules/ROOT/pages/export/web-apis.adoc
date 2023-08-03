@@ -5,4 +5,6 @@
 To export to S3, https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-aws-dependencies-{apoc-release}.jar[apoc-aws-dependencies-{apoc-release}.jar]
 needs to be downloaded and copied into the plugins directory _<NEO4J_HOME>/plugins_.
 
+After copying the jars into the plugins directory, the database will need to be restarted.
+
 include::partial$enableS3Export.adoc[]
