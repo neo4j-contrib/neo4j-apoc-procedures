@@ -1,0 +1,10 @@
+[[ml]]
+= Machine Learning (ML
+:description: This chapter describes procedures that can be used for adding Machine Learning (ML) functionality to graph applications.
+
+The procedures described in this chapter act as wrappers around cloud based Machine Learning APIs.
+These procedures generate embeddings, analyze text, complete text, complete chat conversations and more.
+
+This section includes:
+
+* xref::ml/openai.adoc[]
