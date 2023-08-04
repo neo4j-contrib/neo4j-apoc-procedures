@@ -1,14 +1,11 @@
 package apoc.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.driver.Session;
@@ -30,23 +27,15 @@ public class ExtendedTestContainerUtil
         TestContainerUtil.testCallInReadTransaction(session, call, null, consumer);
     }
 
-    public static void addExtraDependencies() throws IOException {
+    public static void addExtraDependencies() {
         File extraDepsDir = new File(TestContainerUtil.baseDir, "extra-dependencies");
-        final File directory = new File(extraDepsDir, "build/allJars");
-        // remove previous jars, if present
-        if (directory.exists()) {
-            FileUtils.cleanDirectory(directory);
-        }
-
         // build the extra-dependencies
         executeGradleTasks(extraDepsDir, "buildDependencies");
 
         // add all extra deps to the plugin docker folder
+        final File directory = new File(extraDepsDir, "build/allJars");
         final IOFileFilter instance = new WildcardFileFilter("*-all.jar");
         copyFilesToPlugin(directory, instance, TestContainerUtil.pluginsFolder);
-
-        Collection<File> files = FileUtils.listFiles(TestContainerUtil.pluginsFolder, new WildcardFileFilter("*"), null);
-        System.out.println("files = " + files);
     }
 
 }
