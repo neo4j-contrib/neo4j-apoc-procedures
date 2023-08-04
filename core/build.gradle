@@ -134,8 +134,8 @@ dependencies {
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.5'
-    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.5', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.25.0'
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.25.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 

@@ -20,5 +20,5 @@ jar {
 }
 
 dependencies {
-    implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.5'
+    implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.25.0'
 }
