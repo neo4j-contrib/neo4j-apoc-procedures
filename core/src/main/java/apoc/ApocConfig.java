@@ -270,6 +270,13 @@ public class ApocConfig extends LifecycleAdapter {
                 }
             }
 
+            if (!config.containsKey(APOC_MAX_DECOMPRESSION_RATIO)) {
+                config.setProperty(APOC_MAX_DECOMPRESSION_RATIO, DEFAULT_MAX_DECOMPRESSION_RATIO);
+            }
+            if (config.getInt(APOC_MAX_DECOMPRESSION_RATIO) == 0) {
+                throw new IllegalArgumentException(format("value 0 is not allowed for the config option %s", APOC_MAX_DECOMPRESSION_RATIO));
+            }
+
             boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
             config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
             

@@ -39,6 +39,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Collections;
 import java.util.Set;
 
+import static apoc.ApocConfig.APOC_MAX_DECOMPRESSION_RATIO;
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
@@ -184,6 +185,26 @@ public class ApocConfigTest {
         Assertions.assertThat(e.getMessage()).contains(expectedMessage);
 
         removeLineFromApocConfig(validExpandLine);
+    }
+
+    @Test
+    public void testMaxDecompressionRatioValidation() {
+
+        LogProvider logProvider = new AssertableLogProvider();
+
+        Config neo4jConfig = mock(Config.class);
+        when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
+        when(neo4jConfig.get(any())).thenReturn(null);
+        when(neo4jConfig.expandCommands()).thenReturn(false);
+
+        GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
+        DatabaseManagementService databaseManagementService = mock(DatabaseManagementService.class);
+        System.setProperty(APOC_MAX_DECOMPRESSION_RATIO, "0");
+        ApocConfig apocConfig = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry, databaseManagementService);
+
+        RuntimeException e = assertThrows(RuntimeException.class, apocConfig::init);
+        String expectedMessage = String.format("value 0 is not allowed for the config option %s", APOC_MAX_DECOMPRESSION_RATIO);
+        Assertions.assertThat(e.getMessage()).contains(expectedMessage);
     }
 
     private void removeLineFromApocConfig(String lineContent) throws IOException {

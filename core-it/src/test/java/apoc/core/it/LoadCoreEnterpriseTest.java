@@ -245,6 +245,23 @@ public class LoadCoreEnterpriseTest {
     }
 
     @Test
+    public void testNegativeValueDisablesZipBombProtection() {
+        Neo4jContainerExtension neo4jContainer = createNeo4jWithMaxCompressionRatio(-1);
+        Session session = neo4jContainer.getSession();
+
+        var compressionAlgorithm = CompressionAlgo.GZIP;
+        String algoName = compressionAlgorithm.name();
+        String fileName = COMPRESSED_JSON_FILE + algoName;
+
+        testCall( session, "CALL apoc.load.json($file, '', {compression: $compression})",
+                  Map.of("file", fileName, "compression", algoName),
+                  r -> assertFalse(r.isEmpty()));
+
+        neo4jContainer.close();
+        session.close();
+    }
+
+    @Test
     public void testLoadZipBombFailsWithNonDefaultRatio() {
         int compressionRatio = 101;
         Neo4jContainerExtension neo4jContainer = createNeo4jWithMaxCompressionRatio(compressionRatio);
