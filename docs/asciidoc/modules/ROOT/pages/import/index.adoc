@@ -8,7 +8,7 @@ The APOC library adds support for loading and importing data from various data f
 
 * Loading data implies it is streamed into memory and can only be used in conjunction with other statements that are part
 of the same query (`CREATE`, `MATCH`, etc).
-* Importing data, on the other hand, will provoke it is stored into disk and can be consulted and manipulated later on using neo4j queries.
+* Importing data, on the other hand, will also store the data to disk, which can then be consulted and manipulated later on using Cypher queries.
 
 For more information on these procedures, see:
 
