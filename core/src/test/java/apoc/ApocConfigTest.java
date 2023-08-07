@@ -205,6 +205,7 @@ public class ApocConfigTest {
         RuntimeException e = assertThrows(RuntimeException.class, apocConfig::init);
         String expectedMessage = String.format("value 0 is not allowed for the config option %s", APOC_MAX_DECOMPRESSION_RATIO);
         Assertions.assertThat(e.getMessage()).contains(expectedMessage);
+        System.clearProperty(APOC_MAX_DECOMPRESSION_RATIO);
     }
 
     private void removeLineFromApocConfig(String lineContent) throws IOException {
