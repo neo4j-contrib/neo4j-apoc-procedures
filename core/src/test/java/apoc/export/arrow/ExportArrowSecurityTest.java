@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 import static apoc.export.ExportCoreSecurityTest.FILENAME;
 import static apoc.export.ExportCoreSecurityTest.PARAM_NAMES;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.case07;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.case10;
 import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.EXCEPTION_NOT_FOUND_CONSUMER;
 import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.dataPairs;
 import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.MAIN_DIR_CONSUMER;
@@ -153,7 +153,7 @@ public class ExportArrowSecurityTest {
 
         private void testWithUseNeo4jConfFalse() {
             // with `apoc.import.file.use_neo4j_config=false` this file export could outside the project
-            if (fileName.equals(case07)) {
+            if (fileName.equals(case10)) {
                 return;
             }
 

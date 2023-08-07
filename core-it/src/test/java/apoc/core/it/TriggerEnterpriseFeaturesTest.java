@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 package apoc.core.it;
-
+import apoc.SystemLabels;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.SystemPropertyKeys.database;
 import static apoc.trigger.TriggerHandler.TRIGGER_REFRESH;
 import static apoc.trigger.TriggerTestUtil.TIMEOUT;
 import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
@@ -245,6 +246,38 @@ public class TriggerEnterpriseFeaturesTest {
                 failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.resume", "call apoc.trigger.resume('abc')");
                 failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.list", "call apoc.trigger.list");
             }
+        }
+    }
+
+    @Test
+    public void testNotDeleteUserDbTriggerNodeAfterDatabaseDeletion() {
+        final String dbToDelete = "todelete";
+
+        // create a node in the Neo4j db that looks like a trigger
+        try (Session defaultSession = neo4jContainer.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
+            defaultSession.writeTransaction(tx -> tx.run(String.format("CREATE (:%s {%s:'%s'})", SystemLabels.ApocTrigger, database.name(), dbToDelete)));
+        }
+
+        try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME)))
+        {
+            // create database with name `todelete`
+            sysSession.writeTransaction( tx -> tx.run( String.format( "CREATE DATABASE %s WAIT;", dbToDelete ) ) );
+
+            // install a trigger for the database
+            final String defaultTriggerName = UUID.randomUUID().toString();
+            testCall( sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})", Map.of( "dbName", dbToDelete, "name", defaultTriggerName ),
+                    r -> assertEquals( defaultTriggerName, r.get( "name" ) ) );
+
+            // drop database
+            sysSession.writeTransaction( tx -> tx.run( String.format( "DROP DATABASE %s WAIT;", dbToDelete ) ) );
+        }
+
+        // check that the node in Neo4j database is still there
+        try (Session defaultSession = neo4jContainer.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
+            testCall(defaultSession, String.format("MATCH (n:%s) RETURN n.%s AS result", SystemLabels.ApocTrigger, database.name()),
+                    Map.of(),
+                    r -> assertEquals(dbToDelete, r.get("result"))
+            );
         }
     }
 
