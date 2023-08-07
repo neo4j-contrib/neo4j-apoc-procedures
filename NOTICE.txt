@@ -245,15 +245,15 @@ Apache-2.0
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
-  shiro-cache-1.11.0.jar
-  shiro-config-core-1.11.0.jar
-  shiro-config-ogdl-1.11.0.jar
-  shiro-core-1.11.0.jar
-  shiro-crypto-cipher-1.11.0.jar
-  shiro-crypto-core-1.11.0.jar
-  shiro-crypto-hash-1.11.0.jar
-  shiro-event-1.11.0.jar
-  shiro-lang-1.11.0.jar
+  shiro-cache-1.12.0.jar
+  shiro-config-core-1.12.0.jar
+  shiro-config-ogdl-1.12.0.jar
+  shiro-core-1.12.0.jar
+  shiro-crypto-cipher-1.12.0.jar
+  shiro-crypto-core-1.12.0.jar
+  shiro-crypto-hash-1.12.0.jar
+  shiro-event-1.12.0.jar
+  shiro-lang-1.12.0.jar
   snappy-java-1.1.8.2.jar
   token-provider-1.0.1.jar
   websocket-api-9.4.51.v20230217.jar
