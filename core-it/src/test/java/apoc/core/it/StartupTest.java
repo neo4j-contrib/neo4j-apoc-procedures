@@ -1,12 +1,16 @@
 package apoc.core.it;
 
+import apoc.ApocSettings;
 import apoc.ApocSignatures;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.graphdb.config.Setting;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +21,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_MAX_DECOMPRESSION_RATIO;
+import static apoc.ApocSettings.apoc_export_file_enabled;
+import static apoc.ApocSettings.apoc_import_file_enabled;
+import static apoc.ApocSettings.apoc_import_file_use__neo4j__config;
+import static apoc.ApocSettings.apoc_jobs_pool_num_threads;
+import static apoc.ApocSettings.apoc_max_decompression_ratio;
+import static apoc.ApocSettings.apoc_ttl_enabled;
+import static apoc.ApocSettings.apoc_ttl_schedule;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -106,6 +118,25 @@ public class StartupTest {
                     assertFalse(logs.contains("pass12345"));
                 }
         );
+    }
+
+    @Test
+    public void checkApocConfigShowsInNeo4jConfig() {
+        // we check that the apoc config is shown inside dbms.listConfig()
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), false),
+           session -> {
+                var result = session.run( "CALL dbms.listConfig() YIELD name WHERE name STARTS WITH \"apoc\" RETURN name" ).stream().collect(Collectors.toList());
+                assertConfigContains(result, apoc_max_decompression_ratio);
+                assertConfigContains(result, apoc_import_file_enabled);
+                assertConfigContains(result, apoc_export_file_enabled);
+                assertConfigContains(result, apoc_ttl_enabled);
+                assertConfigContains(result, apoc_ttl_schedule);
+           }, neo4jContainer -> {}
+        );
+    }
+
+    private <T>void assertConfigContains(List<Record> configList, Setting<T> setting) {
+        assertTrue(configList.stream().anyMatch(r -> r.get("name").asString().contains(setting.name())));
     }
     
     private void startNeo4jContainerSession(Supplier<Neo4jContainerExtension> neo4jContainerCreation,

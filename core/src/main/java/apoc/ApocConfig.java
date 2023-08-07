@@ -97,7 +97,8 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_QUEUE_SIZE = "apoc.jobs.queue.size";
     public static final String APOC_CONFIG_INITIALIZER = "apoc.initializer";
     public static final String LOAD_FROM_FILE_ERROR = "Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf";
-
+    public static final String APOC_MAX_DECOMPRESSION_RATIO = "apoc.max.decompression.ratio";
+    public static final Integer DEFAULT_MAX_DECOMPRESSION_RATIO = 200;
     /**
      * @deprecated
      * This has been replaced by database-specific initialisers.
@@ -268,6 +269,13 @@ public class ApocConfig extends LifecycleAdapter {
                 if (value!=null) {
                     config.setProperty(s.name(), value.toString());
                 }
+            }
+
+            if (!config.containsKey(APOC_MAX_DECOMPRESSION_RATIO)) {
+                config.setProperty(APOC_MAX_DECOMPRESSION_RATIO, DEFAULT_MAX_DECOMPRESSION_RATIO);
+            }
+            if (config.getInt(APOC_MAX_DECOMPRESSION_RATIO) == 0) {
+                throw new IllegalArgumentException(format("value 0 is not allowed for the config option %s", APOC_MAX_DECOMPRESSION_RATIO));
             }
 
             boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
