@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -12,14 +12,14 @@ description = """APOC Selenium Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
     // currently we cannot update to the latest version due to guava minimum version required (31.0.1-jre)
-    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', {
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    compile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '4.4.3'
+    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '4.4.3'
 }

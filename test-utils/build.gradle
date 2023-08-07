@@ -1,19 +1,19 @@
 description = 'APOC :: Test Utils'
 
 dependencies {
-    compile group: 'junit', name: 'junit', version: '4.13.1'
+    implementation group: 'junit', name: 'junit', version: '4.13.1'
 
-    compile group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
-    compile group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
-    compile group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
+    implementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective // , classifier: "tests"
 
-    compile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
-    compile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    implementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
-    compile group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '32.0.1-jre'
 
     // If updated check if we can remove the manual licensing check for it in licenses-3rdparties.gradle
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.1.1'
+    implementation group: 'org.gradle', name: 'gradle-tooling-api', version: '6.1.1'
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
@@ -21,27 +21,27 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.6', withoutServers
+    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.3.6', withoutServers
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', withoutServers
-    compile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.6', withoutServers
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', withoutServers
+    implementation group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.3.6', withoutServers
 
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
-    compile group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    implementation group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.9'
+    implementation group: 'org.jetbrains', name: 'annotations', version: "17.0.0"
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
 
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.14.0'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.14.0'
 
     // Test Containers
-    compile group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'elasticsearch', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'couchbase', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
-    compile group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
-    compile group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
-    compile group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
+    implementation group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'elasticsearch', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'couchbase', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
+    implementation group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
+    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
+    implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
 }

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -12,12 +12,12 @@ description = """APOC MongoDB Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile 'org.mongodb:mongodb-driver:3.2.2', {
+    implementation 'org.mongodb:mongodb-driver:3.2.2', {
         exclude group: 'io.netty'
     }
 }

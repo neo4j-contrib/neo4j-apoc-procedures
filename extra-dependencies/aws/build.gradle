@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -13,10 +13,10 @@ description = """APOC AWS Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
 }

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -13,12 +13,12 @@ description = """APOC Email Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
 }
 
 

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -12,12 +12,12 @@ description = """APOC Bolt Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
+    implementation group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
 }
 
 
