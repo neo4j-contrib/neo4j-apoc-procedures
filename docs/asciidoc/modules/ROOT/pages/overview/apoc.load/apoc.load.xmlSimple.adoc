@@ -31,5 +31,5 @@ apoc.load.xmlSimple(url :: STRING?) :: (value :: MAP?)
 |value|MAP?
 |===
 
-xref::import/xml.adoc[More documentation of apoc.load.xmlSimple,role=more information]
+xref::import/load-xml.adoc[More documentation of apoc.load.xmlSimple,role=more information]
 
