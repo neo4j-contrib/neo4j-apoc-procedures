@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'com.github.johnrengelman.shadow'
     id "com.diffplug.spotless" version "6.7.2"
 }
 
@@ -12,8 +13,6 @@ spotless {
 }
 
 archivesBaseName = "apoc"
-
-apply plugin: 'com.github.johnrengelman.shadow'
 
 jar {
     manifest {
