@@ -155,13 +155,10 @@ public class ExportCoreSecurityTest {
         // non-failing cases, with apoc.import.file.use_neo4j_config=false
         public static final List<String> casesAllowed = Arrays.asList(case03, case04, case05);
 
-        private static final String case06 = "file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2fapoc/" + FILENAME;
-        public static final String case07 = "file:///%2e%2e%2f%2f" + FILENAME;
-        private static final String case08 = "tests/../../" + FILENAME;
-        private static final String case09 = "tests/..//..//" + FILENAME;
+        private static final String case07 = "tests/../../" + FILENAME;
+        private static final String case08 = "tests/..//..//" + FILENAME;
 
-        public static final List<String> casesOutsideDir = Arrays.asList(case01, case02, case03, case04, case05,
-                case06, case07, case08, case09);
+        public static final List<String> casesOutsideDir = Arrays.asList(case01, case02, case03, case04, case05, case07, case08);
 
         /*
          All of these will resolve to a local path after normalization which will point to
@@ -229,10 +226,6 @@ public class ExportCoreSecurityTest {
         }
 
         private void testWithUseNeo4jConfFalse() {
-            // with `apoc.import.file.use_neo4j_config=false` this file export could outside the project
-            if (fileName.equals(case07)) {
-                return;
-            }
 
             try {
                 assertPathTraversalWithoutErrors();
@@ -285,8 +278,10 @@ public class ExportCoreSecurityTest {
         private static final String case06 = "file:///tests//..//" + FILENAME;
         private static final String case07 = "" + FILENAME;
         private static final String case08 = "file:///..//..//..//..//" + FILENAME;
+        private static final String case09 = "file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f/" + FILENAME;
+        public static final String case10 = "file:///%2e%2e%2f%2f" + FILENAME;
 
-        public static final List<String> mainDirCases = Arrays.asList(caseBase, case01, case02, case03, case04, case05, case06, case07, case08);
+        public static final List<String> mainDirCases = Arrays.asList(caseBase, case01, case02, case03, case04, case05, case06, case07, case08, case09, case10);
 
         /*
          These tests normalize the path to be within the import directory and step into a subdirectory

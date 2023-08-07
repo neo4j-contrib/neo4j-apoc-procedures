@@ -82,6 +82,12 @@ apoc.log.warn
 apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
+apoc.ml.cypher
+apoc.ml.query
+apoc.ml.schema
+apoc.ml.openai.chat
+apoc.ml.openai.completion
+apoc.ml.openai.embedding
 apoc.model.jdbc
 apoc.mongo.aggregate
 apoc.mongo.count
@@ -119,6 +125,7 @@ apoc.nlp.gcp.entities.graph
 apoc.nlp.gcp.entities.stream
 apoc.periodic.rock_n_roll
 apoc.periodic.rock_n_roll_while
+apoc.periodic.submitSchema
 apoc.redis.append
 apoc.redis.configGet
 apoc.redis.configSet
