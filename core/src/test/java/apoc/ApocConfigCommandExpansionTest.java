@@ -20,6 +20,7 @@ package apoc;
 
 import com.google.common.collect.Sets;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -81,6 +82,11 @@ public class ApocConfigCommandExpansionTest {
         GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
         DatabaseManagementService databaseManagementService = mock(DatabaseManagementService.class);
         apocConfig = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry, databaseManagementService);
+    }
+
+    @After
+    public void cleanup() {
+        System.clearProperty(SUN_JAVA_COMMAND);
     }
 
     private void setApocConfigFilePermissions(Set<PosixFilePermission> forbidden) throws Exception {
