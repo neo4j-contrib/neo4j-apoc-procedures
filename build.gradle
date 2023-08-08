@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'  apply false
     id 'maven-publish'
-    id "com.github.hierynomus.license-report" version"0.15.0"
+    id "com.github.hierynomus.license-report" version"0.16.1"
 }
 
 downloadLicenses {
