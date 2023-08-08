@@ -8,7 +8,9 @@ java {
 }
 
 
-archivesBaseName = 'apoc-nlp-dependencies'
+base {
+    archivesName = 'apoc-nlp-dependencies'
+}
 description = """APOC NLP Dependencies"""
 
 jar {

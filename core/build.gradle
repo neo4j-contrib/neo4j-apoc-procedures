@@ -12,7 +12,9 @@ spotless {
     }
 }
 
-archivesBaseName = "apoc"
+base {
+    archivesName = "apoc"
+}
 
 jar {
     manifest {

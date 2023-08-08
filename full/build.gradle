@@ -16,13 +16,15 @@ spotless {
     }
 }
 
-archivesBaseName = "apoc"
-
+base {
+    archivesName = "apoc"
+}
 
 jar {
     manifest {
         attributes 'Implementation-Version': archiveVersion
     }
+    archiveClassifier = 'full'
 }
 
 compileKotlin {
@@ -32,10 +34,6 @@ compileKotlin {
 
 compileTestKotlin {
     dependsOn(generateTestGrammarSource)
-}
-
-mySourcesJar {
-    dependsOn(generateGrammarSource)
 }
 
 generateGrammarSource {

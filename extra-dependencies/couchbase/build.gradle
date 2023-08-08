@@ -7,7 +7,9 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-archivesBaseName = 'apoc-couchbase-dependencies'
+base {
+    archivesName = 'apoc-couchbase-dependencies'
+}
 description = """APOC Couchbase Dependencies"""
 
 jar {

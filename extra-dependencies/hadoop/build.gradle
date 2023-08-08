@@ -7,7 +7,9 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-archivesBaseName = 'apoc-hadoop-dependencies'
+base {
+    archivesName = 'apoc-hadoop-dependencies'
+}
 description = """APOC Apache Hadoop Dependencies"""
 
 jar {

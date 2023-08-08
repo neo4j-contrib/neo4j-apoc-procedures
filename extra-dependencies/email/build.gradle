@@ -8,7 +8,9 @@ java {
 }
 
 
-archivesBaseName = 'apoc-email-dependencies'
+base {
+    archivesName = 'apoc-email-dependencies'
+}
 description = """APOC Email Dependencies"""
 
 jar {

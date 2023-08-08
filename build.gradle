@@ -14,7 +14,9 @@ downloadLicenses {
 allprojects {
     group = 'org.neo4j.procedure'
     version = '4.4.0.21'
-    archivesBaseName = 'apoc'
+    base {
+        archivesName = 'apoc'
+    }
     description = """neo4j-apoc-procedures"""
 }
 
@@ -59,6 +61,7 @@ subprojects {
     task mySourcesJar(type: Jar) {
         from sourceSets.main.allJava
         archiveClassifier = 'sources'
+        dependsOn(':full:generateGrammarSource')
     }
 
     task myJavadocJar(type: Jar) {

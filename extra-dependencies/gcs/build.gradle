@@ -8,7 +8,9 @@ java {
 }
 
 
-archivesBaseName = 'apoc-gcs-dependencies'
+base {
+    archivesName = 'apoc-gcs-dependencies'
+}
 description = """APOC Google Cloud Storage Dependencies"""
 
 jar {

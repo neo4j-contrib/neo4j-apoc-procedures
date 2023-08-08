@@ -8,7 +8,9 @@ java {
 }
 
 
-archivesBaseName = 'apoc-aws-dependencies'
+base {
+    archivesName = 'apoc-aws-dependencies'
+}
 description = """APOC AWS Dependencies"""
 
 jar {
