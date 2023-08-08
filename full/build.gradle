@@ -34,6 +34,10 @@ compileTestKotlin {
     dependsOn(generateTestGrammarSource)
 }
 
+mySourcesJar {
+    dependsOn(generateGrammarSource)
+}
+
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
 }
