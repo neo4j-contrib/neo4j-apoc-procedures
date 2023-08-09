@@ -210,7 +210,6 @@ publishing {
             project.shadow.component(publication)
             artifact(mySourcesJar)
             artifact(myJavadocJar)
-            artifact(jar)
 
             pom.withXml {
                 def root = asNode()
