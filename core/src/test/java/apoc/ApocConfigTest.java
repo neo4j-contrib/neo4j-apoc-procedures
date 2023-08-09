@@ -18,6 +18,7 @@
  */
 package apoc;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,8 +33,10 @@ import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
+import static apoc.ApocConfig.APOC_MAX_DECOMPRESSION_RATIO;
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -93,4 +96,24 @@ public class ApocConfigTest {
         assertEquals("/home/stefan/neo4j enterprise-4.0.0-alpha09mr02/conf", apocConfig.determineNeo4jConfFolder());
     }
 
+    @Test
+    public void testMaxDecompressionRatioValidation() {
+
+        LogProvider logProvider = new AssertableLogProvider();
+
+        Config neo4jConfig = mock(Config.class);
+        when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
+        when(neo4jConfig.get(any())).thenReturn(null);
+        when(neo4jConfig.expandCommands()).thenReturn(false);
+
+        GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
+        DatabaseManagementService databaseManagementService = mock(DatabaseManagementService.class);
+        System.setProperty(APOC_MAX_DECOMPRESSION_RATIO, "0");
+        ApocConfig apocConfig = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry, databaseManagementService);
+
+        RuntimeException e = assertThrows(RuntimeException.class, apocConfig::init);
+        String expectedMessage = String.format("value 0 is not allowed for the config option %s", APOC_MAX_DECOMPRESSION_RATIO);
+        Assertions.assertThat(e.getMessage()).contains(expectedMessage);
+        System.clearProperty(APOC_MAX_DECOMPRESSION_RATIO);
+    }
 }
