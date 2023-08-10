@@ -75,7 +75,7 @@ public class StartupTest {
         final List<String> expectedFullProcAndFunNames = FileUtils.readLines(extendedFile, StandardCharsets.UTF_8);
         
         // we check that with apoc-full jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI(), true),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI(), true, false, null),
                 session -> {
                     checkCoreProcsAndFuncsExistence(session);
 
@@ -90,7 +90,7 @@ public class StartupTest {
     @Test
     public void checkCoreWithExtraDependenciesJars() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true, false, null),
                 this::checkCoreProcsAndFuncsExistence, (neo4jContainer) -> {});
 
     }
@@ -98,7 +98,7 @@ public class StartupTest {
     @Test
     public void checkCypherInitializerWaitsForSystemDbToBeAvailable() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
-        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true)
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), true, false, null)
                 .withEnv("apoc.initializer.system.0", "CREATE USER dummy IF NOT EXISTS SET PASSWORD \"pass12345\" CHANGE NOT REQUIRED")
                 .withEnv("apoc.initializer.system.1", "GRANT ROLE reader TO dummy"),
                 session -> {
@@ -123,7 +123,7 @@ public class StartupTest {
     @Test
     public void checkApocConfigShowsInNeo4jConfig() {
         // we check that the apoc config is shown inside dbms.listConfig()
-        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), false),
+        startNeo4jContainerSession(() -> createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI(), false, false, null),
            session -> {
                 var result = session.run( "CALL dbms.listConfig() YIELD name WHERE name STARTS WITH \"apoc\" RETURN name" ).stream().collect(Collectors.toList());
                 assertConfigContains(result, apoc_max_decompression_ratio);

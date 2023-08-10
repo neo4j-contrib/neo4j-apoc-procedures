@@ -13,6 +13,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.ContainerFetchException;
 import org.testcontainers.utility.MountableFile;
 
@@ -85,18 +86,37 @@ public class TestContainerUtil {
     }
 
     public static Neo4jContainerExtension createEnterpriseDB(List<ApocPackage> apocPackages, boolean withLogging) {
-        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, false);
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, false, false, null);
     }
 
-    public static Neo4jContainerExtension createEnterpriseDB(List<ApocPackage> apocPackages, boolean withLogging, boolean withExtraDeps) {
-        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, withExtraDeps);
+    public static Neo4jContainerExtension createEnterpriseDB(
+            List<ApocPackage> apocPackages,
+            boolean withLogging,
+            boolean withExtraDeps,
+            boolean withCommandExpansion,
+            File apocConfFile
+    ) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.ENTERPRISE, withExtraDeps, withCommandExpansion, apocConfFile);
     }
 
-    public static Neo4jContainerExtension createCommunityDB(List<ApocPackage> apocPackages, boolean withLogging, boolean withExtraDeps) {
-        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.COMMUNITY, withExtraDeps);
+    public static Neo4jContainerExtension createCommunityDB(
+            List<ApocPackage> apocPackages,
+            boolean withLogging,
+            boolean withExtraDeps,
+            boolean withCommandExpansion,
+            File apocConfFile
+    ) {
+        return createNeo4jContainer(apocPackages, withLogging, Neo4jVersion.COMMUNITY, withExtraDeps, withCommandExpansion, apocConfFile);
     }
 
-    public static Neo4jContainerExtension createNeo4jContainer(List<ApocPackage> apocPackages, boolean withLogging, Neo4jVersion version, boolean withExtraDeps) {
+    public static Neo4jContainerExtension createNeo4jContainer(
+            List<ApocPackage> apocPackages,
+            boolean withLogging,
+            Neo4jVersion version,
+            boolean withExtraDeps,
+            boolean withCommandExpansion,
+            File apocConfFile
+    ) {
         String dockerImage = dockerImageForNeo4j(version);
 
         try {
@@ -165,6 +185,17 @@ public class TestContainerUtil {
                 });
         if (withLogging) {
             neo4jContainer.withLogging();
+        }
+        if (withCommandExpansion) {
+            neo4jContainer.withEnv("EXTENDED_CONF", "yes");
+            //neo4jContainer.withCommand("chmod 640 /var/lib/neo4j/conf/neo4j.conf");
+        }
+
+        if (apocConfFile != null) {
+            neo4jContainer.withFileSystemBind(apocConfFile.toPath().toString(), "/var/lib/neo4j/conf", BindMode.READ_ONLY);
+
+            //neo4jContainer.withEnv("apoc.spatial.geocode.osm.throttle", "$(echo \"500\")");
+            //neo4jContainer.withCopyFileToContainer(MountableFile.forHostPath(apocConfFile.toPath()), "/var/lib/neo4j/conf");
         }
         return neo4jContainer;
     }
