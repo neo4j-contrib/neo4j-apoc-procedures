@@ -22,6 +22,7 @@ import apoc.export.cypher.ExportCypherTestUtils;
 import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
 import apoc.util.s3.S3TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class ExportCypherS3Test extends S3BaseTest {
     @Before
     public void setUp() {
       ExportCypherTestUtils.setUp( db, testName);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     // -- Whole file test -- //

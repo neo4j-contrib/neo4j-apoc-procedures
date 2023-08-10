@@ -23,6 +23,7 @@ import apoc.load.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
 import apoc.nodes.NodesExtended;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +55,11 @@ public class PeriodicExtendedTest {
     @Before
     public void initDb() {
         TestUtil.registerProcedure(db, Periodic.class, NodesExtended.class, GCPProcedures.class, Create.class, PeriodicExtended.class, Jdbc.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

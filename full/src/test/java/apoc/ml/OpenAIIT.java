@@ -1,6 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,6 +31,11 @@ public class OpenAIIT {
         openaiKey = System.getenv("OPENAI_KEY");
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openaiKey);
         TestUtil.registerProcedure(db, OpenAI.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

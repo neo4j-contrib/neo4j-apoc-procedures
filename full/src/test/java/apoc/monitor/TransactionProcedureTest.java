@@ -20,6 +20,7 @@ package apoc.monitor;
 
 import apoc.cypher.CypherInitializer;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +46,11 @@ public class TransactionProcedureTest {
         TestUtil.registerProcedure(db, Transaction.class);
         // we need to wait until every CypherInitializer transaction is finished to make sure tests are not flaky
         waitForInitializerBeingFinished(db);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

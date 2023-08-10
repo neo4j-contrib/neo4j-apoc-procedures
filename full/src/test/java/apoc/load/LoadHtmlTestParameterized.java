@@ -20,6 +20,7 @@ package apoc.load;
 
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +62,10 @@ public class LoadHtmlTestParameterized {
         TestUtil.registerProcedure(db, LoadHtml.class);
     }
 
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
 
     @Parameters
     public static Collection<Object> data() {

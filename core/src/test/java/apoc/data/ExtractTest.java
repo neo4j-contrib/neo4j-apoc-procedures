@@ -19,9 +19,10 @@
 package apoc.data;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -33,13 +34,19 @@ import static org.junit.Assert.assertEquals;
 
 public class ExtractTest {
 
-    @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Extract.class);
     }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
+    }
+
 
     @Test
     public void testQuotedEmail() {

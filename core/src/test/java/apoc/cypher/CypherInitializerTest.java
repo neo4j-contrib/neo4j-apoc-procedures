@@ -23,6 +23,7 @@ import apoc.test.annotations.Env;
 import apoc.test.annotations.EnvSetting;
 import apoc.util.TestUtil;
 import apoc.util.Utils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +55,11 @@ public class CypherInitializerTest {
 
         waitForInitializerBeingFinished(SYSTEM_DATABASE_NAME, dbmsRule);
         waitForInitializerBeingFinished(DEFAULT_DATABASE_NAME, dbmsRule);
+    }
+
+    @After
+    public void teardown() {
+        dbmsRule.shutdown();
     }
 
     private static void waitForInitializerBeingFinished(String dbName, DbmsRule dbmsRule) {

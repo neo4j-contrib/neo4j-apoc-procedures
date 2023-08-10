@@ -19,6 +19,7 @@
 package apoc.number;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -46,6 +47,11 @@ public class NumbersTest {
     @BeforeClass
     public static void sUp() throws Exception {
         TestUtil.registerProcedure(db, Numbers.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

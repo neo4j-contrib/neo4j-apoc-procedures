@@ -19,6 +19,7 @@
 package apoc.convert;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class ConvertTest {
     @BeforeClass
     public static void initDb() throws Exception {
         TestUtil.registerProcedure(db, Convert.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
     }
 
     @Test

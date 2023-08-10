@@ -25,11 +25,7 @@ import apoc.result.VirtualNode
 import apoc.util.TestUtil
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
-import org.junit.Assert
-import org.junit.Assume
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
+import org.junit.*
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -51,6 +47,12 @@ class AzureProceduresAPITest {
         fun beforeClass() {
             TestUtil.registerProcedure(neo4j, AzureProcedures::class.java)
             Assume.assumeTrue((TEXT_URL != null && TEXT_KEY != null) || (VISION_URL != null && VISION_KEY != null))
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
         }
     }
 

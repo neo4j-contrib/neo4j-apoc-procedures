@@ -7,6 +7,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -43,6 +44,11 @@ public class PromptIT {
             tx.execute(movies);
             tx.commit();
         }
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

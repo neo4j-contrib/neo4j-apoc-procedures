@@ -18,7 +18,8 @@
  */
 package apoc.export.util;
 
-import org.junit.Rule;
+import org.junit.AfterClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -34,8 +35,13 @@ import static org.junit.Assert.assertEquals;
  */
 public class FormatUtilsTest {
 
-    @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
+    }
 
     @Test
     public void formatString() throws Exception {

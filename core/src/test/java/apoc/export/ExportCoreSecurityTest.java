@@ -27,6 +27,7 @@ import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -89,6 +90,11 @@ public class ExportCoreSecurityTest {
         logger.setLevel(Level.SEVERE);
 
         TestUtil.registerProcedure(db, ExportCSV.class, ExportJson.class, ExportGraphML.class, ExportCypher.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     public static void setFileExport(boolean allowed) {

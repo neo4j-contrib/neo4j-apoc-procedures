@@ -19,6 +19,7 @@
 package apoc.bitwise;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -43,6 +44,11 @@ public class BitwiseOperationsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, BitwiseOperations.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
     }
 
     public void testOperation(String op, long expected) {

@@ -22,6 +22,7 @@ import apoc.convert.Json;
 import apoc.cypher.Cypher;
 import apoc.load.LoadJson;
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -60,6 +61,11 @@ public class JsonExtendedTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         TestUtil.registerProcedure(db, JsonExtended.class, Json.class, LoadJson.class, Cypher.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

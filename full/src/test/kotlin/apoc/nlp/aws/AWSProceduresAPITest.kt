@@ -27,6 +27,7 @@ import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
+import org.junit.AfterClass
 import org.junit.Assume.assumeTrue
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -65,6 +66,12 @@ class AWSProceduresAPITest {
             TestUtil.registerProcedure(neo4j, AWSProcedures::class.java)
             assumeTrue(apiKey != null)
             assumeTrue(apiSecret != null)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
         }
 
         fun nodeMatches(item: Node?, labels: List<String>?, properties: Map<String, Any>?): Boolean {

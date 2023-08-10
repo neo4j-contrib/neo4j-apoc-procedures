@@ -94,6 +94,8 @@ public class CouchbaseIT {
         if (couchbase != null) {
             couchbase.stop();
         }
+
+        db.shutdown();
     }
     
     @Before

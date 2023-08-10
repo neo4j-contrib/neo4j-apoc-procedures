@@ -21,6 +21,7 @@ package apoc.path;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -54,6 +55,11 @@ public class NodeFilterTest {
             tx.execute(movies);
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @After

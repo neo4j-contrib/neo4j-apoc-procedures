@@ -92,6 +92,8 @@ public class JdbcTest extends AbstractJdbcTest {
         }
         System.clearProperty("derby.connection.requireAuthentication");
         System.clearProperty("derby.user.apoc");
+
+        db.shutdown();
     }
 
     @Test

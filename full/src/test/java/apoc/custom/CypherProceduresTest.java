@@ -24,6 +24,7 @@ import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,6 +74,11 @@ public class CypherProceduresTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, CypherProcedures.class, BuiltInDbmsProcedures.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

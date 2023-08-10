@@ -26,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.AfterClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.configuration.SettingImpl
@@ -42,6 +43,12 @@ class GCPVirtualEntitiesGraphStoreTest {
         val neo4j = ImpermanentDbmsRule()
                 .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.track_cursor_close", SettingValueParsers.BOOL, false).build(), false)
                 .withSetting(SettingImpl.newBuilder("unsupported.dbms.debug.trace_cursors", SettingValueParsers.BOOL, false).build(), false)
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
+        }
     }
 
     @Test

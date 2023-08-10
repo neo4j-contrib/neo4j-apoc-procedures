@@ -19,6 +19,7 @@
 package apoc.path;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -44,6 +45,11 @@ public class LabelSequenceTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, PathExplorer.class);
         db.executeTransactionally("create (s:Start{name:'start'})-[:REL]->(:A{name:'a'})-[:REL]->(:B{name:'b'})-[:REL]->(:A:C{name:'ac'})-[:REL]->(:B:A{name:'ba'})-[:REL]->(:D:A{name:'da'})");
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

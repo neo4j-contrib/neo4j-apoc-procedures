@@ -21,6 +21,7 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -86,6 +87,11 @@ public class LoadHtmlTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

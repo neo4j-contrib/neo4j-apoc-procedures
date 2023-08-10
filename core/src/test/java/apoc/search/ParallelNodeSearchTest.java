@@ -20,6 +20,7 @@ package apoc.search;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -38,6 +39,11 @@ public class ParallelNodeSearchTest {
 		TestUtil.registerProcedure(db, ParallelNodeSearch.class);
 
 		db.executeTransactionally(Util.readResourceFile("movies.cypher"));
+    }
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
     }
 
     @Test

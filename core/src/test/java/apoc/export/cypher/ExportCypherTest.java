@@ -26,6 +26,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -94,6 +95,11 @@ public class ExportCypherTest {
     @Before
     public void setUp() throws Exception {
         ExportCypherTestUtils.setUp(db, testName);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

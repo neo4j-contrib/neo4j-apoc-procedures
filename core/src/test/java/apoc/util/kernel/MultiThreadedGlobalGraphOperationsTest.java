@@ -19,6 +19,7 @@
 package apoc.util.kernel;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -41,6 +42,11 @@ public class MultiThreadedGlobalGraphOperationsTest {
     @BeforeClass
     public static void beforeClass() {
         createData();
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     private static void createData() {

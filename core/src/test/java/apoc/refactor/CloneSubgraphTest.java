@@ -24,6 +24,7 @@ import apoc.map.Maps;
 import apoc.meta.Meta;
 import apoc.path.PathExplorer;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,6 +72,11 @@ public class CloneSubgraphTest {
                 "CREATE                             (n5)-[:LINK{id:'n5->n8'}]->(n8)\n" +
                 "CREATE                             (n5)-[:LINK{id:'n5->n9'}]->(n9)-[:DIFFERENT_LINK{id:'n9->n10'}]->(n10)\n" +
                 "CREATE (rB)-[:LINK{id:'rB->n11'}]->(n11)");
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

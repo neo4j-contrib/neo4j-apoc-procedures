@@ -23,6 +23,7 @@ import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -192,7 +193,12 @@ public class ImportCsvTest {
 
         TestUtil.registerProcedure(db, ImportCsv.class);
     }
-    
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+
     @Test
     public void testImportCsvLargeFile() {
         TestUtil.testCall(db, "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [], $config)",

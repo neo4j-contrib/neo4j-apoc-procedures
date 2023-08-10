@@ -19,6 +19,7 @@
 package apoc.map;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +49,11 @@ public class MapsTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db,Maps.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

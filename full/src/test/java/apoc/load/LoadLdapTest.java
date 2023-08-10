@@ -75,6 +75,7 @@ public class LoadLdapTest {
     @AfterClass
     public static void afterClass()  {
         ldapConnection.close();
+        db.shutdown();
     }
 
     @Test

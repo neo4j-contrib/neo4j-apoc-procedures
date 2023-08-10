@@ -29,6 +29,7 @@ import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.AfterClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.graphdb.Label
@@ -46,6 +47,11 @@ class AWSVirtualEntitiesGraphStoreTest {
                 .withSetting(newBuilder( "unsupported.dbms.debug.track_cursor_close", BOOL, false ).build(), false)
                 .withSetting(newBuilder( "unsupported.dbms.debug.trace_cursors", BOOL, false ).build(), false)
 
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
+        }
     }
 
     @Test

@@ -19,6 +19,7 @@
 package apoc.number.exact;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -45,6 +46,11 @@ public class ExactTest {
 
 	@BeforeClass public static void sUp() throws Exception {
 		TestUtil.registerProcedure(db, Exact.class);
+	}
+
+	@AfterClass
+	public static void teardown() {
+		db.shutdown();
 	}
 
 	@Test

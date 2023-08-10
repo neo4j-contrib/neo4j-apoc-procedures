@@ -19,6 +19,7 @@
 package apoc.date;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -68,11 +69,16 @@ public class DateTest {
 	private static final long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
 
 	@BeforeClass
-	public static void sUp() throws Exception {
+	public static void setUp() {
 		TestUtil.registerProcedure(db, Date.class);
 	}
 
-	@Test public void testToDays() throws Exception {
+	@AfterClass
+	public static void teardown() {
+	    db.shutdown();
+	}
+
+	@Test public void testToDays() {
 		testCall(db,
 				"RETURN apoc.date.parse($date,'d') AS value",
 				map("date",testDateAsString),

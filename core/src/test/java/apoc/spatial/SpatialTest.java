@@ -23,6 +23,7 @@ import apoc.date.Date;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +52,7 @@ public class SpatialTest {
     private static final String WRONG_PROVIDER_ERR = "wrong provider";
     private static final String URL = "http://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY";
     private static final String REVERSE_URL = "http://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY";
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true);
@@ -132,6 +134,11 @@ public class SpatialTest {
         }
         MockGeocode.geocodeResults = (Map<String, Map>) tests.get("geocode");
         MockGeocode.reverseGeocodeResults = (Map<String, Map>) tests.get("reverseGeocode");
+    }
+
+    @After
+    public void teardown() {
+       db.shutdown();
     }
 
     private void addEventData(Map<String, Object> event) {

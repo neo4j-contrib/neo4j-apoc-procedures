@@ -19,6 +19,7 @@
 package apoc.get;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,6 +48,11 @@ public class GetProceduresTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, GetProcedures.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

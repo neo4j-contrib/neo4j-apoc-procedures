@@ -22,6 +22,7 @@ import apoc.coll.Coll;
 import apoc.path.Paths;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,6 +59,11 @@ public class CreateTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db,Create.class, Paths.class, Coll.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

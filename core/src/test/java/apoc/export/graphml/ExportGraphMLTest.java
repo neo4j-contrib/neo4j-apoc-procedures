@@ -26,6 +26,7 @@ import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -106,6 +107,11 @@ public class ExportGraphMLTest {
     @Before
     public void setUp() {
         setUpGraphMl(db, testName);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

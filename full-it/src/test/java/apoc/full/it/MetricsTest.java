@@ -79,6 +79,10 @@ public class MetricsTest {
         if (neo4jContainer != null && neo4jContainer.isRunning()) {
             neo4jContainer.close();
         }
+
+        if (session != null) {
+            session.close();
+        }
     }
     
     @Test
