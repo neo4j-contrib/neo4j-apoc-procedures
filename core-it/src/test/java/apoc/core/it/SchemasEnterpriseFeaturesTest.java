@@ -54,7 +54,7 @@ public class SchemasEnterpriseFeaturesTest {
     private static Session session;
 
     @BeforeClass
-    public static void beforeAll() {
+    public static void beforeAll() throws Exception {
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
         neo4jContainer.start();
         session = neo4jContainer.getSession();

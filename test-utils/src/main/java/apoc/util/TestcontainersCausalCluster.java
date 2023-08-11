@@ -79,14 +79,26 @@ public class TestcontainersCausalCluster {
 
         // Build the core/read_replica
         List<Neo4jContainerExtension> members = iterateMembers(numberOfCoreMembers, ClusterInstanceType.CORE)
-                .map(member -> createInstance(apocPackages, member.getValue(), ClusterInstanceType.CORE, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
-                        .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
-                        .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.CORE.port + member.getKey()))))
+                .map(member -> {
+                    try {
+                        return createInstance(apocPackages, member.getValue(), ClusterInstanceType.CORE, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
+                                .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
+                                .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.CORE.port + member.getKey())));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(toList());
         members.addAll(iterateMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA)
-                .map(member -> createInstance(apocPackages, member.getValue(), ClusterInstanceType.READ_REPLICA, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
-                        .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
-                        .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.READ_REPLICA.port + member.getKey()))))
+                .map(member -> {
+                    try {
+                        return createInstance(apocPackages, member.getValue(), ClusterInstanceType.READ_REPLICA, network, initialDiscoveryMembers, neo4jConfig, envSettings, numberOfCoreMembers)
+                                .withNeo4jConfig("dbms.default_advertised_address", member.getValue())
+                                .withNeo4jConfig("dbms.connector.bolt.advertised_address", String.format("%s:%d", proxy.getContainerIpAddress(), proxy.getMappedPort(ClusterInstanceType.READ_REPLICA.port + member.getKey())));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(toList()));
 
         // Start all of them in parallel
@@ -113,7 +125,7 @@ public class TestcontainersCausalCluster {
                                                           String initialDiscoveryMembers,
                                                           Map<String, Object> neo4jConfig,
                                                           Map<String, String> envSettings,
-                                                          int numberOfCoreMembers)  {
+                                                          int numberOfCoreMembers) throws Exception {
         Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(apocPackages, !TestUtil.isRunningInCI())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)

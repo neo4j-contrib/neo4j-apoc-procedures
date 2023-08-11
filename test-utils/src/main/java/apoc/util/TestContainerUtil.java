@@ -21,7 +21,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -188,16 +191,45 @@ public class TestContainerUtil {
         }
         if (withCommandExpansion) {
             neo4jContainer.withEnv("EXTENDED_CONF", "yes");
+            // set up test folders
+            TemporaryFolderManager temporaryFolderManager = new TemporaryFolderManager();
+            try {
+                Path testOutputFolder = temporaryFolderManager.createTempFolder("extendedConfIsRead-");
+                Path confFolder = temporaryFolderManager.createTempFolder("conf-", testOutputFolder);
+
+                // copy configuration file and set permissions
+                Files.copy(apocConfFile.toPath(), confFolder.resolve("neo4j.conf"));
+                chmodConfFilePermissions(confFolder.resolve("neo4j.conf"));
+                temporaryFolderManager.setFolderOwnerToNeo4j(confFolder.resolve("neo4j.conf"));
+
+                temporaryFolderManager.mountHostFolderAsVolume(neo4jContainer, confFolder, "/var/lib/neo4j/conf");
+            } catch (Exception e) {
+                System.out.println("GEMMA " + e.getMessage());
+            }
+
             //neo4jContainer.withCommand("chmod 640 /var/lib/neo4j/conf/neo4j.conf");
         }
 
         if (apocConfFile != null) {
-            neo4jContainer.withFileSystemBind(apocConfFile.toPath().toString(), "/var/lib/neo4j/conf", BindMode.READ_ONLY);
+            //neo4jContainer.withFileSystemBind(apocConfFile.toPath().toString(), "/var/lib/neo4j/conf", BindMode.READ_ONLY);
 
             //neo4jContainer.withEnv("apoc.spatial.geocode.osm.throttle", "$(echo \"500\")");
             //neo4jContainer.withCopyFileToContainer(MountableFile.forHostPath(apocConfFile.toPath()), "/var/lib/neo4j/conf");
         }
         return neo4jContainer;
+    }
+
+    private static void chmodConfFilePermissions( Path file ) throws IOException
+    {
+
+        HashSet<PosixFilePermission> permissions = new HashSet<PosixFilePermission>()
+        {{
+            add( PosixFilePermission.OWNER_READ );
+            add( PosixFilePermission.OWNER_WRITE );
+            add( PosixFilePermission.GROUP_READ );
+        }};
+
+        Files.setPosixFilePermissions( file, permissions );
     }
 
     public static void copyFilesToPlugin(File directory, IOFileFilter instance, File pluginsFolder) {
