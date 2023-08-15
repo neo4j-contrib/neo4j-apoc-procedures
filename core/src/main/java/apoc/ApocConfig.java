@@ -20,7 +20,6 @@ package apoc;
 
 import apoc.export.util.ExportConfig;
 import apoc.util.SimpleRateLimiter;
-import com.google.api.client.util.Preconditions;
 import inet.ipaddr.IPAddressString;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -41,6 +40,7 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.util.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
