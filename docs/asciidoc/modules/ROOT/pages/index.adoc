@@ -1,4 +1,4 @@
-= APOC Extended User Guide {apoc-release-absolute}
+= APOC Extended user guide (Labs project)
 //:toc: left
 :experimental:
 :sectid:
@@ -8,7 +8,7 @@
 //{imagesdir}
 :script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
 :gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
-:description: This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs Team.
+:description: This is the APOC Extended user guide, authored by the Neo4j Labs Team.
 
 [WARNING]
 ====
