@@ -202,122 +202,93 @@ public class GeocodeTest {
 
     private long testGeocode(String provider, long throttle, boolean reverseGeocode, Map<String, Object> config) throws Exception {
         setupSupplier(provider, throttle);
-        InputStream is = getClass().getResourceAsStream("/spatial.json");
-        Map tests = JsonUtil.OBJECT_MAPPER.readValue(is, Map.class);
         AtomicLong time = new AtomicLong();
 
-        if(reverseGeocode) {
-            for(Object address : (List) tests.get("events")) {
-                testReverseGeocodeAddress(((Map)address).get("lat"), ((Map)address).get("lon"), time, config);
-            }
+        if (reverseGeocode) {
+            testReverseGeocodeAddress(time, config);
         } else {
-            for (Object address : (List) tests.get("addresses")) {
-                testGeocodeAddress((Map) address, (String) config.getOrDefault("provider", provider), time, config);
-            }
+            testGeocodeAddress((String) config.getOrDefault("provider", provider), time, config);
         }
 
         return time.get();
     }
 
-    private void testReverseGeocodeAddress(Object latitude, Object longitude, AtomicLong time, Map<String, Object> config) {
-        ignoreQuotaError(() -> {
-            String query = "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)";
-            Map<String, Object> params = Map.of("latitude", latitude, "longitude", longitude, "config", config);
-            waitForServerResponseOK(query, params, time,
-                                    (res) -> {
-                                        assertTrue(res.hasNext());
-                                        res.forEachRemaining((r) -> {
-                                            assertNotNull(r.get("description"));
-                                            assertNotNull(r.get("location"));
-                                            assertNotNull(r.get("data"));
-                                        });
-                                    });
-        });
-    }
+    private void testReverseGeocodeAddress(AtomicLong time, Map<String, Object> config) throws Exception {
+        InputStream is = getClass().getResourceAsStream("/spatial.json");
+        Map<String, List<Object>> fileAsMap = JsonUtil.OBJECT_MAPPER.readValue(is, Map.class);
+        List<Object> spatialEventValues =  fileAsMap.get("events");
 
-    private void ignoreQuotaError(Runnable runnable) {
-        try {
-            runnable.run();
-        } catch(Exception e) {
-            final String message = e.getMessage().toLowerCase();
-            final boolean isQuotaError = Stream.of("request entity too large", "too many requests", "quota exceeded")
-                                               .anyMatch(message::contains);
-            if (isQuotaError) {
-                Assume.assumeNoException("out of quota", e);
-            }
-            throw e;
+        for(Object address : spatialEventValues) {
+            String query = "CALL apoc.spatial.reverseGeocode($latitude, $longitude, false, $config)";
+            Map<String, Object> params = Map.of("latitude", ((Map)address).get("lat"), "longitude", ((Map)address).get("lon"), "config", config);
+            waitForServerResponseOK(query, params, time,
+                    (res) -> {
+                        assertTrue(res.hasNext());
+                        res.forEachRemaining((r) -> {
+                            assertNotNull(r.get("description"));
+                            assertNotNull(r.get("location"));
+                            assertNotNull(r.get("data"));
+                        });
+                    });
         }
     }
-
 
     private void setupSupplier(String providerName, long throttle) {
         apocConfig().setProperty(Geocode.PREFIX + ".provider", providerName);
         apocConfig().setProperty(Geocode.PREFIX + "." + providerName + ".throttle", Long.toString(throttle));
     }
 
-    private void testGeocodeAddress(Map map, String provider, AtomicLong time, Map<String, Object> config) {
-        ignoreQuotaError(() -> {
-            String query = "CALL apoc.spatial.geocode('FRANCE',1,true,$config)";
-            Map<String, Object> params = Map.of("config", config);
-            waitForServerResponseOK(query, params, time,
-                                    (res) -> {
-                                        res.forEachRemaining((r) -> {
-                                            assertNotNull(r.get("description"));
-                                            assertNotNull(r.get("location"));
-                                            assertNotNull(r.get("data"));
-                                        });
-                                    });
-        });
+    private void testGeocodeAddress(String provider, AtomicLong time, Map<String, Object> config) {
         String geocodeQuery = "CALL apoc.spatial.geocode($url,0)";
-        if (map.containsKey("noresults")) {
-            for (String field : new String[]{"address", "noresults"}) {
-                checkJsonFields(map, field);
-            }
-            // with the `{"address": "", "noresults": true}` entry
-            // the time passed with throttle 100 and 2000 are about equal, unlike the other cases,
-            // so it is better not to add the time passed in this case
-            AtomicLong time1 = "".equals( map.get("address") )
-                               ? null
-                               : time;
-            waitForServerResponseOK(geocodeQuery,
-                                    map("url", map.get("address").toString()),
-                                    time1,
-                                    (res) -> assertFalse(res.hasNext())
+
+        // Test basic case returns results
+        waitForServerResponseOK(
+                "CALL apoc.spatial.geocode('FRANCE', 1, true, $config)",
+                Map.of("config", config),
+                time,
+                (res) -> res.forEachRemaining((r) -> {
+                    assertNotNull(r.get("description"));
+                    assertNotNull(r.get("location"));
+                    assertNotNull(r.get("data"));
+                }));
+
+        // Test fake addresses give no results
+        List<String> fakeAddresses = List.of("this place should really not exist", "");
+        for (String fakeAddress : fakeAddresses) {
+            waitForServerResponseOK(
+                    geocodeQuery,
+                    map("url", fakeAddress),
+                    time,
+                    (res) -> assertFalse(res.hasNext())
             );
-        } else if (map.containsKey("count")) {
-            if (((Map) map.get("count")).containsKey(provider)) {
-                for (String field : new String[]{"address", "count"}) {
-                    checkJsonFields(map, field);
-                }
-                waitForServerResponseOK(geocodeQuery,
-                                        map("url", map.get("address").toString()),
-                                        time,
-                                        (res) -> {
-                                            long actual = Iterators.count(res);
-                                            int expected = ((Number) ((Map) map.get("count")).get(provider)).intValue();
-                                            assertEquals(expected, actual);
-                                        });
-            }
-        } else {
-            for (String field : new String[]{"address", "osm"}) {
-                checkJsonFields(map, field);
-            }
-            testGeocodeAddress(map.get("address").toString(),
-                               getCoord(map, provider, "latitude"),
-                               getCoord(map, provider, "longitude"),
-                               time,
-                               config);
         }
-    }
 
-    private double getCoord(Map<String, Map<String, Double>> map, String provider, String coord) {
-        final Map<String, Double> providerKey = map.getOrDefault(provider.toLowerCase(), map.get("osm"));
-        checkJsonFields(providerKey, coord);
-        return providerKey.get(coord);
-    }
+        // Test given provider contains correct count of results, only 1 France should be returned
+        waitForServerResponseOK(geocodeQuery,
+                map("url", "FRANCE"),
+                time,
+                (res) -> {
 
-    private void checkJsonFields(Map map, String field) {
-        assertTrue("Expected " + field + " field", map.containsKey(field));
+                    long actual = Iterators.count(res);
+                    assertEquals(1, actual);
+                });
+
+        // Test returned latitude and longitude are as expected
+        testGeocodeAddress("21 rue Paul Bellamy 44000 NANTES FRANCE",
+                47.2221667,
+                -1.5566624,
+                time,
+                config);
+        testGeocodeAddress("12 Rue Cubain 49000 Angers France",
+                47.4607430,
+                -0.5453014,
+                time,
+                config);
+        testGeocodeAddress("Rämistrasse 71 8006 Zürich Switzerland",
+                provider.equals("opencage") ? 47.00016 : 47.37457,
+                provider.equals("opencage") ? 8.01427 : 8.54875,
+                time,
+                config);
     }
 
     private void testGeocodeAddress(String address, double lat, double lon, AtomicLong time, Map<String, Object> config) {
@@ -334,8 +305,6 @@ public class GeocodeTest {
                                         assertEquals("Incorrect longitude found", lon, Double.parseDouble(value.get("longitude").toString()),
                                                      0.1);
                                         assertFalse(result.hasNext());
-                                    } else {
-                                        // over request limit
                                     }
                                 });
     }
