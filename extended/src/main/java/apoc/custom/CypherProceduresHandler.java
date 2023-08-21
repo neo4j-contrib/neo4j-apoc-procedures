@@ -373,13 +373,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         // we unregister the previous function/procedure, if any
         globalProceduresRegistry.unregister(signatureName);
 
-        // the 1st time we search for an analogous function/procedure as below
+        // the 1st time (i.e. with override = true) we search for an analogous function/procedure as below
         if (!override) {
             return;
         }
 
         // if in sys-db there is a Procedure with the same name of the Function, or vice versa,
-        //  we re-register it, because the above unregister delete every fun and proc with that name.
+        // we re-register it, because the above unregister method delete every fun and proc with that name.
         // we use `registerWithoutOverride` to avoid recursion
         readSignatures().filter(i -> {
             QualifiedName name = null;
