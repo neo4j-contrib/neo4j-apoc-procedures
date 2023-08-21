@@ -1,0 +1,9 @@
+# tag::core-warning[]
+[WARNING]
+====
+This is the *APOC Extended* documentation.
+
+APOC Extended is not supported by Neo4j.
+For the officially supported *APOC Core*, go to the link:https://neo4j.com/docs/apoc/[APOC Core page].
+====
+# end::core-warning[]
