@@ -52,6 +52,7 @@ task gitSubmoduleLoad {
 }
 
 dependencies {
+
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
@@ -102,6 +103,11 @@ dependencies {
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
 
+    compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
+    // testImplementation analogous is not needed since is bundled via `test-utils` submodule
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.1.0', withoutServers
+
+
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
     testImplementation project(':test-utils')
     testImplementation project(':core')
@@ -130,6 +136,7 @@ dependencies {
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
+    testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
 
 
     configurations.all {
