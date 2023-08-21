@@ -8,7 +8,6 @@ import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.collection.RawIterator;
-import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -27,7 +26,6 @@ import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
-import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
@@ -99,7 +97,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private final GlobalProcedures globalProceduresRegistry;
     private final JobScheduler jobScheduler;
     private long lastUpdate;
-    private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private final Set<ProcedureSignature> registeredProcedureSignatures = Collections.synchronizedSet(new HashSet<>());
     private final Set<UserFunctionSignature> registeredUserFunctionSignatures = Collections.synchronizedSet(new HashSet<>());
     private static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
@@ -112,7 +109,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
 
     }
 
@@ -322,14 +318,20 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
     }
 
+    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+        return registerProcedure(signature, statement, true);
+    }
+
     /**
      *
      * @param signature
      * @param statement null indicates a removed procedure
      * @return
      */
-    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+    public boolean registerProcedure(ProcedureSignature signature, String statement, boolean override) {
         try {
+            unregisterAndRegisterHomonymOne(signature, override);
+
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
@@ -340,7 +342,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        Transaction tx = ctx.transaction();
                         Result result = tx.execute(statement, params);
                         resourceMonitor.registerCloseableResource(result);
 
@@ -352,7 +354,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         return Iterators.asRawIterator(stream);
                     }
                 }
-            }, true);
+            });
             if (isStatementNull) {
                 registeredProcedureSignatures.remove(signature);
             } else {
@@ -365,8 +367,39 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
+    private synchronized void unregisterAndRegisterHomonymOne(Object signature, boolean override) {
+        boolean isProcedure = signature instanceof ProcedureSignature;
+        QualifiedName signatureName = isProcedure ? ((ProcedureSignature) signature).name() : ((UserFunctionSignature) signature).name();
+        // we unregister the previous function/procedure, if any
+        globalProceduresRegistry.unregister(signatureName);
+
+        // the 1st time we search for an analogous function/procedure as below
+        if (!override) {
+            return;
+        }
+
+        // if in sys-db there is a Procedure with the same name of the Function, or vice versa,
+        //  we re-register it, because the above unregister delete every fun and proc with that name.
+        // we use `registerWithoutOverride` to avoid recursion
+        readSignatures().filter(i -> {
+            QualifiedName name = null;
+            if (isProcedure && i instanceof UserFunctionDescriptor descriptor) {
+                name = descriptor.getSignature().name();
+            }
+            if (!isProcedure && i instanceof ProcedureDescriptor descriptor) {
+                name = descriptor.getSignature().name();
+            }
+            return signatureName.equals(name);
+        }).forEach(ProcedureOrFunctionDescriptor::registerWithoutOverride);
+    }
+
     public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
+        return registerFunction(signature, statement, forceSingle, true);
+    }
+
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean override) {
         try {
+            unregisterAndRegisterHomonymOne(signature, override);
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
@@ -377,8 +410,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
                         AnyType outType = signature.outputType();
-
-                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        Transaction tx = ctx.transaction();
                         try (Result result = tx.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
                             if (!result.hasNext()) return null;
@@ -406,7 +438,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     }
 
                 }
-            }, true);
+            });
             if (isStatementNull) {
                 registeredUserFunctionSignatures.remove(signature);
             } else {
@@ -646,6 +678,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
 
         abstract public void register();
+
+        abstract public void registerWithoutOverride();
     }
 
     public class ProcedureDescriptor extends ProcedureOrFunctionDescriptor {
@@ -663,6 +697,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerProcedure(getSignature(), getStatement());
+        }
+
+        @Override
+        public void registerWithoutOverride() {
+            registerProcedure(getSignature(), getStatement(), false);
         }
     }
 
@@ -687,6 +726,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerFunction(getSignature(), getStatement(), isForceSingle());
+        }
+
+        @Override
+        public void registerWithoutOverride() {
+            registerFunction(getSignature(), getStatement(), isForceSingle(), false);
         }
     }
 }
