@@ -84,7 +84,7 @@ dependencies {
     // They need to be provided either through the database or in an extra .jar
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     // same version as the one included in  neo4j `lib`
-    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '5.5.0'
+    compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '5.11.0'
 
     compileOnly group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
