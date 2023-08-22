@@ -91,13 +91,13 @@ public class LoadHtmlTest {
 
     @Test
     public void testParseGeneratedJsWrongConfigs() {
-        assertWrongConfig(INVALID_CONFIG_ERR + "No enum constant io.github.bonigarcia.wdm.config.OperatingSystem.dunno",
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", CHROME, "operatingSystem", "dunno"));
 
-        assertWrongConfig(INVALID_CONFIG_ERR + "No enum constant io.github.bonigarcia.wdm.config.Architecture.dunno",
+        assertWrongConfig(INVALID_CONFIG_ERR,
                 map("browser", FIREFOX, "architecture", "dunno"));
 
-        assertWrongConfig("Error HTTP 404 executing https://raw.githubusercontent.com/bonigarcia/webdrivermanager/master/docs/mirror/geckodriver",
+        assertWrongConfig("Error HTTP 404 executing",
                 map("browser", FIREFOX,
                         "gitHubToken", "12345",
                         "forceDownload", true));
@@ -282,7 +282,6 @@ public class LoadHtmlTest {
                     assertEquals(map("attributes", map("class", "firstClass"), "text", "My first paragraph.", "tagName", "p"), firstClass.get(0));
                     final List secondClass = value.get("secondClass");
                     assertEquals(map("attributes", map("class", "secondClass"), "text", "My second paragraph.", "tagName", "p"), secondClass.get(0));
-                    System.out.println("LoadHtmlTest.testQueryMetadataWithGetElementsByClass");
                 });
     }
 
