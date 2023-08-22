@@ -45,7 +45,7 @@ public class ImportParquet {
     public Log log;
 
     @Procedure(name = "apoc.import.parquet", mode = Mode.WRITE)
-    @Description("Imports nodes and relationships with the given labels and types from the provided CSV file.")
+    @Description("Imports nodes and relationships with the given labels and types from the provided Parquet file or binary")
     public Stream<ProgressInfo> importParquet(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
