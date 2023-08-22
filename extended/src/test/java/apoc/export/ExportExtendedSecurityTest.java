@@ -184,13 +184,11 @@ public class ExportExtendedSecurityTest {
             this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
-        private static final String case1 = "'file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2fapoc/test.txt'";
-        private static final String case2 = "'file:///%2e%2e%2f%2ftest.txt'";
-        private static final String case3 = "'../test.txt'";
-        private static final String case4 = "'tests/../../test.txt'";
-        private static final String case5 = "'tests/..//..//test.txt'";
+        private static final String case1 = "'../test.txt'";
+        private static final String case2 = "'tests/../../test.txt'";
+        private static final String case3 = "'tests/..//..//test.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5);
+        private static final List<String> cases = Arrays.asList(case1, case2, case3);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query",  cases.stream().map(
@@ -302,8 +300,10 @@ public class ExportExtendedSecurityTest {
         private static final String case6 = "'file:///tests//..//test.txt'";
         private static final String case7 = "'test.txt'";
         private static final String case8 = "'file:///..//..//..//..//test.txt'";
+        private static final String case9 = "'file:///%2e%2e%2f%2ftest.txt'";
+        public static final String case10 = "'file:///%2e%2e%2f%2ftest.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8);
+        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8, case9, case10);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
                 "query", cases.stream().map(
