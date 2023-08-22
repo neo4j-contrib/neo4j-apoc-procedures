@@ -59,20 +59,20 @@ public class ExportParquet {
 
 
     @Procedure("apoc.export.parquet.all.stream")
-    @Description("Exports the full database to the provided CSV file.")
+    @Description("Exports the full database as a Parquet byte array.")
     public Stream<ByteArrayResult> all(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return exportParquet(new DatabaseSubGraph(tx), new ParquetConfig(config));
     }
 
     @Procedure("apoc.export.parquet.data.stream")
-    @Description("Exports the given nodes and relationships to the provided CSV file.")
+    @Description("Exports the given nodes and relationships as a Parquet byte array.")
     public Stream<ByteArrayResult> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ParquetConfig conf = new ParquetConfig(config);
         return exportParquet(new NodesAndRelsSubGraph(tx, nodes, rels), conf);
     }
 
     @Procedure("apoc.export.parquet.graph.stream")
-    @Description("Exports the given graph to the provided CSV file.")
+    @Description("Exports the given graph as a Parquet byte array.")
     public Stream<ByteArrayResult> graph(@Name("graph") Map<String,Object> graph, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
@@ -82,7 +82,7 @@ public class ExportParquet {
     }
 
     @Procedure("apoc.export.parquet.query.stream")
-    @Description("Exports the results from running the given Cypher query to the provided CSV file.")
+    @Description("Exports the given Cypher query as a Parquet byte array.")
     public Stream<ByteArrayResult> query(@Name("query") String query, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ParquetConfig exportConfig = new ParquetConfig(config);
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
@@ -92,20 +92,20 @@ public class ExportParquet {
     }
 
     @Procedure("apoc.export.parquet.all")
-    @Description("Exports the full database to the provided CSV file.")
+    @Description("Exports the full database as a Parquet file.")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         return exportParquet(fileName, new DatabaseSubGraph(tx), new ParquetConfig(config));
     }
 
     @Procedure("apoc.export.parquet.data")
-    @Description("Exports the given nodes and relationships to the provided CSV file.")
+    @Description("Exports the given nodes and relationships as a Parquet file.")
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         ParquetConfig conf = new ParquetConfig(config);
         return exportParquet(fileName, new NodesAndRelsSubGraph(tx, nodes, rels), conf);
     }
 
     @Procedure("apoc.export.parquet.graph")
-    @Description("Exports the given graph to the provided CSV file.")
+    @Description("Exports the given graph as a Parquet file.")
     public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
@@ -115,7 +115,7 @@ public class ExportParquet {
     }
 
     @Procedure("apoc.export.parquet.query")
-    @Description("Exports the results from running the given Cypher query to the provided CSV file.")
+    @Description("Exports the given Cypher query as a Parquet file.")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
         ParquetConfig exportConfig = new ParquetConfig(config);
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
