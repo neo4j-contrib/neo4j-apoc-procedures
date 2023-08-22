@@ -1,16 +1,11 @@
 package apoc.export.parquet;
 
-import apoc.graph.Graphs;
-import apoc.load.LoadParquet;
-import apoc.meta.Meta;
-import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;

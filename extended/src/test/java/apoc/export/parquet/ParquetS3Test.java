@@ -11,8 +11,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Map;
 
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
-import static apoc.export.parquet.ParquetTest.MAPPING_QUERY;
-import static apoc.export.parquet.ParquetTest.testReturnNodeAndRelCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.util.TestUtil.testResult;

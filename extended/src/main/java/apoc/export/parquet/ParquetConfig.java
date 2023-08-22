@@ -1,7 +1,6 @@
 package apoc.export.parquet;
 
 import apoc.util.Util;
-import org.apache.parquet.hadoop.ParquetFileWriter;
 
 import java.util.Collections;
 import java.util.Map;
