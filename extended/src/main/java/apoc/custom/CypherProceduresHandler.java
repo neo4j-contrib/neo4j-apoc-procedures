@@ -8,6 +8,7 @@ import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.collection.RawIterator;
+import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -26,6 +27,7 @@ import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
+import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
@@ -97,7 +99,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private final GlobalProcedures globalProceduresRegistry;
     private final JobScheduler jobScheduler;
     private long lastUpdate;
-//    private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
+    private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private final Set<ProcedureSignature> registeredProcedureSignatures = Collections.synchronizedSet(new HashSet<>());
     private final Set<UserFunctionSignature> registeredUserFunctionSignatures = Collections.synchronizedSet(new HashSet<>());
     private static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
@@ -110,7 +112,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-//        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
+        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
 
     }
 
@@ -338,7 +340,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        Transaction tx = ctx.transaction();
+                        Transaction tx = transactionComponentFunction.apply(ctx);
                         Result result = tx.execute(statement, params);
                         resourceMonitor.registerCloseableResource(result);
 
@@ -350,7 +352,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         return Iterators.asRawIterator(stream);
                     }
                 }
-            });
+            }, true);
             if (isStatementNull) {
                 registeredProcedureSignatures.remove(signature);
             } else {
@@ -376,7 +378,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
                         AnyType outType = signature.outputType();
 
-                        Transaction tx = ctx.transaction();
+                        Transaction tx = transactionComponentFunction.apply(ctx);
                         try (Result result = tx.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
                             if (!result.hasNext()) return null;
@@ -404,7 +406,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     }
 
                 }
-            });
+            }, true);
             if (isStatementNull) {
                 registeredUserFunctionSignatures.remove(signature);
             } else {
