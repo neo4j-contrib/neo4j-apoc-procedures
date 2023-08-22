@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.Extended;
 import apoc.export.parquet.ApocParquetReader;
 import apoc.export.parquet.ParquetConfig;
 import apoc.result.MapResult;
@@ -21,7 +20,6 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.parquet.ParquetReadUtil.getReader;
 
-@Extended
 public class LoadParquet {
 
     @Context public Log log;
