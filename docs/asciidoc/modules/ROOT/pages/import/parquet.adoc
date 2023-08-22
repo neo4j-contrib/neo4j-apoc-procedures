@@ -1,0 +1,154 @@
+[[load-import-parquet]]
+= Load / Import Apache Parquet
+
+
+== Library Requirements
+
+include::partial$hadoop-dependencies.adoc[]
+
+
+== Available Procedures
+
+The table below describes the available procedures:
+
+[opts=header,cols="1,5"]
+|===
+| Name | Description
+| apoc.load.parquet | Loads parquet from the provided Parquet file or binary
+| apoc.import.parquet | Imports parquet from the provided Parquet file or binary
+|===
+
+
+Similar to the other procedures, the `apoc.load.parquet` just retrieve the Parquet result,
+while the `apoc.import.parquet` create nodes and relationships into the database.
+
+[NOTE]
+====
+These procedures are intended to be used together with the xref::import/parquet.adoc[apoc.export.parquet.* procedures].
+====
+
+== Configuration parameters
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| batchSize | long | 20000 | the transaction batch size
+| mapping | Map | 20000 | to map complex files. See `Mapping config` section below
+|===
+
+== Usage
+
+Given the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+if we create a `test.parquet` via a `CALL apoc.export.parquet.all('test.parquet')` procedure,
+we can load the result by using:
+
+[source,cypher]
+----
+CALL apoc.load.parquet('test.parquet')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| {__id: 0, tagline: "Welcome to the Real World", title: "The Matrix", released: 1999, __labels: ["Movie"]
+| {__id: 1, born: 1964, name: "Keanu Reeves", __labels: ["Person"]}
+| {__id: 2, born: 1967, name: "Carrie-Anne Moss", __labels: ["Person"]}
+| {__id: 3, born: 1961, name: "Laurence Fishburne", __labels: ["Person"]}
+| {__id: 4, born: 1960, name: "Hugo Weaving", __labels: ["Person"]}
+| {__id: 5, born: 1967, name: "Lilly Wachowski", __labels: ["Person"]}
+| {__id: 6, born: 1965, name: "Lana Wachowski", __labels: ["Person"]}
+| {__id: 7, born: 1952, name: "Joel Silver", __labels: ["Person"]}
+| {__type: "ACTED_IN", roles: ["Neo"], __target_id: 0, __source_id: 1}
+| {__type: "ACTED_IN", roles: ["Trinity"], __target_id: 0, __source_id: 2}
+| {__type: "ACTED_IN", roles: ["Morpheus"], __target_id: 0, __source_id: 3}
+| {__type: "ACTED_IN", roles: ["Agent Smith"], __target_id: 0, __source_id: 4}
+| {__type: "DIRECTED", __target_id: 0, __source_id: 5}
+| {__type: "DIRECTED", __target_id: 0, __source_id: 6}
+| {__type: "PRODUCED", __target_id: 0, __source_id: 7}
+|===
+
+Otherwise, we can re-import the `test.parquet` nodes/relationships by using:
+
+[source,cypher]
+----
+CALL apoc.load.parquet('test.parquet')
+----
+
+.Results
+[opts="header"]
+|===
+| file          | source| format   | nodes | relationships | properties | time | rows | batchSize | batches | data
+| "file:///import/testQuery.parquet"	 | "file" |	"parquet" |	8 |	7 |	0 |	0 |	0 |	0	 | 0	 |	null
+|===
+
+
+The above procedure can also load/import from a Parquet byte array procuced by e.g. a `CALL apoc.export.parquet.all.stream` procedure.
+For example, the following procedures will produce the same results as the above ones:
+
+.Load procedure
+[source,cypher]
+----
+// create a byte array
+call apoc.export.parquet.all.stream()
+YIELD value with value as bytes
+// load the byte array
+call apoc.load.parquet(bytes)
+YIELD value return value
+----
+
+.Import procedure
+[source,cypher]
+----
+// create a byte array
+CALL apoc.export.parquet.all.stream()
+YIELD value with value as bytes
+// import the byte array
+CALL apoc.import.parquet(bytes)
+YIELD source return source
+----
+
+=== Mapping config
+
+In order to import complex types not supported by Parquet, like Point, Duration, List of Duration, etc..
+we can use the mapping config to convert to the desired data type.
+For example, if we have a node `(:MyLabel {durationProp: duration('P5M1.5D')}`, and we export it in a parquet file/binary,
+we can import it by expliciting a map with key the property key, and value the property type.
+
+That is in this example, by using the load procedure:
+[source,cypher]
+----
+CALL apoc.load.parquet(fileOrBinary, {mapping: {durationProp: 'Duration'}})
+----
+
+Or with the import procedure:
+[source,cypher]
+----
+CALL apoc.import.parquet(fileOrBinary, {mapping: {durationProp: 'Duration'}})
+----
+
+The mapping value types can be one of the following:
+
+* `Point`
+* `LocalDateTime`
+* `LocalTime`
+* `DateTime`
+* `Time`
+* `Date`
+* `Duration`
+* `Char`
+* `Byte`
+* `Double`
+* `Float`
+* `Short`
+* `Int`
+* `Long`
+* `Node`
+* `Relationship`
+* `BaseType` followed by Array, to map a list of values, where BaseType can be one of the previous type, for example `DurationArray`
