@@ -1,5 +1,6 @@
 package apoc.export.parquet;
 
+import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ProgressReporter;
@@ -33,6 +34,7 @@ import static apoc.export.parquet.ParquetUtil.FIELD_SOURCE_ID;
 import static apoc.export.parquet.ParquetUtil.FIELD_TARGET_ID;
 import static apoc.export.parquet.ParquetUtil.FIELD_TYPE;
 
+@Extended
 public class ImportParquet {
 
     @Context
