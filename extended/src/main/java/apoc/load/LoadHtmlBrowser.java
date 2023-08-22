@@ -16,6 +16,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Map;
 
 import static java.util.Optional.ofNullable;
@@ -132,7 +133,7 @@ public class LoadHtmlBrowser {
 
         final long wait = config.getWait();
         if (wait > 0) {
-            Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
+            Wait<WebDriver> driverWait = new WebDriverWait(driver, Duration.ofSeconds(wait));
             try {
                 driverWait.until(webDriver -> query.values().stream()
                         .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
