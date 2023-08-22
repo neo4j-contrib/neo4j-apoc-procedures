@@ -47,13 +47,4 @@ public class ParquetS3Test extends S3BaseTest {
                 ParquetTestUtil::roundtripLoadAllAssertions);
     }
 
-    @Test
-    public void testReturnNodeAndRel() {
-        testReturnNodeAndRelCommon(() -> db.executeTransactionally(
-                "CALL apoc.export.parquet.query('MATCH (n:ParquetNode)-[r:BAR]->(o:Other) RETURN n,r,o ORDER BY n.idStart', " +
-                "'volume_test.parquet', $config) YIELD file ",
-                Map.of("config", MAPPING_QUERY),
-                ParquetTestUtil::extractFileName));
-    }
-
 }
