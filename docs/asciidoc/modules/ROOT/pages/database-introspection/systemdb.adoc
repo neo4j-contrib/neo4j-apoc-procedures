@@ -5,7 +5,7 @@
 In Neo4j 4.0 the concept of multi-database was introduced. There's now a database called `system` which contains some
 internal information, e.g. configured permissions. Those can be exposed by APOC.
 
-image::apoc.systemdb.graph.png[scaledwidth="100%"]
+image::apoc.systemdb.graph.svg[scaledwidth="100%"]
 
 [CAUTION]
 ====
@@ -27,7 +27,7 @@ include::example$generated-documentation/apoc.systemdb.execute.adoc[]
 
 |===
 
-.isType example
+.Usage examples
 [source,cypher]
 ----
 CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *;
