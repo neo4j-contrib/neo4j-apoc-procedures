@@ -239,6 +239,54 @@ public class CypherProceduresStorageTest {
     }
 
     @Test
+    public void testMultipleOverrideWithFunctionAndProcedures() throws Exception {
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('override() :: (result::LONG)','RETURN 42 as result')");
+
+        // function homonym to procedure
+        db.executeTransactionally("CALL apoc.custom.declareFunction('override() :: LONG','RETURN 10 as answer')");
+
+        // get fun/proc created
+        TestUtil.testCall(db, "RETURN custom.override() as result", r -> {
+            assertEquals(10L, r.get("result"));
+        });
+        TestUtil.testCall(db, "CALL custom.override()", r -> {
+            assertEquals(42L, r.get("result"));
+        });
+
+        // overrides functions and procedures homonym to the previous ones
+        db.executeTransactionally("CALL apoc.custom.declareFunction('override(input::INT) :: INT', 'RETURN $input + 2 AS result')");
+        db.executeTransactionally("CALL apoc.custom.declareFunction('override(input::INT) :: INT', 'RETURN $input AS result')");
+
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('override(input::INT) :: (result::INT)', 'RETURN $input AS result')");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('override(input::INT) :: (result::INT)', 'RETURN $input + 2 AS result')");
+
+        // get fun/proc updated
+        TestUtil.testCallEventually(db, "RETURN custom.override(3) as result", r -> {
+            assertEquals(3L, r.get("result"));
+        }, 10L);
+        TestUtil.testCallEventually(db, "CALL custom.override(2)", r -> {
+            assertEquals(4L, r.get("result"));
+        }, 10L);
+        restartDb();
+
+        final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
+        assertFalse(logFileContent.contains("Could not register function: custom.vantagepoint_within_area"));
+        assertFalse(logFileContent.contains("Could not register procedure: custom.vantagepoint_within_area"));
+
+        // override after restart
+        db.executeTransactionally("CALL apoc.custom.declareFunction('override(input::INT) :: INT', 'RETURN $input + 1 AS result')");
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('override(input::INT) :: (result::INT)', 'RETURN $input + 2 AS result')");
+
+        // get fun/proc updated
+        TestUtil.testCallEventually(db, "RETURN custom.override(3) as result", r -> {
+            assertEquals(4L, r.get("result"));
+        }, 10L);
+        TestUtil.testCallEventually(db, "CALL custom.override(2)", r -> {
+            assertEquals(4L, r.get("result"));
+        }, 10L);
+    }
+
+    @Test
     public void functionSignatureShouldNotChangeBeforeAndAfterRestart() {
         functionsCreation();
         functionAssertions();
