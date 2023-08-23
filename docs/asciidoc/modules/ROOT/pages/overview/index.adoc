@@ -2,11 +2,4 @@
 = Procedures & Functions
 :description: This chapter provides a reference of all the procedures and functions in the APOC Extended library.
 
-
-[WARNING]
-====
-This is the page for APOC Extended documentation.
-For the officially supported APOC Core, go to the https://neo4j.com/docs/apoc/{branch}/overview/[APOC Core page].
-====
-
 include::partial$generated-documentation/documentation.adoc[]

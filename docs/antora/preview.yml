@@ -13,15 +13,18 @@ content:
     - '!**/README.adoc'
 ui:
   bundle:
-    url: https://s3-eu-west-1.amazonaws.com/static-content.neo4j.com/build/ui-bundle.zip
+    url: https://static-content.neo4j.com/build/ui-bundle.zip
     snapshot: true
 
 urls:
   html_extension_style: indexify
 asciidoc:
   extensions:
+  - "@neo4j-antora/antora-add-notes"
   - "@neo4j-documentation/remote-include"
   - "@neo4j-documentation/macros"
   attributes:
     page-theme: labs
     page-disabletracking: true
+    page-add-notes-module: notes@
+    page-add-notes-tags: core-warning@
