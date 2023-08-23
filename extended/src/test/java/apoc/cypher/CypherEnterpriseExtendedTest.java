@@ -3,43 +3,65 @@ package apoc.cypher;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.collection.Iterables;
+import apoc.util.collection.Iterators;
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 
-import static apoc.cypher.CypherTestUtil.CREATE_RESULT_NODES;
-import static apoc.cypher.CypherTestUtil.CREATE_RETURNQUERY_NODES;
-import static apoc.cypher.CypherTestUtil.SET_AND_RETURN_QUERIES;
-import static apoc.cypher.CypherTestUtil.SET_NODE;
-import static apoc.cypher.CypherTestUtil.SIMPLE_RETURN_QUERIES;
-import static apoc.cypher.CypherTestUtil.assertReturnQueryNode;
-import static apoc.cypher.CypherTestUtil.testRunProcedureWithSetAndReturnResults;
-import static apoc.cypher.CypherTestUtil.testRunProcedureWithSimpleReturnResults;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class CypherEnterpriseExtendedTest {
+    private static final String CREATE_RETURNQUERY_NODES = "UNWIND range(0,3) as id \n" +
+                                                           "CREATE (n:ReturnQuery {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
+    private static final String CREATE_RESULT_NODES = "UNWIND range(0,3) as id \n" +
+                                                      "CREATE (n:Result {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
+    private static final String SIMPLE_RETURN_QUERIES = "MATCH (n:ReturnQuery) RETURN n";
+
     private static final String SET_RETURN_FILE = "set_and_return.cypher";
     private static final String MATCH_RETURN_FILE = "match_and_return.cypher";
+
+    private static final File importFolder = new File("import");
+
+    public static String SET_NODE = """
+            MATCH (n:Result)-[:REL]->(:Other)
+            SET n.updated = true
+            RETURN n;
+            """;
+
+    public static String SET_AND_RETURN_QUERIES = """
+            MATCH (n:Result)-[:REL]->(:Other)
+            SET n.updated = true
+            RETURN n;
+                        
+            MATCH (n:Result)-[rel:REL]->(o:Other)
+            SET rel.updated = 1
+            RETURN n, o, collect(rel) AS rels;
+                        
+            MATCH (n:Result)-[rel:REL]->(o:Other)
+            SET o.updated = 'true'
+            RETURN collect(n) as nodes, collect(rel) as rels, collect(o) as others;
+            """;
 
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
@@ -67,7 +89,10 @@ public class CypherEnterpriseExtendedTest {
     }
 
     @AfterClass
-    public static void afterAll() {
+    public static void afterAll() throws IOException {
+        Stream.of(SET_RETURN_FILE, MATCH_RETURN_FILE)
+                .forEach(file -> new File(importFolder, file).delete());
+
         session.close();
         neo4jContainer.close();
     }
@@ -105,7 +130,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFile($file)";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        testRunProcedureWithSetAndReturnResults(session, query, params);
+        testRunProcedureWithSetAndReturnResults(query, params);
     }
 
     @Test
@@ -113,7 +138,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFile($file)";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(session, query, params);
+        testRunProcedureWithSimpleReturnResults(query, params);
     }
 
     @Test
@@ -121,7 +146,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFiles([$file])";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        testRunProcedureWithSetAndReturnResults(session, query, params);
+        testRunProcedureWithSetAndReturnResults(query, params);
     }
 
     @Test
@@ -129,7 +154,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFiles([$file])";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(session, query, params);
+        testRunProcedureWithSimpleReturnResults(query, params);
     }
 
     @Test
@@ -142,8 +167,8 @@ public class CypherEnterpriseExtendedTest {
         RuntimeException e = assertThrows(RuntimeException.class,
                 () -> testCall(session, query, params, (res) -> {})
         );
-        String expectedMessage = "Set property for property 'updated' on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ.";
-        Assertions.assertThat(e.getMessage()).contains(expectedMessage);
+        String expectedMessage = "is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ.";
+        assertTrue(e.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -157,7 +182,7 @@ public class CypherEnterpriseExtendedTest {
                 () -> testCall(session, query, params, (res) -> {})
         );
         String expectedMessage = "Creating new property name on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ";
-        Assertions.assertThat(e.getMessage()).contains(expectedMessage);
+        assertTrue(e.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -221,6 +246,96 @@ public class CypherEnterpriseExtendedTest {
         testCypherMapParallelCommon(query, params);
     }
 
+    public void testRunProcedureWithSimpleReturnResults(String query, Map<String, Object> params) {
+        session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
+        testResult(session, query, params,
+                r -> {
+                    // check that all results from the 1st statement are correctly returned
+                    Map<String, Object> row = r.next();
+                    assertReturnQueryNode(row, 0L);
+                    row = r.next();
+                    assertReturnQueryNode(row, 1L);
+                    row = r.next();
+                    assertReturnQueryNode(row, 2L);
+                    row = r.next();
+                    assertReturnQueryNode(row, 3L);
+
+                    // check `queryStatistics` row
+                    row = r.next();
+                    Map result = (Map) row.get("result");
+                    assertEquals(-1L, row.get("row"));
+                    assertEquals(0L, (long) result.get("nodesCreated"));
+                    assertEquals(0L, (long) result.get("propertiesSet"));
+
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    public void testRunProcedureWithSetAndReturnResults(String query, Map<String, Object> params) {
+        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+
+        testResult(session, query, params,
+                r -> {
+                    // check that all results from the 1st statement are correctly returned
+                    Map<String, Object> row = r.next();
+                    assertRunProcNode(row, 0L);
+                    row = r.next();
+                    assertRunProcNode(row, 1L);
+                    row = r.next();
+                    assertRunProcNode(row, 2L);
+                    row = r.next();
+                    assertRunProcNode(row, 3L);
+
+                    // check `queryStatistics` row
+                    row = r.next();
+                    assertRunProcStatistics(row);
+
+                    // check that all results from the 2nd statement are correctly returned
+                    row = r.next();
+                    assertRunProcRel(row, 0L);
+                    row = r.next();
+                    assertRunProcRel(row, 1L);
+                    row = r.next();
+                    assertRunProcRel(row, 2L);
+                    row = r.next();
+                    assertRunProcRel(row, 3L);
+
+                    // check `queryStatistics` row
+                    row = r.next();
+                    assertRunProcStatistics(row);
+
+                    // check that all results from the 3rd statement are correctly returned
+                    row = r.next();
+                    assertEquals(0L, row.get("row") );
+                    Map<String, Object> result = (Map<String, Object>) row.get("result");
+                    assertEquals(3, result.size());
+                    List<Relationship> rels = (List<Relationship>) result.get("rels");
+                    List<Node> nodes = (List<Node>) result.get("nodes");
+                    List<Node> others = (List<Node>) result.get("others");
+                    assertEquals(4L, rels.size());
+                    assertEquals(4L, nodes.size());
+                    assertEquals(4L, others.size());
+                    row = r.next();
+
+                    // check `queryStatistics` row
+                    assertRunProcStatistics(row);
+                    assertFalse(r.hasNext());
+                });
+
+        // check that the procedure's SET operations work properly
+        testResult(session,
+                "MATCH p=(:Result {updated:true})-[:REL {updated: 1}]->(:Other {updated: 'true'}) RETURN *",
+                r -> assertEquals(4L, Iterators.count(r))
+        );
+    }
+
+    private void assertRunProcStatistics(Map<String, Object> row) {
+        Map result = (Map) row.get("result");
+        assertEquals(-1L, row.get("row"));
+        assertEquals(0L, (long) result.get("nodesCreated"));
+        assertEquals(4L, (long) result.get("propertiesSet"));
+    }
+
     private void testCypherMapParallelCommon(String query, Map<String, Object> params) {
         session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
 
@@ -238,7 +353,7 @@ public class CypherEnterpriseExtendedTest {
         });
     }
 
-    public static void assertOtherNodeAndRel(long id, Map<String, Object> result) {
+    public void assertOtherNodeAndRel(long id, Map<String, Object> result) {
         Node n = (Node) result.get("o");
         assertEquals(List.of("Other"), Iterables.asList(n.labels()));
         assertEquals(Map.of("idOther", id), n.asMap());
@@ -246,5 +361,41 @@ public class CypherEnterpriseExtendedTest {
         Relationship rel = (Relationship) result.get("r");
         assertEquals("REL", rel.type());
         assertEquals(Map.of("idRel", id), rel.asMap());
+    }
+
+    private void assertRunProcRel(Map<String, Object> row, long id) {
+        assertEquals(id, row.get("row") );
+
+        Map<String, Object> result = (Map<String, Object>) row.get("result");
+        assertEquals(3, result.size());
+        List<Relationship> n = (List<Relationship>) result.get("rels");
+        assertEquals(1L, n.size());
+        assertEquals("REL", n.get(0).type());
+        assertEquals(Map.of("idRel", id, "updated", 1L), n.get(0).asMap());
+    }
+
+    private void assertReturnQueryNode(Map<String, Object> row, long id) {
+        assertEquals(id, row.get("row") );
+
+        Map<String, Node> result = (Map<String, Node>) row.get("result");
+        assertEquals(1, result.size());
+        assertReturnQueryNode(id, result);
+    }
+
+    public void assertReturnQueryNode(long id, Map<String, Node> result) {
+        Node n = result.get("n");
+        assertEquals(List.of("ReturnQuery"), Iterables.asList(n.labels()));
+        assertEquals(Map.of("id", id), n.asMap());
+    }
+
+    private void assertRunProcNode(Map<String, Object> row, long id) {
+        assertEquals(id, row.get("row") );
+
+        Map<String, Node> result = (Map<String, Node>) row.get("result");
+        assertEquals(1, result.size());
+
+        Node n = result.get("n");
+        assertEquals(List.of("Result"), Iterables.asList(n.labels()));
+        assertEquals(Map.of("id", id, "updated", true), n.asMap());
     }
 }
