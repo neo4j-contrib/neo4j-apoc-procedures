@@ -1,0 +1,124 @@
+[[export-parquet]]
+= Export Apache Parquet
+
+
+== Library Requirements
+
+include::partial$hadoop-dependencies.adoc[]
+
+== Available Procedures
+
+The table below describes the available procedures:
+
+[opts=header,cols="1,5"]
+|===
+| Name | Description
+| apoc.export.parquet.all | Exports the full database as a Parquet byte array
+| apoc.export.parquet.data | Exports the given nodes and relationships as a Parquet byte array
+| apoc.export.parquet.graph | Exports the given graph as a Parquet byte array
+| apoc.export.parquet.query | Exports the given Cypher query as a Parquet byte array
+| apoc.export.parquet.all.stream | Exports the full database as a Parquet file
+| apoc.export.parquet.data.stream | Exports the given nodes and relationships as a Parquet file
+| apoc.export.parquet.graph.stream | Exports the given graph as a Parquet file
+| apoc.export.parquet.query.stream | Exports the given Cypher query as a Parquet file
+|===
+
+
+[NOTE]
+====
+We can import or load the exported result by using xref::import/parquet.adoc[one of these procedures].
+====
+
+== Configuration parameters
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| batchSize | long | 20000 | to update the parquet file / byte array every n results
+| mapping | Map | 20000 | to map complex files. See `Mapping config` section below
+|===
+
+== Usage
+
+The examples in this section are based on the following sample graph:
+
+include::partial$createExportGraph.adoc[]
+
+
+.The following query exports the whole database to the Parquet file `test.parquet`
+[source,cypher]
+----
+CALL apoc.export.parquet.all('test.parquet')
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | data
+| "file:///test.parquet"	 | "graph: nodes(8), rels(7)" |	"parquet" |	8 |	7 |	0 |	0 |	0 |	20000	 | 0	 |	null
+|===
+
+
+The following procedure exports the specified graph to the Parquet file `testData.parquet`
+[source,cypher]
+----
+MATCH (n:Person)-[r]->()
+WITH collect(n) as nodes, collect(r) as rels
+call apoc.export.parquet.data(nodes, rels, 'testData.parquet')
+YIELD file RETURN file
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| "file:///testData.parquet"
+|===
+
+The following procedure exports the specified nodes and relationships to a Parquet file
+[source,cypher]
+----
+CALL apoc.graph.fromDB('neo4j',{}) YIELD graph
+CALL apoc.export.parquet.graph(graph, 'testGraph.parquet')
+YIELD file RETURN file
+----
+
+.Results
+[opts="header"]
+|===
+| file
+| "file:///testGraph.parquet"
+|===
+
+The following procedure exports the specified query result to a Parquet file
+[source,cypher]
+----
+CALL apoc.export.parquet.query("MATCH (n:Person) RETURN n", 'testQuery.parquet')
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | data
+| "file:///testQuery.parquet"	 | "statement: cols(1)" |	"parquet" |	8 |	7 |	0 |	0 |	0 |	20000	 | 0	 |	null
+|===
+
+
+We can also export a Parquet byte array directly as a result by using the `apoc.export.parquet.<type>.stream` procedures, for example
+[source,cypher]
+----
+CALL apoc.export.parquet.all.stream
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| <byte_array_parquet_file>
+|===
+
+
+

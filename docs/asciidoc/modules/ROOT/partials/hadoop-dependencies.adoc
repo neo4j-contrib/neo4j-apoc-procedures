@@ -1,0 +1,6 @@
+The Apache Parquet procedures have dependencies on a client library that is not included in the APOC Extended library.
+
+These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-hadoop-dependencies-{apoc-release}-all.jar[apoc-hadoop-dependencies-{apoc-release}-all.jar^],
+which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
