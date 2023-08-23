@@ -6,7 +6,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "org.jetbrains.kotlin.jvm" version "1.6.0"
-    id "com.diffplug.spotless" version "6.20.0"
+    id "com.diffplug.spotless" version "6.7.2"
 }
 
 spotless {
