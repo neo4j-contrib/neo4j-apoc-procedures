@@ -52,7 +52,7 @@ Once that file is downloaded, it should be placed in the `plugins` directory and
 == URI description
 
 The first parameter of Redis procedure is always the URI.
-This URI follows https://lettuce.io/core/release/reference/#redisuri.uri-syntax[this sintax].
+This URI follows https://lettuce.io/core/release/reference/#redisuri.uri-syntax[this syntax].
 One example of valid uri is `redis://myPassword@localhost:6379`
  
  
