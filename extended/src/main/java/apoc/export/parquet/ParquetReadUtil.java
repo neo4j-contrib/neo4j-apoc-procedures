@@ -1,7 +1,6 @@
 package apoc.export.parquet;
 
 import apoc.ApocConfig;
-import apoc.load.LoadParquet;
 import apoc.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
