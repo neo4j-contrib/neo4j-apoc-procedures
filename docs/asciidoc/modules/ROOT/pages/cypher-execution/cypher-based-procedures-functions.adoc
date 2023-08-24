@@ -37,6 +37,14 @@ The `typeParam` and `typeResult` in the signature parameter can be one of the fo
 
 NOTE: If you override procedures or functions you might need to call `call db.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
 
+[NOTE]
+====
+Starting from version 5.11, if we execute a `CALL apoc.custom.declareFunction('nameFun(....)')`, or a `CALL apoc.custom.declareProcedure('nameProc(....)')`,
+we cannot execute respectively a `RETURN custom.nameFun(..)` or a `CALL custom.nameProc()` within the same transaction, an error will be thrown.
+
+So we must necessarily open a new transaction to execute the custom procedures / functions declared.
+====
+
 
 == Custom Procedures with `apoc.custom.declareProcedure`
 
