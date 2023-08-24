@@ -1,29 +1,26 @@
-The procedure support the following config parameters:
-
-.Config parameters
+.`apoc.hashing.fingerprinting` configuration params
 [opts=header]
 |===
 | name | type | default | description
 | digestAlgorithm | String | "MD5" | The algorithm used to compute the fingerprint. Supported values are: `MD5`, `SHA-1`, `SHA-256`
-| strategy | String | "LAZY" a| Property loading strategy. Supported values are:
+| strategy | String | "LAZY" a| Defines the filtering behaviour of nodes/relationships. Supported values are:
 
-* `LAZY` - does not include properties
-* `EAGER` - uses all properties
+* `LAZY` - does not include properties.
+* `EAGER` - includes all non-filtered properties.
 
-| nodeAllowMap | Map<String, List<String>> | {} | Properties to include per node label
-| nodeDisallowMap | Map<String, List<String>> | [] | Properties to exclude per node label
+| nodeAllowMap | Map<String, List<String>> | {} | Node label name mapped to a list of allowed properties for that label.
+| nodeDisallowMap | Map<String, List<String>> | [] | Node label name mapped to a list of properties to ignore for that label.
 
-| relAllowMap | Map<String, List<String>> | {} | Properties to include per relationship type
-| relDisallowMap | Map<String, List<String>> | [] | Properties to exclude per relationship type
+| relAllowMap | Map<String, List<String>> | {} | Relationship type name mapped to a list of allowed properties for that type.
+| relDisallowMap | Map<String, List<String>> | [] | Relationship type name mapped to a list of properties to ignore for that type.
 
-| mapAllowList | List<String> | [] | Map properties to include
-| mapDisallowList | List<String> | [] | Map properties to exclude
+| mapAllowList | List<String> | [] | A list of allowed keys when the object being hashed is a map.
+| mapDisallowList | List<String> | [] | A list of keys to ignore when the object being hashed is a map.
 
-| allNodesAllowList | List<String> | [] | Node properties to include
-| allNodesDisallowList | List<String> | [] | Node properties to exclude
+| allNodesAllowList | List<String> | [] | A list of globally allowed node properties
+| allNodesDisallowList | List<String> | [] | A list of globally ignored node properties.
 
-
-| allRelsAllowList | List<String> | [] | Relationship properties to include
-| allRelsDisallowList | List<String> | [] | Relationship properties to exclude
+| allRelsAllowList | List<String> | [] | A list of globally allowed relationship properties.
+| allRelsDisallowList | List<String> | [] | A list of globally ignored relationship properties.
 
 |===

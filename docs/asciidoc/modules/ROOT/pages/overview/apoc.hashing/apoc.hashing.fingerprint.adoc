@@ -21,7 +21,7 @@ apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF 
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
+| Name | Type | Default
 |some object|ANY?|null
 |propertyExcludes|LIST? OF STRING?|[]
 |===
@@ -30,5 +30,5 @@ apoc.hashing.fingerprint(some object :: ANY?, propertyExcludes = [] :: LIST? OF 
 == Usage Examples
 include::partial$usage/apoc.hashing.fingerprint.adoc[]
 
-xref::comparing-graphs/fingerprinting.adoc[More documentation of apoc.hashing.fingerprint,role=more information]
+xref::comparing-graphs/fingerprinting.adoc[More documentation on apoc.hashing.fingerprint,role=more information]
 
