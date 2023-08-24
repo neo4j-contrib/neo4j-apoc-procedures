@@ -11,18 +11,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.Util.map;
@@ -40,8 +39,6 @@ public class CypherEnterpriseExtendedTest {
 
     private static final String SET_RETURN_FILE = "set_and_return.cypher";
     private static final String MATCH_RETURN_FILE = "match_and_return.cypher";
-
-    private static final File importFolder = new File("import");
 
     public static String SET_NODE = """
             MATCH (n:Result)-[:REL]->(:Other)
@@ -89,10 +86,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     @AfterClass
-    public static void afterAll() throws IOException {
-        Stream.of(SET_RETURN_FILE, MATCH_RETURN_FILE)
-                .forEach(file -> new File(importFolder, file).delete());
-
+    public static void afterAll() {
         session.close();
         neo4jContainer.close();
     }
