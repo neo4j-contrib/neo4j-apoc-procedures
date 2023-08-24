@@ -30,6 +30,9 @@ shadowJar {
 def commonExclusions = {
     exclude group: 'io.netty'
     exclude group: 'com.sun.jersey'
+    exclude group: 'org.eclipse.jetty'
+    exclude group: 'org.eclipse.jetty.aggregate'
+    exclude group: 'org.slf4j', module: 'slf4j-api'
 }
 
 dependencies {

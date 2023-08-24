@@ -8,7 +8,6 @@ import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.collection.RawIterator;
-import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -27,7 +26,6 @@ import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
-import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
@@ -36,6 +34,7 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.impl.ProcedureHolderUtils;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
@@ -99,7 +98,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private final GlobalProcedures globalProceduresRegistry;
     private final JobScheduler jobScheduler;
     private long lastUpdate;
-    private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private final Set<ProcedureSignature> registeredProcedureSignatures = Collections.synchronizedSet(new HashSet<>());
     private final Set<UserFunctionSignature> registeredUserFunctionSignatures = Collections.synchronizedSet(new HashSet<>());
     private static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
@@ -112,7 +110,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
 
     }
 
@@ -329,18 +326,25 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
      * @return
      */
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
+        QualifiedName name = signature.name();
         try {
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures().stream()
+                    .anyMatch(s -> s.name().equals(name));
+            if (exists) {
+                ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
+            }
+
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
                 public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
                     if (isStatementNull) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
-                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", signature.name());
+                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        Transaction tx = ctx.transaction();
                         Result result = tx.execute(statement, params);
                         resourceMonitor.registerCloseableResource(result);
 
@@ -352,7 +356,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         return Iterators.asRawIterator(stream);
                     }
                 }
-            }, true);
+            });
             if (isStatementNull) {
                 registeredProcedureSignatures.remove(signature);
             } else {
@@ -360,25 +364,31 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             }
             return true;
         } catch (Exception e) {
-            log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
+            log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
             return false;
         }
     }
 
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle/*, boolean override*/) {
         try {
+            QualifiedName name = signature.name();
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions()
+                    .anyMatch(s -> s.name().equals(name));
+            if (exists) {
+                ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
+            }
+
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
                 public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
                     if (isStatementNull) {
-                        final String error = String.format("Unknown function '%s'", signature.name());
+                        final String error = String.format("Unknown function '%s'", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
                         AnyType outType = signature.outputType();
-
-                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        Transaction tx = ctx.transaction();
                         try (Result result = tx.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
                             if (!result.hasNext()) return null;
@@ -406,7 +416,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     }
 
                 }
-            }, true);
+            });
             if (isStatementNull) {
                 registeredUserFunctionSignatures.remove(signature);
             } else {

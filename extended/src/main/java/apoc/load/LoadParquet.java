@@ -1,19 +1,16 @@
 package apoc.load;
 
+import apoc.Extended;
 import apoc.export.parquet.ApocParquetReader;
 import apoc.export.parquet.ParquetConfig;
 import apoc.result.MapResult;
 import apoc.util.Util;
-import org.apache.parquet.io.DelegatingSeekableInputStream;
-import org.apache.parquet.io.InputFile;
-import org.apache.parquet.io.SeekableInputStream;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Spliterator;
@@ -24,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.parquet.ParquetReadUtil.getReader;
 
+@Extended
 public class LoadParquet {
 
     @Context public Log log;

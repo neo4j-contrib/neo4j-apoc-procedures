@@ -40,6 +40,14 @@ apoc.es.postRaw
 apoc.es.put
 apoc.es.query
 apoc.es.stats
+apoc.export.parquet.all
+apoc.export.parquet.all.stream
+apoc.export.parquet.data
+apoc.export.parquet.data.stream
+apoc.export.parquet.graph
+apoc.export.parquet.graph.stream
+apoc.export.parquet.query
+apoc.export.parquet.query.stream
 apoc.export.xls.all
 apoc.export.xls.data
 apoc.export.xls.graph
@@ -52,6 +60,7 @@ apoc.generate.ws
 apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
+apoc.import.parquet
 apoc.load.csv
 apoc.load.csvParams
 apoc.load.directory
@@ -65,6 +74,7 @@ apoc.load.htmlPlainText
 apoc.load.jdbc
 apoc.load.jdbcUpdate
 apoc.load.ldap
+apoc.load.parquet
 apoc.load.xls
 apoc.log.debug
 apoc.log.error

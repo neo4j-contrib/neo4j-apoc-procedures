@@ -136,6 +136,7 @@ dependencies {
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
 
 
