@@ -34,6 +34,7 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.impl.ProcedureHolderUtils;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
@@ -318,19 +319,20 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
     }
 
-    public boolean registerProcedure(ProcedureSignature signature, String statement) {
-        return registerProcedure(signature, statement, true);
-    }
-
     /**
      *
      * @param signature
      * @param statement null indicates a removed procedure
      * @return
      */
-    public boolean registerProcedure(ProcedureSignature signature, String statement, boolean override) {
+    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+        QualifiedName name = signature.name();
         try {
-            unregisterAndRegisterHomonymOne(signature, override);
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures().stream()
+                    .anyMatch(s -> s.name().equals(name));
+            if (exists) {
+                ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
+            }
 
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
@@ -338,7 +340,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
                     if (isStatementNull) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
-                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", signature.name());
+                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
@@ -362,50 +364,26 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             }
             return true;
         } catch (Exception e) {
-            log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
+            log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
             return false;
         }
     }
 
-    private synchronized void unregisterAndRegisterHomonymOne(Object signature, boolean override) {
-        boolean isProcedure = signature instanceof ProcedureSignature;
-        QualifiedName signatureName = isProcedure ? ((ProcedureSignature) signature).name() : ((UserFunctionSignature) signature).name();
-        // we unregister the previous function/procedure, if any
-        globalProceduresRegistry.unregister(signatureName);
-
-        // the 1st time (i.e. with override = true) we search for an analogous function/procedure as below
-        if (!override) {
-            return;
-        }
-
-        // if in sys-db there is a Procedure with the same name of the Function, or vice versa,
-        // we re-register it, because the above unregister method delete every fun and proc with that name.
-        // we use `registerWithoutOverride` to avoid recursion
-        readSignatures().filter(i -> {
-            QualifiedName name = null;
-            if (isProcedure && i instanceof UserFunctionDescriptor descriptor) {
-                name = descriptor.getSignature().name();
-            }
-            if (!isProcedure && i instanceof ProcedureDescriptor descriptor) {
-                name = descriptor.getSignature().name();
-            }
-            return signatureName.equals(name);
-        }).forEach(ProcedureOrFunctionDescriptor::registerWithoutOverride);
-    }
-
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
-        return registerFunction(signature, statement, forceSingle, true);
-    }
-
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean override) {
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle/*, boolean override*/) {
         try {
-            unregisterAndRegisterHomonymOne(signature, override);
+            QualifiedName name = signature.name();
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions()
+                    .anyMatch(s -> s.name().equals(name));
+            if (exists) {
+                ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
+            }
+
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
                 public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
                     if (isStatementNull) {
-                        final String error = String.format("Unknown function '%s'", signature.name());
+                        final String error = String.format("Unknown function '%s'", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
@@ -678,8 +656,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
 
         abstract public void register();
-
-        abstract public void registerWithoutOverride();
     }
 
     public class ProcedureDescriptor extends ProcedureOrFunctionDescriptor {
@@ -697,11 +673,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerProcedure(getSignature(), getStatement());
-        }
-
-        @Override
-        public void registerWithoutOverride() {
-            registerProcedure(getSignature(), getStatement(), false);
         }
     }
 
@@ -726,11 +697,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         @Override
         public void register() {
             registerFunction(getSignature(), getStatement(), isForceSingle());
-        }
-
-        @Override
-        public void registerWithoutOverride() {
-            registerFunction(getSignature(), getStatement(), isForceSingle(), false);
         }
     }
 }

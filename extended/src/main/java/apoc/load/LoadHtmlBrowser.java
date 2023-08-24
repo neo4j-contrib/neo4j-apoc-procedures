@@ -133,7 +133,7 @@ public class LoadHtmlBrowser {
 
         final long wait = config.getWait();
         if (wait > 0) {
-            Wait<WebDriver> driverWait = new WebDriverWait(driver, Duration.ofSeconds(wait));
+            Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
             try {
                 driverWait.until(webDriver -> query.values().stream()
                         .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
