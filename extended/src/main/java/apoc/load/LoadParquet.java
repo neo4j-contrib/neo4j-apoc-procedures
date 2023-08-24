@@ -56,7 +56,7 @@ public class LoadParquet {
     }
 
     @Procedure(name = "apoc.load.parquet")
-    @Description("Load parquet from the provided Parquet file or binary")
+    @Description("Load parquet from the provided file or binary")
     public Stream<MapResult> load(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
