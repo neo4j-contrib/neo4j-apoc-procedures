@@ -24,6 +24,14 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    env:
+      DOCKER_ENTERPRISE_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+      DOCKER_COMMUNITY_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
+      TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
+      TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
+      TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
+      ENTERPRISE_TAR: enterprise-docker.tar
+      COMMUNITY_TAR: community-docker.tar
     permissions:
       actions: read
       contents: read
@@ -41,6 +49,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+
+    - name: Compile Java
+      run: ./gradlew --no-daemon --init-script init.gradle clean
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
