@@ -2,6 +2,8 @@ package apoc.load;
 
 import apoc.Extended;
 import com.novell.ldap.*;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
@@ -17,21 +19,48 @@ import static apoc.ApocConfig.apocConfig;
 @Extended
 public class LoadLdap {
 
+    @Context
+    public Log log;
+
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
     @Description("apoc.load.ldap(\"key\" or {connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
     public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn, @Name("search") final Map<String,Object> search) {
 
-        LDAPManager mgr = new LDAPManager(getConnectionMap(conn));
+        LDAPManager mgr = new LDAPManager(getConnectionMap(conn, log));
 
         return mgr.executeSearch(search);
     }
 
-    public static Map<String, Object> getConnectionMap(Object conn) {
+    public static Map<String, Object> getConnectionMap(Object conn, Log log) {
         if (conn instanceof String) {
             //String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
-            String value = apocConfig().getString("apoc.loadldap" + conn.toString() + ".config");
+            String key = "apoc.loadldap.%s.config".formatted(conn);
+            String value = apocConfig().getString(key);
             // format <ldaphost:port> <logindn> <loginpw>
-            if (value == null) throw new RuntimeException("No apoc.loadldap."+conn+".config ldap access configuration specified");
+            if (value == null) {
+                // fallback: if `apoc.loadldap.<LDAP_KEY>.config` is not set
+                // we check for a config with key `apoc.loadldap<LDAP_KEY>.config`
+                String keyOld = "apoc.loadldap%s.config".formatted(conn);
+                value = apocConfig().getString(keyOld);
+
+                // if the value is set and log == null (that is, not from the test LoadLdapTest.testLoadLDAPConfig),
+                // we print a log warn, since the correct way should be with a dot before <LDAP_KEY>
+                if (value != null && log != null) {
+                    log.warn("""
+                            Not to cause breaking-change, the current config `%s` is valid,
+                            but in future releases it will be removed in favor of `%s` (with dot before `%s`),
+                            as documented here: https://neo4j.com/labs/apoc/5/database-integration/load-ldap/#_credentials.
+                            """
+                            .formatted(keyOld, key, conn)
+                    );
+                }
+            }
+
+            // if neither `apoc.loadldap.<LDAP_KEY>.config` nor `apoc.loadldap<LDAP_KEY>.config` is set.
+            // we throw an error
+            if (value == null) {
+                throw new RuntimeException("No " + key + " ldap access configuration specified");
+            }
             Map<String, Object> config = new HashMap<>();
             String[] sConf = value.split(" ");
             config.put("ldapHost", sConf[0]);
