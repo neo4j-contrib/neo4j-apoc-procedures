@@ -17,7 +17,7 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 public class Signatures {
 
     public static final String SIGNATURE_SYNTAX_ERROR = "Syntax error(s) in signature definition %s. " +
-            "\nNote that procedure/function name, input and output names must have at least 2 character:\n";
+            "\nNote that procedure/function name, possible map keys, input and output names must have at least 2 character:\n";
     private final String prefix;
 
     public Signatures(String prefix) {
@@ -144,12 +144,6 @@ public class Signatures {
             final String text = v.FLOAT_VALUE().getText();
             return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntFloat(Double.parseDouble(text)));
         }
-        if (v.stringValue() != null)
-            return DefaultParameterValue.ntString(v.stringValue().getText());
-        if (v.INT_VALUE() != null)
-            return DefaultParameterValue.ntInteger(Integer.parseInt(v.INT_VALUE().getText()));
-        if (v.FLOAT_VALUE() != null)
-            return DefaultParameterValue.ntFloat(Float.parseFloat(v.FLOAT_VALUE().getText()));
         if (v.mapValue() != null) {
             Map map = JsonUtil.parse(v.mapValue().getText(), null, Map.class);
             return DefaultParameterValue.ntMap(map);
@@ -163,6 +157,7 @@ public class Signatures {
                         .collect(Collectors.toList());
             }
             return DefaultParameterValue.ntList(list, inner);
+
         }
         return DefaultParameterValue.nullValue(type);
     }
