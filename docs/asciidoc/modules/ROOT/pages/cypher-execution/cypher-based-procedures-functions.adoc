@@ -22,6 +22,9 @@ That is:
 Note that, for both procedures and functions, the `= defaultValue` are optionals.
 The default values are parsed as JSON.
 
+NOTE: If you want to create a procedure/function with a default `String` parameter with whitespaces, quotes (for example: `"my text ' with ' quote"`) or `"null"` (as a string),
+you have to quote the result, e.g `CALL apoc.custom.declareProcedure("procWithNullString(param='null'::STRING)::(output::STRING)", 'return $param as output')`
+
 .Type Names
 The `typeParam` and `typeResult` in the signature parameter can be one of the following values:
 * FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG
