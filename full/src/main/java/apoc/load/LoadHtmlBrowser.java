@@ -37,6 +37,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+
 public class LoadHtmlBrowser {
 
     public static InputStream getChromeInputStream(
@@ -48,7 +49,7 @@ public class LoadHtmlBrowser {
         setupWebDriverManager(WebDriverManager.chromedriver(), config);
 
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.setHeadless(isHeadless);
+        chromeOptions.addArguments("--headless=new");
         chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new ChromeDriver(chromeOptions));
     }
@@ -62,7 +63,7 @@ public class LoadHtmlBrowser {
         setupWebDriverManager(WebDriverManager.firefoxdriver(), config);
 
         FirefoxOptions firefoxOptions = new FirefoxOptions();
-        firefoxOptions.setHeadless(isHeadless);
+        firefoxOptions.addArguments("-headless");
         firefoxOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new FirefoxDriver(firefoxOptions));
     }
@@ -147,7 +148,7 @@ public class LoadHtmlBrowser {
 
         final long wait = config.getWait();
         if (wait > 0) {
-            Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
+            Wait<WebDriver> driverWait = new WebDriverWait(driver, Duration.ofSeconds(wait));
             try {
                 driverWait.until(webDriver -> query.values().stream()
                         .noneMatch(selector ->
