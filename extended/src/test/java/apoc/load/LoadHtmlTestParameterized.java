@@ -12,9 +12,12 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -31,6 +34,7 @@ import static org.junit.Assert.assertFalse;
 
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
+    private static final String NOT_SET = "notSet";
     // Tests taken from LoadHtmlTest.java.
     // To check that `browser` configuration preserve the result.
 
@@ -45,8 +49,14 @@ public class LoadHtmlTestParameterized {
 
 
     @Parameters
-    public static Collection<Object> data() {
-        return List.of("notSet", "NONE", "CHROME", "FIREFOX");
+    public static Collection<String> data() {
+        // list of browser configs
+        ArrayList<String> browsers = Arrays.stream(LoadHtmlConfig.Browser.values())
+                .map(Enum::name)
+                .collect(Collectors.toCollection(ArrayList::new));
+        // test case if config browser not set
+        browsers.add(NOT_SET);
+        return browsers;
     }
 
     @Parameter
@@ -131,6 +141,6 @@ public class LoadHtmlTestParameterized {
     }
 
     private boolean browserSet() {
-        return !browser.equals("notSet");
+        return !browser.equals(NOT_SET);
     }
 }

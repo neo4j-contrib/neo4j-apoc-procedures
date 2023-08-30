@@ -88,10 +88,12 @@ dependencies {
 
     compileOnly group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
-    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', {
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
     compileOnly 'org.mongodb:mongodb-driver:3.2.2', {
         exclude group: 'io.netty'
     }
@@ -113,8 +115,8 @@ dependencies {
     testImplementation project(':core')
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
-    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
-    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.1.0'
+    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0'
+    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
