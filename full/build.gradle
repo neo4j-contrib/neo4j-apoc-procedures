@@ -72,16 +72,16 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.15.3'
 
     // currently we cannot update selenium to the latest version due to guava minimum version required (31.0.1-jre)
-    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0', {
+    compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.11.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0', {
+    testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.11.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', {
+    compileOnly group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
-    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', {
+    testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
