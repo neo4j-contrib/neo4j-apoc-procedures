@@ -250,7 +250,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
 
             setLastUpdate(tx);
-            registerFunction(signature, statement, forceSingle);
+            if (!registerFunction(signature, statement, forceSingle)) {
+                throw new IllegalStateException("Error registering function " + signature + ", see log.");
+            }
             return null;
         });
     }
@@ -268,7 +270,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
-            registerProcedure(signature, statement);
+            if (!registerProcedure(signature, statement)) {
+                throw new IllegalStateException("Error registering procedure " + signature.name() + ", see log.");
+            }
             return null;
         });
     }
@@ -331,7 +335,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures().stream()
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
+                // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
+                registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
             }
 
             final boolean isStatementNull = statement == null;
@@ -375,7 +381,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions()
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
+                // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
+                registeredUserFunctionSignatures.removeIf(i -> i.name().equals(signature.name()));
             }
 
             final boolean isStatementNull = statement == null;
