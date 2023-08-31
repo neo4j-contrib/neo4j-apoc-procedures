@@ -399,7 +399,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                         Transaction tx = ctx.transaction();
                         try (Result result = tx.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
-                            if (!result.hasNext()) return null;
+                            if (!result.hasNext()) return Values.NO_VALUE;
                             if (outType.equals(NTAny)) {
                                 return ValueUtils.of(result.stream().collect(Collectors.toList()));
                             }
