@@ -30,3 +30,4 @@ asciidoc:
     page-disabletracking: true
     page-add-notes-module: notes@
     page-add-notes-tags: core-warning@
+    page-add-notes-versions: ['5']
