@@ -16,10 +16,13 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
+import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -34,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class CypherProceduresStorageTest {
     private final static String QUERY_CREATE = "RETURN $input1 + $input2 as answer";
     private final static String QUERY_OVERWRITE = "RETURN $input1 + $input2 + 123 as answer";
+    private int greaterThanRefreshTime;
 
     @Rule
     public TemporaryFolder STORE_DIR = new TemporaryFolder();
@@ -43,7 +47,16 @@ public class CypherProceduresStorageTest {
 
     @Before
     public void setUp() throws Exception {
-        dbms = new TestDatabaseManagementServiceBuilder( STORE_DIR.getRoot().toPath()).build();
+        try {
+            final int refreshTime = 3000;
+            // start db with apoc.conf: `apoc.custom.procedures.refresh=<time>`
+            dbms = startDbWithApocConfigs(STORE_DIR,
+                    Map.of(CUSTOM_PROCEDURES_REFRESH, refreshTime)
+            );
+            greaterThanRefreshTime = refreshTime + 500;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         db = dbms.database( GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
     }
@@ -59,6 +72,164 @@ public class CypherProceduresStorageTest {
         db = dbms.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, CypherProcedures.class, PathExplorer.class);
+    }
+
+    @Test
+    public void overloadFunctionAfterRefresh() throws Exception {
+        db.executeTransactionally("CALL apoc.custom.declareFunction('overloadFun() :: LONG','RETURN 10')");
+
+        TestUtil.testCall(db, "RETURN custom.overloadFun() AS result", r -> {
+            assertEquals(10L, r.get("result"));
+        });
+
+        try {
+            TestUtil.testCall(db, "RETURN custom.overloadFun(42)",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Function call does not provide the required number of arguments: expected 0 got 1"));
+        }
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('overloadFun(input::LONG) :: LONG', 'RETURN $input')");
+
+        // check overload before refresh
+        checkFunctionOverloaded();
+
+        // wait a time greater then the `apoc.custom.procedures.refresh` value
+        // and check overload works correctly
+
+        System.out.println("before refresh");
+        Thread.sleep(greaterThanRefreshTime);
+        checkFunctionOverloaded();
+
+        // check overload still remains after restarting the db
+        restartDb();
+        checkFunctionOverloaded();
+
+        // overload with a function having an optional string argument
+        db.executeTransactionally("CALL apoc.custom.declareFunction('overloadFun(input = null :: STRING) :: STRING', 'RETURN $input')");
+
+        // we test the new function like above
+        checkSecondFunctionOverloaded();
+
+        Thread.sleep(greaterThanRefreshTime);
+        checkSecondFunctionOverloaded();
+
+        restartDb();
+        checkSecondFunctionOverloaded();
+    }
+
+    private void checkFunctionOverloaded() {
+        TestUtil.testCall(db, "RETURN custom.overloadFun(42) AS result", r -> {
+            assertEquals(42L, r.get("result"));
+        });
+
+        try {
+            TestUtil.testCall(db, "RETURN custom.overloadFun()",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Function call does not provide the required number of arguments: expected 1 got 0"));
+        }
+    }
+
+    private void checkSecondFunctionOverloaded() {
+        TestUtil.testCall(db, "RETURN custom.overloadFun('42') AS result", r -> {
+            assertEquals("42", r.get("result"));
+        });
+
+        TestUtil.testCall(db, "RETURN custom.overloadFun() AS result", r -> {
+            assertNull(r.get("result"));
+        });
+
+        try {
+            TestUtil.testCall(db, "RETURN custom.overloadFun(42) AS result",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Type mismatch: expected String but was Integer"));
+        }
+    }
+
+    @Test
+    public void overloadProcedureAfterRefresh() throws Exception {
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('overloadProc() :: (result::LONG)','RETURN 10 as result')");
+
+        TestUtil.testCall(db, "CALL custom.overloadProc()", r -> {
+            assertEquals(10L, r.get("result"));
+        });
+
+        try {
+            TestUtil.testCall(db, "CALL custom.overloadProc(42)",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Procedure call provides too many arguments: got 1 expected none"));
+        }
+
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('overloadProc(input::LONG) :: (result::LONG)', 'RETURN $input AS result')");
+
+        // check overload before refresh
+        checkProcedureOverloaded();
+
+        // wait a time greater than `apoc.custom.procedures.refresh` value
+        // and check overload works correctly
+        Thread.sleep(greaterThanRefreshTime);
+        checkProcedureOverloaded();
+
+        // check overload still remains after restarting the db
+        restartDb();
+        checkProcedureOverloaded();
+
+        // overload with a procedure having an optional string argument
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('overloadProc(input = \"def\" :: STRING) :: (result::STRING)', 'RETURN $input AS result')");
+
+        // we test the new procedure like above
+        checkSecondProcedureOverloaded();
+
+        Thread.sleep(greaterThanRefreshTime);
+        checkSecondProcedureOverloaded();
+
+        restartDb();
+        checkSecondProcedureOverloaded();
+    }
+
+    private void checkProcedureOverloaded() {
+        try {
+            TestUtil.testCall(db, "CALL custom.overloadProc()",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Procedure call does not provide the required number of arguments: got 0 expected at least 1"));
+        }
+
+        TestUtil.testCall(db, "CALL custom.overloadProc(42)", r -> {
+            assertEquals(42L, r.get("result"));
+        });
+    }
+
+    private void checkSecondProcedureOverloaded() {
+        TestUtil.testCall(db, "CALL custom.overloadProc('42')", r -> {
+            assertEquals("42", r.get("result"));
+        });
+
+        TestUtil.testCall(db, "CALL custom.overloadProc()", r -> {
+            assertEquals("def", r.get("result"));
+        });
+
+        try {
+            TestUtil.testCall(db, "CALL custom.overloadProc(42)",
+                    r -> fail("Should fail due to wrong argument numbers"));
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message,
+                    message.contains("Type mismatch: expected String but was Integer"));
+        }
     }
 
     @Test
@@ -267,6 +438,16 @@ public class CypherProceduresStorageTest {
         TestUtil.testCallEventually(db, "CALL custom.override(2)", r -> {
             assertEquals(4L, r.get("result"));
         }, 10L);
+
+        // check fun/proc updated work even after the refresh
+        Thread.sleep(greaterThanRefreshTime);
+        TestUtil.testCall(db, "RETURN custom.override(3) as result", r -> {
+            assertEquals(3L, r.get("result"));
+        });
+        TestUtil.testCall(db, "CALL custom.override(2)", r -> {
+            assertEquals(4L, r.get("result"));
+        });
+
         restartDb();
 
         final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
