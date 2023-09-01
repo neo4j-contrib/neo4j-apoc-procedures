@@ -23,8 +23,11 @@ import apoc.util.CompressionAlgo;
 import apoc.util.TestUtil;
 import apoc.util.TransactionTestUtil;
 import apoc.xml.XmlTestUtils;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +41,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
@@ -71,14 +75,26 @@ public class XmlTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+    private HttpServer server;
+
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Xml.class);
+
+        server = HttpServer.create(new InetSocketAddress(6363), 0);
+        HttpContext staticContext = server.createContext("/");
+        staticContext.setHandler(new SimpleHttpHandler());
+        server.start();
+    }
+
+    @After
+    public void cleanup() {
+        server.stop(0);
     }
 
     @Test
     public void testLoadXml() {
-        testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('file:databases.xml')",
                 (row) -> {
                     assertEquals(XmlTestUtils.XML_AS_NESTED_MAP, row.get("value"));
                 });
@@ -92,7 +108,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlAsStream() {
-        testResult(db, "CALL apoc.load.xml('file:databases.xml', '/parent/child')", //  YIELD value RETURN value
+        testResult(db, "CALL apoc.load.xml('file:databases.xml', '/parent/child')",
                 (res) -> {
                     final ResourceIterator<Map<String, Object>> value = res.columnAs("value");
                     final Map<String, String> expectedFirstRow = Map.of("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database");
@@ -111,7 +127,7 @@ public class XmlTest {
 
     @Test
     public void testMixedContent() {
-        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/mixedcontent.xml") + "')",
                 this::commonAssertionsMixedContent);
     }
 
@@ -409,7 +425,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlFromZipByUrl() {
-        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('http://localhost:6363/testload.zip?raw=true!xml/books.xml') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -419,7 +435,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlFromTarByUrl() {
-        testResult(db, "call apoc.load.xml('https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('http://localhost:6363/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -429,7 +445,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlFromTarGzByUrl() {
-        testResult(db, "call apoc.load.xml('https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('http://localhost:6363/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -439,7 +455,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlFromTgzByUrl() {
-        testResult(db, "call apoc.load.xml('https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tgz?raw=true!xml/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('http://localhost:6363/testload.tgz?raw=true!xml/books.xml') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -449,18 +465,14 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlSingleLineSimple() {
-        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/singleLine.xml") + "', '/', null, true)", //  YIELD value RETURN value
-                (row) -> {
-                    assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE_SIMPLE, row.get("value"));
-                });
+        testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/singleLine.xml") + "', '/', null, true)",
+                (row) -> assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE_SIMPLE, row.get("value")));
     }
 
     @Test
     public void testLoadXmlSingleLine() {
         testCall(db, "CALL apoc.load.xml('" + TestUtil.getUrlFileName("xml/singleLine.xml") + "')", //  YIELD value RETURN value
-                (row) -> {
-                    assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE, row.get("value"));
-                });
+                (row) -> assertEquals(XmlTestUtils.XML_AS_SINGLE_LINE, row.get("value")));
     }
 
     @Test
