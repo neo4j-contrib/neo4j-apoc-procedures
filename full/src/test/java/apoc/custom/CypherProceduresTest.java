@@ -1110,7 +1110,7 @@ public class CypherProceduresTest  {
                 "meta", Map.of("foo", "bar")
         ));
     }
-    
+
 
     private void assertProcedureFails(String expectedMessage, String query) {
         try {
