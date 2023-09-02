@@ -30,9 +30,11 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
 public class PostgresJdbcTest extends AbstractJdbcTest {
 
@@ -72,6 +74,21 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
+    }
+
+    @Test
+    public void testLoadJdbSelectWithArrays() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM ARRAY_TABLE',[], $config)", Util.map("url", postgress.getJdbcUrl(),
+                        "config", Util.map("schema", "test",
+                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (result) -> {
+                    Map<String, Object> row = (Map<String, Object>)result.get("row");
+                    assertEquals("John", row.get("NAME"));
+                    int[] intVals = (int[])row.get("INT_VALUES");
+                    assertArrayEquals(intVals, new int[]{1, 2, 3});
+                    double[] doubleVals = (double[])row.get("DOUBLE_VALUES");
+                    assertArrayEquals(doubleVals, new double[]{ 1.0, 2.0, 3.0}, 0.01);
+                });
     }
 
     @Test
