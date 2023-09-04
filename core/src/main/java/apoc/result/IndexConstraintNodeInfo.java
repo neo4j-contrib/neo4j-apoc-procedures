@@ -29,8 +29,6 @@ public class IndexConstraintNodeInfo extends IndexConstraintEntityInfo {
 
     public final String status;
 
-    public final String type;
-
     public final String failure;
 
     public final double populationProgress;
@@ -55,10 +53,9 @@ public class IndexConstraintNodeInfo extends IndexConstraintEntityInfo {
      * @param userDescription
      */
     public IndexConstraintNodeInfo(String name, Object label, List<String> properties, String status, String schemaType, String failure, float populationProgress, long size, double valuesSelectivity, String userDescription) {
-        super(name, properties);
+        super(name, properties, schemaType);
         this.label = label;
         this.status = status;
-        this.type = schemaType;
         this.failure = failure;
         this.populationProgress = populationProgress;
         this.size = size;

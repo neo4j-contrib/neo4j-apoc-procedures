@@ -16,8 +16,8 @@ CREATE CONSTRAINT like_day ON ()-[like:LIKED]-() ASSERT exists(like.day);
 We can compare relationship indexes and constraints via `apoc.schema.relationship.compareIndexesAndConstraints($config)`
 and obtain:
 - the list of properties to which both an index and a constraint are associated (column `commonProps`).
-- the maps with key the type of index and value the list of properties that are not associated with any constraint (column `onlyIdxProps`).
-- vice versa, the maps with key the type of constraint and value the list of properties that are not associated with any index (column `onlyConstraintsProps`).
+- the maps with a key `(REL_TYPE):<properties>`  type of index and value the list of properties that are not associated with any constraint (column `onlyIdxProps`).
+- vice versa, the maps with key `CONSTRAINT ON ()-[liked:<REL_TYPE>]-() ASSERT <properties>` the type of constraint and value the list of properties that are not associated with any index (column `onlyConstraintsProps`).
 
 Here is an example: 
 

@@ -17,8 +17,6 @@ public abstract class CompareIdxToCons {
         this.onlyConstraintsProps = new HashMap<>();
     }
 
-    public abstract String getLabelOrType();
-
     public void addCommonProps(List<String> commonProps) {
         this.commonProps.addAll(commonProps);
         // sort and remove duplicates 
@@ -28,11 +26,11 @@ public abstract class CompareIdxToCons {
                 .collect(Collectors.toList());
     }
 
-    public void putOnlyIdxProps(List<String> properties, String name) {
+    public void putOnlyIdxProps(String name, List<String> properties) {
         this.onlyIdxProps.put(name, properties);
     }
 
-    public void putOnlyConstraintsProps(List<String> properties, String name) {
+    public void putOnlyConstraintsProps(String name, List<String> properties) {
         this.onlyConstraintsProps.put(name, properties);
     }
 }

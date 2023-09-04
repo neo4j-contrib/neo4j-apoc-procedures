@@ -11,9 +11,4 @@ public class CompareIdxToConsNodes extends CompareIdxToCons {
     public String getLabel() {
         return label;
     }
-
-    @Override
-    public String getLabelOrType() {
-        return label;
-    }
 }

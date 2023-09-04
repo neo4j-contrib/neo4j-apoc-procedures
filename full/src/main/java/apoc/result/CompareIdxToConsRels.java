@@ -2,15 +2,10 @@ package apoc.result;
 
 public class CompareIdxToConsRels extends CompareIdxToCons {
 
-    public String type;
+    public String relationshipType;
 
-    public CompareIdxToConsRels(String type) {
+    public CompareIdxToConsRels(String relationshipType) {
         super();
-        this.type = type;
-    }
-    
-    @Override
-    public String getLabelOrType() {
-        return type;
+        this.relationshipType = relationshipType;
     }
 }
