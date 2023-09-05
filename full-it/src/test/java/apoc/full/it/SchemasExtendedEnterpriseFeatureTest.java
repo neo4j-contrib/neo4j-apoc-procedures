@@ -1,6 +1,7 @@
-package apoc.schemas;
+package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class SchemasExtendedEnterpriseFeatureTest {
     @BeforeClass
     public static void beforeAll() {
         // We build the project, the artifact will be placed into ./build/libs
-        neo4jContainer = createEnterpriseDB(true);
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true);
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
