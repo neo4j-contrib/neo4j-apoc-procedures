@@ -51,7 +51,9 @@ public class SchemasExtendedTest {
             row = res.next();
             assertMovieLabel(row);
             row = res.next();
-            assertEquals(Map.of(":[Another, Person],(weightProp)", List.of("weightProp"), ":Person(surname)", List.of("surname")), row.get("onlyIdxProps"));
+            Map<String, List<String>> expected = Map.of(":[Another, Person],(weightProp)", List.of("weightProp"),
+                    ":Person(surname)", List.of("surname"));
+            assertEquals(expected, row.get("onlyIdxProps"));
             assertEquals("Person", row.get("label"));
             assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
             assertEquals(List.of("address"), row.get("commonProps"));
@@ -118,14 +120,14 @@ public class SchemasExtendedTest {
     }
 
     private static void assertKnowsType(Map<String, Object> row) {
-        assertEquals("KNOWS", row.get("type"));
+        assertEquals("KNOWS", row.get("relationshipType"));
         assertEquals(Map.of(":KNOWS(since)", List.of("since")), row.get("onlyIdxProps"));
         assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
         assertEquals(emptyList(), row.get("commonProps"));
     }
 
     private static void assertAnyTypes(Map<String, Object> row) {
-        assertEquals("<any-types>", row.get("type"));
+        assertEquals("<any-types>", row.get("relationshipType"));
         assertEquals(Map.of(":<any-types>()", emptyList()), row.get("onlyIdxProps"));
         assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
         assertEquals(emptyList(), row.get("commonProps"));
@@ -133,12 +135,12 @@ public class SchemasExtendedTest {
 
     private static void assertType1AndType2(Result res, Map<String, Object> row) {
         assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
-        assertEquals("TYPE_1", row.get("type"));
+        assertEquals("TYPE_1", row.get("relationshipType"));
         assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
         assertEquals(emptyList(), row.get("commonProps"));
         row = res.next();
         assertEquals(Map.of(":[TYPE_1, TYPE_2],(alpha,beta)", List.of("alpha", "beta")), row.get("onlyIdxProps"));
-        assertEquals("TYPE_2", row.get("type"));
+        assertEquals("TYPE_2", row.get("relationshipType"));
         assertEquals(emptyMap(), row.get("onlyConstraintsProps"));
         assertEquals(emptyList(), row.get("commonProps"));
     }

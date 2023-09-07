@@ -7,6 +7,7 @@ import apoc.result.CompareIdxToConsRels;
 import apoc.result.IndexConstraintEntityInfo;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.result.IndexConstraintRelationshipInfo;
+import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.Context;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 
 import static apoc.schema.Schemas.indexesAndConstraintsForNode;
 import static apoc.schema.Schemas.indexesAndConstraintsForRelationships;
+import static org.neo4j.graphdb.schema.ConstraintType.UNIQUENESS;
 
 @Extended
 public class SchemasExtended {
@@ -53,31 +55,31 @@ public class SchemasExtended {
             final List<T> constraints = constraintNodeInfoStream.collect(Collectors.toList());
             final List<T> indexes = indexNodeInfoStream.collect(Collectors.toList());
 
-            Map<String, R> map = new TreeMap<>();
+            Map<String, R> resultMap = new TreeMap<>();
 
             indexes.forEach(i -> {
                 final Object labelOrType = getInfoLabelOrType(i);
                 if (labelOrType instanceof String) {
-                    addCommonAndOnlyIdProps(constraints, addObjectIfAbsent(map, (String) labelOrType, clazz), i);
+                    addCommonAndOnlyIdxProps(constraints, addObjectIfAbsent(resultMap, (String) labelOrType, clazz), i);
                 }
                 if (labelOrType instanceof List) {
-                    final List<String> label1 = (List<String>) labelOrType;
-                    label1.forEach(lbl -> {
-                        addCommonAndOnlyIdProps(constraints, addObjectIfAbsent(map, lbl, clazz), i);
+                    final List<String> labels = (List<String>) labelOrType;
+                    labels.forEach(lbl -> {
+                        addCommonAndOnlyIdxProps(constraints, addObjectIfAbsent(resultMap, lbl, clazz), i);
                     });
                 }
             });
 
             constraints.forEach(i -> {
                 final Object labelOrType = getInfoLabelOrType(i);
-                addObjectIfAbsent(map, (String) labelOrType, clazz).putOnlyConstraintsProps(i.properties, i.name);
+                addObjectIfAbsent(resultMap, (String) labelOrType, clazz).putOnlyConstraintsProps(i.name, i.properties);
             });
 
-            return map.values().stream();
+            return resultMap.values().stream();
         };
     }
-    private <T extends CompareIdxToCons> T addObjectIfAbsent(Map<String, T> map, String label, Class<T> clazz) {
 
+    private <T extends CompareIdxToCons> T addObjectIfAbsent(Map<String, T> map, String label, Class<T> clazz) {
         return map.compute(label,
                 (k, v) -> Objects.requireNonNullElseGet(v, () -> {
                     try {
@@ -88,28 +90,37 @@ public class SchemasExtended {
                 }));
     }
 
-    private <T extends IndexConstraintEntityInfo> void addCommonAndOnlyIdProps(List<T> constraints, CompareIdxToCons compareIdxToCons, IndexConstraintEntityInfo i) {
-        final List<String> props = i.properties;
-        if (i instanceof IndexConstraintNodeInfo && ((IndexConstraintNodeInfo) i).type.equals("UNIQUENESS")) {
+    private <T extends IndexConstraintEntityInfo> void addCommonAndOnlyIdxProps(List<T> constraints, CompareIdxToCons compareIdxToCons, IndexConstraintEntityInfo index) {
+        final List<String> props = index.properties;
+        // UNIQUENESS constraints also produce an analogous index, so the properties is necessary in common
+        if (UNIQUENESS.name().equals(index.type)) {
             compareIdxToCons.addCommonProps(props);
         } else {
-            constraints.stream().filter(cons -> {
-                final Object idxLabelOrType = getInfoLabelOrType(i);
-                final Object constraintLabelOrType = getInfoLabelOrType(cons);
-                return idxLabelOrType.equals(constraintLabelOrType);
-            }).findFirst()
+            constraints.stream()
+                    .filter(cons -> {
+                        final Object idxLabelOrType = getInfoLabelOrType(index);
+                        final Object constraintLabelOrType = getInfoLabelOrType(cons);
+                        List<String> indexProps = index.properties;
+                        List<String> consProps = cons.properties;
+                        return idxLabelOrType.equals(constraintLabelOrType)
+                               && indexProps != null
+                               && consProps != null
+                               && CollectionUtils.isEqualCollection(indexProps, consProps);
+                    })
+                    .findFirst()
                     .ifPresentOrElse(pres -> {
                                 compareIdxToCons.addCommonProps(props);
                                 constraints.remove(pres);
                             },
-                            () -> compareIdxToCons.putOnlyIdxProps(props, i.name)
+                            () -> compareIdxToCons.putOnlyIdxProps(index.name, props)
                     );
         }
     }
-    
-    private <T extends IndexConstraintEntityInfo> Object getInfoLabelOrType(T i) {
-        return i instanceof IndexConstraintNodeInfo
-                ? ((IndexConstraintNodeInfo) i).label
-                : ((IndexConstraintRelationshipInfo) i).type;
+
+    private <T extends IndexConstraintEntityInfo> Object getInfoLabelOrType(T idxOrCons) {
+        if (idxOrCons instanceof IndexConstraintNodeInfo) {
+            return ((IndexConstraintNodeInfo) idxOrCons).label;
+        }
+        return ((IndexConstraintRelationshipInfo) idxOrCons).relationshipType;
     }
 }

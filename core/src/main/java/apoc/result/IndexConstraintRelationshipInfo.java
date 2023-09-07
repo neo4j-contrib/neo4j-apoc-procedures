@@ -25,15 +25,12 @@ import java.util.List;
  */
 public class IndexConstraintRelationshipInfo extends IndexConstraintEntityInfo {
 
-    public final String type;
-
     public final String status;
     
     public final Object relationshipType;
 
     public IndexConstraintRelationshipInfo(String name, String schemaType, List<String> properties, String status, Object relationshipType) {
-        super(name, properties);
-        this.type = schemaType;
+        super(name, properties, schemaType);
         this.status = status;
         this.relationshipType = relationshipType;
     }
