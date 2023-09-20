@@ -19,4 +19,5 @@ jar {
 
 dependencies {
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-sts', version: '1.12.425'
 }
