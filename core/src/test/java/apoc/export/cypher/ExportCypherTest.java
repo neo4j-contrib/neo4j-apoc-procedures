@@ -1078,8 +1078,6 @@ public class ExportCypherTest {
     }
 
     public static class ExportCypherResults {
-        static final String EXPECTED_ISOLATED_NODE = "CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});\n";
-        static final String EXPECTED_BAR_END_NODE = "CREATE (:Bar {age:42, name:\"bar\"});%n";
         static final String EXPECTED_BEGIN_AND_FOO = "BEGIN%n" +
                 "CREATE (:Foo:`UNIQUE IMPORT LABEL` {born:date('2018-10-31'), name:\"foo\", `UNIQUE IMPORT ID`:0});%n";
 
@@ -1617,36 +1615,16 @@ public class ExportCypherTest {
         public static final String EXPECTED_ONLY_SCHEMA_CYPHER_SHELL = EXPECTED_ONLY_SCHEMA_NEO4J_SHELL.replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait()) + EXPECTED_INDEXES_AWAIT;
 
-
-        static final String EXPECTED_NODES_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
-                "CREATE (:`Person` {`name`:\"John\", `surname`:\"Snow\"});%n" +
-                "CREATE (:`Person` {`name`:\"Matt\", `surname`:\"Jackson\"});%n" +
-                "CREATE (:`Person` {`name`:\"Jenny\", `surname`:\"White\"});%n" +
-                "CREATE (:`Person` {`name`:\"Susan\", `surname`:\"Brown\"});%n" +
-                "CREATE (:`Person` {`name`:\"Tom\", `surname`:\"Taylor\"});%n" +
-                "COMMIT%n");
-
-        static final String EXPECTED_SCHEMA_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
-                "CREATE CONSTRAINT ON (node:`Person`) ASSERT (node.`name`, node.`surname`) IS NODE KEY;%n" +
-                "COMMIT%n" +
-                "SCHEMA AWAIT%n");
-
-        static final String EXPECTED_RELATIONSHIP_COMPOUND_CONSTRAINT = String.format(("BEGIN%n" +
-                "MATCH (n1:`Person`{`surname`:\"Snow\", `name`:\"John\"}), (n2:`Person`{`surname`:\"Jackson\", `name`:\"Matt\"}) CREATE (n1)-[r:`KNOWS`]->(n2);%n" +
-                "COMMIT%n"));
-
-        static final String EXPECTED_INDEX_AWAIT_COMPOUND_CONSTRAINT =  String.format("CALL db.awaitIndex(':`Person`(`name`,`surname`)');%n");
-
         public static final List<String> EXPECTED_CONSTRAINTS = List.of(
-             "CREATE CONSTRAINT SingleUnique FOR (node:Label) REQUIRE (node.prop) IS UNIQUE;",
-             "CREATE CONSTRAINT CompositeUnique FOR (node:Label) REQUIRE (node.prop1, node.prop2) IS UNIQUE;",
-             "CREATE CONSTRAINT SingleExists FOR (node:Label2) REQUIRE (node.prop) IS NOT NULL;",
-             "CREATE CONSTRAINT SingleExistsRel FOR ()-[rel:TYPE2]-() REQUIRE (rel.prop) IS NOT NULL;",
-             "CREATE CONSTRAINT SingleNodeKey FOR (node:Label3) REQUIRE (node.prop) IS NODE KEY;",
-             "CREATE CONSTRAINT PersonRequiresNamesConstraint FOR (node:Person) REQUIRE (node.name, node.surname) IS NODE KEY;"
+             "CREATE CONSTRAINT ON (node:Label) ASSERT (node.prop) IS UNIQUE;",
+             "CREATE CONSTRAINT ON (node:Label) ASSERT (node.prop1, node.prop2) IS UNIQUE;",
+             "CREATE CONSTRAINT ON (node:Label2) ASSERT (node.prop) IS NOT NULL;",
+             "CREATE CONSTRAINT ON ()-[rel:TYPE2]-() ASSERT (rel.prop) IS NOT NULL;",
+             "CREATE CONSTRAINT ON (node:Label3) ASSERT (node.prop) IS NODE KEY;",
+             "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;"
         );
 
-        public static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+        public static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
@@ -1660,7 +1638,7 @@ public class ExportCypherTest {
                 "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
                 "COMMIT%n");
 
-        public static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
+        public static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(
                 "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
                 ":commit%n" +
                 "CALL db.awaitIndexes(300);%n" +

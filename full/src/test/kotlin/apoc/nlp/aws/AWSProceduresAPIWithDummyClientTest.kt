@@ -29,7 +29,6 @@ import org.hamcrest.Matchers
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.collection.IsMapContaining
 import org.junit.*
-import org.junit.Assume.assumeTrue
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -51,8 +50,6 @@ class AWSProceduresAPIWithDummyClientTest {
         @JvmStatic
         fun beforeClass() {
             TestUtil.registerProcedure(neo4j, AWSProcedures::class.java)
-            assumeTrue(apiKey != null)
-            assumeTrue(apiSecret != null)
         }
 
         @AfterClass

@@ -18,6 +18,7 @@
  */
 package org.neo4j.cypher.export;
 
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -119,10 +120,11 @@ public class CypherResultSubGraph implements SubGraph
                 }
             }
         }
-        for ( ConstraintDefinition def : tx.schema().getConstraints() )
-        {
-            if ( graph.getLabels().contains( def.getLabel() ) )
-            {
+        for (ConstraintDefinition def : tx.schema().getConstraints()) {
+            if (Util.isNodeCategory( def.getConstraintType() ) && graph.getLabels().contains(def.getLabel())) {
+                graph.addConstraint(def);
+            }
+            else if ( Util.isRelationshipCategory( def.getConstraintType() ) &&  graph.getTypes().contains(def.getRelationshipType())) {
                 graph.addConstraint( def );
             }
         }

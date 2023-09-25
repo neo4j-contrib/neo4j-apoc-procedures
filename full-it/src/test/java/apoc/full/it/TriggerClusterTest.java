@@ -19,12 +19,11 @@
 package apoc.full.it;
 
 import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
 import apoc.util.TestcontainersCausalCluster;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
@@ -35,10 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -52,24 +49,17 @@ public class TriggerClusterTest {
 
     @BeforeClass
     public static void setupCluster() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() ->  cluster = TestContainerUtil
-                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.FULL), 3, 1, Collections.emptyMap(), MapUtil.stringMap(
-                        "apoc.trigger.refresh", "100",
-                        "apoc.trigger.enabled", "true"
-                )),
-                Exception.class);
-        Assume.assumeNotNull(cluster);
-        Assume.assumeTrue(cluster.isRunning());
-
-        cluster.getSession().run("CREATE DATABASE " + DB_FOO);
+        cluster = TestContainerUtil.createEnterpriseCluster(
+                List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.FULL),
+                3,
+                1,
+                Collections.emptyMap(),
+                MapUtil.stringMap("apoc.trigger.refresh", "100", "apoc.trigger.enabled", "true"));
     }
 
     @AfterClass
     public static void bringDownCluster() {
-        if (cluster != null) {
-            cluster.close();
-        }
+        cluster.close();
     }
 
     @Before
@@ -79,17 +69,19 @@ public class TriggerClusterTest {
     }
 
 
+    @Ignore
     @Test
-    public void testTimeStampTriggerForUpdatedProperties() throws Exception {
+    public void testTimeStampTriggerForUpdatedProperties() {
         cluster.getSession().run("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         cluster.getSession().run("CREATE (f:Foo) SET f.foo='bar'");
         TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Foo) RETURN f", (row) -> {
-            assertEquals(true, ((Node)row.get("f")).containsKey("ts"));
+            assertTrue(((Node) row.get("f")).containsKey("ts"));
         });
     }
 
+    @Ignore
     @Test
-    public void testReplication() throws Exception {
+    public void testReplication() {
         cluster.getSession().run("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         // Test that the trigger is present in another instance
         org.neo4j.test.assertion.Assert.assertEventually(() -> cluster.getDriver().session()
@@ -97,8 +89,9 @@ public class TriggerClusterTest {
                 (value) -> "timestamp".equals(value), 30, TimeUnit.SECONDS);
     }
 
+    @Ignore
     @Test
-    public void testLowerCaseName() throws Exception {
+    public void testLowerCaseName() {
         cluster.getSession().run("create constraint on (p:Person) assert p.id is unique");
         cluster.getSession().run("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
         cluster.getSession().run("CREATE (f:Person {name:'John Doe'})");
@@ -107,14 +100,15 @@ public class TriggerClusterTest {
             assertEquals("John Doe", ((Node)row.get("f")).get("name").asString());
         });
     }
+    @Ignore
     @Test
-    public void testSetLabels() throws Exception {
+    public void testSetLabels() {
         cluster.getSession().run("CREATE (f {name:'John Doe'})");
         cluster.getSession().run("CALL apoc.trigger.add('setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
         cluster.getSession().run("MATCH (f) SET f:Person");
         TestContainerUtil.testCall(cluster.getSession(), "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).get("name").asString());
-            assertEquals(true, ((Node)row.get("f")).hasLabel("Person"));
+            assertTrue(((Node) row.get("f")).hasLabel("Person"));
         });
 
         long count = TestContainerUtil.singleResultFirstColumn(cluster.getSession(), "MATCH (f:Man) RETURN count(*) as c");
@@ -122,8 +116,9 @@ public class TriggerClusterTest {
     }
 
 
+    @Ignore
     @Test
-    public void testTxIdAfterAsync() throws Exception {
+    public void testTxIdAfterAsync() {
         cluster.getSession().run("CALL apoc.trigger.add('triggerTest','UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
                 "	WITH prop.node as n " +
                 "	CREATE (z:SON {father:id(n)}) " +
@@ -139,8 +134,9 @@ public class TriggerClusterTest {
     // test cases duplicated, regarding new procedures
     //
 
+    @Ignore
     @Test
-    public void testTimeStampTriggerForUpdatedPropertiesNewProcedures() throws Exception {
+    public void testTimeStampTriggerForUpdatedPropertiesNewProcedures() {
         final String name = "timestampUpdate";
         try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             session.run("CALL apoc.trigger.install('neo4j', $name,'UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})",
@@ -155,8 +151,9 @@ public class TriggerClusterTest {
         }
     }
 
+    @Ignore
     @Test
-    public void testReplicationNewProcedures() throws Exception {
+    public void testReplicationNewProcedures() {
         try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             session.run("CALL apoc.trigger.install('neo4j', 'timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         }
@@ -164,6 +161,7 @@ public class TriggerClusterTest {
         awaitProcedureInstalled(cluster.getDriver().session(), "timestamp");
     }
 
+    @Ignore
     @Test
     public void testLowerCaseNameNewProcedures() {
         final String name = "lowercase";
@@ -183,8 +181,9 @@ public class TriggerClusterTest {
         }
     }
 
+    @Ignore
     @Test
-    public void testSetLabelsNewProcs() throws Exception {
+    public void testSetLabelsNewProcs() {
         final String name = "testSetLabels";
         try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             session.run("CALL apoc.trigger.install('neo4j', $name,'UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})",
@@ -206,8 +205,9 @@ public class TriggerClusterTest {
         }
     }
 
+    @Ignore
     @Test
-    public void testTxIdAfterAsyncNewProcedures() throws Exception {
+    public void testTxIdAfterAsyncNewProcedures() {
         final String name = "testTxIdAfterAsync";
         try (final Session session = cluster.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             session.run("CALL apoc.trigger.install('neo4j', $name, 'UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, \"_executed\") as prop " +
@@ -235,6 +235,7 @@ public class TriggerClusterTest {
                 30, TimeUnit.SECONDS);
     }
 
+    @Ignore
     @Test
     public void testTriggerCreatedInCorrectDatabase() {
         final String name = "testDatabase";

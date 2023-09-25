@@ -34,12 +34,8 @@ import java.util.function.Predicate;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as
@@ -52,21 +48,16 @@ public class MetaEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
         // We build the project, the artifact will be placed into ./build/libs
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI());
         neo4jContainer.start();
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            session.close();
-            neo4jContainer.close();
-        }
+        session.close();
+        neo4jContainer.close();
     }
 
     public static boolean hasRecordMatching(List<Map<String,Object>> records, Predicate<Map<String,Object>> predicate) {

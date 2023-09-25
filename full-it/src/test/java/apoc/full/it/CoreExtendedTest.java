@@ -20,7 +20,6 @@ package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.neo4j.driver.Record;
@@ -50,13 +49,11 @@ public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "60s")
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
-
-            assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
             Session session = neo4jContainer.getSession();
             int coreCount = session.run("CALL apoc.help('') YIELD core WHERE core = true RETURN count(*) AS count").peek().get("count").asInt();
@@ -77,7 +74,7 @@ public class CoreExtendedTest {
     @Test
     public void matchesSpreadsheet() {
         try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
+            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
                     .withNeo4jConfig("dbms.transaction.timeout", "5s");
 
             File apocCoreCsv = new File(ClassLoader.getSystemResource("apoc-core-extended.csv").getFile());

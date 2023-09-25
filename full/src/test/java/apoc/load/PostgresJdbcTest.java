@@ -31,10 +31,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.*;
 
 public class PostgresJdbcTest extends AbstractJdbcTest {
 
@@ -48,28 +46,20 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
-            postgress.start();
-        },Exception.class);
-        assumeNotNull("Postgres container has to exist", postgress);
-        assumeTrue("Postgres must be running", postgress.isRunning());
+        postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
+        postgress.start();
         TestUtil.registerProcedure(db,Jdbc.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
     }
 
     @AfterClass
     public static void tearDown() throws SQLException {
-        if (postgress != null) {
-            postgress.stop();
-        }
-
+        postgress.stop();
         db.shutdown();
     }
 
     @Test
-    public void testLoadJdbc() throws Exception {
+    public void testLoadJdbc() {
         testCall(db, "CALL apoc.load.jdbc($url,'PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
@@ -77,7 +67,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbSelect() throws Exception {
+    public void testLoadJdbSelect() {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
@@ -85,7 +75,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbcUpdate() throws Exception {
+    public void testLoadJdbcUpdate() {
         testCall(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE PERSON SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'], $config)",
                 Util.map("url", postgress.getJdbcUrl(),
                         "config", Util.map("schema", "test",
@@ -94,7 +84,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbcParams() throws Exception {
+    public void testLoadJdbcParams() {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON WHERE \"NAME\" = ?',['John'], $config)", //  YIELD row RETURN row
                 Util.map("url", postgress.getJdbcUrl(),
                         "config", Util.map("schema", "test",

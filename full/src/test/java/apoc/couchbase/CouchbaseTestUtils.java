@@ -18,8 +18,6 @@
  */
 package apoc.couchbase;
 
-import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.util.TestUtil;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
@@ -44,15 +42,11 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static com.couchbase.client.java.ClusterOptions.clusterOptions;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.Assume.assumeNotNull;
 
 public class CouchbaseTestUtils {
 
@@ -126,13 +120,12 @@ public class CouchbaseTestUtils {
         Map<String, Object> content = (Map<String, Object>) result.get(BUCKET_NAME);
         assertTrue(content.get("notableWorks") instanceof List);
         List<String> notableWorks = (List<String>) content.get("notableWorks");
-        //@eclipse-formatter:off
+
         checkDocumentContent(
                 (String) content.get("firstName"),
                 (String) content.get("secondName"),
                 (String) content.get("lastName"),
                 notableWorks);
-        //@eclipse-formatter:on
     }
 
     public static void checkDocumentContent(String firstName, String secondName, String lastName, List<String> notableWorks) {
@@ -147,25 +140,12 @@ public class CouchbaseTestUtils {
         assertTrue(notableWorks.contains("Sorrow"));
     }
 
-    protected static void checkDocumentMetadata(CouchbaseJsonDocument jsonDocumentCreatedForThisTest, String id, long expiry, long cas, Map<String, Object> mutationToken) {
-        assertEquals(jsonDocumentCreatedForThisTest.id, id);
-        assertEquals(jsonDocumentCreatedForThisTest.expiry, expiry);
-        assertEquals(jsonDocumentCreatedForThisTest.cas, cas);
-        assertEquals(jsonDocumentCreatedForThisTest.mutationToken, mutationToken);
-    }
-
     protected static void createCouchbaseContainer() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            // 7.0 support stably multi collections and scopes
-            couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
-                    .withStartupAttempts(3)
-                    .withCredentials(USERNAME, PASSWORD)
-                    .withBucket(new BucketDefinition(BUCKET_NAME));
-            couchbase.start();
-        }, Exception.class);
-        assumeNotNull(couchbase);
-        assumeTrue("couchbase must be running", couchbase.isRunning());
+        // 7.0 support stably multi collections and scopes
+        couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
+                .withCredentials(USERNAME, PASSWORD)
+                .withBucket(new BucketDefinition(BUCKET_NAME));
+        couchbase.start();
 
         ClusterEnvironment environment = ClusterEnvironment.create();
 
@@ -176,8 +156,7 @@ public class CouchbaseTestUtils {
 
         Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
 
-        boolean isFilled = fillDB(cluster);
-        assumeTrue("should fill Couchbase with data", isFilled);
+        fillDB(cluster);
         HOST = getUrl(couchbase);
         Bucket bucket = cluster.bucket(BUCKET_NAME);
         collection = bucket.defaultCollection();

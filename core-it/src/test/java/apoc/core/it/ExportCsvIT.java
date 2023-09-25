@@ -51,25 +51,19 @@ public class ExportCsvIT {
 
     @BeforeClass
     public static void beforeAll() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
-            neo4jContainer.start();
-        }, Exception.class);
-        assumeNotNull(neo4jContainer);
-        assumeTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
+        neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
 
     @AfterClass
-    public static void afterAll() throws IOException, InterruptedException {
-        if (neo4jContainer != null && neo4jContainer.isRunning()) {
-            neo4jContainer.close();
-        }
+    public static void afterAll() {
+        session.close();
+        neo4jContainer.close();
     }
 
     @Test
-    public void testExportQueryCsvIssue1188() throws Exception {
+    public void testExportQueryCsvIssue1188() {
         String copyright = "\n" +
                 "(c) 2018 Hovsepian, Albanese, et al. \"\"ASCB(r),\"\" \"\"The American Society for Cell Biology(r),\"\" and \"\"Molecular Biology of the Cell(r)\"\" are registered trademarks of The American Society for Cell Biology.\n" +
                 "2018\n" +

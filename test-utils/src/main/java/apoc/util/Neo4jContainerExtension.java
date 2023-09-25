@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package apoc.util;
 
 import org.neo4j.driver.AuthToken;
@@ -5,25 +23,18 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.summary.InternalSummaryCounters;
-import org.neo4j.driver.summary.SummaryCounters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.ext.ScriptUtils;
+import org.testcontainers.containers.wait.strategy.Wait;
+import static apoc.util.TestContainerUtil.Neo4jVersion;
+import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
 
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
-
-import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
  * Extension for the Neo4jcontainer class of Testcontainers
@@ -46,19 +57,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     }
 
     public Neo4jContainerExtension(String dockerImage) {
-        // http on 4.0 seems to deliver a 404 first
         setDockerImageName(dockerImage);
-
-        WaitStrategy waitForBolt = new LogMessageWaitStrategy()
-                .withRegEx(String.format(".*Bolt enabled on (0\\.0\\.0\\.0:%d|\\[0:0:0:0:0:0:0:0%%0\\]:%1$s)\\.\n", 7687));
-        WaitStrategy waitForHttp = new HttpWaitStrategy()
-                .forPort(7474)
-                .forStatusCodeMatching(response -> response == HTTP_OK);
-
-        setWaitStrategy(new WaitAllStrategy()
-                .withStrategy(waitForBolt)
-                .withStrategy(waitForHttp)
-                .withStartupTimeout(Duration.ofMinutes(5)));
     }
 
     public Neo4jContainerExtension withInitScript(String filePath) {
@@ -73,15 +72,27 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     @Override
     public void start() {
-        super.start();
-        if (withDriver) {
-            driver = GraphDatabase.driver(getBoltUrl(), getAuth());
-            session = driver.session();
-            if (filePath != null && !filePath.isEmpty()) {
-                executeScript(filePath);
+        try {
+            super.start();
+            if (withDriver) {
+                driver = GraphDatabase.driver(getBoltUrl(), getAuth());
+                session = driver.session();
+                if (filePath != null && !filePath.isEmpty()) {
+                    executeScript(filePath);
+                }
             }
+            isRunning = true;
+        } catch (Exception startException) {
+            try {
+                System.out.println(this.execInContainer("cat", "logs/debug.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/http.log").toString());
+                System.out.println(this.execInContainer("cat", "logs/security.log").toString());
+            } catch (Exception ex) {
+                // we addSuppressed the exception produced by execInContainer, but we finally throw the original `startException`
+                startException.addSuppressed(new RuntimeException("Exception during fallback execInContainer", ex));
+            }
+            throw startException;
         }
-        isRunning = true;
     }
 
     private void executeScript(String filePath) {
@@ -91,53 +102,28 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
             throw new ScriptUtils.ScriptLoadException("Could not load classpath init script: " + filePath + ". Resource not found.");
         }
 
-        List<SummaryCounters> counters = new ArrayList<>();
         try (Scanner scanner = new Scanner(resource).useDelimiter(";")) {
             while (scanner.hasNext()) {
                 String statement = scanner.next().trim();
                 if (statement.isEmpty()) {
                     continue;
                 }
-                counters.add(session.writeTransaction(tx -> tx.run(statement).consume().counters()));
+                session.writeTransaction(tx -> {
+                    tx.run(statement);
+                    tx.commit();
+                    return null;
+                });
             }
         }
-        if (counters.isEmpty()) return;
-
-        SummaryCounters sum = counters.stream().reduce(InternalSummaryCounters.EMPTY_STATS, (x, y) ->
-                new InternalSummaryCounters(x.nodesCreated() + y.nodesCreated(),
-                        x.nodesDeleted() + y.nodesDeleted(),
-                        x.relationshipsCreated() + y.relationshipsCreated(),
-                        x.relationshipsDeleted() + y.relationshipsDeleted(),
-                        x.propertiesSet() + y.propertiesSet(),
-                        x.labelsAdded() + y.labelsAdded(),
-                        x.labelsRemoved() + y.labelsRemoved(),
-                        x.indexesAdded() + y.indexesAdded(),
-                        x.indexesRemoved() + y.indexesRemoved(),
-                        x.constraintsAdded() + y.constraintsAdded(),
-                        x.constraintsRemoved() + y.constraintsRemoved(),
-                        x.systemUpdates() + y.systemUpdates())
-        );
-        logger().info("Dataset creation report:\n" +
-                "\tnodesCreated: " + sum.nodesCreated() + "\n" +
-                "\tnodesDeleted: " + sum.nodesDeleted() + "\n" +
-                "\trelationshipsCreated: " + sum.relationshipsCreated() + "\n" +
-                "\trelationshipsDeleted: " + sum.relationshipsDeleted() + "\n" +
-                "\tpropertiesSet: " + sum.propertiesSet() + "\n" +
-                "\tlabelsAdded: " + sum.labelsAdded() + "\n" +
-                "\tlabelsRemoved: " + sum.labelsRemoved() + "\n" +
-                "\tindexesAdded: " + sum.indexesAdded() + "\n" +
-                "\tindexesRemoved: " + sum.indexesRemoved() + "\n" +
-                "\tconstraintsAdded: " + sum.constraintsAdded() + "\n" +
-                "\tconstraintsRemoved: " + sum.constraintsRemoved() + "\n" +
-                "\tsystemUpdates: " + sum.systemUpdates());
-    }
-
-    public Driver getDriver() {
-        return driver;
     }
 
     public Session getSession() {
         return session;
+    }
+
+    @SuppressWarnings("unused") // used from extended
+    public Driver getDriver() {
+        return driver;
     }
 
     public AuthToken getAuth() {
@@ -150,11 +136,41 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         return this;
     }
 
+    @SuppressWarnings("unused") // can be used for debugging from TestContainerUtil
     public Neo4jContainerExtension withDebugger() {
-        withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005");
-        addFixedExposedPort(5005, 5005);
         withExposedPorts(5005);
+        withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005");
         return this;
+    }
+
+    private Neo4jContainerExtension withWaitForDatabaseReady(
+            String username, String password, String database, Duration timeout, TestContainerUtil.Neo4jVersion version) {
+        if (version == ENTERPRISE) {
+            this.setWaitStrategy(Wait.forHttp("/db/" + database + "/cluster/available")
+                    .withBasicCredentials(username, password)
+                    .forPort(7474)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/db/" + database + "/cluster/available [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
+                    .withStartupTimeout(timeout));
+        } else {
+            this.setWaitStrategy(Wait.forHttp("/")
+                    .forPort(7474)
+                    .forStatusCodeMatching(t -> {
+                        logger.debug("/ [" + t.toString() + "]");
+                        return t == 200;
+                    })
+                    .withReadTimeout(Duration.ofSeconds(3))
+                    .withStartupTimeout(timeout));
+        }
+
+        return this;
+    }
+
+    public Neo4jContainerExtension withWaitForNeo4jDatabaseReady(String password, Neo4jVersion version) {
+        return withWaitForDatabaseReady("neo4j", password, "neo4j", Duration.ofSeconds(300), version);
     }
 
     @Override
