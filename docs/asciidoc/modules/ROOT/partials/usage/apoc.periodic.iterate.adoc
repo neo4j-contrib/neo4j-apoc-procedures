@@ -38,8 +38,8 @@ Now let us look at a more complex example.
 [source,cypher]
 ----
 CALL apoc.periodic.iterate(
-  "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
-  "MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value",
+  "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o.id as orderId",
+  "MATCH (o:Order)-[:HAS_ITEM]->(i) WHERE o.id = orderId WITH o, sum(i.value) as value SET o.value = value",
   {batchSize:100, parallel:true})
 ----
 
@@ -87,13 +87,15 @@ See xref::graph-updates/data-deletion.adoc[].
 
 This procedure takes in a list of nodes, which we can extract from the `$_batch` parameter.
 
-.The following query streams all the `Person` nodes and deletes them in batches of 100
+The following query streams all the `Person` nodes and deletes them in batches of 100.
+Note that using a node instead of a node id for the first parameter, such as `MATCH (p:Person) RETURN p`, will result
+in the parent transaction tracking all deleted nodes, which leads to overall higher memory usage.
 [source,cypher]
 ----
 CALL apoc.periodic.iterate(
-  "MATCH (p:Person) RETURN p",
+  "MATCH (p:Person) RETURN id(p) as personId",
   // Extract `p` variable using list comprehension
-  "CALL apoc.nodes.delete([item in $_batch | item.p], size($_batch))",
+  "CALL apoc.nodes.delete([item in $_batch | item.personId], size($_batch))",
   {batchMode: "BATCH_SINGLE", batchSize: 100}
 )
 YIELD batch, operations;
