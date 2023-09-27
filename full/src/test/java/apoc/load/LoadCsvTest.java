@@ -75,6 +75,11 @@ public class LoadCsvTest {
         mockServer.stop();
     }
 
+    @After
+    public void cleanup() {
+        db.shutdown();
+    }
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
                 .withSetting(ApocSettings.apoc_import_file_enabled, true)

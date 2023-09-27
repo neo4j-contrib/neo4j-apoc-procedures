@@ -20,6 +20,7 @@ package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class SystemDbEnterpriseTest {
         final String pathPwdValue = "/var/lib/neo4j/import/" + keystoreName;
         
         // we add config useful to create a remote db alias 
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withNeo4jConfig("systemdb.secrets.keystore.path", pathPwdValue)
                 .withNeo4jConfig("systemdb.secrets.keystore.password", PASSWORD)
                 .withNeo4jConfig("systemdb.secrets.key.name", randomKeyAlias);

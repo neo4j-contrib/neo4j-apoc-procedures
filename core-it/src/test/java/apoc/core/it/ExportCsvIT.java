@@ -51,7 +51,7 @@ public class ExportCsvIT {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !isRunningInCI());
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }

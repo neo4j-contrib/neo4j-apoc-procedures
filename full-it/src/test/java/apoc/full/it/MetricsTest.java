@@ -20,6 +20,7 @@ package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -53,7 +54,7 @@ public class MetricsTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withNeo4jConfig("apoc.import.file.enabled", "true")
                 .withNeo4jConfig("metrics.enabled", "true")
                 .withNeo4jConfig("metrics.csv.interval", "1s")
@@ -64,10 +65,10 @@ public class MetricsTest {
 
     @AfterClass
     public static void afterAll() {
-        neo4jContainer.close();
         if (session != null) {
             session.close();
         }
+        neo4jContainer.close();
     }
     
     @Test

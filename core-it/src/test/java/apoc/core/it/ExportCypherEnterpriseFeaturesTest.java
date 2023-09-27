@@ -58,6 +58,7 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @AfterClass
     public static void afterAll() {
+        session.close();
         neo4jContainer.close();
     }
 

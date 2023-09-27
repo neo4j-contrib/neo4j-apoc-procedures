@@ -64,7 +64,7 @@ public class BoltTest {
 
     @BeforeClass
     public static void setUp() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), true).withInitScript("init_neo4j_bolt.cypher");
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI()).withInitScript("init_neo4j_bolt.cypher");
         neo4jContainer.start();
         TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class);
     }
@@ -72,6 +72,7 @@ public class BoltTest {
     @AfterClass
     public static void tearDown() {
         neo4jContainer.close();
+        db.shutdown();
     }
 
     @Test

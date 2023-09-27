@@ -67,6 +67,11 @@ public class ModelTest {
         TestUtil.registerProcedure(db, Model.class);
     }
 
+    @After
+    public void cleanUp() {
+        db.shutdown();
+    }
+
     @Test
     public void testLoadJdbcSchema() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",

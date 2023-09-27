@@ -21,6 +21,7 @@ package apoc.full.it;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.SystemDbTestUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -61,7 +62,7 @@ public class UUIDMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), true)
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withEnv(String.format(APOC_UUID_ENABLED_DB, DB_TEST), "false")
                 .withEnv(APOC_UUID_ENABLED, "true")
                 .withEnv(APOC_UUID_REFRESH, "1000");
@@ -74,6 +75,9 @@ public class UUIDMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
+        neo4jSession.close();
+        dbTestSession.close();
+        driver.close();
         neo4jContainer.close();
     }
 

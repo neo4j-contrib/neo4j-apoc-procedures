@@ -19,6 +19,7 @@
 package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -53,7 +54,7 @@ public class TTLMultiDbTest {
 
     @BeforeClass
     public static void setupContainer() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), true)
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
                         "apoc.ttl.enabled", "true",
                         "apoc.ttl.schedule", "2",
@@ -76,6 +77,11 @@ public class TTLMultiDbTest {
 
     @AfterClass
     public static void bringDownContainer() {
+        neo4jSession.close();
+        testSession.close();
+        fooSession.close();
+        barSession.close();
+        driver.close();
         neo4jContainer.close();
     }
 

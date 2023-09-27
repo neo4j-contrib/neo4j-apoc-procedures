@@ -70,7 +70,7 @@ public class DiffFullTest {
 
     @BeforeClass
     public static void setup() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withInitScript("init_neo4j_diff.cypher")
                 .withLogging()
                 .withoutAuthentication();
