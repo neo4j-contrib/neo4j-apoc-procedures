@@ -36,9 +36,6 @@ import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestUtil.isRunningInCI;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * @author as

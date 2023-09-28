@@ -18,14 +18,12 @@
  */
 package apoc.couchbase;
 
-import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
-import com.couchbase.client.java.env.ClusterEnvironment;
 import com.couchbase.client.java.manager.collection.CollectionManager;
 import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
@@ -34,19 +32,20 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.couchbase.client.java.ClusterOptions.clusterOptions;
+import static apoc.util.TestUtil.isRunningInCI;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeFalse;
 
 public class CouchbaseTestUtils {
 
@@ -100,7 +99,7 @@ public class CouchbaseTestUtils {
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(8091));
+        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getFirstMappedPort());
     }
     
     @SuppressWarnings("unchecked")
@@ -141,20 +140,17 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
+        assumeFalse(isRunningInCI());
         // 7.0 support stably multi collections and scopes
         couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
                 .withCredentials(USERNAME, PASSWORD)
+                .withExposedPorts(8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093)
                 .withBucket(new BucketDefinition(BUCKET_NAME));
         couchbase.start();
-
-        ClusterEnvironment environment = ClusterEnvironment.create();
-
         COUCHBASE_HOST = couchbase.getHost();
-        Set<SeedNode> seedNodes = Set.of(SeedNode.create(COUCHBASE_HOST,
-                Optional.of(couchbase.getBootstrapCarrierDirectPort()),
-                Optional.of(couchbase.getBootstrapHttpDirectPort())));
 
-        Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
+        Cluster cluster = Cluster.connect(couchbase.getConnectionString(), couchbase.getUsername(), couchbase.getPassword());
+        cluster.waitUntilReady(Duration.of(30, ChronoUnit.SECONDS));
 
         fillDB(cluster);
         HOST = getUrl(couchbase);
