@@ -34,37 +34,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.*;
 
 public class ModelTest {
 
-    public static String JDBC_URL;
     @Rule
     public TestName testName = new TestName();
 
     public static JdbcDatabaseContainer mysql;
 
+    private static String mysqlUrl;
+
     @BeforeClass
     public static void setUpContainer() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            mysql = new MySQLContainer().withInitScript("init_mysql.sql");
-            mysql.start();
-        },Exception.class);
-        assumeNotNull("MySQL container has to exist", mysql);
-        assumeTrue("MySQL must be running", mysql.isRunning());
-        JDBC_URL = mysql.getJdbcUrl() + "?useSSL=false";
+        mysql = new MySQLContainer().withInitScript("init_mysql.sql");
+        mysql.start();
+        mysqlUrl = mysql.getJdbcUrl() + "?enabledTLSProtocols=TLSv1.2";
     }
 
     @AfterClass
     public static void tearDownContainer() {
-        if (mysql != null) {
-            mysql.stop();
-        }
+        mysql.stop();
     }
 
     @Rule
@@ -72,19 +64,18 @@ public class ModelTest {
 
     @Before
     public void initDb() {
-        //ApocConfiguration.initialize((GraphDatabaseAPI)db);
         TestUtil.registerProcedure(db, Model.class);
     }
 
     @After
-    public void teardown() {
+    public void cleanUp() {
         db.shutdown();
     }
 
     @Test
     public void testLoadJdbcSchema() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", JDBC_URL,
+                Util.map("url", mysqlUrl,
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
@@ -136,11 +127,11 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithWriteOperation() {
         db.executeTransactionally("CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", JDBC_URL,
+                Util.map("url", mysqlUrl,
                         "config", Util.map("schema", "test",
                                 "write", true,
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
-                innerResult -> Iterators.single(innerResult)
+                Iterators::single
         );
 
         try (Transaction tx = db.beginTx()) {
@@ -190,7 +181,7 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithFiltering() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", JDBC_URL,
+                Util.map("url", mysqlUrl,
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()),
                                 "filters", Util.map("tables", Arrays.asList("country\\w*"), "columns", Arrays.asList("(?i)code", "(?i)name", "(?i)Language")))),

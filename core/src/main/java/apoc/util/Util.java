@@ -126,6 +126,7 @@ import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
 import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.neo4j.graphdb.schema.ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE;
 
 /**
  * @author mh
@@ -1239,4 +1240,23 @@ public class Util {
                 type == ConstraintType.UNIQUENESS;
     }
 
+    public static boolean isNodeCategory(ConstraintType type) {
+        return getConstraintCategory(type) == ConstraintCategory.NODE;
+    }
+    public static boolean isRelationshipCategory(ConstraintType type) {
+        return getConstraintCategory(type) == ConstraintCategory.RELATIONSHIP;
+    }
+
+    public enum ConstraintCategory {
+        RELATIONSHIP,
+        NODE
+    }
+
+    public static ConstraintCategory getConstraintCategory(ConstraintType type) {
+        if (type == RELATIONSHIP_PROPERTY_EXISTENCE) {
+            return ConstraintCategory.RELATIONSHIP;
+        } else {
+            return  ConstraintCategory.NODE;
+        }
+    }
 }

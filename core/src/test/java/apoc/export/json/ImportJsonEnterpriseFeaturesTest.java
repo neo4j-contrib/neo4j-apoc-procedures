@@ -2,6 +2,7 @@ package apoc.export.json;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -26,7 +27,7 @@ public class ImportJsonEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true);
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI());
         neo4jContainer.start();
         session = neo4jContainer.getSession();
 

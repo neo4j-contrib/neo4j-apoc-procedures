@@ -21,6 +21,7 @@ package apoc.core.it;
 import apoc.util.CompressionAlgo;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -65,7 +66,7 @@ public class LoadCoreEnterpriseTest {
     }
 
     private static Neo4jContainerExtension createNeo4jWithMaxCompressionRatio(int ratio) {
-        Neo4jContainerExtension container = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), true)
+        Neo4jContainerExtension container = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE), !TestUtil.isRunningInCI())
                 .withNeo4jConfig("dbms.memory.heap.max_size", "1GB")
                 .withEnv(APOC_MAX_DECOMPRESSION_RATIO, String.valueOf(ratio));
         container.start();
