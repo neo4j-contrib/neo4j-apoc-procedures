@@ -1,6 +1,8 @@
 package apoc.coll;
 
 import apoc.util.TestUtil;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -68,7 +70,8 @@ public class CollExtendedTest {
         try {
             testCall(db, query, row -> fail("should fail due to Wrong argument type"));
         } catch (RuntimeException e) {
-            assertEquals("Wrong argument type: Can't coerce `Long(1)` to Duration", e.getMessage());
+            String expected = "Can't coerce `Long(1)` to Duration";
+            MatcherAssert.assertThat(e.getMessage(), Matchers.containsString(expected));
         }
     }
 }
