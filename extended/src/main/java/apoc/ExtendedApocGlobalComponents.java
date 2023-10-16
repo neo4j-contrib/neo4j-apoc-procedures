@@ -41,7 +41,6 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
                 "ttl", new TTLLifeCycle(dependencies.scheduler(),
                         db,
-                        dependencies.apocConfig(),
                         TTLConfig.ttlConfig(),
                         dependencies.log().getUserLog(TTLLifeCycle.class)),
 
