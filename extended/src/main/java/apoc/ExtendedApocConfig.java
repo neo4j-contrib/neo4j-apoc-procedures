@@ -30,6 +30,8 @@ public class ExtendedApocConfig extends LifecycleAdapter
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
     public static final String APOC_OPENAI_KEY = "apoc.openai.key";
+    public static final String APOC_AWS_KEY_ID = "apoc.aws.key.id";
+    public static final String APOC_AWS_SECRET_KEY = "apoc.aws.secret.key";
     public enum UuidFormatType { hex, base64 }
 
     // These were earlier added via the Neo4j config using the ApocSettings.java class

@@ -79,6 +79,7 @@ dependencies {
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
+    implementation group: 'uk.co.lucasweb', name: 'aws-v4-signer-java', version: '1.3'
 
     // These will be dependencies not packaged with the .jar
     // They need to be provided either through the database or in an extra .jar
