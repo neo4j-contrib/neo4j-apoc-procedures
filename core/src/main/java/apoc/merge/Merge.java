@@ -136,7 +136,6 @@ public class Merge {
         }
 
         Map<String, Object> params = Util.map("identProps", identProps, "onCreateProps", onCreateProps == null ? emptyMap() : onCreateProps,
-        Map<String, Object> params = Util.map("identProps", identProps, "onCreateProps", onCreateProps ==null ? emptyMap() : onCreateProps,
                 "onMatchProps", onMatchProps == null ? emptyMap() : onMatchProps, "startNode", startNode, "endNode", endNode);
 
         final String cypher =

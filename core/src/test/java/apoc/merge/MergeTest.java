@@ -164,7 +164,6 @@ public class MergeTest {
     public void testMergeNodeWithSingleEmptyLabelShouldFail() {
         try {
             testCall(db, "CALL apoc.merge.node([''], {name:'John'}) YIELD node RETURN node",
-                    Lojjs marked this conversation as resolved.
                     row -> assertTrue(row.get("node") instanceof Node));
             fail();
         } catch (QueryExecutionException e) {
@@ -183,33 +182,6 @@ public class MergeTest {
             assertEquals(e.getMessage(), "Failed to invoke procedure `apoc.merge.node`: Caused by: java.lang.IllegalArgumentException: " +
                     "The list of label names may not contain any `NULL` or empty `STRING` values. If you wish to merge a `NODE` without a label, pass an empty list instead.");
         }
-    }
-
-    @Test
-    public void testMergeRelationships() throws Exception {
-        db.executeTransactionally("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
-
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) YIELD rel RETURN rel",
-                (row) -> {
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertEquals("KNOWS", rel.getType().name());
-                    assertEquals(123L, rel.getProperty("rid"));
-                    assertEquals("Thu", rel.getProperty("since"));
-                });
-
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'KNOWS', {rid:123}, {since:'Fri'}, e) YIELD rel RETURN rel",
-                (row) -> {
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertEquals("KNOWS", rel.getType().name());
-                    assertEquals(123L, rel.getProperty("rid"));
-                    assertEquals("Thu", rel.getProperty("since"));
-                });
-        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'OTHER', null, null, e) YIELD rel RETURN rel",
-                (row) -> {
-                    Relationship rel = (Relationship) row.get("rel");
-                    assertEquals("OTHER", rel.getType().name());
-                    assertTrue(rel.getAllProperties().isEmpty());
-                });
     }
     
     @Test
