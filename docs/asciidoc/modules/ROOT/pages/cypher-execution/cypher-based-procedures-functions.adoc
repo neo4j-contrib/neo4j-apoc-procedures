@@ -27,7 +27,7 @@ you have to quote the result, e.g `CALL apoc.custom.declareProcedure("procWithNu
 
 .Type Names
 The `typeParam` and `typeResult` in the signature parameter can be one of the following values:
-* FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG
+* FLOAT, DOUBLE, INT, INTEGER, INTEGER | FLOAT, LONG
 * TEXT, STRING
 * BOOL, BOOLEAN
 * POINT, GEO, GEOMETRY
@@ -75,8 +75,8 @@ The output will look like the following table:
 [%autowidth,opts=header]
 |===
 | type | name | description | mode | statement | inputs | outputs | forceSingle
-| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
-| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
+| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","integer \| float"]] | "long" | false
+| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","integer \| float"]] | <null>
 |===
 
 

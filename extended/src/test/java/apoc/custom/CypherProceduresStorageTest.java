@@ -306,7 +306,8 @@ public class CypherProceduresStorageTest {
     @Test
     public void testAllParameterTypes() {
         db.executeTransactionally("CALL apoc.custom.declareProcedure('answer(int::INTEGER, float::FLOAT,string::STRING,map::MAP,listInt::LIST OF INTEGER,bool::BOOLEAN,date::DATE,datetime::DATETIME,point::POINT) :: (data::LIST OF ANY)','RETURN  [$int,$float,$string,$map,$listInt,$bool,$date,$datetime,$point] as data')");
-
+        TestUtil.testCall(db, "call custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2}))",
+                (row) -> assertEquals(9, ((List) row.get("data")).size()));
         restartDb();
         TestUtil.testCall(db, "call custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2}))",
                 (row) -> assertEquals(9, ((List) row.get("data")).size()));
@@ -370,6 +371,11 @@ public class CypherProceduresStorageTest {
     @Test
     public void testAllParameterTypesFunction() {
         db.executeTransactionally("CALL apoc.custom.declareFunction('answer(int::INTEGER, float::FLOAT,string::STRING,map::MAP,listInt::LIST OF INTEGER,bool::BOOLEAN,date::DATE,datetime::DATETIME,point::POINT) :: LIST OF ANY','RETURN  [$int,$float,$string,$map,$listInt,$bool,$date,$datetime,$point] as data')");
+        TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data",
+                (row) -> {
+                    System.out.println(row);
+                    assertEquals(9, ((List<List>) row.get("data")).get(0).size());
+                });
         restartDb();
         TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data",
                 (row) -> {
@@ -523,9 +529,9 @@ public class CypherProceduresStorageTest {
         TestUtil.testResult(db, "SHOW FUNCTIONS YIELD signature, name WHERE name STARTS WITH 'custom.sumFun' RETURN DISTINCT name, signature ORDER BY name",
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertEquals("custom.sumFun1(input1 = null :: INTEGER?, input2 = null :: INTEGER?) :: (INTEGER?)", row.get("signature"));
+                    assertEquals("custom.sumFun1(input1 = null :: INTEGER, input2 = null :: INTEGER) :: INTEGER", row.get("signature"));
                     row = r.next();
-                    assertEquals("custom.sumFun2(input1 :: INTEGER?, input2 :: INTEGER?) :: (INTEGER?)", row.get("signature"));
+                    assertEquals("custom.sumFun2(input1 :: INTEGER, input2 :: INTEGER) :: INTEGER", row.get("signature"));
                     assertFalse(r.hasNext());
                 });
         TestUtil.testResult(db, "call apoc.custom.list() YIELD name RETURN name ORDER BY name",
@@ -555,9 +561,9 @@ public class CypherProceduresStorageTest {
         TestUtil.testResult(db, "SHOW PROCEDURES YIELD signature, name WHERE name STARTS WITH 'custom.sum' RETURN DISTINCT name, signature ORDER BY name",
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertEquals("custom.sum1(input1 = null :: INTEGER?, input2 = null :: INTEGER?) :: (answer :: INTEGER?)", row.get("signature"));
+                    assertEquals("custom.sum1(input1 = null :: INTEGER, input2 = null :: INTEGER) :: (answer :: INTEGER)", row.get("signature"));
                     row = r.next();
-                    assertEquals("custom.sum2(input1 :: INTEGER?, input2 :: INTEGER?) :: (answer :: INTEGER?)", row.get("signature"));
+                    assertEquals("custom.sum2(input1 :: INTEGER, input2 :: INTEGER) :: (answer :: INTEGER)", row.get("signature"));
                     assertFalse(r.hasNext());
                 });
         TestUtil.testResult(db, "call apoc.custom.list() YIELD name RETURN name ORDER BY name",
