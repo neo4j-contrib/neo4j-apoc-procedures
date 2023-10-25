@@ -37,7 +37,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --init-script init.gradle
-          ./gradlew build
+          ./gradlew build --parallel
 
       - name: Clean neo4j artifacts
         if: always() # run this step even if previous step failed
