@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 public class Signatures {
-
+    public static final String NUMBER_TYPE = "INTEGER | FLOAT";
     public static final String SIGNATURE_SYNTAX_ERROR = "Syntax error(s) in signature definition %s. " +
             "\nNote that procedure/function name, possible map keys, input and output names must have at least 2 character:\n";
     private final String prefix;
@@ -206,6 +206,7 @@ public class Signatures {
             case "PATH":
                 return NTPath;
             case "NUMBER":
+            case NUMBER_TYPE:
                 return NTNumber;
             case "LONG":
                 return NTInteger;
@@ -224,12 +225,16 @@ public class Signatures {
             case "DATE":
                 return NTDate;
             case "TIME":
+            case "ZONED TIME":
                 return NTTime;
             case "LOCALTIME":
+            case "LOCAL TIME":
                 return NTLocalTime;
             case "DATETIME":
+            case "ZONED DATETIME":
                 return NTDateTime;
             case "LOCALDATETIME":
+            case "LOCAL DATETIME":
                 return NTLocalDateTime;
             case "DURATION":
                 return NTDuration;

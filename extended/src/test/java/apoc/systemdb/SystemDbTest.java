@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.custom.Signatures.NUMBER_TYPE;
 import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
 import static org.junit.Assert.assertEquals;
@@ -123,9 +124,11 @@ public class SystemDbTest {
         db.executeTransactionally(pauseTrigger);
 
         // We test custom procedures and functions
-        final String declareFunction = "CALL apoc.custom.declareFunction('declareFoo(input :: NUMBER?) :: (INTEGER?)', 'RETURN $input as answer', false, '');";
-        db.executeTransactionally(declareFunction);
-        final String declareProcedure = "CALL apoc.custom.declareProcedure('declareBar(one = 2 :: INTEGER?, two = 3 :: INTEGER?) :: (sum :: INTEGER?)', 'RETURN $one + $two as sum', 'READ', '');";
+        final String declareFunction = "CALL apoc.custom.declareFunction('declareFoo(input :: %s) :: INTEGER', 'RETURN $input as answer', false, '');";
+        db.executeTransactionally(declareFunction.formatted("NUMBER"));
+        final String declareFunctionWithNumber = "CALL apoc.custom.declareFunction('declareFooNumber(input :: INTEGER | FLOAT) :: INTEGER', 'RETURN $input as answer', false, '');";
+        db.executeTransactionally(declareFunctionWithNumber);
+        final String declareProcedure = "CALL apoc.custom.declareProcedure('declareBar(one = 2 :: INTEGER, two = 3 :: INTEGER) :: (sum :: INTEGER)', 'RETURN $one + $two as sum', 'READ', '');";
         db.executeTransactionally(declareProcedure);
 
         // We test uuid, we also need to export the related constraint (in another file)
@@ -139,7 +142,7 @@ public class SystemDbTest {
         db.executeTransactionally(dvStatement);
 
         TestUtil.testCall(db, "CALL apoc.systemdb.export.metadata", row -> {
-            assertEquals(6L, row.get("rows"));
+            assertEquals(7L, row.get("rows"));
             assertEquals(true, row.get("done"));
             assertEquals("metadata", row.get("file"));
         });
@@ -148,7 +151,8 @@ public class SystemDbTest {
         assertEquals(Set.of(uuidStatement), readFileLines("metadata.Uuid.neo4j.cypher", directory));
         assertEquals(Set.of(triggerOne, triggerTwo, pauseTrigger), readFileLines("metadata.Trigger.neo4j.cypher", directory));
         assertEquals(Set.of(declareProcedure), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
-        assertEquals(Set.of(declareFunction), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
+        Set<String> expectedFunctions = Set.of(declareFunction.formatted(NUMBER_TYPE), declareFunctionWithNumber);
+        assertEquals(expectedFunctions, readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
         assertEquals(Set.of(dvStatement), readFileLines("metadata.DataVirtualizationCatalog.neo4j.cypher", directory));
         
         // -- with config and uuid constrain dropped

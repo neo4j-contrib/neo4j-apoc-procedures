@@ -23,7 +23,7 @@ public class ExportFunction implements ExportMetadata {
                 ? (String) node.getProperty(outputName)
                 : getSignature(node, ExtendedSystemPropertyKeys.outputs.name());
 
-        String statement = String.format("CALL apoc.custom.declareFunction('%s(%s) :: (%s)', '%s', %s, '%s');",
+        String statement = String.format("CALL apoc.custom.declareFunction('%s(%s) :: %s', '%s', %s, '%s');",
                 node.getProperty(SystemPropertyKeys.name.name()), inputs, outputs,
                 node.getProperty(SystemPropertyKeys.statement.name()),
                 node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name()),
