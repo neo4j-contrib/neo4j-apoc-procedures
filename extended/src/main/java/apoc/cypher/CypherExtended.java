@@ -174,7 +174,7 @@ public class CypherExtended {
                 if (isPeriodicOperation(stmt)) {
                     Util.inThread(pools , () -> {
                         try {
-                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout));
+                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, tx));
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -184,7 +184,7 @@ public class CypherExtended {
                 else {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
-                            return consumeResult(result, queue, addStatistics, timeout);
+                            return consumeResult(result, queue, addStatistics, tx);
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -227,7 +227,7 @@ public class CypherExtended {
             if (schemaOperation) {
                 Util.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
-                        return consumeResult(result, queue, addStatistics, timeout);
+                        return consumeResult(result, queue, addStatistics, tx);
                     } catch (Exception e) {
                         collectError(queue, reportError, e, fileName);
                         return null;
@@ -239,13 +239,13 @@ public class CypherExtended {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, long timeout) {
+    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction transaction) {
         try {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
+                Map<String, Object> res = EntityUtil.anyRebind(transaction, result.next());
                 queue.put(new RowResult(row++, res));
             }
             if (addStatistics) {
@@ -375,7 +375,7 @@ public class CypherExtended {
                 .map((List<Object> partition) -> {
                     try (Transaction transaction = db.beginTx();
                          Result result = transaction.execute(statement, parallelParams(params, "_", partition))) {
-                        return consumeResult(result, queue, false, timeout);
+                        return consumeResult(result, queue, false, transaction);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }}
