@@ -13,7 +13,7 @@ defaultValue: value;
 
 list_type:	'LIST''?'?' OF '+opt_type ;
 opt_type:	base_type'?'? ;
-base_type:	'MAP' | 'ANY' | 'NODE' | 'REL' | 'RELATIONSHIP' | 'EDGE' | 'PATH' | 'NUMBER' | 'LONG' | 'INT' | 'INTEGER' | 'FLOAT' | 'DOUBLE' | 'BOOL' | 'BOOLEAN' | 'DATE' | 'TIME' | 'LOCALTIME' | 'DATETIME' | 'LOCALDATETIME' | 'DURATION' | 'POINT' | 'GEO' | 'GEOMETRY' | 'STRING' | 'TEXT' ;
+base_type:	'MAP' | 'ANY' | 'NODE' | 'REL' | 'RELATIONSHIP' | 'EDGE' | 'PATH' | 'NUMBER' | 'INTEGER | FLOAT' | 'LONG' | 'INT' | 'INTEGER' | 'FLOAT' | 'DOUBLE' | 'BOOL' | 'BOOLEAN' | 'DATE' | 'TIME' | 'LOCALTIME' | 'DATETIME' | 'LOCALDATETIME' | 'DURATION' | 'POINT' | 'GEO' | 'GEOMETRY' | 'STRING' | 'TEXT' ;
 NEWLINE:	[\r\n]+ ;
 QUOTED_IDENTIFIER:	'`' [^`]+? '`' ;
 IDENTIFIER:	[a-zA-Z_][a-zA-Z0-9_]+ ;

@@ -75,7 +75,7 @@ subprojects {
                 'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.14.0-debian',
                 'coreDir': 'apoc-core/core'
 
-        maxHeapSize = "8G"
+        maxHeapSize = "5G"
         forkEvery = 50
         maxParallelForks = 1
         minHeapSize = "128m"
