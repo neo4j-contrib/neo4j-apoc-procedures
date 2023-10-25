@@ -147,8 +147,10 @@ public class SystemDbTest {
         assertEquals(Set.of(constraintForUuid), readFileLines("metadata.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("metadata.Uuid.neo4j.cypher", directory));
         assertEquals(Set.of(triggerOne, triggerTwo, pauseTrigger), readFileLines("metadata.Trigger.neo4j.cypher", directory));
-        assertEquals(Set.of(declareProcedure), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
-        assertEquals(Set.of(declareFunction), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
+        final String declareProcedureOutput = "CALL apoc.custom.declareProcedure('declareBar(one = 2 :: INTEGER, two = 3 :: INTEGER) :: (sum :: INTEGER)', 'RETURN $one + $two as sum', 'READ', '');";
+        assertEquals(Set.of(declareProcedureOutput), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
+        final String declareFunctionOutput = "CALL apoc.custom.declareFunction('declareFoo(input :: INTEGER | FLOAT) :: INTEGER', 'RETURN $input as answer', false, '');";
+        assertEquals(Set.of(declareFunctionOutput), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
         assertEquals(Set.of(dvStatement), readFileLines("metadata.DataVirtualizationCatalog.neo4j.cypher", directory));
         
         // -- with config and uuid constrain dropped
@@ -166,6 +168,20 @@ public class SystemDbTest {
 
         assertEquals(Set.of(constraintForUuid), readFileLines("custom.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("custom.Uuid.neo4j.cypher", directory));
+    }
+
+    @Test
+    public void testExportMetadataWithTypeInputOrFloat() {
+        final String declareFunctionWithNumber = "CALL apoc.custom.declareFunction('declareFooNumber(input :: INTEGER | FLOAT) :: INTEGER', 'RETURN $input as answer', false, '');";
+        db.executeTransactionally(declareFunctionWithNumber);
+
+        TestUtil.testCall(db, "CALL apoc.systemdb.export.metadata", row -> {
+            assertEquals(1L, row.get("rows"));
+            assertEquals(true, row.get("done"));
+            assertEquals("metadata", row.get("file"));
+        });
+        
+        assertEquals(Set.of(declareFunctionWithNumber), readFileLines("metadata.CypherFunction.neo4j.cypher", directory));
     }
 
     private static Set<String> readFileLines(String fileName, File directory) {

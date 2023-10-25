@@ -27,11 +27,9 @@ import static org.junit.Assert.fail;
 public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
-        try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.EXTENDED), true)
-                    .withNeo4jConfig("dbms.transaction.timeout", "60s")
-                    .withEnv(APOC_IMPORT_FILE_ENABLED, "true");
-
+        try(Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.EXTENDED), true)
+                .withNeo4jConfig("dbms.transaction.timeout", "60s")
+                .withEnv(APOC_IMPORT_FILE_ENABLED, "true")) {
             neo4jContainer.start();
 
             Session session = neo4jContainer.getSession();
@@ -41,7 +39,6 @@ public class CoreExtendedTest {
             assertTrue(coreCount > 0);
             assertTrue(extendedCount > 0);
 
-            neo4jContainer.close();
         } catch (Exception ex) {
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();
@@ -52,10 +49,9 @@ public class CoreExtendedTest {
 
     @Test
     public void matchesSpreadsheet() {
-        try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.EXTENDED), true)
-                    .withNeo4jConfig("dbms.transaction.timeout", "60s")
-                    .withEnv(APOC_IMPORT_FILE_ENABLED, "true");
+        try(Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.EXTENDED), true)
+                .withNeo4jConfig("dbms.transaction.timeout", "60s")
+                .withEnv(APOC_IMPORT_FILE_ENABLED, "true")) {
 
             neo4jContainer.start();
 
@@ -78,8 +74,7 @@ public class CoreExtendedTest {
             List<Map.Entry<String, String>> different = spreadsheet.entrySet().stream().filter(entry -> actual.containsKey(entry.getKey()) && !actual.get(entry.getKey()).equals(entry.getValue())).collect(Collectors.toList());
 
             assertEquals(different.toString(), 0, different.size());
-
-            neo4jContainer.close();
+            
         } catch (Exception ex) {
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();

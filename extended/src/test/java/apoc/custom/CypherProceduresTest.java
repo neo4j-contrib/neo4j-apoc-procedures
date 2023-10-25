@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
+import static apoc.custom.Signatures.NUMBER_TYPE;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
@@ -180,10 +181,10 @@ public class CypherProceduresTest  {
                 Map<String, Object> value = row.next();
                 assertTrue(value.containsKey("type"));
                 assertTrue(FUNCTION.equals(value.get("type")) || PROCEDURE.equals(value.get("type")));
-
+                
                 if(PROCEDURE.equals(value.get("type"))){
                     assertEquals("answer", value.get("name"));
-                    assertEquals(asList(asList("answer", "number")), value.get("outputs"));
+                    assertEquals(asList(asList("answer", NUMBER_TYPE.toLowerCase())), value.get("outputs"));
                     assertEquals(asList(asList("input", "integer", "42")), value.get("inputs"));
                     assertEquals("Procedure that answer to the Ultimate Question of Life, the Universe, and Everything", value.get("description").toString());
                     assertNull(value.get("forceSingle"));
@@ -193,7 +194,7 @@ public class CypherProceduresTest  {
                 if(FUNCTION.equals(value.get("type"))){
                     assertEquals("answer", value.get("name"));
                     assertEquals("integer", value.get("outputs"));
-                    assertEquals(asList(asList("input", "number")), value.get("inputs"));
+                    assertEquals(asList(asList("input", NUMBER_TYPE.toLowerCase())), value.get("inputs"));
                     assertEquals("", value.get("description"));
                     assertFalse((Boolean) value.get("forceSingle"));
                     assertNull(value.get("mode"));

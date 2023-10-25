@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.custom.Signatures.NUMBER_TYPE;
 import static apoc.util.MapUtil.map;
 import static java.util.Collections.singletonList;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.AnyType;
@@ -82,7 +83,6 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTString;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTTime;
 
 public class CypherProceduresHandler extends LifecycleAdapter implements AvailabilityListener {
-
     public static final String PREFIX = "custom";
     public static final String FUNCTION = "function";
     public static final String PROCEDURE = "procedure";
@@ -461,6 +461,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         typeName = typeName.toUpperCase();
         if (typeName.startsWith("LIST OF ")) return NTList(typeof(typeName.substring(8)));
         if (typeName.startsWith("LIST ")) return NTList(typeof(typeName.substring(5)));
+        if (typeName.startsWith("LIST<") && typeName.endsWith(">")) {
+            AnyType typeof = typeof(typeName.substring(5, typeName.length() - 1));
+            return NTList(typeof);
+        }
         switch (typeName) {
             case "ANY":
                 return NTAny;
@@ -477,6 +481,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "PATH":
                 return NTPath;
             case "NUMBER":
+            case NUMBER_TYPE:
                 return NTNumber;
             case "LONG":
                 return NTInteger;
@@ -495,12 +500,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "DATE":
                 return NTDate;
             case "TIME":
+            case "ZONED TIME":
                 return NTTime;
             case "LOCALTIME":
+            case "LOCAL TIME":
                 return NTLocalTime;
             case "DATETIME":
+            case "ZONED DATETIME":
                 return NTDateTime;
             case "LOCALDATETIME":
+            case "LOCAL DATETIME":
                 return NTLocalDateTime;
             case "DURATION":
                 return NTDuration;
@@ -536,6 +545,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "PATH":
                 return null;
             case "NUMBER":
+            case NUMBER_TYPE:
                 return value instanceof Float || value instanceof Double ? DefaultParameterValue.ntFloat(((Number) value).doubleValue()) : DefaultParameterValue.ntInteger(((Number) value).longValue());
             case "LONG":
             case "INT":
@@ -553,6 +563,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             case "DATETIME":
             case "LOCALDATETIME":
             case "DURATION":
+            case "ZONED TIME":
+            case "LOCAL TIME":
+            case "ZONED DATETIME":
+            case "LOCAL DATETIME":
             case "POINT":
             case "GEO":
             case "GEOMETRY":

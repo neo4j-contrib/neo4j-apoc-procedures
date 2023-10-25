@@ -27,7 +27,8 @@ you have to quote the result, e.g `CALL apoc.custom.declareProcedure("procWithNu
 
 .Type Names
 The `typeParam` and `typeResult` in the signature parameter can be one of the following values:
-* FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG
+
+* FLOAT, DOUBLE, INT, INTEGER, INTEGER | FLOAT, NUMBER, LONG
 * TEXT, STRING
 * BOOL, BOOLEAN
 * POINT, GEO, GEOMETRY
@@ -37,6 +38,7 @@ The `typeParam` and `typeResult` in the signature parameter can be one of the fo
 * LIST TYPE, LIST OF TYPE (where `TYPE` can be one of the previous values)
 * ANY
 
+NOTE: In Neo4j 5.13, the `NUMBER` type was replaced by `INTEGER | FLOAT`, but we can still use it for backwards compatibility.
 
 NOTE: If you override procedures or functions you might need to call `call db.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
 
@@ -75,8 +77,8 @@ The output will look like the following table:
 [%autowidth,opts=header]
 |===
 | type | name | description | mode | statement | inputs | outputs | forceSingle
-| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
-| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
+| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","integer \| float"]] | "long" | false
+| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","integer \| float"]] | <null>
 |===
 
 

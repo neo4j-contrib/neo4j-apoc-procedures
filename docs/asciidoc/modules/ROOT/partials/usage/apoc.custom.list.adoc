@@ -7,5 +7,5 @@ CALL apoc.custom.list();
 [opts="header"]
 |===
 | type       | name     | description | mode | statement                   | inputs                | outputs   | forceSingle
-| "function" | "double" | ""          | NULL | "RETURN $input*2 as answer" | [["input", "number"]] | "integer" | FALSE
+| "function" | "double" | ""          | NULL | "RETURN $input*2 as answer" | [["input", "integer \| float"]] | "integer" | FALSE
 |===
