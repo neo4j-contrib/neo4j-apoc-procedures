@@ -1,0 +1,10 @@
+{
+  "result": "success",
+  "artifacts": [
+    {
+      "seed": 5450,
+      "base64": "myBase64image",
+      "finishReason": "SUCCESS"
+    }
+  ]
+}
