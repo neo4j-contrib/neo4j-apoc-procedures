@@ -1,0 +1,40 @@
+{
+	"modelSummaries": [
+		{
+			"customizationsSupported": [
+				"FINE_TUNING"
+			],
+			"inferenceTypesSupported": [
+				"ON_DEMAND"
+			],
+			"inputModalities": [
+				"TEXT"
+			],
+			"modelArn": "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-tg1-large",
+			"modelId": "amazon.titan-tg1-large",
+			"modelName": "Titan Text Large",
+			"outputModalities": [
+				"TEXT"
+			],
+			"providerName": "Amazon",
+			"responseStreamingSupported": true
+		},
+		{
+			"customizationsSupported": [],
+			"inferenceTypesSupported": [
+				"ON_DEMAND"
+			],
+			"inputModalities": [
+				"TEXT"
+			],
+			"modelArn": "arn:aws:bedrock:mock",
+			"modelId": "amazon.titan-e1t-medium",
+			"modelName": "Titan Text Embeddings",
+			"outputModalities": [
+				"EMBEDDING"
+			],
+			"providerName": "Amazon",
+			"responseStreamingSupported": null
+		}
+	]
+}
