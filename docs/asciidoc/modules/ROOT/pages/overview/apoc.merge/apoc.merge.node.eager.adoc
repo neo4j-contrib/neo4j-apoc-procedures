@@ -14,17 +14,17 @@ apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key
 
 [source]
 ----
-apoc.merge.node.eager(label :: LIST? OF STRING?, identProps :: MAP?, props = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)
+apoc.merge.node.eager(label :: LIST? OF STRING?, identProps :: MAP?, onCreateProps = {} :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)
 ----
 
 == Input parameters
 [.procedures, opts=header]
 |===
-| Name | Type | Default 
-|label|LIST? OF STRING?|null
-|identProps|MAP?|null
-|props|MAP?|{}
-|onMatchProps|MAP?|{}
+| Name | Type | Default | Description
+| labels | LIST? OF STRING? | null | The list of labels used for the generated merge statement. Passing `null` or an empty list will merge a node without any labels. `null` or empty strings within the list are not supported.
+| identProps | MAP? | null | Properties that are always merged.
+| onCreateProps | MAP? | {} | Properties that are merged when a node is created.
+| onMatchProps | MAP? | {} | Properties that are merged when a node is matched.
 |===
 
 == Output parameters
