@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.custom.Signatures.NUMBER_TYPE;
 import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
 import static org.junit.Assert.assertEquals;
