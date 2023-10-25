@@ -77,9 +77,7 @@ subprojects {
 
         maxHeapSize = "5G"
         forkEvery = 50
-        maxParallelForks = System.env.TEAMCITY_VERSION != null
-                ? 1
-                : (Runtime.runtime.availableProcessors().intdiv(2) ?: 1)
+        maxParallelForks = 1
         minHeapSize = "128m"
 
         // This would apply only to TeamCity
