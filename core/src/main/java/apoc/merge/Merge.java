@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.util.Util.labelString;
 import static java.util.Collections.emptyMap;
 
 public class Merge {
