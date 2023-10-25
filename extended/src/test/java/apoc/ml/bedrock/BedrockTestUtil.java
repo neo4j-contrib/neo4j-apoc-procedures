@@ -27,6 +27,7 @@ public class BedrockTestUtil {
             "stop_sequences", List.of("\\n\\nHuman:"),
             "anthropic_version", "bedrock-2023-05-31"
     );
+    public static final String TITAN_CONTENT = "Test";
     public static final Map<String, Object> TITAN_BODY = Map.of("inputText", "Test");
 
     public static final String BEDROCK_CUSTOM_PROC = "CALL apoc.ml.bedrock.custom($body, $conf)";

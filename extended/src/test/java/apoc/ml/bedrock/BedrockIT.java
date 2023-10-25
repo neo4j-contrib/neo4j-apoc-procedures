@@ -19,11 +19,12 @@ import static apoc.ml.bedrock.BedrockConfig.KEY_ID;
 import static apoc.ml.bedrock.BedrockConfig.METHOD_KEY;
 import static apoc.ml.bedrock.BedrockConfig.SECRET_KEY;
 import static apoc.ml.bedrock.BedrockGetModelsConfig.*;
-import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL_ID;
+import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
 import static apoc.ml.bedrock.BedrockTestUtil.*;
 import static apoc.ml.bedrock.BedrockUtil.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -61,7 +62,7 @@ public class BedrockIT {
     public void testCustomWithTitanEmbedding() {
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", TITAN_BODY,
-                        "conf", Map.of(MODEL_ID, TITAN_EMBED_TEXT)
+                        "conf", Map.of(MODEL, TITAN_EMBED_TEXT)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -78,7 +79,7 @@ public class BedrockIT {
         try {
             testCall(db, BEDROCK_CUSTOM_PROC,
                     Map.of("body", TITAN_BODY,
-                            "conf", Map.of(MODEL_ID, TITAN_EMBED_TEXT)
+                            "conf", Map.of(MODEL, TITAN_EMBED_TEXT)
                     ),
                     r -> {
                         Map value = (Map) r.get("value");
@@ -87,13 +88,13 @@ public class BedrockIT {
         } catch (Exception e) {
             String msg = e.getMessage();
             assertTrue("Actual error message is: " + msg, 
-                    msg.contains("The security token included in the request is invalid"));
+                    msg.contains("Server returned HTTP response code: 403"));
         }
         
         // check that with auth as a conf map it should work
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", TITAN_BODY,
-                        "conf", Map.of(MODEL_ID, TITAN_EMBED_TEXT,
+                        "conf", Map.of(MODEL, TITAN_EMBED_TEXT,
                                 KEY_ID, keyId,
                                 SECRET_KEY, secretKey)
                 ),
@@ -103,24 +104,12 @@ public class BedrockIT {
                 });
         
     }
-
-    @Test
-    public void testCustomWithStringBody() {
-        testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", "{\"inputText\": \"Test\" }",
-                        "conf", Map.of(MODEL_ID, TITAN_EMBED_TEXT)
-                ),
-                r -> {
-                    Map value = (Map) r.get("value");
-                    assertionsTitanEmbed(value);
-                });
-    }
     
     @Test
     public void testCustomWithJurassicUltra() {
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", JURASSIC_BODY,
-                        "conf", Map.of(MODEL_ID, JURASSIC_2_ULTRA)
+                        "conf", Map.of(MODEL, JURASSIC_2_ULTRA)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -132,7 +121,7 @@ public class BedrockIT {
     public void testCustomWithAnthropicClaude() {
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", ANTHROPIC_CLAUDE_BODY,
-                        "conf", Map.of(MODEL_ID, "anthropic.claude-v1")
+                        "conf", Map.of(MODEL, "anthropic.claude-v1")
                 ),
         r -> {
             Map value = (Map) r.get("value");
@@ -145,7 +134,7 @@ public class BedrockIT {
     public void testCustomWithJurassicMid() {
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", JURASSIC_BODY,
-                        "conf", Map.of(MODEL_ID, "ai21.j2-mid-v1")
+                        "conf", Map.of(MODEL, "ai21.j2-mid-v1")
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -157,7 +146,7 @@ public class BedrockIT {
     public void testCustomWithStability() {
         testCall(db, BEDROCK_CUSTOM_PROC,
                 Map.of("body", STABILITY_AI_BODY,
-                        "conf", Map.of(MODEL_ID, STABILITY_STABLE_DIFFUSION_XL)
+                        "conf", Map.of(MODEL, STABILITY_STABLE_DIFFUSION_XL)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -194,13 +183,13 @@ public class BedrockIT {
                     r -> fail());
         } catch (Exception e) {
             String message = e.getMessage();
-            assertTrue("Actual message is: "+ message, message.contains("<UnknownOperationException/>"));
+            assertTrue("Actual message is: "+ message, message.contains("Server returned HTTP response code: 403"));
         }
     }
 
     @Test
     public void testStability() {
-        testCall(db, "CALL apoc.ml.bedrock.stability($body)",
+        testCall(db, "CALL apoc.ml.bedrock.image($body)",
                 Map.of("body", STABILITY_AI_BODY),
                 r -> {
                     String base64Image = (String) r.get("base64Image");
@@ -209,61 +198,51 @@ public class BedrockIT {
     }
 
     @Test
-    public void testJurassic() {
-        testCall(db, "CALL apoc.ml.bedrock.jurassic($body)",
-                Map.of("body", JURASSIC_BODY),
+    public void testChatCompletion() {
+        testResult(db, "CALL apoc.ml.bedrock.chat($body)",
+                Map.of("body", List.of(ANTHROPIC_CLAUDE_BODY, ANTHROPIC_CLAUDE_BODY)),
                 r -> {
-                    assertNotNull(r.get("promptTokens"));
+            r.<Map<String,Object>>columnAs("value").forEachRemaining(row -> {
+                        assertNotNull(row.get("completion"));
+                        assertNotNull(row.get("stop_reason"));
+                    });
                 });
     }
 
     @Test
-    public void testJurassicWithModelMid() {
-        testCall(db, "CALL apoc.ml.bedrock.jurassic($body)",
-                Map.of("body", JURASSIC_BODY,
-                        "conf", Map.of(MODEL_ID, "ai21.j2-mid-v1")),
-                r -> {
-                    assertNotNull(r.get("promptTokens"));
+    public void testCompletion() {
+        testCall(db, "CALL apoc.ml.bedrock.completion('What color is the sky? Answer in one word: ')",
+                row -> {
+                    Map value = (Map) row.get("value");
+                    List<Map> completions = (List<Map>) value.get("completions");
+                    Map completion = completions.get(0);
+                    Map data = (Map) completion.get("data");
+                    String text = (String) data.get("text");
+                    assertTrue("Actual text is: " + text, text.contains("Blue"));
+                    assertNotNull(data.get("tokens"));
+                    Map finishReason = (Map) completion.get("finishReason");
+                    assertEquals("endoftext", finishReason.get("reason"));
+                    assertNotNull(value.get("prompt"));
                 });
     }
 
     @Test
-    public void testAnthropicClaude() {
-        testCall(db, "CALL apoc.ml.bedrock.anthropic.claude($body)",
-                Map.of("body", ANTHROPIC_CLAUDE_BODY),
-                r -> {
-            assertNotNull(r.get("completion"));
-            assertNotNull(r.get("stopReason"));
-                });
-    }
-
-    @Test
-    public void testAnthropicClaudeV1() {
-        testCall(db, "CALL apoc.ml.bedrock.anthropic.claude($body, $conf)",
-                Map.of("body", ANTHROPIC_CLAUDE_BODY,
-                        "conf", Map.of(MODEL_ID, "anthropic.claude-v1")),
-                r -> {
-            assertNotNull(r.get("completion"));
-            assertNotNull(r.get("stopReason"));
-                });
-    }
-
-    @Test
-    public void testAnthropicClaudeInstant() {
-        testCall(db, "CALL apoc.ml.bedrock.anthropic.claude($body, $conf)",
-                Map.of("body", ANTHROPIC_CLAUDE_BODY,
-                        "conf", Map.of(MODEL_ID, "anthropic.claude-instant-v1")),
-                r -> {
-            assertNotNull(r.get("completion"));
-            assertNotNull(r.get("stopReason"));
-                });
-    }
-
-    @Test
-    public void testTitanEmbedding() {
-        testCall(db, "CALL apoc.ml.bedrock.titan.embed($body)",
-                Map.of("body", TITAN_BODY),
+    public void testEmbedding() {
+        testCall(db, "CALL apoc.ml.bedrock.embedding($body)",
+                Map.of("body", List.of(TITAN_CONTENT)),
                 BedrockIT::assertionsTitanEmbed);
+    }
+
+    @Test
+    public void testWrongRegion() {
+        try {
+            testCall(db, "CALL apoc.ml.bedrock.embedding($body, {region: 'notExistent'})",
+                    Map.of("body", List.of(TITAN_CONTENT)),
+                    r -> fail());
+        } catch (Exception e) {
+            String message = e.getMessage();
+            assertTrue("curr message is: " + message, message.contains("java.net.UnknownHostException"));
+        }
     }
     
     @Test

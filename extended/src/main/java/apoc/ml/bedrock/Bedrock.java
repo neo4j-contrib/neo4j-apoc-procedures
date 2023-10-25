@@ -1,123 +1,144 @@
 package apoc.ml.bedrock;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import apoc.Description;
-import apoc.result.ObjectResult;
-import apoc.util.ExtendedUtil;
+import apoc.result.MapResult;
+import apoc.util.JsonUtil;
 import apoc.util.Util;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.http.impl.client.CloseableHttpClient;
-
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL_ID;
+import static apoc.ml.bedrock.BedrockConfig.JSON_PATH;
+import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.ml.bedrock.BedrockInvokeResult.*;
-import static apoc.ml.bedrock.BedrockUtil.*;
 
 
 public class Bedrock {
+    // public for testing purpose
+    public static final String JURASSIC_2_ULTRA = "ai21.j2-ultra-v1";
+    public static final String TITAN_EMBED_TEXT = "amazon.titan-embed-text-v1";
+    public static final String ANTHROPIC_CLAUDE_V2 = "anthropic.claude-v2";
+    public static final String STABILITY_STABLE_DIFFUSION_XL = "stability.stable-diffusion-xl-v0";
     
-    @Procedure
-    public Stream<ModelItemResult> list(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    @Procedure("apoc.ml.bedrock.list")
+    public Stream<ModelItemResult> list(@Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
 
+        var config = new HashMap<>(configuration);
+        config.putIfAbsent(JSON_PATH, "modelSummaries[*]");
         BedrockConfig conf = new BedrockGetModelsConfig(config);
         
-        return executeRequestCommon(null, "modelSummaries[*]", conf)
+        return executeRequestCommon(null, conf)
                 .flatMap(i -> ((List<Map<String, Object>>) i).stream())
                 .map(ModelItemResult::new);
     }
     
-    @Procedure
+    @Procedure("apoc.ml.bedrock.custom")
     @Description("To create a customizable bedrock call")
-    public Stream<ObjectResult> custom(@Name(value = "body") Object body,
-                                       @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> custom(@Name(value = "body") Map<String, Object> body,
+                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        BedrockConfig conf = new BedrockInvokeConfig(configuration);
         
-        return executeCustomRequest(body, config, null)
-                .map(ObjectResult::new);
+        return executeRequestReturningMap(body, conf)
+                .map(MapResult::new);
     }
-    
-    @Procedure
-    public Stream<Jurassic> jurassic(@Name(value = "body") Object body,
-                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+
+    @Procedure("apoc.ml.bedrock.chat")
+    @Description("apoc.ml.bedrock.chat(messages, $conf) - prompts the completion API")
+    public Stream<MapResult> chatCompletion(
+            @Name("messages") List<Map<String, String>> messages,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+
+        var config = new HashMap<>(configuration);
+        config.putIfAbsent(MODEL, ANTHROPIC_CLAUDE_V2);
+
+        BedrockConfig conf = new BedrockInvokeConfig(config);
         
-        config.putIfAbsent(MODEL_ID, JURASSIC_2_ULTRA);
-
-        return executeRequestReturningMap(body, config, null)
-                .map(Jurassic::from);
-    }
-    
-    @Procedure("apoc.ml.bedrock.anthropic.claude")
-    public Stream<AnthropicClaude> anthropicClaude(@Name(value = "body") Object body,
-                                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        config.putIfAbsent(MODEL_ID, ANTHROPIC_CLAUDE_V2);
-
-        return executeRequestReturningMap(body, config, null)
-                .map(AnthropicClaude::from);
-    }
-    
-    @Procedure("apoc.ml.bedrock.titan.embed")
-    public Stream<TitanEmbedding> titanEmbedding(@Name(value = "body") Object body,
-                                                 @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        config.putIfAbsent(MODEL_ID, TITAN_EMBED_TEXT);
-
-        return executeRequestReturningMap(body, config, null)
-                .map(TitanEmbedding::from);
+        return messages
+                .stream()
+                .flatMap(message -> executeRequestReturningMap(message, conf)
+                        .map(MapResult::new)
+                );
     }
 
-    @Procedure("apoc.ml.bedrock.stability")
-    public Stream<StabilityAi> stability(@Name(value = "body") Object body,
-                                         @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        config.putIfAbsent(MODEL_ID, STABILITY_STABLE_DIFFUSION_XL);
+    @Procedure("apoc.ml.bedrock.completion")
+    @Description("apoc.ml.bedrock.completion(prompt, $conf) - prompts the completion API")
+    public Stream<MapResult> completion(@Name("prompt") String prompt,
+                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+
+        var config = new HashMap<>(configuration);
+        config.putIfAbsent(MODEL, JURASSIC_2_ULTRA);
         
-        return executeRequestReturningMap(body, config, "$.artifacts[0]")
-                .map(StabilityAi::from);
+        BedrockConfig conf = new BedrockInvokeConfig(config);
+        
+        Map body = Util.map("prompt", prompt);
+        return executeRequestReturningMap(body, conf)
+                .map(MapResult::new);
+    }
+    
+    @Procedure("apoc.ml.bedrock.embedding")
+    @Description("apoc.ml.bedrock.embedding([texts], $configuration) - returns the embeddings for a given text")
+    public Stream<Embedding> embedding(@Name(value = "texts") List<String> texts,
+                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        var config = new HashMap<>(configuration);
+        config.putIfAbsent(MODEL, TITAN_EMBED_TEXT);
+
+        BedrockConfig conf = new BedrockInvokeConfig(config);
+        
+        return texts.stream()
+                .flatMap(text -> {
+                    Map body = Util.map("inputText", text);
+
+                    return executeRequestReturningMap(body, conf)
+                            .map(i -> Embedding.from(i, text));
+                });
+        
+    }
+
+    @Procedure("apoc.ml.bedrock.image")
+    public Stream<Image> image(@Name(value = "body") Map<String, Object> body,
+                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        configuration.putIfAbsent(MODEL, STABILITY_STABLE_DIFFUSION_XL);
+        configuration.putIfAbsent(JSON_PATH, "$.artifacts[0]");
+        
+        BedrockConfig conf = new BedrockInvokeConfig(configuration);
+        
+        return executeRequestReturningMap(body, conf)
+                .map(Image::from);
     }
     
 
-    private Stream<Map<String, Object>> executeRequestReturningMap(Object body, Map<String, Object> config, String path) {
-        return executeCustomRequest(body, config, path)
+    private Stream<Map<String, Object>> executeRequestReturningMap(Map body, BedrockConfig config) {
+        return executeRequestCommon(body, config)
                 .map(i -> (Map<String, Object>) i);
     }
 
-    private Stream<Object> executeCustomRequest(Object body, Map<String, Object> config, String path) {
-        BedrockConfig conf = new BedrockInvokeConfig(config);
-
-        return executeRequestCommon(body, path, conf);
-    }
-
-    private Stream<Object> executeRequestCommon(Object body, String path, BedrockConfig conf) {
+    private Stream<Object> executeRequestCommon(Map body, BedrockConfig conf) {
         try {
-            String bodyString = getBodyAsString(body);
+            String bodyString = null;
+            if (body != null) {
+                // to be used e.g to add body entries to `apoc.ml.bedrock.completion` 
+                body.putAll(conf.getBody());
+                bodyString = OBJECT_MAPPER.writeValueAsString(body);
+            }
+            
             Map<String, Object> headers = conf.getHeaders();
             headers.putIfAbsent("Content-Type", "application/json");
             headers.putIfAbsent("accept", "*/*");
 
-            BedrockUtil.calculateAuthorizationHeaders(conf, bodyString);
+            if (!headers.containsKey("Authorization")) {
+                AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString);
+            }
 
-            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-
-            return ExtendedUtil.getHttpResponse(conf, conf.getMethod(), httpClient, bodyString, headers, conf.getEndpoint(), path, List.of())
-                    .onClose(() -> Util.close(httpClient));
+            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String getBodyAsString(Object body) throws JsonProcessingException {
-        if (body == null) {
-            return "";
-        }
-        if (body instanceof String bodyString) {
-            return bodyString;
-        }
-        return OBJECT_MAPPER.writeValueAsString(body);
     }
 
 }

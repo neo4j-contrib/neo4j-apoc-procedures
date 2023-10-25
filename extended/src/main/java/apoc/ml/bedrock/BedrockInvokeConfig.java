@@ -3,7 +3,7 @@ package apoc.ml.bedrock;
 import java.util.Map;
 
 public class BedrockInvokeConfig extends BedrockConfig {
-    public static final String MODEL_ID = "modelId";
+    public static final String MODEL = "model";
 
     public BedrockInvokeConfig(Map<String, Object> config) {
         super(config);
@@ -11,10 +11,10 @@ public class BedrockInvokeConfig extends BedrockConfig {
 
     @Override
     String getDefaultEndpoint(Map<String, Object> config) {
-        String modelId = (String) config.get(MODEL_ID);
+        String modelId = (String) config.get(MODEL);
         return modelId == null
                 ? null
-                : String.format("https://bedrock-runtime.us-east-1.amazonaws.com/model/%s/invoke", modelId);
+                : String.format("https://bedrock-runtime.%s.amazonaws.com/model/%s/invoke", getRegion(), modelId);
     }
 
     @Override

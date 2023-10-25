@@ -25,7 +25,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.ml.bedrock.BedrockConfig.ENDPOINT_KEY;
 import static apoc.ml.bedrock.BedrockConfig.HEADERS_KEY;
 import static apoc.ml.bedrock.BedrockTestUtil.*;
-import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL_ID;
+import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
 import static apoc.ml.bedrock.BedrockUtil.STABILITY_STABLE_DIFFUSION_XL;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
@@ -41,14 +41,13 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
  */
 public class BedrockTest {
 
-    private static final String ANTHROPIC_CLAUDE_JSON = "/anthropic-claude.json";
     private static final String LIST_MODELS_JSON = "/list-models.json";
     private static final String STABLE_DIFFUSION_JSON = "/stable-diffusion.json";
     private static final String TITAN_EMBED_JSON = "/titan-embed.json";
     private static final Pair<String, String> AUTH_HEADER = Pair.of("Authorization", "AWS V4 mocked");
 
     private static ClientAndServer mockServer;
-    
+
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
@@ -56,11 +55,10 @@ public class BedrockTest {
     public static void startServer() {
         TestUtil.registerProcedure(db, Bedrock.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        
+
         mockServer = startClientAndServer(1080);
 
         Stream.of(
-                ANTHROPIC_CLAUDE_JSON,
                 LIST_MODELS_JSON,
                 STABLE_DIFFUSION_JSON,
                 TITAN_EMBED_JSON
@@ -71,7 +69,7 @@ public class BedrockTest {
         try {
             File urlFileName = new File(getUrlFileName("bedrock" + path).getFile());
             String body = FileUtils.readFileToString(urlFileName, UTF_8);
-            
+
             mockServer.when(
                     request()
                             .withPath(path)
@@ -87,7 +85,7 @@ public class BedrockTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        
+
     }
 
     @AfterClass
@@ -96,32 +94,8 @@ public class BedrockTest {
     }
 
     @Test
-    public void testAnthropicClaude() {
-        testCall(db, "call apoc.ml.bedrock.anthropic.claude($body, $conf)",
-                getParams(ANTHROPIC_CLAUDE_BODY, ANTHROPIC_CLAUDE_JSON),
-                r -> {
-            assertEquals("Hello!", r.get("completion"));
-            assertEquals("stop_sequence", r.get("stopReason"));
-                });
-    }
-
-    
-    @Test
-    public void testTitanEmbedding() {
-        testCall(db, "call apoc.ml.bedrock.titan.embed($body, $conf)",
-                getParams(TITAN_BODY, TITAN_EMBED_JSON),
-                r -> {
-            assertEquals(2L, r.get("inputTextTokenCount"));
-            assertEquals(List.of(-0.06542969,
-                    0.78125,
-                    -0.22363281,
-                    0.234375), r.get("embedding"));
-                });
-    }
-
-    @Test
     public void testStability() {
-        testCall(db, "call apoc.ml.bedrock.stability($body, $conf)",
+        testCall(db, "call apoc.ml.bedrock.image($body, $conf)",
                 getParams(STABILITY_AI_BODY, STABLE_DIFFUSION_JSON),
                 r -> {
                     String base64Image = (String) r.get("base64Image");
@@ -132,7 +106,7 @@ public class BedrockTest {
     @Test
     public void testCustomWithStability() {
         Map<String, Object> params = new HashMap<>();
-        params.put(MODEL_ID, STABILITY_STABLE_DIFFUSION_XL);
+        params.put(MODEL, STABILITY_STABLE_DIFFUSION_XL);
         params.putAll(getParams(STABILITY_AI_BODY, STABLE_DIFFUSION_JSON));
         testCall(db, BEDROCK_CUSTOM_PROC,
                 params,
@@ -165,6 +139,6 @@ public class BedrockTest {
                         HEADERS_KEY, authHeader)
         );
     }
-    
-    
+
+
 }

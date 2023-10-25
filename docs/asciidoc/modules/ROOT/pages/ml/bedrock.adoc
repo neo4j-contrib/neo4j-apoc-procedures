@@ -13,10 +13,10 @@ Here is a list of all available Aws Bedrock procedures:
 |name| description
 |apoc.ml.bedrock.custom(body, $config)| To create a customizable Bedrock API call
 |apoc.ml.bedrock.list($config)| To get the list of foundation or custom models
-|apoc.ml.bedrock.jurassic(body, $config)| To create an API call to `Jurassic-2` model
-|apoc.ml.bedrock.anthropic.claude(body, $config)| To create an API call to `Claude`s model
-|apoc.ml.bedrock.titan.embed(body, $config)| To create an API call to `Titan Embedding` model
-|apoc.ml.bedrock.stability(body, $config)| To create an API call to `Stable Diffusion` model
+|apoc.ml.bedrock.embedding(texts, $config)| To create an API call to generate embedding
+|apoc.ml.bedrock.chat(messages, $config)| To create a Chat Completion API call
+|apoc.ml.bedrock.completion(prompt, $config)| To create a Text Completion API call
+|apoc.ml.bedrock.image(body, $config)| To create an API call to get an image
 |===
 
 All the procedures, leverage the `apoc.ml.bedrock.custom` procedures,
@@ -35,20 +35,22 @@ instead of returning a generic `Object` as a result
 | name | type | default | description
 | keyId | String | null | The AWS key ID. We can also evaluate it via `apoc.conf`, with the key `apoc.aws.key.id`. As an alternative to the pair keyId-secretKey, we can directly pass the https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html[aws V4 signature] via the `headers` config
 | secretKey | String | null | The AWS secret access key. We can also evaluate it via `apoc.conf`, with the key `apoc.aws.secret.id`. As an alternative to the pair keyId-secretKey, we can directly pass the https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html[aws V4 signature] via the `headers` config
-| region | String | the one calculated from `endpoint` config | The AWS region
+| region | String | us-east-1 | The AWS region
 | endpoint | String | see below | The AWS endpoint.
 | method | String | `"POST"` (or `"GET"` with the `apoc.ml.bedrock.list` procedure) | The HTTP Method
 | headers | Map<String, Object> | `{Content-Type: application/json', Accept, '\*/*'}` | The HTTP Header
-| modelId | String | see below | (Ignored with the `bedrock.list` proc.) The modelId 
+| model | String | see below | (This config is ignored with the `bedrock.list` proc.) The Bedrock Model 
 | path | String | "foundation-models" | (Valid only with the `bedrock.list`) The endpoint path. 
-    It will create an endpoint of the type `https://bedrock.us-east-1.amazonaws.com/<path>`, i.e. with default `https://bedrock.us-east-1.amazonaws.com/foundation-models`
+    It will create an endpoint of the type `https://bedrock.<regionConfigValue>.amazonaws.com/<path>`, i.e. with default `https://bedrock.us-east-1.amazonaws.com/foundation-models`
 |===
 
-The `endpoint` config takes precedence over the `modelId` one.
-In case of all procedures, except the `bedrock.list`, the default `endpoint` is `"https://bedrock-runtime.us-east-1.amazonaws.com/model/<modelID>/invoke"`.
-The `<modelID>` part must be configured if we use the `ml.bedrock.custom` procedure,
-while with the `bedrock.jurassic`, `bedrock.anthropic.claude`, `bedrock.titan.embed`, `bedrock.stability` ones,
-has a default value of "ai21.j2-ultra-v1", "amazon.titan-embed-text-v1", "anthropic.claude-v2" and "stability.stable-diffusion-xl-v0" respectively.
+The `endpoint` config takes precedence over the `model` one.
+In case of all procedures, except the `bedrock.list`, the default `endpoint` is `"https://bedrock-runtime.<regionConfigValue>.amazonaws.com/model/<modelConfigValue>/invoke"`.
+So, with the default `region` config, i.e. "us-east-1", the default endpoint is `"https://bedrock-runtime.us-east-1.amazonaws.com/model/<modelConfigValue>/invoke"`.
+
+The `<modelConfigValue>` part must be configured if we use the `ml.bedrock.custom` procedure,
+while with the `bedrock.chat`, `bedrock.completion`, `bedrock.embedding`, `bedrock.image` ones,
+has a default value of "anthropic.claude-v2", "ai21.j2-ultra-v1", "anthropic.claude-v2" and "stability.stable-diffusion-xl-v0" respectively.
 
 
 
@@ -77,100 +79,84 @@ we assume that we set Key id and Secret Access Key via `apoc.conf`.
 
 == Usage Examples
 
-=== Ad-hoc model procedure
+=== Chat Completion API
 
-.apoc.ml.bedrock.jurassic
+This procedure `apoc.ml.bedrock.chat` takes a list of maps of chat exchanges between assistant and user (with optional system context), and will return the next message in the flow.
+
+Additional configuration is passed to the API, the default model used is `anthropic.claude-v2`.
+
+.apoc.ml.bedrock.chat
 [source,cypher]
 ----
-CALL apoc.ml.bedrock.jurassic({prompt: "Review: Extremely old cabinets",
-            maxTokens: 50,
-            temperature: 0,
-            topP: 1.0})
+CALL apoc.ml.bedrock.chat([
+    {
+        prompt: "\n\nHuman: Hello world\n\nAssistant:",
+        max_tokens_to_sample: 50,
+        top_k: 250,
+        top_p: 1,
+        stop_sequences: ["\\n\\nHuman:"]
+    }
+])
 ----
 
 .Results
-[opts="header",cols="3"]
+[opts="header"]
 |===
-| id	| promptTokens |	completions
-| 1234 | [
+|  value
+| {"stop_reason": "stop_sequence","completion": " Hello!"}
+|===
+
+=== Text Completion API
+
+This procedure `apoc.ml.bedrock.completion` can continue/complete a given text.
+Additional configuration is passed to the API, the default model used is `ai21.j2-ultra-v1`.
+
+.apoc.ml.bedrock.completion
+[source,cypher]
+----
+CALL apoc.ml.bedrock.completion('What color is the sky? Answer in one word: ')
+----
+
+.Results
+[opts="header"]
+|===
+|  value
+a|
+[source,json]
+----
 {
-"textRange": {
-"start": 0,
-"end": 6
-},
-"topTokens": null,
-"generatedToken": {
-"token": "▁Review",
-"raw_logprob": -7.870129585266113,
-"logprob": -7.870129585266113
+  "id": 1234,
+  "completions": [
+    {
+      "data": {
+        "text": "\nBlue",
+        "tokens": ["....."]
+      },
+      "finishReason": {
+        "reason": "endoftext"
+      }
+    }
+  ],
+  "prompt": {}
 }
-}
-,
-{ ....
-| [
-{
-"data": {
-"text": "
-These cabinets are very old and outdated. They are made of wood and have a simple, classic design. The cabinets are in good condition, but they could use some updating.",
-"tokens": [
-{ ...
+----
 |===
 
 
-We can also change the modelId, for example by using the `"ai21.j2-mid-v1"` one, which return the same response values.
+=== Image API
+
+This procedure `apoc.ml.bedrock.completion` can get a base64 image.
+Additional configuration is passed to the API, the default model used is `stability.stable-diffusion-xl-v0`.
+
+.apoc.ml.bedrock.image
 [source,cypher]
 ----
-CALL apoc.ml.bedrock.jurassic(<BODY>, {modelId: "ai21.j2-mid-v1"})
-----
-
-
-
-.apoc.ml.bedrock.anthropic.claude
-[source,cypher]
-----
-CALL apoc.ml.bedrock.anthropic.claude({
-                prompt: "\n\nHuman: Hello world\n\nAssistant:",
-            max_tokens_to_sample:  300,
-            temperature: 0.5,
-            top_k: 250,
-            top_p: 1,
-            stop_sequences: ["\\n\\nHuman:"],
-            anthropic_version: "bedrock-2023-05-31"
-})
-----
-
-
-.Results
-[opts="header",cols="2"]
-|===
-|  completion| 	stopReason
-| " Hello!"	| "stop_sequence"
-|===
-
-
-.apoc.ml.bedrock.titan.embed
-[source,cypher]
-----
-CALL apoc.ml.bedrock.titan.embed({inputText: "Hello World"})
-----
-
-.Results
-[opts="header",cols="2"]
-|===
-|  inputTextTokenCount| 	embedding
-| 2	| 	[0.32421875, 0.35546875, 0.625, 0.20019531, 1.328125, 0.6171875, 0.11425781, -0.00074005127, .... 
-|===
-
-
-.apoc.ml.bedrock.stability
-[source,cypher]
-----
-CALL apoc.ml.bedrock.stability({
-text_prompts: [{text: "picture of a bird", weight: 1.0}],
-cfg_scale: 5,
-seed: 123,
-steps: 70,
-style_preset: "photographic"
+CALL apoc.ml.bedrock.image({
+    text_prompts: [{text: "picture of a bird", weight: 1.0}],
+    cfg_scale: 5,
+    seed: 123,
+    steps: 70,
+    style_preset: "photographic"
 })
 ----
 
