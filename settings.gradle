@@ -8,6 +8,7 @@ project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
 
+// TODO - MAYBE EXCLUDE FOR TEAMCITY?
 //startParameter.excludedTaskNames = [
 //        ':core:build',
 //        ':common:build',

@@ -26,6 +26,8 @@ jobs:
       - name: Compile
         run: ./gradlew --no-daemon --init-script init.gradle clean
         # run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
+      - name: Compile Java
+        run: ./gradlew compileJava compileTestJava
   
   code-ql:
     runs-on: ubuntu-latest
@@ -62,7 +64,7 @@ jobs:
         
   tests:
     strategy:
-      # fail-fast: false
+      fail-fast: false
       matrix:
         project: [ 'extended', 'extended-it' ]
     env:

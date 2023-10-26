@@ -4,8 +4,7 @@ description: "Test gradle project"
 inputs:
   project-name:
     description: "Name of gradle project to test"
-    required: false
-    default: 'extended'
+    required: true
 
 runs:
   using: "composite"
