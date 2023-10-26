@@ -1,4 +1,5 @@
 name: "Setups JDK"
+description: "Setups JDK"
 
 runs:
   using: "composite"

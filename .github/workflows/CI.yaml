@@ -84,63 +84,8 @@ jobs:
           docker load --input ${COMMUNITY_TAR}
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
+        
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
         with:
           project-name: ${{ matrix.project }}
-#      - name: Archive test results
-#        uses: actions/upload-artifact@v2
-#        if: always()
-#        with:
-#          name: test-results
-#          path: |
-#            ${{matrix.project}}/build/reports/tests/test/
-       
-       
-       
-       
-#  build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: '17.0.8'
-#          distribution: 'temurin'
-#
-#      - name: Download neo4j dev docker container
-#        run: |
-#          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
-#          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
-#          wait
-#          docker load --input ${ENTERPRISE_TAR}
-#          docker load --input ${COMMUNITY_TAR}
-#
-#      - uses: actions/cache@v2
-#        with:
-#          path: |
-#            ~/.gradle/caches
-#            ~/.gradle/wrapper
-#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-#
-#      - name: Build with Gradle
-#        run: |
-#          chmod +x gradlew
-#          ./gradlew --init-script init.gradle
-#          ./gradlew build --parallel
-#
-#      - name: Clean neo4j artifacts
-#        if: always() # run this step even if previous step failed
-#        run: |
-#          (find ~/.gradle/caches -name "*neo4j*" -exec rm -rf {} \;) || echo "All neo4j files cleaned"
-#          rm -rf ${ENTERPRISE_TAR} ${COMMUNITY_TAR}
-#
-#      - name: Archive test results
-#        uses: actions/upload-artifact@v2
-#        if: always()
-#        with:
-#          name: test-results
-#          path: |
-#            extended/build/reports/tests/test/
