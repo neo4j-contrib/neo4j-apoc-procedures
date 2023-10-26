@@ -82,8 +82,6 @@ jobs:
           wait
           docker load --input ${ENTERPRISE_TAR}
           docker load --input ${COMMUNITY_TAR}
-      - name: Run ${{ matrix.project }} tests
-        uses: ./.github/actions/test-gradle-project
         
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
