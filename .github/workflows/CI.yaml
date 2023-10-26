@@ -64,11 +64,11 @@ jobs:
       # fail-fast: false
       matrix:
         project: [ 'common', 'core', 'processor', 'test-utils', 'it' ]
-      env:
-        DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
-        DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
-        ENTERPRISE_TAR: enterprise-docker.tar
-        COMMUNITY_TAR: community-docker.tar
+    env:
+      DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+      DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
+      ENTERPRISE_TAR: enterprise-docker.tar
+      COMMUNITY_TAR: community-docker.tar
     runs-on: ubuntu-latest
     needs: compile
     steps:
