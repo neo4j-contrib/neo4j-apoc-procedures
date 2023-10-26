@@ -15,10 +15,40 @@ env:
   ENTERPRISE_TAR: enterprise-docker.tar
   COMMUNITY_TAR: community-docker.tar
   
-
 jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+#      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-jdk
+      - uses: ./.github/actions/setup-gradle-cache #todo - needed?
+      - name: Init submodule
+        run: |
+          chmod +x gradlew
+          ./gradlew --init-script init.gradle clean
+#        run: ./gradlew --init-script init.gradle clean
+        # run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
+        # todo - maybe i can try removing clean and try directly shadowJar --init-script
+#      - name: Compile Java
+#        run: ./gradlew shadowJar
+        
+#        > Task :generateGrammarSource NO-SOURCE
+#        > Task :compileJava NO-SOURCE
+#        > Task :processResources NO-SOURCE
+#        > Task :classes UP-TO-DATE
+#        > Task :jar
+#        > Task :assemble
+#        > Task :generateTestGrammarSource NO-SOURCE
+#        > Task :compileTestJava NO-SOURCE
+#        > Task :processTestResources NO-SOURCE
+#        > Task :testClasses UP-TO-DATE
+#        > Task :test NO-SOURCE
+#        > Task :check UP-TO-DATE - TODO  PROVARE DIRETTAMENTE QUESTO?
+  
   code-ql:
     runs-on: ubuntu-latest
+    needs: compile
     permissions:
       actions: read
       contents: read
@@ -31,76 +61,61 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache #todo - needed?
-      
-      # TODO - provare usando  
+        
+       # TODO - provare usando  
       - name: Compile Java
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon --init-script init.gradle clean
-        # TODO - maybe clean remove the gradle-cache?? 
-        #        run: ./gradlew --no-daemon --init-script init.gradle clean
+        run: ./gradlew --no-daemon --init-script init.gradle clean
+       # TODO - maybe clean remove the gradle-cache?? 
+#        run: ./gradlew --no-daemon --init-script init.gradle clean
         # run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
-      
+          
       # Autobuild attempts to build any compiled languages 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
-
+      
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{matrix.language}}"
-  
+       
+  assemble:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-jdk
+      - name: Assemble
+        run: ./gradlew build --parallel
+#        run: ./gradlew assemble --parallel
+        
   tests:
     strategy:
       fail-fast: false
       matrix:
         project: [ 'extended', 'extended-it' ]
-    # TODO - NEEDED?  
     env:
       DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
       DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
       ENTERPRISE_TAR: enterprise-docker.tar
       COMMUNITY_TAR: community-docker.tar
     runs-on: ubuntu-latest
-#    needs: assemble
+    needs: assemble
     steps:
-      - uses: actions/checkout@v3
-      #      - uses: ./.github/actions/setup-jdk
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17.0.8'
-          distribution: 'temurin'
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      
-
-      # todo - maybe this can be to compile job??
-      - name: Assemble
-        run: |
-          chmod +x gradlew
-          ./gradlew --init-script init.gradle
-
+#      - uses: actions/checkout@v2
       - name: Download neo4j dev docker container
-        if: matrix.project == 'extended-it'
+        if: matrix.project == 'enterprise-it'
         run: |
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
           wait
           docker load --input ${ENTERPRISE_TAR}
           docker load --input ${COMMUNITY_TAR}
-
-      # todo ---> > Task :core:compileJava is done.. Maybe we can skip it..
+        
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
         with:

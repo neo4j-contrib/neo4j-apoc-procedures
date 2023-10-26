@@ -1,0 +1,32 @@
+name: "Test gradle project"
+description: "Test gradle project"
+
+inputs:
+  project-name:
+    description: "Name of gradle project to test"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/actions/setup-jdk
+    - uses: ./.github/actions/setup-gradle-cache
+    - name: Run compile tests 
+      shell: bash # TODO - MAYBE NEEDED?
+      run: ./gradlew :${{inputs.project-name}}:compileJava :${{inputs.project-name}}:compileTestJava
+    - name: Run tests
+      shell: bash # TODO - MAYBE NEEDED?
+     # TODO - MAYBE PARALLEL IS NOT NEEDED since there is gradle.properties ?
+#      run: ./gradlew :${{inputs.project-name}}:test --parallel TODO - FORSE SENZA PARALLEL
+      # run: ./gradlew :${{inputs.project-name}}:test --parallel
+      run: ./gradlew :${{inputs.project-name}}:check --parallel
+#      run: ./gradlew :${{inputs.project-name}}:build --parallel
+    - name: Archive test results
+      uses: actions/upload-artifact@v2
+#      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{inputs.project-name}}-test-results
+        path: |
+          ${{inputs.project-name}}/build/reports/tests/test/
+        # if-no-files-found: ignore # TODO - MAYBE NEEDED?
