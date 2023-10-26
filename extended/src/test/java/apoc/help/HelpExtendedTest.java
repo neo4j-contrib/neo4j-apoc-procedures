@@ -2,6 +2,7 @@ package apoc.help;
 
 import apoc.Extended;
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,8 +16,11 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
@@ -56,44 +60,48 @@ public class HelpExtendedTest {
                 .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
                 .filterInputsBy(input -> !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$"))
         );
-
+        
         return reflections.getTypesAnnotatedWith(Extended.class);
     }
 
     @Test
     public void indicateNotCore() throws IOException {
-        File extendedFile = new File("src/main/resources/extended.txt");
-        FileOutputStream fos = new FileOutputStream(extendedFile);
+//        File extendedFile = new File("src/main/resources/extended.txt");
+//        FileOutputStream fos = new FileOutputStream(extendedFile);
 
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
-            db.executeTransactionally("SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
-                    result -> {
-                        result.stream().forEach(record -> {
-                            try {
-                                bw.write(record.get("name").toString());
-                                bw.newLine();
-                            } catch (IOException ignored) {
-                            }
-                        });
-                        return null;
-                    });
+//        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
+        String s = "SHOW PROCEDURES";
+        List<String> strings = extracted(s);
 
-            db.executeTransactionally("SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
-                    result -> {
-                        result.stream().forEach(record -> {
-                            try {
-                                bw.write(record.get("name").toString());
-                                bw.newLine();
-                            } catch (IOException ignored) {
-                            }
-                        });
-                        return null;
-                    });
-        }
+        String s1 = "SHOW FUNCTIONS";
+        List<String> strings2 = extracted(s1);
+//        }
+
+        strings2.addAll(strings);
+        Collections.sort(strings2);
+        
+        String s2 = "CALL apoc.help('') YIELD name, core WHERE core = false RETURN name";
+        List<String> stringList = getStrings(s2);
+
+        System.out.println("stringList = " + stringList);
+        
+        Collections.sort(stringList);
+        assertEquals(stringList, strings2);
 
         TestUtil.testCall(db, "CALL apoc.help($text)", map("text", "expireIn"), (row) -> {
             assertEquals(false, row.get("core"));
         });
+    }
+
+    private List<String> extracted(String s1) {
+        String query = s1 + " YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name";
+        return getStrings(query);
+    }
+
+    private List<String> getStrings(String query) {
+        return db.executeTransactionally(query, Collections.emptyMap(),
+                result -> result.<String>columnAs("name").stream()
+                        .collect(Collectors.toCollection(ArrayList::new)));
     }
 
 }
