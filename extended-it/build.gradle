@@ -1,0 +1,42 @@
+description = 'APOC :: Apoc Extended Integration Tests Module'
+
+test {
+    maxParallelForks = 1
+}
+
+dependencies {
+    testImplementation project(':core')
+    testImplementation project(':common')
+    testImplementation project(':extended')
+    testImplementation project(':test-utils')
+    testImplementation project(':core').sourceSets.test.output
+    testImplementation project(':extended').sourceSets.test.output
+
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
+}
+
+//plugins {
+//    id 'java'
+//}
+//
+//group 'org.neo4j.procedure'
+//version '5.14.0'
+//
+//repositories {
+//    mavenCentral()
+//}
+//
+//dependencies {
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+//}
+//
+//test {
+//    useJUnitPlatform()
+//}
