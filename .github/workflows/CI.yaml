@@ -64,7 +64,7 @@ jobs:
     strategy:
       # fail-fast: false
       matrix:
-        project: [ 'common', 'core', 'processor', 'test-utils', 'it' ]
+        project: [ 'extended', 'extended-it' ]
     env:
       DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
       DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
