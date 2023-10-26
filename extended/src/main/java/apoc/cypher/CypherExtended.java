@@ -239,13 +239,13 @@ public class CypherExtended {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction transaction) {
+    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx) {
         try {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(transaction, result.next());
+                Map<String, Object> res = tx == null ? result.next() : EntityUtil.anyRebind(tx, result.next());
                 queue.put(new RowResult(row++, res));
             }
             if (addStatistics) {
@@ -375,15 +375,18 @@ public class CypherExtended {
                 .map((List<Object> partition) -> {
                     try (Transaction transaction = db.beginTx();
                          Result result = transaction.execute(statement, parallelParams(params, "_", partition))) {
-                        return consumeResult(result, queue, false, transaction);
+                        return consumeResult(result, queue, false, null);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
-                    }}
-                ).count();
+                    }
+                }).count();
             queue.put(RowResult.TOMBSTONE);
             return total;
         });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true).map((rowResult) -> new MapResult(rowResult.result));
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
+                .map(row -> row.result)
+                .map(row -> EntityUtil.anyRebind(tx, row))
+                .map(MapResult::new);
     }
 
     public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
