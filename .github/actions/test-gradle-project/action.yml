@@ -20,5 +20,6 @@ runs:
       if: always()
       with:
         name: ${{inputs.project-name}}-test-results
-        path: ${{inputs.project-name}}/build/reports/tests/test/
+        path: |
+          ${{inputs.project-name}}/build/reports/tests/test/
 #        if-no-files-found: ignore TODO - MAYBE NEEDED?
