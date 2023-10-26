@@ -11,8 +11,9 @@ runs:
     - uses: ./.github/actions/setup-jdk
     - uses: ./.github/actions/setup-gradle-cache
     - name: Run tests
-      # shell: bash # TODO - MAYBE NEEDED?
-      run: ./gradlew ${{inputs.project-name}}:test
+      shell: bash # TODO - MAYBE NEEDED?
+     # TODO - MABE PARALLEL IS NOT NEEDED since there is gradle.properties ?
+      run: ./gradlew ${{inputs.project-name}}:test --parallel
     - name: Archive test results
       uses: actions/upload-artifact@v2
 #      uses: actions/upload-artifact@v3
