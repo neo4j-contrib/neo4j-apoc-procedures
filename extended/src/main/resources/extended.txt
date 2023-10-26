@@ -83,6 +83,12 @@ apoc.log.warn
 apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
+apoc.ml.bedrock.chat
+apoc.ml.bedrock.completion
+apoc.ml.bedrock.custom
+apoc.ml.bedrock.embedding
+apoc.ml.bedrock.image
+apoc.ml.bedrock.list
 apoc.ml.cypher
 apoc.ml.query
 apoc.ml.schema

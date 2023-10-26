@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -18,7 +19,7 @@ import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.ml.bedrock.BedrockInvokeResult.*;
 
-
+@Extended
 public class Bedrock {
     // public for testing purpose
     public static final String JURASSIC_2_ULTRA = "ai21.j2-ultra-v1";
