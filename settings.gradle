@@ -1,8 +1,8 @@
 rootProject.name = 'apoc'
 
 include("extended")
-
-include ':core', ':common', ':processor', ':test-utils', ':extended-it'
+include ("extended-it")
+include ':core', ':common', ':processor', ':test-utils'//, ':extended-it'
 project(':core').projectDir = new File(rootDir, 'apoc-core/core')
 project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
@@ -25,5 +25,5 @@ startParameter.excludedTaskNames = [
         // not when a `gradle shadow` or a `gradle build` is executed in this root project folder
         ':core:shadowJar'
 ]
-include 'extended-it'
+
 
