@@ -1,0 +1,12 @@
+name: "Setups JDK"
+description: "Setups JDK"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up JDK 17
+      #uses: actions/setup-java@v3
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17.0.8'
+        distribution: 'temurin'
