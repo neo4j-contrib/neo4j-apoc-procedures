@@ -24,7 +24,8 @@ jobs:
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache #todo - needed?
       - name: Compile
-        run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
+        run: ./gradlew --no-daemon --init-script init.gradle clean
+        # run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
   
   code-ql:
     runs-on: ubuntu-latest
