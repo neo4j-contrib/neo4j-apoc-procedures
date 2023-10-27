@@ -15,7 +15,8 @@ runs:
       shell: bash # TODO - MAYBE NEEDED?
      # TODO - MAYBE PARALLEL IS NOT NEEDED since there is gradle.properties ?
 #      run: ./gradlew :${{inputs.project-name}}:test --parallel TODO - FORSE SENZA PARALLEL
-      run: ./gradlew :${{inputs.project-name}}:test --parallel
+      # run: ./gradlew :${{inputs.project-name}}:test --parallel
+      run: ./gradlew :${{inputs.project-name}}:check --parallel
 #      run: ./gradlew :${{inputs.project-name}}:build --parallel
     - name: Archive test results
       uses: actions/upload-artifact@v2

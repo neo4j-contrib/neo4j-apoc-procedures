@@ -2,7 +2,6 @@ package apoc.help;
 
 import apoc.Extended;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,17 +64,12 @@ public class HelpExtendedTest {
     }
 
     @Test
-    public void indicateNotCore() throws IOException {
-//        File extendedFile = new File("src/main/resources/extended.txt");
-//        FileOutputStream fos = new FileOutputStream(extendedFile);
-
-//        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
+    public void indicateNotCore() {
         String s = "SHOW PROCEDURES";
         List<String> strings = extracted(s);
 
         String s1 = "SHOW FUNCTIONS";
         List<String> strings2 = extracted(s1);
-//        }
 
         strings2.addAll(strings);
         Collections.sort(strings2);

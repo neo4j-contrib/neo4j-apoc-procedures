@@ -76,7 +76,7 @@ jobs:
       
       # Autobuild attempts to build any compiled languages 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v2
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -113,6 +113,7 @@ jobs:
       fail-fast: false
       matrix:
         project: [ 'extended', 'extended-it' ]
+    # TODO - NEEDED?  
     env:
       DOCKER_ENTERPRISE_DEV_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
       DOCKER_COMMUNITY_DEV_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
@@ -139,7 +140,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --init-script init.gradle
-          ./gradlew assemble --parallel
+#          ./gradlew assemble --parallel
 
 #      - name: Assemble
 #        run: |
@@ -147,7 +148,7 @@ jobs:
 #          ./gradlew --init-script init.gradle
 #          ./gradlew assemble --parallel
       - name: Download neo4j dev docker container
-        if: matrix.project == 'enterprise-it'
+        if: matrix.project == 'extended-it'
         run: |
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
           curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
