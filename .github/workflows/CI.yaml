@@ -26,7 +26,7 @@ jobs:
       - name: Init submodule
         run: |
           chmod +x gradlew
-          ./gradlew --init-script init.gradle
+          ./gradlew --init-script init.gradle clean
 #        run: ./gradlew --init-script init.gradle clean
         # run: ./gradlew compileJava compileTestJava #todo - maybe ./gradlew --init-script init.gradle
         # todo - maybe i can try removing clean and try directly shadowJar --init-script
@@ -88,6 +88,7 @@ jobs:
     needs: compile
     steps:
       - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-jdk
       - name: Assemble
         run: ./gradlew assemble --parallel
         

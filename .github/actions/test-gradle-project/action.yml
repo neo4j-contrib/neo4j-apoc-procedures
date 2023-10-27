@@ -13,7 +13,7 @@ runs:
     - uses: ./.github/actions/setup-gradle-cache
     - name: Run tests
       shell: bash # TODO - MAYBE NEEDED?
-     # TODO - MABE PARALLEL IS NOT NEEDED since there is gradle.properties ?
+     # TODO - MAYBE PARALLEL IS NOT NEEDED since there is gradle.properties ?
 #      run: ./gradlew :${{inputs.project-name}}:test --parallel TODO - FORSE SENZA PARALLEL
       run: ./gradlew :${{inputs.project-name}}:test --parallel
 #      run: ./gradlew :${{inputs.project-name}}:build --parallel
