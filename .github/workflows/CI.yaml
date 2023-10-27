@@ -19,7 +19,7 @@ jobs:
   compile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       #      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache #todo - needed?
@@ -76,7 +76,7 @@ jobs:
       
       # Autobuild attempts to build any compiled languages 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -87,14 +87,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 #      - uses: ./.github/actions/setup-jdk
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17.0.8'
           distribution: 'temurin'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -121,25 +121,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: assemble
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       #      - uses: ./.github/actions/setup-jdk
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '17.0.8'
           distribution: 'temurin'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Assemble
-        run: |
-          chmod +x gradlew
-          ./gradlew --init-script init.gradle
-          ./gradlew assemble --parallel
+#      - name: Assemble
+#        run: |
+#          chmod +x gradlew
+#          ./gradlew --init-script init.gradle
+#          ./gradlew assemble --parallel
       - name: Download neo4j dev docker container
         if: matrix.project == 'enterprise-it'
         run: |
