@@ -201,7 +201,7 @@ public class CsvFormat implements Format {
                                 return joinLabels(entrySet.getKey(), config.getArrayDelim());
                             }
                             String prop = s.split(":")[0];
-                            return "".equals(prop) ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
+                            return prop.isEmpty() ? String.valueOf(n.getId()) : FormatUtils.toString(n.getProperty(prop, ""));
                         }).collect(Collectors.toList());
                     })
                     .collect(Collectors.toList());
@@ -229,20 +229,13 @@ public class CsvFormat implements Format {
                                     return entrySet.getKey().name();
                                 default:
                                     String prop = s.split(":")[0];
-                                    return "".equals(prop) ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
+                                    return prop.isEmpty() ? String.valueOf(r.getId()) : FormatUtils.toString(r.getProperty(prop, ""));
                             }
                         }).collect(Collectors.toList());
                     })
                     .collect(Collectors.toList());
             writeRow(config, writer, headerRel, rows, "relationships." + entrySet.getKey().name());
         });
-    }
-
-    private String cleanPoint(String point) {
-        point = point.replace(",\"z\":null", "");
-        point = point.replace(",\"heigth\":null", "");
-        point = point.replace("\"", "");
-        return point;
     }
 
     private Set<String> generateHeaderNodeBulkImport(Map.Entry<Iterable<Label>, List<Node>> entrySet) {

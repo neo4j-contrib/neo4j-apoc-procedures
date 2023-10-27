@@ -53,7 +53,7 @@ public class ExportCsvNeo4jAdminTest {
             .format(":ID;born_3D:point;localtime:localtime;time:time;localDateTime:localdatetime;duration:duration;dateTime:datetime;born_2D:point;date:date;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
-            .format("6;{crs:wgs-84-3d,latitude:12.78,longitude:56.7,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T19:32:24;P5M1DT12H;2018-10-30T12:50:35.556+01:00;{crs:cartesian,x:2.3,y:4.5};2018-10-30;Types%n");
+            .format("6;\"{\"\"crs\"\":\"\"wgs-84-3d\"\",\"\"latitude\"\":12.78,\"\"longitude\"\":56.7,\"\"height\"\":100.0}\";12:50:35.556;12:50:35.556+01:00;2018-10-30T19:32:24;P5M1DT12H;2018-10-30T12:50:35.556+01:00;\"{\"\"crs\"\":\"\"cartesian\"\",\"\"x\"\":2.3,\"\"y\"\":4.5,\"\"z\"\":null}\";2018-10-30;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
             .format(":ID;name;street;:LABEL%n");
@@ -85,7 +85,7 @@ public class ExportCsvNeo4jAdminTest {
                     "2;;12;User%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1 = String
-            .format("0;foo;42;true;[a,b,c];\"User1;User\"%n");
+            .format("0;\"foo \"\"the\"\" bar\";42;true;\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\";\"User1;User\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS = String
             .format("0;1;KNOWS%n");
@@ -109,7 +109,7 @@ public class ExportCsvNeo4jAdminTest {
     @Before
     public void before() throws Exception {
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
-        db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
+        db.executeTransactionally("CREATE (f:User1:User {name:'foo \"the\" bar',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
         db.executeTransactionally("CREATE (a:Types {date: date('2018-10-30'), localDateTime: localdatetime('20181030T19:32:24'), dateTime: datetime('2018-10-30T12:50:35.556+0100'), localtime: localtime('12:50:35.556'), duration: duration('P5M1DT12H'), time: time('125035.556+0100'), born_2D: point({ x: 2.3, y: 4.5 }), born_3D:point({ longitude: 56.7, latitude: 12.78, height: 100 })})");
     }
