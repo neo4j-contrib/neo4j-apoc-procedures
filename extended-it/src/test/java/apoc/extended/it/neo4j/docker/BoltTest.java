@@ -1,5 +1,6 @@
-package apoc.bolt;
+package apoc.extended.it.neo4j.docker;
 
+import apoc.bolt.Bolt;
 import apoc.cypher.Cypher;
 import apoc.export.cypher.ExportCypher;
 import apoc.util.Neo4jContainerExtension;

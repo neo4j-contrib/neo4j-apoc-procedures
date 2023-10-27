@@ -1,4 +1,4 @@
-package apoc.trigger;
+package apoc.extended.it.neo4j.docker;
 
 import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.TestContainerUtil;

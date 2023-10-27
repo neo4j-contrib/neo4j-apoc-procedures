@@ -1,4 +1,4 @@
-package apoc.ttl;
+package apoc.extended.it.neo4j.docker;
 
 import apoc.util.Neo4jContainerExtension;
 import org.junit.After;

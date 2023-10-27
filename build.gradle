@@ -67,7 +67,7 @@ subprojects {
     }
     test {
         // todo - restore
-        include '**/CypherProceduresTest.class', '**/CypherEnterpriseExtendedTest.class'
+        // include '**/CypherProceduresTest.class', '**/CypherEnterpriseExtendedTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,

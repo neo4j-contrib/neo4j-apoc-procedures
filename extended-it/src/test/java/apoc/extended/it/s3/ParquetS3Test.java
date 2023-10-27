@@ -1,5 +1,6 @@
-package apoc.export.parquet;
+package apoc.extended.it.s3;
 
+import apoc.export.parquet.ParquetTestUtil;
 import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.BeforeClass;

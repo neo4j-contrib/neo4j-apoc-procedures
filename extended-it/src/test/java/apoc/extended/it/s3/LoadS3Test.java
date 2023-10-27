@@ -1,5 +1,8 @@
-package apoc.load;
+package apoc.extended.it.s3;
 
+import apoc.load.LoadCsv;
+import apoc.load.LoadJson;
+import apoc.load.Xml;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.s3.S3BaseTest;

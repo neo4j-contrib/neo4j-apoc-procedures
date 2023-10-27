@@ -1,4 +1,4 @@
-package apoc.mongodb;
+package apoc.extended.it.mongodb;
 
 import apoc.util.JsonUtil;
 import com.mongodb.MongoClient;

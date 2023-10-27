@@ -1,5 +1,6 @@
-package apoc.es;
+package apoc.extended.it.es;
 
+import apoc.es.ElasticSearch;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;

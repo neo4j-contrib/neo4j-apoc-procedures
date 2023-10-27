@@ -49,7 +49,7 @@ public class ElasticSearch {
      * @param query
      * @return
      */
-    protected String getQueryUrl(String hostOrKey, String index, String type, String id, Object query) {
+    public String getQueryUrl(String hostOrKey, String index, String type, String id, Object query) {
         return getElasticSearchUrl(hostOrKey) + formatQueryUrl(index, type, id, query);
     }
 

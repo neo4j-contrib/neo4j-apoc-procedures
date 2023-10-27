@@ -1,6 +1,7 @@
-package apoc.mongodb;
+package apoc.extended.it.mongodb;
 
 import apoc.graph.Graphs;
+import apoc.mongodb.Mongo;
 import apoc.util.TestUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -20,6 +21,7 @@ import org.bson.types.MaxKey;
 import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -144,7 +146,7 @@ public class MongoTest extends MongoTestBase {
                 map("uri", String.format("mongodb://admin:pass@%s:%s/foo.bar?authSource=admin", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))),
                 row -> {
                     final Map<String, Object> value = (Map<String, Object>) row.get("value");
-                    assertEquals(nameAsObjectId.toString(), value.get("name"));
+                    Assert.assertEquals(nameAsObjectId.toString(), value.get("name"));
                     assertEquals(54L, value.get("age"));
                 });
     }
@@ -321,11 +323,11 @@ public class MongoTest extends MongoTestBase {
         final Map<String, Object> second = value.next();
         assertEquals(expectedKeySet, second.keySet());
         assertEquals(45L, second.get("age"));
-        assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
+        Assert.assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
         final Map<String, Object> third = value.next();
         assertEquals(expectedKeySet, third.keySet());
         assertEquals(54L, third.get("age"));
-        assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
+        Assert.assertEquals(idJohnAsObjectId.toString(), second.get("_id"));
         assertFalse(value.hasNext());
     }
 
@@ -492,7 +494,7 @@ public class MongoTest extends MongoTestBase {
         if (idAsMap) {
             assertEquals(SET_OBJECT_ID_MAP, ((Map<String, Object>) value.get("_id")).keySet());
         } else {
-            assertEquals(idAlAsObjectId.toString(), value.get("_id"));
+            Assert.assertEquals(idAlAsObjectId.toString(), value.get("_id"));
         }
     }
 }

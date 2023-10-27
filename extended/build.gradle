@@ -123,11 +123,6 @@ dependencies {
     testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
     testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
-    testImplementation group: 'org.mongodb', name: 'mongodb-driver', version: '3.2.2', {
-        exclude group: 'io.netty'
-    }
-    testImplementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
-    testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version: '5.6.0'
     testImplementation group: 'org.mock-server', name: 'mockserver-client-java', version: '5.6.0'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons

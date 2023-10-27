@@ -1,6 +1,7 @@
-package apoc.dv;
+package apoc.extended.it.dv;
 
 import apoc.create.Create;
+import apoc.dv.DataVirtualizationCatalog;
 import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;

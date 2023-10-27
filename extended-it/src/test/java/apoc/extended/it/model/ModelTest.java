@@ -1,5 +1,6 @@
-package apoc.model;
+package apoc.extended.it.model;
 
+import apoc.model.Model;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.collection.Iterators;

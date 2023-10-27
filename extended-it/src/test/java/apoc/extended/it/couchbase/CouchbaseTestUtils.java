@@ -1,5 +1,6 @@
-package apoc.couchbase;
+package apoc.extended.it.couchbase;
 
+import apoc.couchbase.CouchbaseManager;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
@@ -67,7 +68,7 @@ public class CouchbaseTestUtils {
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
-                queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+                QueryOptions.queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
         final CollectionManager collectionManager = couchbaseBucket.collections();
         collectionManager.createScope(SECOND_SCOPE);
         collectionManager.createCollection(CollectionSpec.create(COLL_NAME, CollectionIdentifier.DEFAULT_COLLECTION));
@@ -146,7 +147,7 @@ public class CouchbaseTestUtils {
                 Optional.of(couchbase.getBootstrapCarrierDirectPort()),
                 Optional.of(couchbase.getBootstrapHttpDirectPort())));
 
-        Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
+        Cluster cluster = Cluster.connect(seedNodes, ClusterOptions.clusterOptions(USERNAME, PASSWORD).environment(environment));
 
         boolean isFilled = fillDB(cluster);
         HOST = getUrl(couchbase);

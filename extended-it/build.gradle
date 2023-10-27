@@ -15,6 +15,14 @@ test {
 
 dependencies {
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
+
+
+    def withoutJacksons = {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
+
+    compileOnly project(":core")
     
     testImplementation project(':core')
     testImplementation project(':common')
@@ -25,6 +33,11 @@ dependencies {
 
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
+    testImplementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
+    testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
+    testImplementation group: 'org.mongodb', name: 'mongodb-driver', version: '3.2.2', {
+        exclude group: 'io.netty'
+    }
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

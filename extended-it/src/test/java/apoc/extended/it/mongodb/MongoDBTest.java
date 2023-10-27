@@ -1,11 +1,14 @@
-package apoc.mongodb;
+package apoc.extended.it.mongodb;
 
 import apoc.graph.Graphs;
+import apoc.mongodb.MongoDB;
+import apoc.mongodb.MongoDBUtils;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
 import org.bson.types.ObjectId;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -154,7 +157,7 @@ public class MongoDBTest extends MongoTestBase {
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
                         "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
                     Map doc = (Map) r.get("value");
-                    assertEquals(idAsObjectId.toString(), doc.get("_id"));
+                    Assert.assertEquals(idAsObjectId.toString(), doc.get("_id"));
                     assertEquals(25, doc.get("age"));
                     assertEquals("Sherlock", doc.get("name"));
                     assertBoughtReferences(doc, false, false);
