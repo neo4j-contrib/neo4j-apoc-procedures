@@ -1,4 +1,5 @@
 name: "Setups cache for Gradle"
+description: "Setups cache for Gradle"
 
 runs:
   using: "composite"
