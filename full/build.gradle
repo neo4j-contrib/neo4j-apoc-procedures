@@ -24,7 +24,6 @@ jar {
     manifest {
         attributes 'Implementation-Version': archiveVersion
     }
-    archiveClassifier = 'full'
 }
 
 compileKotlin {
