@@ -16,19 +16,23 @@ test {
 dependencies {
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
-
     def withoutJacksons = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }    
+    def withoutServers = {
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.aggregate'
+        exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    compileOnly project(":core")
+     compileOnly project(":extended")
     
-    testImplementation project(':core')
-    testImplementation project(':common')
+//    testImplementation project(':core')
+//    testImplementation project(':common')
     testImplementation project(':extended')
-    testImplementation project(':test-utils')
-    testImplementation project(':core').sourceSets.test.output
+//    testImplementation project(':test-utils')
+//    testImplementation project(':core').sourceSets.test.output
     testImplementation project(':extended').sourceSets.test.output
 
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
@@ -38,6 +42,7 @@ dependencies {
     testImplementation group: 'org.mongodb', name: 'mongodb-driver', version: '3.2.2', {
         exclude group: 'io.netty'
     }
+    testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

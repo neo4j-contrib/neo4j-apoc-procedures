@@ -11,6 +11,9 @@ runs:
   steps:
     - uses: ./.github/actions/setup-jdk
     - uses: ./.github/actions/setup-gradle-cache
+    - name: Run compile tests 
+      shell: bash # TODO - MAYBE NEEDED?
+      run: ./gradlew :${{inputs.project-name}}:compileJava :${{inputs.project-name}}:compileTestJava
     - name: Run tests
       shell: bash # TODO - MAYBE NEEDED?
      # TODO - MAYBE PARALLEL IS NOT NEEDED since there is gradle.properties ?
