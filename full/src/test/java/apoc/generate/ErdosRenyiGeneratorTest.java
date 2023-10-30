@@ -23,6 +23,7 @@ import apoc.generate.config.ErdosRenyiConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,11 @@ public class ErdosRenyiGeneratorTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGenerateCorrectNumberOfNodesAndRelationships() throws Exception {

@@ -21,6 +21,7 @@ package apoc.help;
 import apoc.bitwise.BitwiseOperations;
 import apoc.coll.Coll;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +43,11 @@ public class HelpTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Help.class, BitwiseOperations.class,Coll.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

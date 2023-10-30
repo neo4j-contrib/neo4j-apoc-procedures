@@ -149,15 +149,15 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.51.v20230217.jar
-  jetty-io-9.4.51.v20230217.jar
-  jetty-security-9.4.51.v20230217.jar
-  jetty-server-9.4.51.v20230217.jar
-  jetty-servlet-9.4.51.v20230217.jar
-  jetty-util-9.4.51.v20230217.jar
-  jetty-util-ajax-9.4.51.v20230217.jar
-  jetty-webapp-9.4.51.v20230217.jar
-  jetty-xml-9.4.51.v20230217.jar
+  jetty-http-9.4.52.v20230823.jar
+  jetty-io-9.4.52.v20230823.jar
+  jetty-security-9.4.52.v20230823.jar
+  jetty-server-9.4.52.v20230823.jar
+  jetty-servlet-9.4.52.v20230823.jar
+  jetty-util-9.4.52.v20230823.jar
+  jetty-util-ajax-9.4.52.v20230823.jar
+  jetty-webapp-9.4.52.v20230823.jar
+  jetty-xml-9.4.52.v20230823.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.425.jar
@@ -198,11 +198,11 @@ Apache-2.0
   metrics-core-3.2.4.jar
   netty-3.10.6.Final.jar
   netty-all-4.1.89.Final.jar
-  netty-buffer-4.1.94.Final.jar
-  netty-codec-4.1.94.Final.jar
+  netty-buffer-4.1.100.Final.jar
+  netty-codec-4.1.100.Final.jar
   netty-codec-dns-4.1.89.Final.jar
   netty-codec-haproxy-4.1.89.Final.jar
-  netty-codec-http-4.1.94.Final.jar
+  netty-codec-http-4.1.100.Final.jar
   netty-codec-http2-4.1.89.Final.jar
   netty-codec-memcache-4.1.89.Final.jar
   netty-codec-mqtt-4.1.89.Final.jar
@@ -211,24 +211,24 @@ Apache-2.0
   netty-codec-socks-4.1.89.Final.jar
   netty-codec-stomp-4.1.89.Final.jar
   netty-codec-xml-4.1.89.Final.jar
-  netty-common-4.1.94.Final.jar
-  netty-handler-4.1.94.Final.jar
+  netty-common-4.1.100.Final.jar
+  netty-handler-4.1.100.Final.jar
   netty-handler-proxy-4.1.89.Final.jar
   netty-handler-ssl-ocsp-4.1.89.Final.jar
-  netty-resolver-4.1.94.Final.jar
+  netty-resolver-4.1.100.Final.jar
   netty-resolver-dns-4.1.89.Final.jar
   netty-resolver-dns-classes-macos-4.1.89.Final.jar
   netty-resolver-dns-native-macos-4.1.89.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.89.Final-osx-x86_64.jar
-  netty-transport-4.1.94.Final.jar
-  netty-transport-classes-epoll-4.1.94.Final.jar
+  netty-transport-4.1.100.Final.jar
+  netty-transport-classes-epoll-4.1.100.Final.jar
   netty-transport-classes-kqueue-4.1.89.Final.jar
-  netty-transport-native-epoll-4.1.94.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.94.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.94.Final.jar
+  netty-transport-native-epoll-4.1.100.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.100.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.100.Final.jar
   netty-transport-native-kqueue-4.1.89.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.89.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.94.Final.jar
+  netty-transport-native-unix-common-4.1.100.Final.jar
   netty-transport-rxtx-4.1.89.Final.jar
   netty-transport-sctp-4.1.89.Final.jar
   netty-transport-udt-4.1.89.Final.jar
@@ -341,15 +341,15 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License - Version 1.0
   javax-websocket-client-impl-9.4.51.v20230217.jar
   javax-websocket-server-impl-9.4.51.v20230217.jar
-  jetty-http-9.4.51.v20230217.jar
-  jetty-io-9.4.51.v20230217.jar
-  jetty-security-9.4.51.v20230217.jar
-  jetty-server-9.4.51.v20230217.jar
-  jetty-servlet-9.4.51.v20230217.jar
-  jetty-util-9.4.51.v20230217.jar
-  jetty-util-ajax-9.4.51.v20230217.jar
-  jetty-webapp-9.4.51.v20230217.jar
-  jetty-xml-9.4.51.v20230217.jar
+  jetty-http-9.4.52.v20230823.jar
+  jetty-io-9.4.52.v20230823.jar
+  jetty-security-9.4.52.v20230823.jar
+  jetty-server-9.4.52.v20230823.jar
+  jetty-servlet-9.4.52.v20230823.jar
+  jetty-util-9.4.52.v20230823.jar
+  jetty-util-ajax-9.4.52.v20230823.jar
+  jetty-webapp-9.4.52.v20230823.jar
+  jetty-xml-9.4.52.v20230823.jar
   websocket-api-9.4.51.v20230217.jar
   websocket-client-9.4.51.v20230217.jar
   websocket-common-9.4.51.v20230217.jar

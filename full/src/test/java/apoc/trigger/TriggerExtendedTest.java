@@ -21,6 +21,7 @@ package apoc.trigger;
 import apoc.create.Create;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,6 +54,11 @@ public class TriggerExtendedTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

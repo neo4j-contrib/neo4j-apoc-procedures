@@ -20,6 +20,7 @@ package apoc.algo;
 
 import apoc.util.TestUtil;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -43,12 +44,17 @@ public class PathFindingFullTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, PathFindingFull.class);
     }
-    
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
+    }
+
     @After
     public void after() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
-    } 
-    
+    }
+
     @Test
     public void testAStarWithPoint() {
         db.executeTransactionally(SETUP_GEO);

@@ -1,7 +1,7 @@
 ¦Qualified Name¦Type¦Release
 |xref::overview/apoc.uuid/apoc.uuid.adoc[apoc.uuid.drop icon:book[]]
 
-CALL apoc.uuid.drop(databaseName, label) yield label, installed, properties \| eventually removes previously added UUID handler and returns uuid information
+CALL apoc.uuid.drop(label, databaseName) yield label, installed, properties \| eventually removes previously added UUID handler and returns uuid information
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.uuid/apoc.uuid.adoc[apoc.uuid.dropAll icon:book[]]
@@ -32,7 +32,7 @@ CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all 
 |label:apoc-full[]
 |xref::overview/apoc.uuid/apoc.uuid.adoc[apoc.uuid.setup icon:book[]]
 
-CALL apoc.uuid.setup(databaseName, label, $config) \| eventually adds the uuid transaction handler for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
+CALL apoc.uuid.setup(label, databaseName, $config) \| eventually adds the uuid transaction handler for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.uuid/apoc.uuid.adoc[apoc.uuid.show icon:book[]]

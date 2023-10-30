@@ -20,6 +20,7 @@ package apoc.generate;
 
 import apoc.generate.config.ErdosRenyiConfig;
 import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,6 +36,11 @@ public class ErdosRenyiGeneratorLargeTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
 
     @Test(timeout = 60 * 1000)
     @Ignore("very long running test")

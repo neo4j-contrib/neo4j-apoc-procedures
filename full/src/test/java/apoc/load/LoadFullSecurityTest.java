@@ -25,6 +25,7 @@ import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -71,6 +72,11 @@ public class LoadFullSecurityTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class, LoadHtml.class, LoadCsv.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     private static final Map<String, Class<?>> ALLOWED_EXCEPTIONS = Map.of(

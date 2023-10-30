@@ -24,6 +24,7 @@ import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +51,7 @@ import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -73,6 +75,11 @@ public class CypherProceduresTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, CypherProcedures.class, BuiltInDbmsProcedures.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test
@@ -546,7 +553,7 @@ public class CypherProceduresTest  {
         db.executeTransactionally("call apoc.custom.removeFunction('x.z.name')");
         db.executeTransactionally("call db.clearQueryCaches()");
 
-        TestUtil.testCallEmpty(db, "call apoc.custom.list()", Collections.emptyMap());
+        testCallEmpty(db, "call apoc.custom.list()", Collections.emptyMap());
     }
 
     @Test
@@ -594,7 +601,7 @@ public class CypherProceduresTest  {
         db.executeTransactionally("call apoc.custom.removeProcedure('x.z.name')");
         db.executeTransactionally("call db.clearQueryCaches()");
 
-        TestUtil.testCallEmpty(db, "call apoc.custom.list()", Collections.emptyMap());
+        testCallEmpty(db, "call apoc.custom.list()", Collections.emptyMap());
     }
 
     @Test
@@ -1104,7 +1111,72 @@ public class CypherProceduresTest  {
                 "meta", Map.of("foo", "bar")
         ));
     }
-    
+
+    @Test
+    public void testCustomWithEmptyResult() {
+        String query = "MATCH (m:Movie) WITH m.id AS id " +
+                       "LIMIT $limit " +
+                       "RETURN id";
+
+        String declareFunctionOne = "CALL apoc.custom.declareFunction('testFunOne(limit :: INTEGER)::LIST OF INTEGER?', $query)";
+        db.executeTransactionally(declareFunctionOne, Map.of("query", query));
+
+        String declareFunctionTwo = "CALL apoc.custom.declareFunction('testFunTwo(limit :: INTEGER):: ANY', $query)";
+        db.executeTransactionally(declareFunctionTwo, Map.of("query", query));
+
+        String declareProcedureOne = "CALL apoc.custom.declareProcedure('testProcOne(limit :: INTEGER):: (id::ANY)', $query)";
+        db.executeTransactionally(declareProcedureOne, Map.of("query", query));
+
+        String declareProcedureTwo = "CALL apoc.custom.declareProcedure('testProcTwo(limit :: INTEGER):: (id::INTEGER)', $query)";
+        db.executeTransactionally(declareProcedureTwo, Map.of("query", query));
+
+        // test customs with no (:Movie) nodes
+        testCall(db, "RETURN custom.testFunOne(0) as id", r -> assertNull(r.get("id")));
+        testCall(db, "RETURN custom.testFunTwo(0) as id", r -> assertNull(r.get("id")));
+        testCallEmpty(db, "CALL custom.testProcOne(0)", Map.of());
+        testCallEmpty(db, "CALL custom.testProcTwo(0)", Map.of());
+
+        // should return nothing
+        testCall(db, "RETURN custom.testFunOne(2) as id", r -> assertNull(r.get("id")));
+        testCall(db, "RETURN custom.testFunTwo(2) as id", r -> assertNull(r.get("id")));
+        testCallEmpty(db, "CALL custom.testProcOne(2)", Map.of());
+        testCallEmpty(db, "CALL custom.testProcTwo(2)", Map.of());
+
+        // test customs with some (:Movie) nodes
+        db.executeTransactionally("create (:Movie {id: 1}), (:Movie {id: 2}), (:Movie {id: 3})");
+
+        testCall(db, "RETURN custom.testFunOne(0) as id", r -> assertNull(r.get("id")));
+        testCall(db, "RETURN custom.testFunTwo(0) as id", r -> assertNull(r.get("id")));
+        testCallEmpty(db, "CALL custom.testProcOne(0)", Map.of());
+        testCallEmpty(db, "CALL custom.testProcTwo(0)", Map.of());
+
+        // should return something
+        testCall(db, "RETURN custom.testFunOne(2) as id", r -> {
+            assertEquals(r.get("id"), List.of(1L, 2L));
+        });
+        testCall(db, "RETURN custom.testFunTwo(2) as id", r -> {
+            Object expected = r.get("id");
+            List<Map> actual = List.of(
+                    Map.of("id", 1L),
+                    Map.of("id", 2L)
+            );
+            assertEquals(expected, actual);
+        });
+        TestUtil.testResult(db, "CALL custom.testProcOne(2)", r -> {
+            Map<String, Object> row = r.next();
+            assertEquals(row.get("id"), 1L);
+            row = r.next();
+            assertEquals(row.get("id"), 2L);
+            assertFalse(r.hasNext());
+        });
+        TestUtil.testResult(db, "CALL custom.testProcTwo(2)", r -> {
+            Map<String, Object> row = r.next();
+            assertEquals(row.get("id"), 1L);
+            row = r.next();
+            assertEquals(row.get("id"), 2L);
+            assertFalse(r.hasNext());
+        });
+    }
 
     private void assertProcedureFails(String expectedMessage, String query) {
         try {

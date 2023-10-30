@@ -21,6 +21,7 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -86,6 +87,11 @@ public class LoadHtmlTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test
@@ -537,7 +543,11 @@ public class LoadHtmlTest {
         } catch (RuntimeException e) {
             // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not installed
             final String msg = e.getMessage();
-            if (!msg.contains("cannot find Chrome binary") && !msg.contains("Cannot find firefox binary")) {
+            if (
+                    !msg.contains("cannot find Chrome binary")
+                    && !msg.contains("Cannot find firefox binary")
+                    && !msg.contains("This version of ChromeDriver only supports Chrome version")
+            ) {
                 throw e;
             }
         }

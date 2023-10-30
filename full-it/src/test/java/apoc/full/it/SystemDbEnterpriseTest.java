@@ -20,6 +20,8 @@ package apoc.full.it;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,22 +43,26 @@ public class SystemDbEnterpriseTest {
     private static final String USERNAME = "nonadmin";
     private static final String PASSWORD = "keystore-password";
 
+    private static final String KEYSTORE_NAME_PKCS_12 = "keystore-name.pkcs12";
+    // we put the keystore file in the import folder for simplicity (because it's bound during the creation of the container)
+    private static File KEYSTORE_FILE;
+
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
-    
-    
+
     @BeforeClass
     public static void beforeClass() throws Exception {
         final String randomKeyAlias = UUID.randomUUID().toString();
 
-        // we put the keystore file in the import folder for simplicity (because it's bound during the creation of the container)
-        final String keystoreName = "keystore-name.pkcs12";
-        final File keystoreFile = new File(importFolder, keystoreName);
+        if (!importFolder.exists()) {
+            importFolder.mkdir();
+        }
+        KEYSTORE_FILE =  new File(importFolder, KEYSTORE_NAME_PKCS_12);
 
         // certificate file creation
         final String[] args = new String[] { "keytool",
                 "-genseckey", "-keyalg", "aes", "-keysize", "256", "-storetype", "pkcs12",
-                "-keystore", keystoreFile.getCanonicalPath(),
+                "-keystore", KEYSTORE_FILE.getCanonicalPath(),
                 "-alias", randomKeyAlias,
                 "-storepass", PASSWORD};
 
@@ -63,10 +70,10 @@ public class SystemDbEnterpriseTest {
         proc.waitFor();
 
         // We build the project, the artifact will be placed into ./build/libs
-        final String pathPwdValue = "/var/lib/neo4j/import/" + keystoreName;
-        
-        // we add config useful to create a remote db alias 
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
+        final String pathPwdValue = "/var/lib/neo4j/import/" + KEYSTORE_FILE.getName();
+
+        // we add config useful to create a remote db alias
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withNeo4jConfig("systemdb.secrets.keystore.path", pathPwdValue)
                 .withNeo4jConfig("systemdb.secrets.keystore.password", PASSWORD)
                 .withNeo4jConfig("systemdb.secrets.key.name", randomKeyAlias);
@@ -75,9 +82,11 @@ public class SystemDbEnterpriseTest {
         session = neo4jContainer.getSession();
 
     }
-    
+
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws IOException {
+        FileUtils.forceDelete(KEYSTORE_FILE);
+
         session.close();
         neo4jContainer.close();
     }

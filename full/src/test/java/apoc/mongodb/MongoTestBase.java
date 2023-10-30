@@ -19,7 +19,6 @@
 package apoc.mongodb;
 
 import apoc.util.JsonUtil;
-import apoc.util.TestUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -60,7 +59,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.isRunningInCI;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.assertArrayEquals;
@@ -68,9 +66,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class MongoTestBase {
     private long numConnections = -1;
@@ -100,9 +95,8 @@ public class MongoTestBase {
 
     @AfterClass
     public static void tearDown() {
-        if (mongo != null) {
-            mongo.stop();
-        }
+        mongo.stop();
+        db.shutdown();
     }
 
     @Before
@@ -118,29 +112,23 @@ public class MongoTestBase {
     }
 
     public static void createContainer(boolean withAuth) {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            mongo = new GenericContainer("mongo:4")
-                    .withNetworkAliases("mongo-" + Base58.randomString(6))
-                    .withExposedPorts(MONGO_DEFAULT_PORT)
-                    .waitingFor(new HttpWaitStrategy()
-                            .forPort(MONGO_DEFAULT_PORT)
-                            .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
-                            .withStartupTimeout(Duration.ofMinutes(2)));
+        mongo = new GenericContainer("mongo:4")
+                .withNetworkAliases("mongo-" + Base58.randomString(6))
+                .withExposedPorts(MONGO_DEFAULT_PORT)
+                .waitingFor(new HttpWaitStrategy()
+                        .forPort(MONGO_DEFAULT_PORT)
+                        .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
+                        .withStartupTimeout(Duration.ofMinutes(2)));
 
-            if (withAuth) {
-                mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin")
+        if (withAuth) {
+            mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin")
                     .withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass");
 
-                commands = new String[]{"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"};
-            } else {
-                commands = new String[]{"mongo", "test", "--eval", "db.serverStatus().connections"};
-            }
-            mongo.start();
-
-        }, Exception.class);
-        assumeNotNull(mongo);
-        assumeTrue("Mongo DB must be running", mongo.isRunning());
+            commands = new String[]{"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"};
+        } else {
+            commands = new String[]{"mongo", "test", "--eval", "db.serverStatus().connections"};
+        }
+        mongo.start();
     }
 
     protected static void fillDb(MongoClient mongoClient) throws ParseException {

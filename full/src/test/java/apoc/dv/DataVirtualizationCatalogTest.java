@@ -24,6 +24,7 @@ import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,15 +47,11 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.getUrlFileName;
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
 
 public class DataVirtualizationCatalogTest {
 
@@ -71,22 +68,20 @@ public class DataVirtualizationCatalogTest {
         TestUtil.registerProcedure(db, DataVirtualizationCatalog.class, Jdbc.class, LoadCsv.class, Create.class);
     }
 
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+
     @BeforeClass
     public static void setUpContainer() {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            mysql = new MySQLContainer().withInitScript("init_mysql.sql");
-            mysql.start();
-        },Exception.class);
-        assumeNotNull("MySQL container has to exist", mysql);
-        assumeTrue("MySQL must be running", mysql.isRunning());
+        mysql = new MySQLContainer().withInitScript("init_mysql.sql");
+        mysql.start();
     }
 
     @AfterClass
     public static void tearDownContainer() {
-        if (mysql != null) {
-            mysql.stop();
-        }
+        mysql.stop();
     }
 
     @Test

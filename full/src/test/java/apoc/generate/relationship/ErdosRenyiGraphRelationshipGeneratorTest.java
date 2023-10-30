@@ -21,6 +21,7 @@ package apoc.generate.relationship;
 import apoc.generate.Generate;
 import apoc.generate.config.ErdosRenyiConfig;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +42,11 @@ public class ErdosRenyiGraphRelationshipGeneratorTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Generate.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

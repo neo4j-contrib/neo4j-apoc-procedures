@@ -18,6 +18,7 @@
  */
 package apoc.util;
 
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,13 +30,17 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 @RunWith(Parameterized.class)
 public class UtilQuoteTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
+    }
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
@@ -75,8 +80,12 @@ public class UtilQuoteTest {
 
     @Test
     public void shouldNotQuoteWhenAvoidQuoteIsTrue() {
-        assumeTrue(shouldAvoidQuote);
-        assertEquals(Util.quote(identifier), identifier);
+        final String expectedIdentifier = shouldAvoidQuote
+                ? identifier
+                : '`' + identifier + '`';
+
+        assertEquals(expectedIdentifier,
+                Util.quote(identifier));
     }
 
 }

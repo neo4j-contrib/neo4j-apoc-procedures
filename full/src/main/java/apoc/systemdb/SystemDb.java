@@ -23,13 +23,13 @@ import apoc.Description;
 import apoc.Extended;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
+import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.systemdb.metadata.ExportMetadata;
-import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -37,8 +37,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
-import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.impl.coreapi.TransactionImpl;
 import org.neo4j.procedure.Admin;
 import org.neo4j.procedure.Context;
@@ -57,7 +55,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-
 @Extended
 public class SystemDb {
     public static final String REMOTE_SENSITIVE_PROP = "password";
@@ -65,12 +62,6 @@ public class SystemDb {
 
     @Context
     public ApocConfig apocConfig;
-
-    @Context
-    public SecurityContext securityContext;
-
-    @Context
-    public ProcedureCallContext callContext;
 
     @Context
     public GraphDatabaseService db;
@@ -95,7 +86,7 @@ public class SystemDb {
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, null, "cypher");
         ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true, ExportConfig.EMPTY);
         withSystemDbTransaction(tx -> {
             tx.getAllNodes()
                     .stream()
@@ -121,9 +112,9 @@ public class SystemDb {
         return progressReporter.stream();
     }
 
+    @Admin
     @Procedure
     public Stream<NodesAndRelationshipsResult> graph() {
-        Util.checkAdmin(securityContext, callContext,"apoc.systemdb.graph");
         return withSystemDbTransaction(tx -> {
             Map<Long, Node> virtualNodes = new HashMap<>();
             for (Node node: tx.getAllNodes())  {
@@ -145,10 +136,9 @@ public class SystemDb {
         });
     }
 
+    @Admin
     @Procedure
     public Stream<RowResult> execute(@Name("DDL commands, either a string or a list of strings") Object ddlStringOrList, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
-        Util.checkAdmin(securityContext, callContext, "apoc.systemdb.execute");
-
         List<String> commands;
         if (ddlStringOrList instanceof String) {
             commands = Collections.singletonList((String)ddlStringOrList);

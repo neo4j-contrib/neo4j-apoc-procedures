@@ -20,6 +20,7 @@ package apoc.date;
 
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -61,6 +62,11 @@ public class TTLTest {
         db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
         db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)");
         testNodes(1,1);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

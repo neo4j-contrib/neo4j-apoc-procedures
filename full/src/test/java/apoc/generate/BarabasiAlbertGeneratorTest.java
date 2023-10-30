@@ -23,6 +23,7 @@ import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +43,11 @@ public class BarabasiAlbertGeneratorTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
 
     @Test
     public void shouldGeneratePowerLawDistribution() {

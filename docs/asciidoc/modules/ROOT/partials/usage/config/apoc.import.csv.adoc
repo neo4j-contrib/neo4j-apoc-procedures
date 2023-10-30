@@ -13,4 +13,6 @@ The procedure support the following config parameters:
 | ignoreBlankString | Boolean | false | if true ignore properties with a blank string | N/A
 | ignoreEmptyCellArray | Boolean | false | if true ignore array properties containing a single empty string, like the import tool | N/A
 | compression | `Enum[NONE, BYTES, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY]` | `null` | Allow taking binary data, either not compressed (value: `NONE`) or compressed (other values) . See the xref::overview/apoc.load/apoc.load.csv.adoc#_binary_file[Binary file example] | N/A
+| charset | STRING | 'UTF-8' | name of the character extending link:https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html[java.nio.Charset] in the currently used JDK. E.g.: `US-ASCII`, `ISO-8859-1`, `UTF-8`, `UTF-16` | `--input-encoding`
+| batchSize | INTEGER | 2000 | commits and continues after the defined number of rows have been processed | N/A
 |===

@@ -28,6 +28,7 @@ import apoc.trigger.Trigger;
 import apoc.util.TestUtil;
 import apoc.uuid.Uuid;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,6 +75,11 @@ public class SystemDbTest {
         TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
     }
 
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+    
     @Test
     public void testGetGraph() throws Exception {
         TestUtil.testResult(db, "CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN nodes, relationships", result -> {

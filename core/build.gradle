@@ -148,15 +148,13 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
         exclude group: 'io.netty', module: 'netty-common'
+        exclude group: 'io.netty', module: 'netty-buffer'
     }
+
 
     implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1', arrowExclusions
     implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1', arrowExclusions
-    implementation group: 'io.netty', name: 'netty-buffer', {
-        version {
-            strictly '4.1.94.Final'
-        }
-    }
+
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
 

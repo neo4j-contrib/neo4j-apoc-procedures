@@ -5,11 +5,13 @@ The examples in this section are based on the following sample graph:
 CREATE (:Person {prop: 'Y', name:'A'}),
        (:Person {prop: 'Yes', name:'B'}),
        (:Person {prop: 'NO', name:'C'}),
-       (:Person {prop: 'X', name:'D'});
+       (:Person {prop: 'X', name:'D'}),
+       (:Person {prop: true, name:'E'}),
+       (:Person {prop: false, name:'F'});
 ----
 
 We want to transform some properties into a boolean, `Y`, `Yes` into true and the properties `NO` into false.
-The other properties that don't match these possibilities will be set as `null`.
+The other properties that don't match these possibilities will be set as `null`. This includes `BOOLEAN` values as well.
 
 .The following normalizes all applicable boolean values for all nodes that have the `prop` property:
 [source,cypher]
@@ -25,8 +27,31 @@ RETURN n.name AS name, n.prop AS prop;
 [opts="header"]
 |===
 | name | prop
-| "A"  | TRUE
-| "B"  | TRUE
-| "C"  | FALSE
-| "D"  | NULL
+| "A"  | true
+| "B"  | true
+| "C"  | false
+| "D"  | null
+| "E"  | null
+| "F"  | null
+|===
+
+If you want to keep `BOOLEAN` values as they are, include them in the parameters `trueValues` and `falseValues`:
+----
+MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes', true],['NO', false])
+WITH n
+ORDER BY n.id
+RETURN n.name AS name, n.prop AS prop;
+----
+
+.Results
+[opts="header"]
+|===
+| name | prop
+| "A"  | true
+| "B"  | true
+| "C"  | false
+| "D"  | null
+| "E"  | true
+| "F"  | false
 |===

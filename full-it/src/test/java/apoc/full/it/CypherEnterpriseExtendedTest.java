@@ -68,9 +68,8 @@ public class CypherEnterpriseExtendedTest {
     public static void beforeAll() {
         // We build the project, the artifact will be placed into ./build/libs
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
-                .withNeo4jConfig("dbms.transaction.timeout", "5s");
+                .withNeo4jConfig("dbms.transaction.timeout", "60s");
         neo4jContainer.start();
-
         session = neo4jContainer.getSession();
 
         // create cypher files

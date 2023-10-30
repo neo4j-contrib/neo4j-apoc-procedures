@@ -23,6 +23,7 @@ import apoc.result.VirtualNode
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.junit.AfterClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.neo4j.graphdb.Label
@@ -34,6 +35,12 @@ class AzureVirtualSentimentGraphStoreTest {
         @ClassRule
         @JvmField
         val neo4j = ImpermanentDbmsRule()
+
+        @AfterClass
+        @JvmStatic
+        fun afterClass() {
+            neo4j.shutdown()
+        }
     }
 
     @Test

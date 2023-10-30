@@ -75,6 +75,11 @@ public class LoadCsvTest {
         mockServer.stop();
     }
 
+    @After
+    public void cleanup() {
+        db.shutdown();
+    }
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
                 .withSetting(ApocSettings.apoc_import_file_enabled, true)
@@ -555,14 +560,10 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test(expected = QueryExecutionException.class)
     public void testLoadRedirectWithProtocolChange() {
-        TestUtil.ignoreException(() -> {
-            httpServer = new GenericContainer("alpine")
-                    .withCommand("/bin/sh", "-c", "while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: file:/etc/passwd'; echo ; } | nc -l -p 8000; done")
-                    .withExposedPorts(8000);
-            httpServer.start();
-        }, Exception.class);
-        Assume.assumeNotNull(httpServer);
-        Assume.assumeTrue(httpServer.isRunning());
+        httpServer = new GenericContainer("alpine")
+                .withCommand("/bin/sh", "-c", "while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: file:/etc/passwd'; echo ; } | nc -l -p 8000; done")
+                .withExposedPorts(8000);
+        httpServer.start();
         String url = String.format("http://%s:%s", httpServer.getContainerIpAddress(), httpServer.getMappedPort(8000));
         try {
             testResult(db, "CALL apoc.load.csv($url)", map("url", url),

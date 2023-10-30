@@ -64,6 +64,7 @@ public class LoadHdfsTest {
 
     @After public void tearDown() {
         miniDFSCluster.shutdown();
+        db.shutdown();
     }
 
     @Test public void testLoadCsvFromHDFS() throws Exception {

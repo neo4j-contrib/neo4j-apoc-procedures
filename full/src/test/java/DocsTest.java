@@ -18,6 +18,7 @@
  */
 import apoc.util.TestUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -68,6 +69,11 @@ public class DocsTest {
         new File(GENERATED_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_PARTIALS_DOCUMENTATION_DIR).mkdirs();
         new File(GENERATED_OVERVIEW_DIR).mkdirs();
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test
@@ -185,7 +191,7 @@ public class DocsTest {
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");
         docs.put("apoc.load.jdbc.*", "database-integration/load-jdbc.adoc");
-        docs.put("apoc.load.xml.*|apoc.xml.parse", "import/xml.adoc");
+        docs.put("apoc.load.xml.*|apoc.xml.parse", "import/load-xml.adoc");
         docs.put("apoc.lock.*", "graph-updates/locking.adoc");
         return docs;
     }

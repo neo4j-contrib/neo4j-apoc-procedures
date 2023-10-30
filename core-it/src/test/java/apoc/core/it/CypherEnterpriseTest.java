@@ -1,6 +1,7 @@
 package apoc.core.it;
 
 import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,7 +32,7 @@ public class CypherEnterpriseTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), true);
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), !TestUtil.isRunningInCI());
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }

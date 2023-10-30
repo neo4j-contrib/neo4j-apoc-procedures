@@ -19,6 +19,7 @@
 package apoc.config;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,6 +82,11 @@ public class ConfigTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Config.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     @Test

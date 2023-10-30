@@ -65,7 +65,12 @@ public class ConvertJsonTest {
 	@Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Json.class);
     }
-    
+
+    @After
+    public void teardown() {
+        db.shutdown();
+    }
+
 	@After 
     public void clear() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n;");

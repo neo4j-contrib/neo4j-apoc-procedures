@@ -19,6 +19,7 @@
 package apoc.nodes;
 
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +49,11 @@ public class GroupingTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Grouping.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     public void createGraph() {

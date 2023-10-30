@@ -31,6 +31,7 @@ import com.nimbusds.jose.util.Pair;
 import inet.ipaddr.IPAddressString;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -149,7 +150,11 @@ public class ImportAndLoadCoreSecurityTest {
                 // load procedures (Xml contains both `apoc.load.xml` and `apoc.import.xml` procedures)
                 LoadJson.class, LoadArrow.class);
     }
-    
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
+    }
 
     @Test
     public void testIllegalFSAccessWithDifferentApocConfs() {

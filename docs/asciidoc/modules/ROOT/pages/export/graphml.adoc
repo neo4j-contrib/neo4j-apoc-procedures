@@ -75,11 +75,6 @@ For example, with a path like `(:Foo {name: "aaa"})-[:KNOWS]->(:Bar {age: 666})`
 
 include::partial$enableFileExport.adoc[]
 
-[[export-csv-s3-export]]
-== Exporting to S3
-
-include::partial$enableS3Export.adoc[]
-
 [[export-graphml-stream-export]]
 == Exporting a stream
 

@@ -20,6 +20,7 @@ package apoc.path;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class SequenceTest {
             tx.execute(additionalLink);
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

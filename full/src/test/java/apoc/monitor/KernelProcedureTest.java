@@ -20,6 +20,7 @@ package apoc.monitor;
 
 import apoc.date.Date;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,6 +40,11 @@ public class KernelProcedureTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, Kernel.class);
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     private SimpleDateFormat format = new SimpleDateFormat(Date.DEFAULT_FORMAT);

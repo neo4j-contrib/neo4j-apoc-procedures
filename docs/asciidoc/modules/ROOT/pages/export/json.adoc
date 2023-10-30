@@ -61,11 +61,6 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 
 include::partial$enableFileExport.adoc[]
 
-[[export-csv-s3-export]]
-== Exporting to S3
-
-include::partial$enableS3Export.adoc[]
-
 [[export-json-stream-export]]
 == Exporting a stream
 

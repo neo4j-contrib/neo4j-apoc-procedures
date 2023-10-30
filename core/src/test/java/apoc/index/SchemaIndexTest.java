@@ -19,6 +19,7 @@
 package apoc.index;
 
 import apoc.util.TestUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -102,6 +103,11 @@ SchemaIndexTest {
             tx.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test

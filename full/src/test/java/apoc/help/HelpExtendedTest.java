@@ -20,6 +20,7 @@ package apoc.help;
 
 import apoc.Extended;
 import apoc.util.TestUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,6 +60,11 @@ public class HelpExtendedTest {
                 TestUtil.registerProcedure(db, klass);
             }
         }
+    }
+
+    @After
+    public void teardown() {
+        db.shutdown();
     }
 
     private Set<Class<?>> extendedClasses() {

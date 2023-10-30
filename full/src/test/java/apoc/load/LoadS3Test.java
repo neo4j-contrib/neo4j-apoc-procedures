@@ -40,7 +40,6 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 public class LoadS3Test {
 
@@ -68,12 +67,12 @@ public class LoadS3Test {
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
         minio = new S3Container();
-        assumeTrue(minio.isRunning());
     }
 
     @After
     public void tearDown() throws Exception {
         minio.close();
+        db.shutdown();
     }
 
     @Test

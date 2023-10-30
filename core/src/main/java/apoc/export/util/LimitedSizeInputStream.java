@@ -18,15 +18,20 @@
  */
 package apoc.export.util;
 
+
 import java.io.IOException;
 import java.io.InputStream;
+
+import static apoc.ApocConfig.APOC_MAX_DECOMPRESSION_RATIO;
+import static apoc.ApocConfig.DEFAULT_MAX_DECOMPRESSION_RATIO;
+import static apoc.ApocConfig.apocConfig;
 
 public class LimitedSizeInputStream extends InputStream {
     public static final String SIZE_EXCEEDED_ERROR = "The file dimension exceeded maximum size in bytes, %s,\n" +
                                      "which is %s times the width of the original file.\n" +
                                      "The InputStream has been blocked because the file could be a compression bomb attack.";
 
-    public static final int SIZE_MULTIPLIER = 100;
+    public static final int SIZE_MULTIPLIER = apocConfig().getInt(APOC_MAX_DECOMPRESSION_RATIO, DEFAULT_MAX_DECOMPRESSION_RATIO);
 
     private final InputStream stream;
     private final long maxSize;

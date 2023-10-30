@@ -33,11 +33,9 @@ import org.testcontainers.containers.CassandraContainer;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static apoc.util.TestUtil.isRunningInCI;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assume.*;
 
 public class CassandraJdbcTest extends AbstractJdbcTest {
 
@@ -48,14 +46,9 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeFalse(isRunningInCI());
-        TestUtil.ignoreException(() -> {
-            cassandra = new CassandraContainer();
-            cassandra.withInitScript("init_cassandra.cql");
-            cassandra.start();
-        },Exception.class);
-        assumeNotNull("Cassandra container has to exist", cassandra);
-        assumeTrue("Cassandra must be running", cassandra.isRunning());
+        cassandra = new CassandraContainer();
+        cassandra.withInitScript("init_cassandra.cql");
+        cassandra.start();
 
         TestUtil.registerProcedure(db, Jdbc.class);
         db.executeTransactionally("CALL apoc.load.driver('com.github.adejanovski.cassandra.jdbc.CassandraDriver')");
@@ -63,13 +56,12 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @AfterClass
     public static void tearDown() throws SQLException {
-        if (cassandra != null) {
-            cassandra.stop();
-        }
+        cassandra.stop();
+        db.shutdown();
     }
 
     @Test
-    public void testLoadJdbc() throws Exception {
+    public void testLoadJdbc() {
         testCall(db, "CALL apoc.load.jdbc($url,'\"PERSON\"')", Util.map("url", getUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))),
@@ -77,7 +69,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbcSelect() throws Exception {
+    public void testLoadJdbcSelect() {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\"')",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
@@ -86,7 +78,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbcUpdate() throws Exception {
+    public void testLoadJdbcUpdate() {
         TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE \"PERSON\" SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'])",
                 Util.map("url", getUrl(),
                     "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
@@ -106,7 +98,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
-    public void testLoadJdbcParams() throws Exception {
+    public void testLoadJdbcParams() {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))

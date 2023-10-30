@@ -66,7 +66,7 @@ public class UUIDNewProcedures {
     @SystemProcedure
     @Admin
     @Procedure(mode = Mode.WRITE)
-    @Description("CALL apoc.uuid.setup(databaseName, label, $config) | eventually adds the uuid transaction handler for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
+    @Description("CALL apoc.uuid.setup(label, databaseName, $config) | eventually adds the uuid transaction handler for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
     public Stream<UuidInfo> setup(@Name("label") String label,
                                   @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
@@ -84,7 +84,7 @@ public class UUIDNewProcedures {
     @SystemProcedure
     @Admin
     @Procedure(mode = Mode.WRITE)
-    @Description("CALL apoc.uuid.drop(databaseName, label) yield label, installed, properties | eventually removes previously added UUID handler and returns uuid information")
+    @Description("CALL apoc.uuid.drop(label, databaseName) yield label, installed, properties | eventually removes previously added UUID handler and returns uuid information")
     public Stream<UuidInfo> drop(@Name("label") String label, @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkInSystemLeader(databaseName);
 

@@ -19,6 +19,7 @@
 package apoc.result;
 
 import apoc.util.Util;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Direction;
@@ -38,6 +39,11 @@ public class VirtualNodeTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @AfterClass
+    public static void teardown() {
+       db.shutdown();
+    }
 
     @Test
     public void shouldCreateVirtualNode() {

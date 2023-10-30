@@ -18,6 +18,7 @@
  */
 package apoc.util;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -59,6 +60,11 @@ public class UtilTest {
             node.setProperty("name", "foo");
             tx.commit();
         }
+    }
+
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
     }
 
     @Test
