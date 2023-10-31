@@ -149,15 +149,15 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.52.v20230823.jar
-  jetty-io-9.4.52.v20230823.jar
-  jetty-security-9.4.52.v20230823.jar
-  jetty-server-9.4.52.v20230823.jar
-  jetty-servlet-9.4.52.v20230823.jar
-  jetty-util-9.4.52.v20230823.jar
-  jetty-util-ajax-9.4.52.v20230823.jar
-  jetty-webapp-9.4.52.v20230823.jar
-  jetty-xml-9.4.52.v20230823.jar
+  jetty-http-9.4.53.v20231009.jar
+  jetty-io-9.4.53.v20231009.jar
+  jetty-security-9.4.53.v20231009.jar
+  jetty-server-9.4.53.v20231009.jar
+  jetty-servlet-9.4.53.v20231009.jar
+  jetty-util-9.4.53.v20231009.jar
+  jetty-util-ajax-9.4.53.v20231009.jar
+  jetty-webapp-9.4.53.v20231009.jar
+  jetty-xml-9.4.53.v20231009.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.425.jar
@@ -341,15 +341,15 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License - Version 1.0
   javax-websocket-client-impl-9.4.51.v20230217.jar
   javax-websocket-server-impl-9.4.51.v20230217.jar
-  jetty-http-9.4.52.v20230823.jar
-  jetty-io-9.4.52.v20230823.jar
-  jetty-security-9.4.52.v20230823.jar
-  jetty-server-9.4.52.v20230823.jar
-  jetty-servlet-9.4.52.v20230823.jar
-  jetty-util-9.4.52.v20230823.jar
-  jetty-util-ajax-9.4.52.v20230823.jar
-  jetty-webapp-9.4.52.v20230823.jar
-  jetty-xml-9.4.52.v20230823.jar
+  jetty-http-9.4.53.v20231009.jar
+  jetty-io-9.4.53.v20231009.jar
+  jetty-security-9.4.53.v20231009.jar
+  jetty-server-9.4.53.v20231009.jar
+  jetty-servlet-9.4.53.v20231009.jar
+  jetty-util-9.4.53.v20231009.jar
+  jetty-util-ajax-9.4.53.v20231009.jar
+  jetty-webapp-9.4.53.v20231009.jar
+  jetty-xml-9.4.53.v20231009.jar
   websocket-api-9.4.51.v20230217.jar
   websocket-client-9.4.51.v20230217.jar
   websocket-common-9.4.51.v20230217.jar
