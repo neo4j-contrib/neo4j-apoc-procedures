@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -8,12 +8,14 @@ java {
 }
 
 
-archivesBaseName = 'apoc-nlp-dependencies'
+base {
+    archivesName = 'apoc-nlp-dependencies'
+}
 description = """APOC NLP Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
@@ -23,9 +25,9 @@ def withoutJacksons = {
 }
 
 dependencies {
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
-    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
-    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 }
 
 

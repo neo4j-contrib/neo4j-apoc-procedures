@@ -1,10 +1,8 @@
 plugins {
-    id 'java-library'
-    id 'com.github.johnrengelman.shadow' version '4.0.3'  apply false
-    id "com.bmuschko.nexus" version "2.3.1"
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'  apply false
     id 'maven-publish'
-    id "org.sonarqube" version "2.7"
-    id "com.github.hierynomus.license-report" version"0.15.0"
+    id "com.github.hierynomus.license-report" version"0.16.1"
 }
 
 downloadLicenses {
@@ -16,11 +14,14 @@ downloadLicenses {
 allprojects {
     group = 'org.neo4j.procedure'
     version = '4.4.0.23'
-    archivesBaseName = 'apoc'
+    base {
+        archivesName = 'apoc'
+    }
     description = """neo4j-apoc-procedures"""
 }
 
 apply plugin: 'java-library'
+
 if (System.env.CI != null)
     apply from: 'teamcity-repository.gradle'
 
@@ -59,7 +60,8 @@ subprojects {
 
     task mySourcesJar(type: Jar) {
         from sourceSets.main.allJava
-        classifier = 'sources'
+        archiveClassifier = 'sources'
+        dependsOn(':full:generateGrammarSource')
     }
 
     task myJavadocJar(type: Jar) {

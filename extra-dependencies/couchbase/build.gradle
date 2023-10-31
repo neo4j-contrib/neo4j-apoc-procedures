@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -7,17 +7,19 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-archivesBaseName = 'apoc-couchbase-dependencies'
+base {
+    archivesName = 'apoc-couchbase-dependencies'
+}
 description = """APOC Couchbase Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', {
+    implementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
 }

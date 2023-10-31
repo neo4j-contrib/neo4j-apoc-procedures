@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -7,17 +7,19 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-archivesBaseName = 'apoc-redis-dependencies'
+base {
+    archivesName = 'apoc-redis-dependencies'
+}
 description = """APOC Redis Dependencies"""
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': archiveVersion
     }
 }
 
 dependencies {
-    compile group: 'io.lettuce', name: 'lettuce-core', version: '6.2.5.RELEASE', {
+    implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.2.5.RELEASE', {
         exclude group: 'io.netty'
     }
 }
