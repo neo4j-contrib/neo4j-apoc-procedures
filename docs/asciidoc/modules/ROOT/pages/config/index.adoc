@@ -34,21 +34,21 @@ The meta-configuration is located in `src/main/resources/apoc-config.xml`.
 - link:#_apoc_jobs_scheduled_num_threads[apoc.jobs.scheduled.num_threads]: Scheduled execution thread pool size.
 - link:#_apoc_jobs_pool_num_threads[apoc.jobs.pool.num_threads]: Background execution thread pool size.
 - link:#_apoc_jobs_queue_size[apoc.jobs.queue.size]: Background execution job queue size.
-- link:#_apoc_trigger_enabled[.apoc.trigger.enabled]: Enables triggers.
-- link:#_apoc_uuid_enabled[.apoc.uuid.enabled]: Enables UUID handlers.
-- link:#_apoc_uuid_enabled_db[.apoc.uuid.enabled.<db>]: Enables UUID handlers for a specific db.
-- link:#_apoc_ttl_enabled[.apoc.ttl.enabled]: Enable TTL background tasks.
-- link:#_apoc_ttl_enabled_db[.apoc.ttl.enabled.<db>]: Enables TTL background task for a specific db.
-- link:#_apoc_ttl_schedule[.apoc.ttl.schedule]: Sets frequency of TTL background tasks.
-- link:#_apoc_ttl_schedule_db[.apoc.ttl.schedule.<db>]: Sets frequency of TTL background tasks for a specific db.
-- link:#_apoc_ttl_limit[.apoc.ttl.limit]: Maximum TTL limit.
-- link:#_apoc_ttl_limit_db[.apoc.ttl.limit.<db>]: Maximum TTL limit for a specific db
-- link:#_apoc_spatial_geocode_provider[.apoc.spatial.geocode.provider]: Configuration for geocode providers.
-- link:#_apoc_spatial_geocode_providername_key[.apoc.spatial.geocode.<providerName>.<key>]: Configuration for a given geocode provider.
-- link:#_apoc_jdbc_key_uri[.apoc.jdbc.<key>.uri]: Stores JDBC URLs to be used.
-- link:#_apoc_couchbase_key_uri[.apoc.couchbase.<key>.uri]: Stores CouchBase URLs to be used.
-- link:#_apoc_es_key_uri[.apoc.es.<key>.uri]: Store ElasticSearch URLs to be used.
-- link:#_apoc_mongodb_key_uri[.apoc.mongodb.<key>.uri]: Store MongoDB URLs to be used.
+- link:#_apoc_trigger_enabled[apoc.trigger.enabled]: Enables triggers.
+- link:#_apoc_uuid_enabled[apoc.uuid.enabled]: Enables UUID handlers.
+- link:#_apoc_uuid_enabled_db[apoc.uuid.enabled.<db>]: Enables UUID handlers for a specific db.
+- link:#_apoc_ttl_enabled[apoc.ttl.enabled]: Enable TTL background tasks.
+- link:#_apoc_ttl_enabled_db[apoc.ttl.enabled.<db>]: Enables TTL background task for a specific db.
+- link:#_apoc_ttl_schedule[apoc.ttl.schedule]: Sets frequency of TTL background tasks.
+- link:#_apoc_ttl_schedule_db[apoc.ttl.schedule.<db>]: Sets frequency of TTL background tasks for a specific db.
+- link:#_apoc_ttl_limit[apoc.ttl.limit]: Maximum TTL limit.
+- link:#_apoc_ttl_limit_db[apoc.ttl.limit.<db>]: Maximum TTL limit for a specific db
+- link:#_apoc_spatial_geocode_provider[apoc.spatial.geocode.provider]: Configuration for geocode providers.
+- link:#_apoc_spatial_geocode_providername_key[apoc.spatial.geocode.<providerName>.<key>]: Configuration for a given geocode provider.
+- link:#_apoc_jdbc_key_uri[apoc.jdbc.<key>.uri]: Stores JDBC URLs to be used.
+- link:#_apoc_couchbase_key_uri[apoc.couchbase.<key>.uri]: Stores CouchBase URLs to be used.
+- link:#_apoc_es_key_uri[apoc.es.<key>.uri]: Store ElasticSearch URLs to be used.
+- link:#_apoc_mongodb_key_uri[apoc.mongodb.<key>.uri]: Store MongoDB URLs to be used.
 
 [#_apoc_export_file_enabled]
 .apoc.export.file.enabled
