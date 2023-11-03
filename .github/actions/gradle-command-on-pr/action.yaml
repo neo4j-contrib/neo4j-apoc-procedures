@@ -1,0 +1,103 @@
+name: "Run gradle command on pull request"
+
+inputs:
+  gradle-command:
+    description: "Gradle command to run"
+    required: true
+  TEAMCITY_DEV_URL:
+    required: true
+  TEAMCITY_USER:
+    required: true
+  TEAMCITY_PASSWORD:
+    required: true
+  SERVICE_ACCOUNT_PAT:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout branch from fork
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+        repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
+        ref: ${{ github.event.client_payload.pull_request.head.ref }}
+
+    - uses: ./.github/actions/setup-jdk
+    - uses: ./.github/actions/setup-gradle-cache
+
+    - name: Calls gradle command
+      shell: bash
+      env:
+        TEAMCITY_DEV_URL: ${{ inputs.TEAMCITY_DEV_URL }}
+        TEAMCITY_USER: ${{ inputs.TEAMCITY_USER }}
+        TEAMCITY_PASSWORD: ${{ inputs.TEAMCITY_PASSWORD }}
+      run: |
+        ./gradlew ${{ inputs.gradle-command }}
+
+    - name: Check for modified files
+      shell: bash
+      id: git-check
+      run: echo modified=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi) >> $GITHUB_OUTPUT
+
+    - name: Commit to the PR branch
+      shell: bash
+      if: steps.git-check.outputs.modified == 'true'
+      run: |
+        git config --global user.name 'neo-technology-build-agent'
+        git config --global user.email 'neo-technology-build-agent@users.noreply.github.com'
+        git add -A
+        git commit -m "Run ${{ inputs.gradle-command }}"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df # v0.8.0
+      with:
+        github_token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
+        branch: ${{ github.event.client_payload.pull_request.head.ref }}
+
+    - name: Add reaction on pushed changes
+      if: ${{ success() && steps.git-check.outputs.modified == 'true' }}
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+        comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+        reaction-type: hooray
+
+    - name: Add reaction when no update is needed
+      if: ${{ success() && steps.git-check.outputs.modified == 'false' }}
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+        comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+        reaction-type: '+1'
+
+    - name: Create URL to the run output for failure report
+      shell: bash
+      if: ${{ !success() }}
+      id: vars
+      run: echo run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID >> $GITHUB_OUTPUT
+
+    - name: Create comment with URL on failure
+      if: ${{ !success() }}
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+        issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+        body: |
+          :x: [${{ inputs.gradle-command }} failed][1]
+
+          [1]: ${{ steps.vars.outputs.run-url }}
+
+    - name: Report failure to original comment with a reaction
+      if: ${{ !success() }}
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+        comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+        reaction-type: '-1'
+
+    - name: Go back to original branch
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
+        ref: ${{ github.event.client_payload.pull_request.base.ref }}

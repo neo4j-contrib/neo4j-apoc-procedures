@@ -1,0 +1,17 @@
+name: Slash Command Dispatch
+on:
+  issue_comment:
+    types: [created]
+permissions: write-all
+jobs:
+  slashCommandDispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slash Command Dispatch
+        uses: peter-evans/slash-command-dispatch@v3
+        with:
+          issue-type: pull-request
+          reaction-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SERVICE_ACCOUNT_PAT }}
+          commands: |
+            spotlessApply
