@@ -47,7 +47,7 @@ runs:
         git config --global user.name 'neo-technology-build-agent'
         git config --global user.email 'neo-technology-build-agent@users.noreply.github.com'
         git add -A
-        git commit -m "Run ${{ inputs.gradle-command }}"
+        git commit -m "[NOID] Run ${{ inputs.gradle-command }}"
 
     - name: Push changes
       uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df # v0.8.0
