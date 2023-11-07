@@ -106,12 +106,4 @@ public class UUIDHandlerNewProcedures {
     public static ResourceIterator<Node> getUuidNodes(Transaction tx, String databaseName, Map<String, Object> props) {
         return getSystemNodes(tx, databaseName, ApocUuid, props);
     }
-
-    public static void createConstraintUuid(Transaction tx, String label, String propertyName) {
-        tx.execute(
-                String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
-                        Util.quote(label),
-                        Util.quote(propertyName))
-        );
-    }
 }
