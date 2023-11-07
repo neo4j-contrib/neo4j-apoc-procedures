@@ -144,7 +144,6 @@ public class TestContainerUtil {
 
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(dockerImage)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
-                .withTmpFs(Map.of("/logs", "rw", "/data", "rw", pluginsFolder.toPath().toAbsolutePath().toString(), "rw"))
                 .withAdminPassword(password)
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
                 .withEnv("apoc.export.file.enabled", "true")
