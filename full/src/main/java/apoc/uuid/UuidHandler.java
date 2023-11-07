@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,13 +66,15 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final Log log;
     private final DatabaseManagementService databaseManagementService;
     private final ApocConfig apocConfig;
-    private final ConcurrentHashMap<String, UuidConfig> configuredLabelAndPropertyNames = new ConcurrentHashMap<>();
+    // Snapshot of uuid configuration per label/property.
+    // The containing map is immutable!
+    private final AtomicReference<Map<String, UuidConfig>> labelAndPropertyNamesSnapshot = new AtomicReference<>(Map.of());
     private final ApocConfig.UuidFormatType uuidFormat;
     private final JobScheduler jobScheduler;
     private final Pools pools;
 
     private JobHandle refreshUuidHandle;
-    private long lastUpdate;
+    private volatile long lastUpdate;
 
     public static final String APOC_UUID_REFRESH = "apoc.uuid.refresh";
 
@@ -97,7 +100,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             Integer uuidRefresh = apocConfig.getConfig().getInteger(APOC_UUID_REFRESH, null);
             if (uuidRefresh != null) {
                 refreshUuidHandle = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
-                            if (getLastUpdate(db.databaseName(), SystemLabels.ApocUuidMeta) > lastUpdate) {
+                            if (getLastUpdate(db.databaseName(), SystemLabels.ApocUuidMeta) >= lastUpdate) {
                                 refreshAndAdd();
                             }
                         },
@@ -150,7 +153,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         Iterable<PropertyEntry<Node>> assignedNodeProperties = txData.assignedNodeProperties();
         Iterable<PropertyEntry<Node>> removedNodeProperties = txData.removedNodeProperties();
 
-        configuredLabelAndPropertyNames.forEach((label, config) -> {
+        labelAndPropertyNamesSnapshot.get().forEach((label, config) -> {
             final String propertyName = config.getUuidProperty();
             List<Node> nodes = config.isAddToSetLabels()
                     ? StreamSupport.stream(txData.assignedLabels().spliterator(), false).map(LabelEntry::node).collect(Collectors.toList())
@@ -216,8 +219,6 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         final String propertyName = config.getUuidProperty();
         checkConstraintUuid(tx, label, propertyName);
 
-        configuredLabelAndPropertyNames.put(label, config);
-
         try (Transaction sysTx = apocConfig.getSystemDb().beginTx()) {
             Node node = Util.mergeNode(sysTx, SystemLabels.ApocUuid, null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
@@ -227,20 +228,17 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             node.setProperty(SystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
             sysTx.commit();
         }
+        refresh();
     }
 
     public Map<String, UuidConfig> list() {
         checkEnabled();
-        return configuredLabelAndPropertyNames;
+        return labelAndPropertyNamesSnapshot.get();
     }
 
-
-    // we cannot refresh global configuredLabelAndPropertyNames before the forEach about `setExistingNodes`
-    // otherwise some tests like `UUIDNewProceduresTest.testUUIDSetUuidToEmptyAndRestore` could be flaky
-    // because we could populate the forEach after the beforeCommit
     public synchronized void refreshAndAdd() {
-        configuredLabelAndPropertyNames.clear();
-        ConcurrentHashMap<String, UuidConfig> localCache = provisionalRefresh();
+        final var start = System.currentTimeMillis();
+        final var localCache = provisionalRefresh();
 
         if (Util.isWriteableInstance(db)) {
             // add to existing nodes
@@ -267,47 +265,48 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             });
         }
 
-        configuredLabelAndPropertyNames.putAll(localCache);
+        labelAndPropertyNamesSnapshot.set(localCache);
+        lastUpdate = start;
     }
 
-    public ConcurrentHashMap<String, UuidConfig> provisionalRefresh() {
-        ConcurrentHashMap<String, UuidConfig> localCache = new ConcurrentHashMap<>();
-
-        lastUpdate = System.currentTimeMillis();
+    public Map<String, UuidConfig> provisionalRefresh() {
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
-                    .forEachRemaining(node -> {
-                        final UuidConfig config =  new UuidConfig(Map.of(
+            return tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
+                    .stream()
+                    .collect(Collectors.toUnmodifiableMap(
+                        node -> (String) node.getProperty(SystemPropertyKeys.label.name()),
+                        node -> new UuidConfig(Map.of(
                                 UUID_PROPERTY_KEY, node.getProperty(SystemPropertyKeys.propertyName.name()),
                                 ADD_TO_SET_LABELS_KEY, node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false),
                                 ADD_TO_EXISTING_NODES_KEY, node.getProperty(SystemPropertyKeys.addToExistingNodes.name(), false)
-                        ));
-                        localCache.put((String)node.getProperty(SystemPropertyKeys.label.name()), config);
-                    });
-            tx.commit();
+                        ))
+                    ));
         }
-        return localCache;
     }
 
     public void refresh() {
-        ConcurrentHashMap<String, UuidConfig> localCache = provisionalRefresh();
-        configuredLabelAndPropertyNames.clear();
-        configuredLabelAndPropertyNames.putAll(localCache);
+        final var start = System.currentTimeMillis();
+        // Note, there is a race condition here where lastUpdate can become larger than the last update
+        // if two threads are refreshing at the same time.
+        labelAndPropertyNamesSnapshot.set(provisionalRefresh());
+        lastUpdate = start;
     }
 
     public synchronized UuidConfig remove(String label) {
+        final var oldValue = labelAndPropertyNamesSnapshot.get().get(label);
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName(),
                     SystemPropertyKeys.label.name(), label)
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }
-        return configuredLabelAndPropertyNames.remove(label);
+        refresh();
+        return oldValue;
     }
 
     public synchronized Map<String, UuidConfig> removeAll() {
-        Map<String, UuidConfig> retval = new HashMap<>(configuredLabelAndPropertyNames);
-        configuredLabelAndPropertyNames.clear();
+        final var retval = labelAndPropertyNamesSnapshot.get();
+        labelAndPropertyNamesSnapshot.set(Map.of());
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName() )
                     .forEachRemaining(node -> node.delete());
