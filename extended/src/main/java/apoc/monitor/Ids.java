@@ -3,6 +3,8 @@ package apoc.monitor;
 import apoc.Extended;
 import apoc.result.IdsResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.io.pagecache.context.CursorContext;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.store.stats.StoreEntityCounters;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
@@ -22,17 +24,22 @@ public class Ids {
 
     @Context
     public GraphDatabaseService db;
+    
+    @Context
+    public KernelTransaction ktx;
 
     @Procedure
     @Description("apoc.monitor.ids() returns the object ids in use for this neo4j instance")
     public Stream<IdsResult> ids() {
 
+        CursorContext cursorContext = ktx.cursorContext();
+
         StoreEntityCounters storeEntityCounters = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(StoreEntityCounters.class);
         return Stream.of(new IdsResult(
-                storeEntityCounters.nodes(),
-                storeEntityCounters.relationships(),
-                storeEntityCounters.properties(),
-                storeEntityCounters.relationshipTypes()
+                storeEntityCounters.nodes(cursorContext),
+                storeEntityCounters.relationships(cursorContext),
+                storeEntityCounters.properties(cursorContext),
+                storeEntityCounters.relationshipTypes(cursorContext)
         ));
     }
 }
