@@ -27,11 +27,9 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -40,7 +38,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.ExtendedApocConfig.APOC_UUID_FORMAT;
-import static apoc.ExtendedSystemPropertyKeys.addToExistingNodes;
 import static apoc.ExtendedSystemPropertyKeys.addToSetLabel;
 import static apoc.ExtendedSystemPropertyKeys.propertyName;
 import static apoc.util.SystemDbUtil.getLastUpdate;
