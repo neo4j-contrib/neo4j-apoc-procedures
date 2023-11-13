@@ -40,7 +40,7 @@ import static java.lang.String.format;
  * @author mh
  * @since 30.06.16
  */
-class MongoDBColl implements MongoDBUtils.Coll {
+class MongoDBColl implements MongoDbCollInterface {
 
     private static final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
     public static final String ID = "_id";

@@ -15,8 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static apoc.mongodb.MongoDBUtils.getMongoColl;
-import static apoc.mongodb.MongoDBUtils.Coll;
+import static apoc.mongodb.MongoDBUtils.getMongoConfig;
 
 /*
  also see https://docs.mongodb.com/ecosystem/tools/http-interfaces/#simple-rest-api
@@ -49,17 +48,17 @@ public class MongoDB {
     @Context
     public Log log;
 
-    private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
+    private MongoDbCollInterface getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
                          boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
         String url = getMongoDBUrl(hostOrKey);
-        return Coll.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
+        return MongoDbCollInterface.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
     }
 
     @Procedure("apoc.mongodb.get.byObjectId")
     @Description("apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value")
     public Stream<MapResult> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValue") String objectIdValue, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
 
         return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap(),
                 coll -> {
@@ -74,17 +73,17 @@ public class MongoDB {
     }
 
     private  <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
-                                            boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
-        Coll coll = null;
+                                            boolean extractReferences, boolean objectIdAsMap, Function<MongoDbCollInterface, Stream<T>> execute, Consumer<Exception> onError) {
+        MongoDbCollInterface coll = null;
         try {
-            coll = getMongoColl(() -> getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
+            coll = getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {
                 coll.safeClose();
             }
             onError.accept(e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error during connection", e);
         }
     }
 }

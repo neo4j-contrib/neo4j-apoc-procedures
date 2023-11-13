@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.xls;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;

@@ -2,7 +2,7 @@ package apoc.export.csv;
 
 import apoc.export.xls.ExportXls;
 import apoc.graph.Graphs;
-import apoc.load.LoadXls;
+import apoc.load.xls.LoadXls;
 import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.TestUtil;

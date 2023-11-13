@@ -1,31 +1,30 @@
-package apoc.load;
+package apoc.load.xls;
 
 import apoc.Extended;
 import apoc.export.util.CountingInputStream;
 import apoc.meta.Types;
 import apoc.util.FileUtils;
+import apoc.util.MissingDependencyException;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-import org.neo4j.values.storable.LocalDateTimeValue;
 
-import java.io.IOException;
 import java.time.*;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
+import static apoc.load.xls.LoadXlsHandler.getXlsSpliterator;
 import static apoc.util.DateParseUtil.dateParse;
 import static apoc.util.ExtendedUtil.dateFormat;
 import static apoc.util.ExtendedUtil.durationParse;
@@ -117,16 +116,10 @@ public class LoadXls {
             Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
             Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
 
-            Workbook workbook = WorkbookFactory.create(stream);
-            Sheet sheet = workbook.getSheet(selection.sheet);
-            if (sheet==null) throw new IllegalStateException("Sheet "+selection.sheet+" not found");
-            selection.updateVertical(sheet.getFirstRowNum(),sheet.getLastRowNum());
-            Row firstRow = sheet.getRow(selection.top);
-            selection.updateHorizontal(firstRow.getFirstCellNum(), firstRow.getLastCellNum());
-
-            String[] header = getHeader(hasHeader, firstRow,selection, ignore, mappings);
-            boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
-            return StreamSupport.stream(new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore,mappings, nullValues), false);
+            LoadXlsHandler.XLSSpliterator xlsSpliterator = getXlsSpliterator(url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings);
+            return StreamSupport.stream(xlsSpliterator, false);
+        } catch (NoClassDefFoundError e) {
+            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);
         } catch (Exception e) {
             if(!failOnError)
                 return Stream.of(new  XLSResult(new String[0], new Object[0], 0, true, Collections.emptyMap(), emptyList()));
@@ -227,19 +220,6 @@ public class LoadXls {
         return strings.toArray(new String[strings.size()]);
     }
 
-    private String[] getHeader(boolean hasHeader, Row header, Selection selection, List<String> ignore, Map<String, Mapping> mapping) throws IOException {
-        if (!hasHeader) return null;
-
-        String[] result = new String[selection.right - selection.left];
-        for (int i = selection.left; i < selection.right; i++) {
-            Cell cell = header.getCell(i);
-            if (cell == null) throw new IllegalStateException("Header at position "+i+" doesn't have a value");
-            String value = cell.getStringCellValue();
-            result[i- selection.left] = ignore.contains(value) || mapping.getOrDefault(value, Mapping.EMPTY).ignore ? null : value;
-        }
-        return result;
-    }
-
     private boolean booleanValue(Map<String, Object> config, String key, boolean defaultValue) {
         if (config == null || !config.containsKey(key)) return defaultValue;
         Object value = config.get(key);
@@ -270,42 +250,6 @@ public class LoadXls {
         if (separator==null) return defaultSep;
         if ("TAB".equalsIgnoreCase(separator)) return '\t';
         return separator.charAt(0);
-    }
-
-    private static Object[] extract(Row row, Selection selection) {
-        // selection.updateHorizontal(row.getFirstCellNum(),row.getLastCellNum());
-        Object[] result = new Object[selection.right-selection.left];
-        for (int i = selection.left; i < selection.right; i++) {
-            Cell cell = row.getCell(i);
-            if (cell == null) continue;
-            result[i-selection.left] = getValue(cell, cell.getCellType());
-        }
-        return result;
-
-    }
-
-    private static Object getValue(Cell cell, CellType type) {
-        switch (type) {
-            case NUMERIC: // In excel the date is NUMERIC Type
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(cell.getDateCellValue());
-                    LocalDateTime localDateTime = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)+1, cal.get(Calendar.DAY_OF_MONTH),
-                            cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
-                    return LocalDateTimeValue.localDateTime(localDateTime);
-//                    return LocalDateTimeValue.localDateTime(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-                }
-                double value = cell.getNumericCellValue();
-                if (value == Math.floor(value)) return (long) value;
-                return value;
-            case STRING: return cell.getStringCellValue();
-            case FORMULA: return getValue(cell,cell.getCachedFormulaResultType());
-            case BOOLEAN: return cell.getBooleanCellValue();
-            case _NONE: return null;
-            case BLANK: return null;
-            case ERROR: return null;
-            default: return null;
-        }
     }
 
     public static class XLSResult {
@@ -363,47 +307,4 @@ public class LoadXls {
         }
     }
 
-    private static class XLSSpliterator extends Spliterators.AbstractSpliterator<XLSResult> {
-        private final Sheet sheet;
-        private final Selection selection;
-        private final String[] header;
-        private final String url;
-        private final long limit;
-        private final boolean ignore;
-        private final Map<String, Mapping> mapping;
-        private final List<Object> nullValues;
-        private final long skip;
-        long lineNo;
-
-        public XLSSpliterator(Sheet sheet, Selection selection, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<Object> nullValues) throws IOException {
-            super(Long.MAX_VALUE, Spliterator.ORDERED);
-            this.sheet = sheet;
-            this.selection = selection;
-            this.header = header;
-            this.url = url;
-            this.ignore = ignore;
-            this.mapping = mapping;
-            this.nullValues = nullValues;
-            int headerOffset = header != null ? 1 : 0;
-            this.skip = skip + selection.getOrDefault(selection.top, sheet.getFirstRowNum()) + headerOffset;
-            this.limit = limit == Long.MAX_VALUE ? selection.getOrDefault(selection.bottom, sheet.getLastRowNum()) : skip + limit;
-            lineNo = this.skip;
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super XLSResult> action) {
-            try {
-                Row row = sheet.getRow((int)lineNo);
-                if (row != null && lineNo <= limit) {
-                    Object[] list = extract(row, selection);
-                    action.accept(new XLSResult(header, list, lineNo-skip, ignore,mapping, nullValues));
-                    lineNo++;
-                    return true;
-                }
-                return false;
-            } catch (Exception e) {
-                throw new RuntimeException("Error reading XLS from URL " + cleanUrl(url) + " at " + lineNo, e);
-            }
-        }
-    }
 }

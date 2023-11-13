@@ -1,5 +1,9 @@
 package apoc.couchbase;
 
+import apoc.couchbase.document.CouchbaseByteArrayDocument;
+import apoc.couchbase.document.CouchbaseJsonDocument;
+import apoc.couchbase.document.CouchbaseQueryResult;
+import apoc.couchbase.document.CouchbaseUtils;
 import com.couchbase.client.core.env.PasswordAuthenticator;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.error.DocumentNotFoundException;
@@ -36,8 +40,9 @@ import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 /**
  * A Couchbase Server connection.
  * <p/>
- * It wraps a Couchbase {@link Bucket} instance through that all of the
- * operations performed against Couchbase are done.
+ * It wraps a Couchbase {@link Bucket} instance through that all the
+ * operations performed against Couchbase are done,
+ * and return a result digestible by Neo4j.
  * <p/>
  * The class is {@link AutoCloseable} so that every operation can be performed
  * inside a try-block and if an exception is raised the internal state of the
@@ -131,12 +136,26 @@ public class CouchbaseConnection implements AutoCloseable {
 
     /**
      * Retrieves a {@link GetResult} by its unique ID.
+     * 
+     * @param documentId the unique ID of the document
+     * @return the found {@link CouchbaseJsonDocument} or null if not found
+     */
+    public CouchbaseJsonDocument get(String documentId) {
+        GetResult getResult = getResult(documentId);
+        if (getResult == null) {
+            return null;
+        }
+        return new CouchbaseJsonDocument(getResult, documentId);
+    }
+
+    /**
+     * Retrieves a {@link GetResult} by its unique ID.
      *
      * @param documentId the unique ID of the document
      * @return the found {@link GetResult} or null if not found
      * @see Collection#get(String)
      */
-    public GetResult get(String documentId) {
+    private GetResult getResult(String documentId) {
         try {
             return collection.get(documentId, getOptions().withExpiry(true));
         } catch (DocumentNotFoundException e) {
@@ -171,8 +190,10 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the newly created {@link MutationResult}
      * @see Collection#insert(String, Object)
      */
-    public MutationResult insert(String documentId, String json) {
-        return this.collection.insert(documentId, JsonObject.fromJson(json));
+    public CouchbaseJsonDocument insert(String documentId, String json) {
+        MutationResult insert = this.collection.insert(documentId, JsonObject.fromJson(json));
+        GetResult getResult = getResult(documentId);
+        return new CouchbaseJsonDocument(getResult, documentId, insert.mutationToken().orElse(null));
     }
 
     /**
@@ -183,20 +204,24 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the newly created or overwritten {@link MutationResult}
      * @see Collection#upsert(String, Object)
      */
-    public MutationResult upsert(String documentId, String json) {
-        return this.collection.upsert(documentId, JsonObject.fromJson(json));
+    public CouchbaseJsonDocument upsert(String documentId, String json) {
+        MutationResult upsertResult = this.collection.upsert(documentId, JsonObject.fromJson(json));
+        GetResult getResult = getResult(documentId);
+        return new CouchbaseJsonDocument(getResult, documentId, upsertResult.mutationToken().orElse(null));
     }
 
     /**
      * Appends a json content to an existing one.
      *
      * @param documentId the unique ID of the document
-     * @param content       the byte[] representing the document to append
+     * @param content    the byte[] representing the document to append
      * @return the updated {@link MutationResult}
      * @see BinaryCollection#append(String, byte[])
      */
-    public MutationResult append(String documentId, byte[] content) {
-        return binaryCollection.append(documentId, content);
+    public CouchbaseByteArrayDocument append(String documentId, byte[] content) {
+        MutationResult appendResult = binaryCollection.append(documentId, content);
+        GetResult getResult = getBinary(documentId);
+        return new CouchbaseByteArrayDocument(getResult, documentId, appendResult.mutationToken().orElse(null));
     }
 
     /**
@@ -207,8 +232,10 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the updated {@link MutationResult}
      * @see BinaryCollection#prepend(String, byte[])
      */
-    public MutationResult prepend(String documentId, byte[] content) {
-        return binaryCollection.prepend(documentId, content);
+    public CouchbaseByteArrayDocument prepend(String documentId, byte[] content) {
+        MutationResult prependResult = binaryCollection.prepend(documentId, content);
+        GetResult binaryResult = getBinary(documentId);
+        return new CouchbaseByteArrayDocument(binaryResult, documentId, prependResult.mutationToken().orElse(null));
     }
 
     /**
@@ -218,8 +245,10 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the removed document
      * @see Collection#remove(String)
      */
-    public MutationResult remove(String documentId) {
-        return this.collection.remove(documentId);
+    public CouchbaseJsonDocument remove(String documentId) {
+        GetResult getResult = getResult(documentId);
+        MutationResult removeResult = this.collection.remove(documentId);
+        return new CouchbaseJsonDocument(getResult, documentId, removeResult.mutationToken().orElse(null));
     }
 
     /**
@@ -230,8 +259,10 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the replaced {@link MutationResult}
      * @see Collection#replace(String, Object)
      */
-    public MutationResult replace(String documentId, String json) {
-        return this.collection.replace(documentId, JsonObject.fromJson(json));
+    public CouchbaseJsonDocument replace(String documentId, String json) {
+        MutationResult replaceResult = this.collection.replace(documentId, JsonObject.fromJson(json));
+        GetResult getResult = getResult(documentId);
+        return new CouchbaseJsonDocument(getResult, documentId, replaceResult.mutationToken().orElse(null));
     }
 
     /**
@@ -241,8 +272,9 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String)
      */
-    public List<JsonObject> executeStatement(String statement) {
-        return this.cluster.query(statement).rowsAsObject();
+    public CouchbaseQueryResult executeStatement(String statement) {
+        List<JsonObject> statementResult = this.cluster.query(statement).rowsAsObject();
+        return CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
     }
 
     /**
@@ -254,10 +286,11 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String, QueryOptions)
      */
-    public List<JsonObject> executeParameterizedStatement(String statement, List<Object> parameters) {
+    public CouchbaseQueryResult executeParameterizedStatement(String statement, List<Object> parameters) {
         JsonArray positionalParams = JsonArray.from(parameters);
         final QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(positionalParams));
-        return queryResult.rowsAsObject();
+        List<JsonObject> statementResult = queryResult.rowsAsObject();
+        return CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
     }
 
     /**
@@ -270,13 +303,14 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String, QueryOptions)
      */
-    public List<JsonObject> executeParameterizedStatement(String statement, List<String> parameterNames,
+    public CouchbaseQueryResult executeParameterizedStatement(String statement, List<String> parameterNames,
                                                           List<Object> parameterValues) {
         JsonObject namedParams = JsonObject.create();
         for (int param = 0; param < parameterNames.size(); param++) {
             namedParams.put(parameterNames.get(param), parameterValues.get(param));
         }
         QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(namedParams));
-        return queryResult.rowsAsObject();
+        List<JsonObject> statementResult = queryResult.rowsAsObject();
+        return CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
     }
 }
