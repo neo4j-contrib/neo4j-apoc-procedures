@@ -14,6 +14,7 @@ test {
 }
 
 dependencies {
+    apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
     def withoutJacksons = {
@@ -26,13 +27,15 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-     compileOnly project(":extended")
+    implementation project(':common')
+    compileOnly project(":common")
+    compileOnly project(":extended")
     
-//    testImplementation project(':core')
-//    testImplementation project(':common')
+    testImplementation project(':core')
+    testImplementation project(':test-utils')
+    testImplementation project(':common')
     testImplementation project(':extended')
-//    testImplementation project(':test-utils')
-//    testImplementation project(':core').sourceSets.test.output
+    testImplementation project(':core').sourceSets.test.output
     testImplementation project(':extended').sourceSets.test.output
 
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
@@ -48,6 +51,11 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 //plugins {
