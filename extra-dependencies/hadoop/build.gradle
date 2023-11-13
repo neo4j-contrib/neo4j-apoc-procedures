@@ -34,6 +34,7 @@ def commonExclusions = {
     exclude group: 'com.sun.jersey'
     exclude group: 'org.slf4j'
     exclude group: 'org.apache.commons', module: 'commons-compress'
+    exclude group: 'com.google.guava', module: 'guava'
 }
 
 dependencies {

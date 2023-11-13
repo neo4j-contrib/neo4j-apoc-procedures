@@ -93,6 +93,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'org.apache.hive', module: 'hive-service'
+        exclude group: 'com.google.guava', module: 'guava'
     }
     
     def withoutJacksons = {
@@ -134,8 +135,8 @@ dependencies {
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
-    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.25.0'
-    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.25.0', {
+    compileOnly group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.29.1'
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.29.1', {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
