@@ -40,8 +40,6 @@ import static org.junit.Assert.assertTrue;
 
 public class DataVirtualizationCatalogTest {
 
-    public static final Label PERSON = Label.label("Person");
-
     public static JdbcDatabaseContainer mysql;
 
     @Rule
@@ -62,11 +60,6 @@ public class DataVirtualizationCatalogTest {
     @AfterClass
     public static void tearDownContainer() {
         mysql.stop();
-    }
-
-    @AfterAll
-    public void tearDownDb() {
-        db.shutdown();
     }
 
     @Test
