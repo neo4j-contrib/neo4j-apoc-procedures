@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -298,15 +299,13 @@ public class UUIDTest {
         db.executeTransactionally("CALL apoc.uuid.install('Test', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
 
         // when
-        TestUtil.testResult(db, "CALL apoc.uuid.removeAll()",
-                (result) -> {
+
+        TestUtil.testResult(db, "CALL apoc.uuid.removeAll()", (result) -> {
                     // then
-                    Map<String, Object> row = result.next();
-                    assertResult(row, "Test", false,
-                            Util.map("uuidProperty", "foo", "addToSetLabels", false));
-                    row = result.next();
-                    assertResult(row, "Bar", false,
-                            Util.map("uuidProperty", "uuid", "addToSetLabels", false));
+                    assertThat(result.stream()).containsExactlyInAnyOrder(
+                            Map.of("label", "Test", "installed", false, "properties", Map.of("uuidProperty", "foo", "addToSetLabels", false)),
+                            Map.of("label", "Bar", "installed", false, "properties", Map.of("uuidProperty", "uuid", "addToSetLabels", false))
+                    );
                 });
     }
 

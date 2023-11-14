@@ -312,6 +312,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }
+        refresh();
         return retval;
     }
 
