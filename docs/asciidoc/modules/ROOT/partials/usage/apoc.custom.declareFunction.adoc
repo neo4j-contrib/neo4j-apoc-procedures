@@ -25,20 +25,78 @@ Or you can also write in this way:
 CALL apoc.custom.declareFunction('answerFunMap() :: MAP', 'RETURN 42 as answer')
 ----
 
-In this case the result is wrapped in a stream of maps called `row`. Therefore, you can do:
+In this case the result is wrapped in a map of key `answer` and value `42`. 
+Therefore, you can do:
 
 [source,cypher]
 ----
-WITH custom.answerFunMap() YIELD row
-RETURN row.answer
+RETURN custom.answerFunMap() AS row
 ----
 
 .Results
 [opts="header"]
 |===
-| answer
-| 42
+| row
+| { "answer": 42 }
 |===
+
+[[map-vs-map-result]]
+In case you return a map, you can choose to wrap the result in another map with key the name of the result, and value the value obtained.
+For example, declaring this function:
+
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('answerFunMap(value:: INT) :: MAP', 'RETURN {a: $value}')
+----
+
+you can execute:
+
+[source,cypher]
+----
+return custom.answerFunMap(2) as row
+----
+
+.Results
+[opts="header"]
+|===
+| row
+a|
+[source,json]
+----
+{
+    "{a: $value}": 
+    {"a": 2}
+  }
+----
+|===
+
+Note that the `{"a": 2}` is wrapped by a map with key `{a: $value}"`, 
+that is the column name which would be returned from the `RETURN {a: $value}`
+
+Instead, using `MAPRESULT`:
+[source,cypher]
+----
+CALL apoc.custom.declareFunction('answerFunMapResult(value:: INT) :: MAPRESULT', 'RETURN $value')
+----
+
+you can execute:
+[source,cypher]
+----
+RETURN custom.answerFunMapResult(2) AS row
+----
+
+.Results
+[opts="header"]
+|===
+| row
+a|
+[source,json]
+----
+{"a": 2}
+----
+|===
+
+
 
 We can create the function `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
 
