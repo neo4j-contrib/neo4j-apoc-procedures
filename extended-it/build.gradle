@@ -40,6 +40,8 @@ dependencies {
 //    compileOnly project(":extended")
 //    testImplementation project(":extended")
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
+    testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+    
 
     testImplementation project(':core')
     testImplementation project(':test-utils')
