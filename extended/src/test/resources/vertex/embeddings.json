@@ -1,0 +1,16 @@
+{
+  "instances": [
+    { "content": "TEXT"}
+  ],
+  "predictions": [
+    {
+      "embeddings": {
+        "statistics": {
+          "truncated": false,
+          "token_count": 6
+        },
+        "values": [0.0023064255, -0.009327292, -0.0028842222]
+      }
+    }
+  ]
+}
