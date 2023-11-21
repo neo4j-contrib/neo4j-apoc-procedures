@@ -26,6 +26,17 @@ The `{config}` parameter is a map
 | <type> | Default `String`, The type of the conversion requested (`STRING`, `INTEGER`, `FLOAT`, `BOOLEAN`, `NULL`, `LIST`, `DATE`, `DATE_TIME`, `LOCAL_DATE`, `LOCAL_DATE_TIME`, `LOCAL_TIME`, `TIME`)
 | dateFormat: <format> | Convert the Date into String (only String is allowed)
 | dateParse: [<formats>] | Convert the String into Date (Array of strings are allowed)
+| header | indicates if file has a header (default: true)
+| skipNulls | To map header value as "Empty__<NumberRow>" string in case of column header without value,
+    and to map empty row (placed before the end of the Excel file content) as a Map with null values.
+    The default is false, that is: in case of header it will fail with error `java.lang.IllegalStateException: Header at position N doesn't have a value`,
+    while in case of empty row it will stop the iteration
+| firstCellNum | to force the initial cell row number in the case of headers with one or more empty initial values.
+    For example: `emptyCell \| emptyCell \| valueFoo \| valueBar \| valueBaz`.
+    The default is https://poi.apache.org/apidocs/dev/org/apache/poi/ss/usermodel/Row.html#getFirstCellNum--[Row.getFirstCellNum()]
+| lastCellNum | to force the initial cell row number in the case of headers with one or more empty final values.
+    For example: `valueFoo \| valueBar \| valueBaz \| emptyCell \| emptyCell`.
+    The default is https://poi.apache.org/apidocs/dev/org/apache/poi/ss/usermodel/Row.html#getLastCellNum--[Row.getLastCellNum()]
 |===
 
 [NOTE]

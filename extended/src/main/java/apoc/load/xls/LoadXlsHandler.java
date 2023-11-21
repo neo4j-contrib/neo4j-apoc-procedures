@@ -24,12 +24,13 @@ public class LoadXlsHandler {
         private final String url;
         private final long limit;
         private final boolean ignore;
+        private final boolean skipNulls;
         private final Map<String, LoadXls.Mapping> mapping;
         private final List<Object> nullValues;
         private final long skip;
         long lineNo;
 
-        public XLSSpliterator(Sheet sheet, LoadXls.Selection selection, String[] header, String url, long skip, long limit, boolean ignore, Map<String, LoadXls.Mapping> mapping, List<Object> nullValues) throws IOException {
+        public XLSSpliterator(Sheet sheet, LoadXls.Selection selection, String[] header, String url, long skip, long limit, boolean ignore, Map<String, LoadXls.Mapping> mapping, List<Object> nullValues, boolean skipNulls) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.sheet = sheet;
             this.selection = selection;
@@ -42,17 +43,28 @@ public class LoadXlsHandler {
             this.skip = skip + selection.getOrDefault(selection.top, sheet.getFirstRowNum()) + headerOffset;
             this.limit = limit == Long.MAX_VALUE ? selection.getOrDefault(selection.bottom, sheet.getLastRowNum()) : skip + limit;
             lineNo = this.skip;
+            this.skipNulls = skipNulls;
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super LoadXls.XLSResult> action) {
             try {
                 Row row = sheet.getRow((int)lineNo);
-                if (row != null && lineNo <= limit) {
-                    Object[] list = extract(row, selection);
-                    action.accept(new LoadXls.XLSResult(header, list, lineNo - skip, ignore,mapping, nullValues));
-                    lineNo++;
-                    return true;
+                if (lineNo <= limit) {
+
+                    Object[] list;
+                    if (row != null) {
+                        list = extract(row, selection);
+                        action.accept(new LoadXls.XLSResult(header, list, lineNo-skip, ignore,mapping, nullValues));
+                        lineNo++;
+                        return true;
+                    }
+                    if (skipNulls && lineNo <= sheet.getLastRowNum()) {
+                        // list with null values (i.e.: empty xls row)
+                        lineNo++;
+                        return tryAdvance(action);
+                    }
+                    return false;
                 }
                 return false;
             } catch (Exception e) {
@@ -61,7 +73,7 @@ public class LoadXlsHandler {
         }
     }
 
-    public static XLSSpliterator getXlsSpliterator(String url, CountingInputStream stream, LoadXls.Selection selection, long skip, boolean hasHeader, long limit, List<String> ignore, List<Object> nullValues, Map<String, LoadXls.Mapping> mappings) throws IOException {
+    public static XLSSpliterator getXlsSpliterator(String url, CountingInputStream stream, LoadXls.Selection selection, long skip, boolean hasHeader, long limit, List<String> ignore, List<Object> nullValues, Map<String, LoadXls.Mapping> mappings, boolean skipNulls) throws IOException {
         Workbook workbook = WorkbookFactory.create(stream);
         Sheet sheet = workbook.getSheet(selection.sheet);
         if (sheet==null) throw new IllegalStateException("Sheet " + selection.sheet + " not found");
@@ -69,23 +81,35 @@ public class LoadXlsHandler {
         Row firstRow = sheet.getRow(selection.top);
         selection.updateHorizontal(firstRow.getFirstCellNum(), firstRow.getLastCellNum());
 
-        String[] header = getHeader(hasHeader, firstRow, selection, ignore, mappings);
+        String[] header = getHeader(hasHeader, skipNulls, firstRow, selection, ignore, mappings);
         boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch(m -> m.ignore);
-        XLSSpliterator xlsSpliterator = new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore, mappings, nullValues);
+        XLSSpliterator xlsSpliterator = new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore, mappings, nullValues, skipNulls);
         return xlsSpliterator;
     }
 
-    private static String[] getHeader(boolean hasHeader, Row header, LoadXls.Selection selection, List<String> ignore, Map<String, LoadXls.Mapping> mapping) throws IOException {
+    private static String[] getHeader(boolean hasHeader, boolean skipNulls, Row header, LoadXls.Selection selection, List<String> ignore, Map<String, LoadXls.Mapping> mapping) throws IOException {
         if (!hasHeader) return null;
 
         String[] result = new String[selection.right - selection.left];
         for (int i = selection.left; i < selection.right; i++) {
             Cell cell = header.getCell(i);
-            if (cell == null) throw new IllegalStateException("Header at position "+i+" doesn't have a value");
-            String value = cell.getStringCellValue();
+            String value = getHeaderValue(skipNulls, i, cell);
             result[i- selection.left] = ignore.contains(value) || mapping.getOrDefault(value, LoadXls.Mapping.EMPTY).ignore ? null : value;
         }
         return result;
+    }
+
+    private static String getHeaderValue(boolean skipNulls, int i, Cell cell) {
+        boolean cellBlank = cell == null || cell.getStringCellValue().isBlank();
+        if (cellBlank && skipNulls) {
+            return "Empty__" + i;
+        }
+
+        if (cell != null) {
+            return cell.getStringCellValue();
+        }
+
+        throw new IllegalStateException("Header at position " + i + " doesn't have a value");
     }
 
     private static Object[] extract(Row row, LoadXls.Selection selection) {

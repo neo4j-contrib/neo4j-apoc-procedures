@@ -403,4 +403,117 @@ RETURN m.col_1,m.col_2,m.col_3
                 });
     }
 
+    @Test
+    public void testLoadXlsEmptyColumn() {
+        List<Long> firstRow = asList(1L, 2L, 3L, 4L, 5L);
+        List<Long> secondRow = asList(6L, 7L, 8L, 9L, 10L);
+
+        String url = TestUtil.getUrlFileName("issue2403Test.xlsx").getPath();
+        var config = Map.of("skipNulls", true, "firstCellNum", 0, "lastCellNum", 5);
+        Map<String, Object> params = map("url", url, "config", config);
+        
+        testResult(db, "CALL apoc.load.xls($url,'test1', $config)",
+                params,
+                (r) -> {
+                    Map<String, Object> firstMap = Map.of("Empty__0", 1L,
+                            "b", 2L,
+                            "c", 3L,
+                            "d", 4L,
+                            "e", 5L);
+                    Map<String, Object> secondMap = Map.of("Empty__0", 6L,
+                            "b", 7L,
+                            "c", 8L,
+                            "d", 9L,
+                            "e", 10L);
+                    assertIssue2403Excel(r, firstMap, secondMap);
+                });
+
+        testResult(db, "CALL apoc.load.xls($url,'test2', $config)",
+                params,
+                (r) -> {
+                    Map<String, Object> firstMap = Map.of("Empty__0", 1L, "Empty__1", 2L,
+                            "c", 3L,
+                            "d", 4L,
+                            "e", 5L);
+                    Map<String, Object> secondMap = Map.of("Empty__0", 6L, "Empty__1", 7L,
+                            "c", 8L,
+                            "d", 9L,
+                            "e", 10L);
+                    assertIssue2403Excel(r, firstMap, secondMap);
+                });
+
+        testResult(db, "CALL apoc.load.xls($url,'test3', $config)",
+                params,
+                (r) -> {
+                    Map<String, Object> firstMap = Map.of("a", 1L, "Empty__1", 2L,
+                            "c", 3L,
+                            "d", 4L,
+                            "e", 5L);
+                    Map<String, Object> secondMap = Map.of("a", 6L, "Empty__1", 7L,
+                            "c", 8L,
+                            "d", 9L,
+                            "e", 10L);
+                    assertIssue2403Excel(r, firstMap, secondMap);
+                });
+
+        testResult(db, "CALL apoc.load.xls($url,'test4', $config)",
+                params,
+                (r) -> {
+                    Map<String, Object> firstMap = Map.of("a", 1L, "Empty__1", 2L,
+                            "c", 3L,
+                            "d", 4L,
+                            "e", 5L);
+                    Map<String, Object> secondMap = Map.of("a", 6L, "Empty__1", 7L,
+                            "c", 8L,
+                            "d", 9L,
+                            "e", 10L);
+                    assertIssue2403Excel(r, firstMap, secondMap);
+                });
+
+        testResult(db, "CALL apoc.load.xls($url,'test5', $config)",
+                params,
+                (r) -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("a", 1L, "Empty__1", 2L,
+                            "c", 3L,
+                            "d", 4L,
+                            "e", 5L), row.get("map"));
+                    assertEquals(firstRow, row.get("list"));
+
+                    row = r.next();
+                    Map<String, Object> nullMap = map("a", null, "Empty__1", null, "c", null, "d", null, "e", null);
+                    List<Object> nullList = asList(null, null, null, null, null);
+                    assertEquals(nullMap, row.get("map"));
+                    assertEquals(nullList, row.get("list"));
+
+                    row = r.next();
+                    assertEquals(Map.of("a", 6L, "Empty__1", 7L,
+                            "c", 8L,
+                            "d", 9L,
+                            "e", 10L), row.get("map"));
+                    assertEquals(secondRow, row.get("list"));
+
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    private void assertIssue2403Excel(Result r,
+                                      Map<String, Object> firstMap,
+                                      Map<String, Object> secondMap) {
+        Map<String, Object> row = r.next();
+        
+        assertEquals(firstMap, row.get("map"));
+        
+        List<Long> firstRow = asList(1L, 2L, 3L, 4L, 5L);
+        assertEquals(firstRow, row.get("list"));
+        row = r.next();
+        
+        assertEquals(secondMap, row.get("map"));
+        
+        List<Long> secondRow = asList(6L, 7L, 8L, 9L, 10L);
+        assertEquals(secondRow, row.get("list"));
+
+        assertFalse(r.hasNext());
+    }
+
 }
