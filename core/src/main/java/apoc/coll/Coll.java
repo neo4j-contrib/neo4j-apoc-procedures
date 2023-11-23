@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static apoc.convert.Convert.convertArrayToList;
 import static apoc.util.Util.containsValueEquals;
 import static apoc.util.Util.toAnyValues;
 import static java.util.Arrays.asList;
@@ -201,6 +202,11 @@ public class Coll {
         static final int MAX_ELEMENTS = 10;
         void add(Object o) {
             if (elements==MAX_ELEMENTS) return;
+            // Arrays are considered lists in Cypher and
+            // should be treated as such
+            if (o != null && o.getClass().isArray()) {
+                o = convertArrayToList(o);
+            }
             setObject(o, (int) elements);
             if (o instanceof String) {
                 setString((String)o, (int) elements);
@@ -211,9 +217,6 @@ public class Coll {
             }
             if (o instanceof Boolean) {
                 setBoolean((Boolean)o, (int) elements);
-            }
-            if (o instanceof Map) {
-                setMap((Map)o, (int)elements);
             }
             if (o instanceof Map) {
                 setMap((Map)o, (int)elements);
