@@ -495,6 +495,43 @@ public class CollTest {
     }
 
     @Test
+    public void testListsOnNodes() {
+        testCall(
+                db,
+                "CREATE (n:Test { a: 4, something: [1,2,3] }) " +
+                        "WITH [{something: n.something}] + {something: [1,2,3]} AS collection " +
+                        "WITH [value in collection | value.something] AS values CALL apoc.coll.elements(values) " +
+                        "YIELD elements, _1, _1l, _2,  _2l RETURN *",
+                (row) -> {
+                    List<Long> list = asList(1L, 2L, 3L);
+                    assertEquals(2L, row.get("elements"));
+                    assertEquals(list, row.get("_1"));
+                    assertEquals(list, row.get("_1l"));
+                    assertEquals(list, row.get("_2"));
+                    assertEquals(list, row.get("_2l"));
+                });
+    }
+
+    @Test
+    public void testListsOnRelationships() {
+        testCall(
+                db,
+                "CREATE ()-[r:TEST { a: 4, something: [1,2,3] }]->() " +
+                        "WITH [{something : r.something}] + {something: [1,2,3]} AS collection " +
+                        "WITH [value in collection | value.something] AS values CALL apoc.coll.elements(values) " +
+                        "YIELD elements, _1, _1l, _2,  _2l RETURN *",
+                (row) -> {
+                    List<Long> list = asList(1L, 2L, 3L);
+                    assertEquals(2L, row.get("elements"));
+                    assertEquals(list, row.get("_1"));
+                    assertEquals(list, row.get("_1l"));
+                    assertEquals(list, row.get("_2"));
+                    assertEquals(list, row.get("_2l"));
+                });
+    }
+
+
+    @Test
     public void testSortMaps() throws Exception {
         testCall(db,
                 "RETURN apoc.coll.sortMaps([{name:'foo'},{name:'bar'}], 'name') as maps",
