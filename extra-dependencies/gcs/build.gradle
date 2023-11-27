@@ -18,5 +18,7 @@ jar {
 }
 
 dependencies {
-    implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.3'
+    implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.22.3', {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
 }

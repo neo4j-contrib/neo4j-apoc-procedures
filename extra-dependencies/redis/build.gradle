@@ -19,5 +19,6 @@ jar {
 dependencies {
     implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE', {
         exclude group: 'io.netty'
+        exclude group: 'io.projectreactor', module: 'reactor-core'
     }
 }

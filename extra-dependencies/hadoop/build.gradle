@@ -33,6 +33,19 @@ def commonExclusions = {
     exclude group: 'org.eclipse.jetty'
     exclude group: 'org.eclipse.jetty.aggregate'
     exclude group: 'org.slf4j', module: 'slf4j-api'
+    
+    exclude group: 'org.apache.commons', module: 'commons-beanutils'
+    exclude group: 'org.apache.commons', module: 'commons-collections'
+    exclude group: 'org.apache.commons', module: 'commons-compress'
+    exclude group: 'org.apache.commons', module: 'commons-configuration2'
+    exclude group: 'org.apache.commons', module: 'commons-io'
+    exclude group: 'org.apache.commons', module: 'commons-lang3'
+    exclude group: 'org.apache.commons', module: 'commons-logging'
+    exclude group: 'org.apache.commons', module: 'commons-text'
+
+    exclude group: 'org.ow2.asm', module: 'asm'
+    
+    exclude group: 'com.google.guava', module: 'guava'
 }
 
 dependencies {

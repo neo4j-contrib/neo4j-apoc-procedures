@@ -16,12 +16,22 @@ jar {
     }
 }
 
-dependencies {
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0' , {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
-    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
+def commonExclusions = {
+    exclude group: 'com.google.guava', module: 'guava'
 
+    exclude group: 'org.apache.commons', module: 'commons-beanutils'
+    exclude group: 'org.apache.commons', module: 'commons-collections'
+    exclude group: 'org.apache.commons', module: 'commons-compress'
+    exclude group: 'org.apache.commons', module: 'commons-configuration2'
+    exclude group: 'org.apache.commons', module: 'commons-io'
+    exclude group: 'org.apache.commons', module: 'commons-lang3'
+    exclude group: 'org.apache.commons', module: 'commons-logging'
+    exclude group: 'org.apache.commons', module: 'commons-text'
+
+    exclude group: 'io.projectreactor'
+}
+
+dependencies {
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0' , commonExclusions
+    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', commonExclusions
 }
