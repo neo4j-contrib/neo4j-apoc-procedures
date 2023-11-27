@@ -20,8 +20,6 @@ allprojects {
 }
 
 apply plugin: 'java-library'
-if (System.env.CI != null)
-    apply from: 'teamcity-repository.gradle'
 
 repositories {
 
@@ -66,7 +64,7 @@ subprojects {
         archiveClassifier = 'javadoc'
     }
     test {
-        //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
+        include '**/ParquetS3Test.class', '**/ParquetTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
