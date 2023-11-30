@@ -39,6 +39,10 @@ public class LoadHtml {
     public static final String KEY_ERROR = "errorList";
     public static final String INVALID_CONFIG_ERR = "Invalid config: ";
     public static final String UNSUPPORTED_CHARSET_ERR = "Unsupported charset: ";
+    public static final String SELENIUM_MISSING_DEPS_ERROR = """
+            Cannot find the Selenium client jar.
+            Please put the apoc-selenium-dependencies-5.x.x-all.jar into plugin folder.
+            See the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.load/apoc.load.html/#selenium-dependencies""";
 
     @Context
     public GraphDatabaseService db;
@@ -181,8 +185,7 @@ public class LoadHtml {
         try {
             return action.get();
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException("Cannot find jars into the plugins folder.\n" +
-                    "See the documentation: https://neo4j.com/labs/apoc/4.1/overview/apoc.load/apoc.load.html/#selenium-depencencies");
+            throw new MissingDependencyException(SELENIUM_MISSING_DEPS_ERROR);
         }
     }
 

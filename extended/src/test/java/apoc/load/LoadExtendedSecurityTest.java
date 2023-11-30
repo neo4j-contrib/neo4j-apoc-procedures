@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.ApocConfig;
+import apoc.load.xls.LoadXls;
 import apoc.util.FileUtils;
 import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;

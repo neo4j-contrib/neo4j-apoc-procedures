@@ -12,6 +12,11 @@ import java.util.Map;
 import static io.lettuce.core.RedisURI.DEFAULT_TIMEOUT;
 
 public class RedisConfig {
+    public static final String REDIS_MISSING_DEPS_ERROR = """
+            Cannot find the Redis client jar.
+            Please put the apoc-redis-dependencies-5.x.x-all.jar into plugin folder.
+            See the documentation: https://neo4j.com/labs/apoc/5/database-integration/redis/#redis-dependencies""";
+
     public enum Codec { 
         STRING(StringRedisConnection.class), BYTE_ARRAY(ByteArrayRedisConnection.class);
 
@@ -27,9 +32,7 @@ public class RedisConfig {
                 Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
-                throw new MissingDependencyException("Cannot find the Redis client jar. \n" +
-                        "Please put the lettuce-core-6.1.1.RELEASE.jar into plugin folder. \n" +
-                        "See the documentation: https://neo4j.com/labs/apoc/4.1/database-integration/redis/");
+                throw new MissingDependencyException(REDIS_MISSING_DEPS_ERROR);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
