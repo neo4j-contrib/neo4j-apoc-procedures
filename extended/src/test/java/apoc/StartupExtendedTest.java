@@ -5,14 +5,12 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -92,10 +90,6 @@ public class StartupExtendedTest {
             try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)) {
                 // add extra-deps before starting it
                 ExtendedTestContainerUtil.addExtraDependencies();
-
-                Collection<File> files = FileUtils.listFiles(TestContainerUtil.pluginsFolder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
-                System.out.println("files = " + files);
-
                 neo4jContainer.start();
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
