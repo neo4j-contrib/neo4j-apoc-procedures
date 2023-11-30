@@ -4,6 +4,7 @@ import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -27,6 +28,9 @@ import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 public class OpenAI {
     @Context
     public ApocConfig apocConfig;
+
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
 
@@ -59,7 +63,7 @@ public class OpenAI {
         String payload = new ObjectMapper().writeValueAsString(config);
 
         var url = new URL(new URL(endpoint), path).toString();
-        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of());
+        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
     }
 
     @Procedure("apoc.ml.openai.embedding")
