@@ -17,6 +17,9 @@ ext {
     commonExclusions = {
         // guava
         exclude group: 'com.google.guava', module: 'guava'
+        
+        // gson
+        exclude group: 'com.google.code.gson', module: 'gson'
 
         // apache commons
         exclude group: 'org.apache.commons', module: 'commons-beanutils'
