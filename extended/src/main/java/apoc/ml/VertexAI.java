@@ -5,6 +5,8 @@ import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -20,6 +22,8 @@ import java.util.stream.Stream;
 
 @Extended
 public class VertexAI {
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     // "https://${region}-aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/google/models/${model}:predict"
     private static final String BASE_URL = "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:predict";
@@ -38,7 +42,7 @@ public class VertexAI {
         }
     }
 
-    private static Stream<Object> executeRequest(String accessToken, String project, Map<String, Object> configuration, String defaultModel, Object inputs, String jsonPath, Collection<String> retainConfigKeys) throws JsonProcessingException, MalformedURLException {
+    private static Stream<Object> executeRequest(String accessToken, String project, Map<String, Object> configuration, String defaultModel, Object inputs, String jsonPath, Collection<String> retainConfigKeys, URLAccessChecker urlAccessChecker) throws JsonProcessingException, MalformedURLException {
         if (accessToken == null || accessToken.isBlank())
             throw new IllegalArgumentException("Access Token must not be empty");
         if (project == null || project.isBlank())
@@ -58,7 +62,7 @@ public class VertexAI {
         Map<String, Object> data = Map.of("instances", inputs, "parameters", getParameters(configuration, retainConfigKeys));
         String payload = new ObjectMapper().writeValueAsString(data);
 
-        return JsonUtil.loadJson(endpoint, headers, payload, jsonPath, true, List.of());
+        return JsonUtil.loadJson(endpoint, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
     }
 
     @Procedure("apoc.ml.vertexai.embedding")
@@ -89,7 +93,7 @@ public class VertexAI {
 }
     */
         Object inputs = texts.stream().map(text -> Map.of("content", text)).toList();
-        Stream<Object> resultStream = executeRequest(accessToken, project, configuration, "textembedding-gecko", inputs, "$.predictions", List.of());
+        Stream<Object> resultStream = executeRequest(accessToken, project, configuration, "textembedding-gecko", inputs, "$.predictions", List.of(), urlAccessChecker);
         AtomicInteger ai = new AtomicInteger();
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
@@ -149,7 +153,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
  */
         Object input = List.of(Map.of("prompt",prompt));
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
-        var resultStream = executeRequest(accessToken, project, configuration, "text-bison", input, "$.predictions", parameterKeys);
+        var resultStream = executeRequest(accessToken, project, configuration, "text-bison", input, "$.predictions", parameterKeys, urlAccessChecker);
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(v -> (Map<String, Object>) v).map(MapResult::new);
@@ -188,7 +192,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
                                             ) throws Exception {
         Object inputs = List.of(Map.of("context",context, "examples",examples, "messages", messages));
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
-        return executeRequest(accessToken, project, configuration, "chat-bison", inputs, "$.predictions", parameterKeys)
+        return executeRequest(accessToken, project, configuration, "chat-bison", inputs, "$.predictions", parameterKeys, urlAccessChecker)
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(v -> (Map<String, Object>) v).map(MapResult::new);
         // POST https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/chat-bison:predict
