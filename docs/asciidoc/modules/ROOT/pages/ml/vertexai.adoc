@@ -9,12 +9,15 @@ NOTE: You need to create a Google Cloud project in your account an enable the Ve
 This procedure `apoc.ml.vertexai.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 768 element vector.
 It uses the embedding endpoint which is https://cloud.google.com/vertex-ai/docs/generative-ai/embeddings/get-text-embeddings[documented here^].
 
+API Quotas are per project/per region and you can over-ride the default us-central1 in the configuration map e.g. {region:'us-east4'}.
+GCP Regions can be found here: https://cloud.google.com/about/locations 
+
 Additional configuration is passed to the API, the default model used is `textembedding-gecko`.
 
 .Generate Embeddings Call
 [source,cypher]
 ----
-CALL apoc.ml.vertexai.embedding(['Some Text'], $accessToken, $project, {}) yield index, text, embedding;
+CALL apoc.ml.vertexai.embedding(['Some Text'], $accessToken, $project, {region:'<region>'}) yield index, text, embedding;
 ----
 
 .Generate Embeddings Response
