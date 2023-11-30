@@ -24,7 +24,6 @@ import apoc.meta.Meta;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import apoc.util.MissingDependencyException;
 import apoc.util.UriResolver;
 import apoc.util.Util;
 import java.net.URISyntaxException;
@@ -69,15 +68,9 @@ public class BoltConnection {
     }
 
     public static BoltConnection from(Map<String, Object> config, String url) throws URISyntaxException {
-        try {
-            final UriResolver resolver = new UriResolver(url, "bolt");
-            resolver.initialize();
-            return new BoltConnection(new BoltConfig(config), resolver);
-        } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(
-                    "Cannot find the needed jar into the plugins folder in order to use . \n"
-                            + "Please see the documentation: https://neo4j.com/labs/apoc/4.4/database-integration/bolt-neo4j/#_install_dependencies");
-        }
+        final UriResolver resolver = new UriResolver(url, "bolt");
+        resolver.initialize();
+        return new BoltConnection(new BoltConfig(config), resolver);
     }
 
     // methods from Bolt.java

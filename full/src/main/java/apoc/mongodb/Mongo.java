@@ -18,9 +18,9 @@
  */
 package apoc.mongodb;
 
-import static apoc.mongodb.MongoDBUtils.Coll;
 import static apoc.mongodb.MongoDBUtils.getDocument;
-import static apoc.mongodb.MongoDBUtils.getMongoColl;
+import static apoc.mongodb.MongoDBUtils.getDocuments;
+import static apoc.mongodb.MongoDBUtils.getMongoConfig;
 
 import apoc.Extended;
 import apoc.result.LongResult;
@@ -32,7 +32,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.bson.Document;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -52,15 +51,11 @@ public class Mongo {
             @Name("uri") String uri,
             @Name("pipeline") List<Map<String, Object>> pipeline,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
         return executeMongoQuery(
                 uri,
                 conf,
-                coll -> {
-                    final List<Document> pipelineDocs =
-                            pipeline.stream().map(MongoDBUtils::getDocument).collect(Collectors.toList());
-                    return coll.aggregate(pipelineDocs).map(MapResult::new);
-                },
+                coll -> coll.aggregate(getDocuments(pipeline)).map(MapResult::new),
                 getExceptionConsumer("apoc.mongo.aggregate", uri, config));
     }
 
@@ -104,8 +99,8 @@ public class Mongo {
             @Name("uri") String uri,
             @Name("documents") List<Object> documents,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
-        try (Coll coll = getMongoColl(() -> getColl(uri, conf))) {
+        MongoDbConfig conf = getMongoConfig(config);
+        try (MongoDbCollInterface coll = getColl(uri, conf)) {
             coll.insertDocs(documents.stream().map(MongoDBUtils::getDocument).collect(Collectors.toList()));
         } catch (Exception e) {
             mongoErrorLog("apoc.mongo.insert", uri, config, e, "documents = " + documents + ",");
@@ -121,7 +116,7 @@ public class Mongo {
             @Name("query") Object query,
             @Name("update") Object update,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
         return executeMongoQuery(
                 uri,
                 conf,
@@ -137,7 +132,7 @@ public class Mongo {
             @Name("uri") String uri,
             @Name("query") Object query,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
         return executeMongoQuery(
                 uri,
                 conf,
@@ -165,22 +160,22 @@ public class Mongo {
     private <T> Stream<T> executeMongoQuery(
             String uri,
             MongoDbConfig conf,
-            Function<MongoDBUtils.Coll, Stream<T>> execute,
+            Function<MongoDbCollInterface, Stream<T>> execute,
             Consumer<Exception> onError) {
-        Coll coll = null;
+        MongoDbCollInterface coll = null;
         try {
-            coll = getMongoColl(() -> getColl(uri, conf));
+            coll = getColl(uri, conf);
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {
                 coll.safeClose();
             }
             onError.accept(e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error during connection", e);
         }
     }
 
-    private MongoDBUtils.Coll getColl(@Name("url") String url, MongoDbConfig conf) {
-        return Coll.Factory.create(url, conf);
+    private MongoDbCollInterface getColl(@Name("url") String url, MongoDbConfig conf) {
+        return MongoDbCollInterface.Factory.create(url, conf);
     }
 }

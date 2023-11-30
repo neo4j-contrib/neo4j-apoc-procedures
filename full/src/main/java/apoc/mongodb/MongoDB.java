@@ -18,8 +18,7 @@
  */
 package apoc.mongodb;
 
-import static apoc.mongodb.MongoDBUtils.Coll;
-import static apoc.mongodb.MongoDBUtils.getMongoColl;
+import static apoc.mongodb.MongoDBUtils.getMongoConfig;
 
 import apoc.Extended;
 import apoc.result.LongResult;
@@ -124,7 +123,7 @@ public class MongoDB {
                         e));
     }
 
-    private Coll getColl(
+    private MongoDbCollInterface getColl(
             @Name("host") String hostOrKey,
             @Name("db") String db,
             @Name("collection") String collection,
@@ -132,7 +131,8 @@ public class MongoDB {
             boolean extractReferences,
             boolean objectIdAsMap) {
         String url = getMongoDBUrl(hostOrKey);
-        return Coll.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
+        return MongoDbCollInterface.Factory.create(
+                url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
     }
 
     @Deprecated
@@ -206,15 +206,21 @@ public class MongoDB {
             @Name("db") String db,
             @Name("collection") String collection,
             @Name("documents") List<Map<String, Object>> documents) {
-        try (Coll coll = getMongoColl(() -> getColl(hostOrKey, db, collection, false, false, false))) {
-            coll.insert(documents);
-        } catch (Exception e) {
-            log.error(
-                    "apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = ["
-                            + collection + "], documents = [" + documents + "]",
-                    e);
-            throw new RuntimeException(e);
-        }
+        executeMongoQuery(
+                hostOrKey,
+                db,
+                collection,
+                false,
+                false,
+                false,
+                coll -> {
+                    coll.insert(documents);
+                    return null;
+                },
+                e -> log.error(
+                        "apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = ["
+                                + collection + "], documents = [" + documents + "]",
+                        e));
     }
 
     @Deprecated
@@ -274,7 +280,7 @@ public class MongoDB {
             @Name("objectIdValue") String objectIdValue,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
 
         return executeMongoQuery(
                 hostOrKey,
@@ -304,19 +310,18 @@ public class MongoDB {
             boolean compatibleValues,
             boolean extractReferences,
             boolean objectIdAsMap,
-            Function<Coll, Stream<T>> execute,
+            Function<MongoDbCollInterface, Stream<T>> execute,
             Consumer<Exception> onError) {
-        Coll coll = null;
+        MongoDbCollInterface coll = null;
         try {
-            coll = getMongoColl(
-                    () -> getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap));
+            coll = getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {
                 coll.safeClose();
             }
             onError.accept(e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error during connection", e);
         }
     }
 }

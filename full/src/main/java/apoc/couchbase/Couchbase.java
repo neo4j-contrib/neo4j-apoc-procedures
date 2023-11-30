@@ -22,16 +22,8 @@ import apoc.Extended;
 import apoc.couchbase.document.CouchbaseByteArrayDocument;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
-import apoc.couchbase.document.CouchbaseUtils;
 import apoc.result.BooleanResult;
 import apoc.util.MissingDependencyException;
-import com.couchbase.client.java.BinaryCollection;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.Collection;
-import com.couchbase.client.java.json.JsonObject;
-import com.couchbase.client.java.kv.GetResult;
-import com.couchbase.client.java.kv.MutationResult;
-import com.couchbase.client.java.query.QueryOptions;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -96,8 +88,18 @@ import org.neo4j.procedure.Procedure;
 @Extended
 public class Couchbase {
 
+    public static final String COUCHBASE_MISSING_DEPS_ERROR =
+            "Cannot find the jar into the plugins folder. \n" + "Please put these jar in the plugins folder : \n\n"
+                    + "java-client-x.y.z.jar\n"
+                    + "\n"
+                    + "core-io-x.y.z.jar\n"
+                    + "\n"
+                    + "rxjava-x.y.z.jar\n"
+                    + "\n"
+                    + "See the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_interacting_with_couchbase";
+
     /**
-     * Retrieves a {@link GetResult} by its unique ID.
+     * Retrieves a document by its unique ID.
      * <p/>
      * Example:
      * <code>call apoc.couchbase.get('localhost', 'default', 'artist:vincent_van_gogh') yield id, expiry, cas, mutationToken, content</code>
@@ -107,7 +109,6 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @return the found {@link CouchbaseJsonDocument} or null if not found
-     * @see Collection#get(String)
      */
     @Procedure
     @Description(
@@ -118,8 +119,7 @@ public class Couchbase {
             @Name("documentId") String documentId,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final GetResult getResult = couchbaseConnection.get(documentId);
-            return getResult == null ? Stream.empty() : Stream.of(new CouchbaseJsonDocument(getResult, documentId));
+            return Stream.ofNullable(couchbaseConnection.get(documentId));
         }
     }
 
@@ -134,7 +134,6 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @return true if it exists, false otherwise.
-     * @see Collection#exists(String)
      */
     @Procedure
     @Description(
@@ -145,7 +144,7 @@ public class Couchbase {
             @Name("documentId") String documentId,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            return Stream.of(new BooleanResult(couchbaseConnection.exists(documentId)));
+            return Stream.ofNullable(new BooleanResult(couchbaseConnection.exists(documentId)));
         }
     }
 
@@ -161,7 +160,6 @@ public class Couchbase {
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
      * @return the newly created document
-     * @see Collection#insert(String, Object)
      */
     @Procedure
     @Description(
@@ -173,10 +171,7 @@ public class Couchbase {
             @Name("json") String json,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final MutationResult insert = couchbaseConnection.insert(documentId, json);
-            GetResult getResult = couchbaseConnection.get(documentId);
-            return Stream.of(new CouchbaseJsonDocument(
-                    getResult, documentId, insert.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.insert(documentId, json));
         }
     }
 
@@ -191,9 +186,7 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to store
-     * @return the newly created or overwritten document or null in
-     * case of exception
-     * @see Collection#upsert(String, Object)
+     * @return the newly created or overwritten document or null in case of exception
      */
     @Procedure
     @Description(
@@ -205,10 +198,7 @@ public class Couchbase {
             @Name("json") String json,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final MutationResult upsert = couchbaseConnection.upsert(documentId, json);
-            GetResult getResult = couchbaseConnection.get(documentId);
-            return Stream.of(new CouchbaseJsonDocument(
-                    getResult, documentId, upsert.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.upsert(documentId, json));
         }
     }
 
@@ -224,7 +214,6 @@ public class Couchbase {
      * @param documentId the unique ID of the document
      * @param content    the byte[] representing the document to append
      * @return the updated document or null in case of exception
-     * @see BinaryCollection#append(String, byte[])
      */
     @Procedure
     @Description(
@@ -236,10 +225,7 @@ public class Couchbase {
             @Name("content") byte[] content,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final MutationResult append = couchbaseConnection.append(documentId, content);
-            GetResult getResult = couchbaseConnection.getBinary(documentId);
-            return Stream.of(new CouchbaseByteArrayDocument(
-                    getResult, documentId, append.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.append(documentId, content));
         }
     }
 
@@ -255,7 +241,6 @@ public class Couchbase {
      * @param documentId the unique ID of the document
      * @param content    the byte[] representing the document to prepend
      * @return the updated document or null in case of exception
-     * @see BinaryCollection#prepend(String, byte[])
      */
     @Procedure
     @Description(
@@ -267,10 +252,7 @@ public class Couchbase {
             @Name("content") byte[] content,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final MutationResult prepend = couchbaseConnection.prepend(documentId, content);
-            GetResult getResult = couchbaseConnection.getBinary(documentId);
-            return Stream.of(new CouchbaseByteArrayDocument(
-                    getResult, documentId, prepend.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.prepend(documentId, content));
         }
     }
 
@@ -285,7 +267,6 @@ public class Couchbase {
      *                   bucket
      * @param documentId the unique ID of the document
      * @return the removed document
-     * @see Collection#remove(String)
      */
     @Procedure
     @Description(
@@ -296,10 +277,7 @@ public class Couchbase {
             @Name("documentId") String documentId,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            GetResult getResult = couchbaseConnection.get(documentId);
-            final MutationResult remove = couchbaseConnection.remove(documentId);
-            return Stream.of(new CouchbaseJsonDocument(
-                    getResult, documentId, remove.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.remove(documentId));
         }
     }
 
@@ -316,7 +294,6 @@ public class Couchbase {
      * @param documentId the unique ID of the document
      * @param json       the JSON String representing the document to prepend
      * @return the replaced document
-     * @see Collection#replace(String, Object)
      */
     @Procedure
     @Description(
@@ -328,10 +305,7 @@ public class Couchbase {
             @Name("json") String json,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            final MutationResult replace = couchbaseConnection.replace(documentId, json);
-            GetResult getResult = couchbaseConnection.get(documentId);
-            return Stream.of(new CouchbaseJsonDocument(
-                    getResult, documentId, replace.mutationToken().orElse(null)));
+            return Stream.ofNullable(couchbaseConnection.replace(documentId, json));
         }
     }
 
@@ -345,9 +319,7 @@ public class Couchbase {
      * @param bucket    the bucket to open; if null is passed then it's used the "default"
      *                  bucket
      * @param statement the raw statement string to execute
-     * @return the list of {@link JsonObject}s retrieved by this query in the form
-     * of a {@link CouchbaseQueryResult}
-     * @see Cluster#query(String)
+     * @return the list of JSON Objects retrieved by this query in the form of a {@link CouchbaseQueryResult}
      */
     @Procedure
     @Description(
@@ -358,9 +330,7 @@ public class Couchbase {
             @Name("statement") String statement,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            List<JsonObject> statementResult = couchbaseConnection.executeStatement(statement);
-            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
-            return result == null ? Stream.empty() : Stream.of(result);
+            return Stream.ofNullable(couchbaseConnection.executeStatement(statement));
         }
     }
 
@@ -376,9 +346,7 @@ public class Couchbase {
      * @param statement the raw statement string to execute (containing positional
      *                  placeholders: $1, $2, ...)
      * @param params    the values for the positional placeholders in statement
-     * @return the list of {@link JsonObject}s retrieved by this query in the form
-     * of a {@link CouchbaseQueryResult}
-     * @see Cluster#query(String, QueryOptions)
+     * @return the list of JSON Objects retrieved by this query in the form of a {@link CouchbaseQueryResult}
      */
     @Procedure
     @Description(
@@ -390,9 +358,8 @@ public class Couchbase {
             @Name("params") List<Object> params,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            List<JsonObject> statementResult = couchbaseConnection.executeParameterizedStatement(statement, params);
-            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
-            return result == null ? Stream.empty() : Stream.of(result);
+            CouchbaseQueryResult result = couchbaseConnection.executeParameterizedStatement(statement, params);
+            return Stream.ofNullable(result);
         }
     }
 
@@ -409,9 +376,7 @@ public class Couchbase {
      *                    placeholders: $param1, $param2, ...)
      * @param paramNames  the placeholders' names in statement
      * @param paramValues the values for the named placeholders in statement
-     * @return the list of {@link JsonObject}s retrieved by this query in the form
-     * of a {@link CouchbaseQueryResult}
-     * @see Cluster#query(String, QueryOptions)
+     * @return the list of JSON Objects retrieved by this query in the form of a {@link CouchbaseQueryResult}
      */
     @Procedure
     @Description(
@@ -424,28 +389,18 @@ public class Couchbase {
             @Name("paramValues") List<Object> paramValues,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(hostOrKey, bucket, config)) {
-            List<JsonObject> statementResult =
+            final CouchbaseQueryResult result =
                     couchbaseConnection.executeParameterizedStatement(statement, paramNames, paramValues);
-            final CouchbaseQueryResult result = CouchbaseUtils.convertToCouchbaseQueryResult(statementResult);
-            return result == null ? Stream.empty() : Stream.of(result);
+            return Stream.ofNullable(result);
         }
     }
 
     private CouchbaseConnection getCouchbaseConnection(String hostOrKey, String bucket, Map<String, Object> configMap) {
-        CouchbaseConfig config = new CouchbaseConfig(configMap);
         try {
+            CouchbaseConfig config = new CouchbaseConfig(configMap);
             return CouchbaseManager.getConnection(hostOrKey, bucket, config);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(
-                    "Cannot find the jar into the plugins folder. \n"
-                            + "Please put these jar in the plugins folder : \n\n"
-                            + "java-client-x.y.z.jar\n"
-                            + "\n"
-                            + "core-io-x.y.z.jar\n"
-                            + "\n"
-                            + "rxjava-x.y.z.jar\n"
-                            + "\n"
-                            + "See the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_interacting_with_couchbase");
+            throw new MissingDependencyException(COUCHBASE_MISSING_DEPS_ERROR);
         }
     }
 }
