@@ -1,6 +1,5 @@
 package apoc;
 
-import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
@@ -91,7 +90,7 @@ public class StartupExtendedTest {
 
             try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)) {
                 // add extra-deps before starting it
-                ExtendedTestContainerUtil.addExtraDependencies();
+//                ExtendedTestContainerUtil.addExtraDependencies();
 
                 Collection<File> files = FileUtils.listFiles(TestContainerUtil.pluginsFolder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
                 System.out.println("files = " + files);
