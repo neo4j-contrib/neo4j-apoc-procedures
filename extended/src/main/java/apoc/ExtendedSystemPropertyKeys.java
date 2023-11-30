@@ -10,6 +10,7 @@ public enum ExtendedSystemPropertyKeys
     output,
     forceSingle,
     prefix,
+    mapResult,
 
     // triggers
     selector,

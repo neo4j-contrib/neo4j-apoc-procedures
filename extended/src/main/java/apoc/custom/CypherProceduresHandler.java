@@ -191,6 +191,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         List<FieldSignature> inputs = deserializeSignatures(property);
 
         boolean forceSingle = (boolean) node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name(), false);
+        boolean mapResult = (boolean) node.getProperty(ExtendedSystemPropertyKeys.mapResult.name(), false);
         return new UserFunctionDescriptor(new UserFunctionSignature(
                 new QualifiedName(prefix, name),
                 inputs,
@@ -202,7 +203,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 false,
                 false,
                 false
-        ), statement, forceSingle);
+        ), statement, forceSingle, mapResult);
     }
 
     public void restoreProceduresAndFunctions() {
@@ -223,7 +224,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         // de-register removed procs/functions
         currentProceduresToRemove.forEach(signature -> registerProcedure(signature, null));
-        currentUserFunctionsToRemove.forEach(signature -> registerFunction(signature, null, false));
+        currentUserFunctionsToRemove.forEach(this::registerFunction);
 
         api.executeTransactionally("call db.clearQueryCaches()");
     }
@@ -236,7 +237,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    public void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
+    public void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Function,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
@@ -248,9 +249,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.output.name(), signature.outputType().toString());
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
+            node.setProperty(ExtendedSystemPropertyKeys.mapResult.name(), mapResult);
 
             setLastUpdate(tx);
-            if (!registerFunction(signature, statement, forceSingle)) {
+            if (!registerFunction(signature, statement, forceSingle, mapResult)) {
                 throw new IllegalStateException("Error registering function " + signature + ", see log.");
             }
             return null;
@@ -375,7 +377,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle/*, boolean override*/) {
+    public boolean registerFunction(UserFunctionSignature signature) {
+        return registerFunction(signature, null, false, false);
+    }
+
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         try {
             QualifiedName name = signature.name();
             boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions()
@@ -407,16 +413,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                             if (cols.isEmpty()) return null;
                             if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
                                 Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
-                                Neo4jTypes.AnyType innerType = listType.innerType();
-                                // We wrap the result only if we have a "true" map, and not NodeType or RelationshipType that extends MapType
-                                if (innerType.getClass().equals(Neo4jTypes.MapType.class))
+                                AnyType innerType = listType.innerType();
+                                if (isWrapped(innerType, mapResult))
                                     return ValueUtils.of(result.stream().collect(Collectors.toList()));
                                 if (cols.size() == 1)
                                     return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
                             } else {
                                 Map<String, Object> row = result.next();
-                                // We wrap the result only if we have a "true" map, and not NodeType or RelationshipType that extends MapType
-                                if (outType.getClass().equals(Neo4jTypes.MapType.class)) return ValueUtils.of(row);
+                                if (isWrapped(outType, mapResult)) {
+                                    return ValueUtils.of(row);
+                                }
                                 if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
                             }
                             throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
@@ -435,6 +441,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
             return false;
         }
+    }
+
+    /**
+     * We wrap the result only if we have a "true" map,
+     * that is: the output signature is not a `MAP` / `LIST OF MAP` 
+     *  and the outputType is exactly equals to MapType 
+     *  (neither with NodeType nor with RelationshipType wrap the result, even though they extend MapType)
+     */
+    private boolean isWrapped(AnyType outType, boolean mapResult) {
+        return !mapResult && outType.getClass().equals(Neo4jTypes.MapType.class);
     }
 
     public static QualifiedName qualifiedName(@Name("name") String name) {
@@ -657,7 +673,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Function)).forEach(node -> {
                 UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
-                registerFunction(descriptor.getSignature(), null, false);
+                registerFunction(descriptor.getSignature());
                 node.delete();
                 setLastUpdate(tx);
             });
@@ -701,11 +717,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public class UserFunctionDescriptor extends ProcedureOrFunctionDescriptor {
         private final UserFunctionSignature signature;
         private final boolean forceSingle;
+        private final boolean mapResult;
 
-        public UserFunctionDescriptor(UserFunctionSignature signature, String statement, boolean forceSingle) {
+        public UserFunctionDescriptor(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
             super(statement);
             this.signature = signature;
             this.forceSingle = forceSingle;
+            this.mapResult = mapResult;
         }
 
         public UserFunctionSignature getSignature() {
@@ -718,7 +736,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         @Override
         public void register() {
-            registerFunction(getSignature(), getStatement(), isForceSingle());
+            registerFunction(getSignature(), getStatement(), isForceSingle(), mapResult);
         }
     }
 }

@@ -18,6 +18,7 @@ public class Signatures {
     public static final String NUMBER_TYPE = "INTEGER | FLOAT";
     public static final String SIGNATURE_SYNTAX_ERROR = "Syntax error(s) in signature definition %s. " +
             "\nNote that procedure/function name, possible map keys, input and output names must have at least 2 character:\n";
+    private static final String MAP_RESULT_TYPE = "MAPRESULT";
     private final String prefix;
 
     public Signatures(String prefix) {
@@ -189,11 +190,17 @@ public class Signatures {
         return Neo4jTypes.NTAny;
     }
 
+    public boolean isMapResult(SignatureParser.FunctionContext functionContext) {
+        final SignatureParser.TypeContext outputType = functionContext.type();
+        return outputType.getText().contains(MAP_RESULT_TYPE);
+    }
+
     private Neo4jTypes.AnyType type(SignatureParser.Opt_typeContext opt_type) {
         switch (opt_type.base_type().getText()) {
             case "ANY":
                 return NTAny;
             case "MAP":
+            case MAP_RESULT_TYPE:
                 return NTMap;
             case "NODE":
                 return NTNode;
@@ -251,11 +258,6 @@ public class Signatures {
             default:
                 return NTString;
         }
-    }
-
-    public UserFunctionSignature asFunctionSignature(String signature, String description) {
-        SignatureParser.FunctionContext functionContext = parseFunction(signature);
-        return toFunctionSignature(functionContext, description);
     }
 
     public ProcedureSignature asProcedureSignature(String signature, String description, Mode mode) {
