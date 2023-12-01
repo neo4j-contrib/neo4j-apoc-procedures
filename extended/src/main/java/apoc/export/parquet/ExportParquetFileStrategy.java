@@ -26,7 +26,7 @@ import java.util.stream.StreamSupport;
 
 public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ProgressInfo>> {
 
-    private String fileName;
+    private final String fileName;
     private final GraphDatabaseService db;
     private final Pools pools;
     private final TerminationGuard terminationGuard;
