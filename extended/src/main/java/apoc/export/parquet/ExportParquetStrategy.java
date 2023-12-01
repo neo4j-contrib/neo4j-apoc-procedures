@@ -9,7 +9,6 @@ import org.apache.parquet.schema.MessageType;
 import java.io.IOException;
 import java.util.List;
 
-
 public interface ExportParquetStrategy<IN, OUT> {
 
     OUT export(IN data, ParquetConfig config);

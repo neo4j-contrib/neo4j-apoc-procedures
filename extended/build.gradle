@@ -108,6 +108,13 @@ dependencies {
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.1.0', withoutServers
+    
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.3.5', {
+        exclude group: 'com.amazonaws'
+    }
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.3.5', {
+        exclude group: 'com.amazonaws'
+    }
 
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
