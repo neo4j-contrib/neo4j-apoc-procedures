@@ -3,10 +3,10 @@ package apoc.export.parquet;
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
+import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.QueueUtil;
 import apoc.util.Util;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
 import org.apache.parquet.schema.MessageType;
@@ -49,12 +49,12 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
         progressInfo.batchSize = config.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
-        Path fileToWrite = new Path(fileName);
         final BlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(10);
         Util.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
             int batchCount = 0;
             List<TYPE> rows = new ArrayList<>(config.getBatchSize());
-            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(fileToWrite);
+            ParquetBufferedWriter parquetBufferedWriter = new ParquetBufferedWriter(FileUtils.getOutputStream(fileName));
+            ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(parquetBufferedWriter);
 
             try {
                 Iterator<TYPE> it = toIterator(reporter, data);
