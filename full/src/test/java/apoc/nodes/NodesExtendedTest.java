@@ -77,10 +77,28 @@ public class NodesExtendedTest {
                     final List<Path> rebindList = (List<Path>) row.get("rebind");
                     assertEquals(2, rebindList.size());
                     final Path firstPath = rebindList.get(0);
-                    assertPath(firstPath, List.of("Foo", "Bar"), List.of("MY_REL"));
+                    assertFooBarPath(firstPath);
                     final Path secondPath = rebindList.get(1);
                     assertPath(secondPath, List.of("Bar", "Baz"), List.of("ANOTHER_REL"));
                 });
+
+        // check via `valueType()` that, even if the return type is Object, 
+        // the output of a rebound Path is also a Path (i.e.: `PATH NOT NULL`)
+        TestUtil.testCall(db, """
+                        CREATE path=(a:Foo)-[r1:MY_REL]->(b:Bar)\s
+                        WITH apoc.any.rebind(path) AS rebind
+                        RETURN rebind, valueType(rebind) as valueType""",
+                (row) -> {
+                    final String valueType = (String) row.get("valueType");
+                    assertEquals("PATH NOT NULL", valueType);
+                    
+                    final Path pathRebind = (Path) row.get("rebind");
+                    assertFooBarPath(pathRebind);
+                });
+    }
+
+    private void assertFooBarPath(Path pathRebind) {
+        assertPath(pathRebind, List.of("Foo", "Bar"), List.of("MY_REL"));
     }
 
     private void assertPath(Path rebind, List<String> labels, List<String> relTypes) {
