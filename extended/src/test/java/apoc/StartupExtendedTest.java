@@ -5,7 +5,6 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -29,7 +28,6 @@ import static org.junit.Assert.fail;
 /*
  This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
  */
-@Ignore
 public class StartupExtendedTest {
     private static final String APOC_HELP_QUERY = "CALL apoc.help('') YIELD core, type, name WHERE core = $core and type = $type RETURN name";
     private static final List<String> EXPECTED_EXTENDED_NAMES;
