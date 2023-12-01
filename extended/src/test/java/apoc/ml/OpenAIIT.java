@@ -8,12 +8,10 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.List;
 import java.util.Map;
 
+import static apoc.ml.OpenAITestUtils.getStringObjectMap;
 import static apoc.util.TestUtil.testCall;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OpenAIIT {
 
@@ -34,34 +32,15 @@ public class OpenAIIT {
 
     @Test
     public void getEmbedding() {
-        testCall(db, "CALL apoc.ml.openai.embedding(['Some Text'], $apiKey)", Map.of("apiKey",openaiKey),(row) -> {
-            System.out.println("row = " + row);
-            assertEquals(0L, row.get("index"));
-            assertEquals("Some Text", row.get("text"));
-            var embedding = (List<Double>) row.get("embedding");
-            assertEquals(1536, embedding.size());
-            assertEquals(true, embedding.stream().allMatch(d -> d instanceof Double));
-        });
+        testCall(db, "CALL apoc.ml.openai.embedding(['Some Text'], $apiKey)", Map.of("apiKey",openaiKey),
+                OpenAITestUtils::extracted);
     }
 
     @Test
     public void completion() {
         testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
-                Map.of("apiKey",openaiKey),(row) -> {
-                    System.out.println("row = " + row);
-            var result = (Map<String,Object>)row.get("value");
-            assertEquals(true, result.get("created") instanceof Number);
-            assertEquals(true, result.containsKey("choices"));
-            var finishReason = (String)((List<Map>) result.get("choices")).get(0).get("finish_reason");
-                assertEquals(true, finishReason.matches("stop|length"));
-            String text = (String) ((List<Map>) result.get("choices")).get(0).get("text");
-            assertEquals(true, text != null && !text.isBlank());
-            assertEquals(true, text.toLowerCase().contains("blue"));
-            assertEquals(true, result.containsKey("usage"));
-            assertEquals(true, ((Map)result.get("usage")).get("prompt_tokens") instanceof Number);
-            assertEquals("text-davinci-003", result.get("model"));
-            assertEquals("text_completion", result.get("object"));
-        });
+                Map.of("apiKey",openaiKey),
+                OpenAITestUtils::extracted1);
     }
 
     @Test
@@ -71,24 +50,8 @@ CALL apoc.ml.openai.chat([
 {role:"system", content:"Only answer with a single word"},
 {role:"user", content:"What planet do humans live on?"}
 ],  $apiKey)
-""", Map.of("apiKey",openaiKey), (row) -> {
-            System.out.println("row = " + row);
-            var result = (Map<String,Object>)row.get("value");
-            assertEquals(true, result.get("created") instanceof Number);
-            assertEquals(true, result.containsKey("choices"));
-
-            Map message = ((List<Map<String,Map>>) result.get("choices")).get(0).get("message");
-            assertEquals("assistant", message.get("role"));
-            // assertEquals("stop", message.get("finish_reason"));
-            String text = (String) message.get("content");
-            assertEquals(true, text != null && !text.isBlank());
-
-
-            assertEquals(true, result.containsKey("usage"));
-            assertEquals(true, ((Map)result.get("usage")).get("prompt_tokens") instanceof Number);
-            assertTrue(result.get("model").toString().startsWith("gpt-3.5-turbo"));
-            assertEquals("chat.completion", result.get("object"));
-        });
+""", Map.of("apiKey",openaiKey),
+                (row) -> getStringObjectMap(row, "gpt-3.5-turbo"));
 
         /*
         {
