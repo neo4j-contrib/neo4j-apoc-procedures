@@ -10,7 +10,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
-import static apoc.ml.OpenAITestUtils.getStringObjectMap;
+import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.util.TestUtil.testCall;
 
 public class OpenAIIT {
@@ -33,14 +33,14 @@ public class OpenAIIT {
     @Test
     public void getEmbedding() {
         testCall(db, "CALL apoc.ml.openai.embedding(['Some Text'], $apiKey)", Map.of("apiKey",openaiKey),
-                OpenAITestUtils::extracted);
+                OpenAITestResultUtils::assertEmbeddings);
     }
 
     @Test
     public void completion() {
         testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
                 Map.of("apiKey",openaiKey),
-                OpenAITestUtils::extracted1);
+                OpenAITestResultUtils::assertCompletion);
     }
 
     @Test
@@ -51,7 +51,7 @@ CALL apoc.ml.openai.chat([
 {role:"user", content:"What planet do humans live on?"}
 ],  $apiKey)
 """, Map.of("apiKey",openaiKey),
-                (row) -> getStringObjectMap(row, "gpt-3.5-turbo"));
+                (row) -> assertChatCompletion(row, "gpt-3.5-turbo"));
 
         /*
         {

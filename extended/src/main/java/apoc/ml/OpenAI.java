@@ -2,6 +2,7 @@ package apoc.ml;
 
 import apoc.ApocConfig;
 import apoc.Extended;
+import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
@@ -10,29 +11,39 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import apoc.result.MapResult;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
-import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_AZURE_VERSION;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
+import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
+import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 
 
 @Extended
 public class OpenAI {
-    enum ApiType { AZURE, OPENAI }
+    enum ApiType {
+        AZURE(null), OPENAI("https://api.openai.com/v1");
+
+        private final String defaultUrl;
+
+        ApiType(String defaultUrl) {
+            this.defaultUrl = defaultUrl;
+        }
+
+        public String getEndpoint(Map<String, Object> procConfig, ApocConfig apocConfig) {
+            return (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
+                    apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL, defaultUrl)));
+        }
+    }
 
     public static final String API_TYPE_CONF_KEY = "apiType";
+    public static final String APIKEY_CONF_KEY = "apiKey";
     public static final String ENDPOINT_CONF_KEY = "endpoint";
     public static final String API_VERSION_CONF_KEY = "apiVersion";
     
@@ -52,29 +63,26 @@ public class OpenAI {
     }
 
     static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ApocConfig apocConfig) throws JsonProcessingException, MalformedURLException {
-        apiKey = (String) configuration.getOrDefault(APOC_OPENAI_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
+        apiKey = (String) configuration.getOrDefault(APIKEY_CONF_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API Key must not be empty");
-
 
         String apiTypeString = (String) configuration.getOrDefault(API_TYPE_CONF_KEY,
                 apocConfig.getString(APOC_ML_OPENAI_TYPE, ApiType.OPENAI.name())
         );
-        ApiType apiType = ApiType.valueOf(apiTypeString);
+        ApiType apiType = ApiType.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
 
-        String endpoint = (String) configuration.get(ENDPOINT_CONF_KEY);
-        
-        String apiVersion;
-        Map<String, Object> headers = new HashMap<>();
+        String endpoint = apiType.getEndpoint(configuration, apocConfig);
+
+        final String apiVersion;
+        final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         switch (apiType) {
             case AZURE -> {
-                endpoint = getEndpoint(endpoint, apocConfig, "");
                 apiVersion = "?api-version=" + configuration.getOrDefault(API_VERSION_CONF_KEY, apocConfig.getString(APOC_ML_OPENAI_AZURE_VERSION));
                 headers.put("api-key", apiKey);
             }
             default -> {
-                endpoint = getEndpoint(endpoint, apocConfig, "https://api.openai.com/v1"); 
                 apiVersion = "";
                 headers.put("Authorization", "Bearer " + apiKey);
             }
@@ -82,34 +90,20 @@ public class OpenAI {
 
         var config = new HashMap<>(configuration);
         // we remove these keys from config, since the json payload is calculated starting from the config map
-        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY).forEach(config::remove);
+        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(config::remove);
         config.putIfAbsent("model", model);
         config.put(key, inputs);
 
-        String payload = new ObjectMapper().writeValueAsString(config);
+        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
         
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
         var url = Stream.of(endpoint, path, apiVersion)
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining(File.separator));
+                .collect(Collectors.joining("/"));
         return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of());
     }
-
-    private static String getEndpoint(String endpointConfMap, ApocConfig apocConfig, String defaultUrl) {
-        if (endpointConfMap != null) {
-            return endpointConfMap;
-        }
-        
-        String apocConfUrl = apocConfig.getString(APOC_ML_OPENAI_URL, null);
-        if (apocConfUrl != null) {
-            return apocConfUrl;
-        }
-
-        return System.getProperty(APOC_ML_OPENAI_URL, defaultUrl);
-    }
-
 
     @Procedure("apoc.ml.openai.embedding")
     @Description("apoc.openai.embedding([texts], api_key, configuration) - returns the embeddings for a given text")
