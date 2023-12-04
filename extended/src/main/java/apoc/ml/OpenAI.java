@@ -19,29 +19,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_AZURE_VERSION;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
-import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
 import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 
 
 @Extended
 public class OpenAI {
-    enum ApiType {
-        AZURE(null), OPENAI("https://api.openai.com/v1");
-
-        private final String defaultUrl;
-
-        ApiType(String defaultUrl) {
-            this.defaultUrl = defaultUrl;
-        }
-
-        public String getEndpoint(Map<String, Object> procConfig, ApocConfig apocConfig) {
-            return (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
-                    apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL, defaultUrl)));
-        }
-    }
-
     public static final String API_TYPE_CONF_KEY = "apiType";
     public static final String APIKEY_CONF_KEY = "apiKey";
     public static final String ENDPOINT_CONF_KEY = "endpoint";
@@ -68,25 +51,17 @@ public class OpenAI {
             throw new IllegalArgumentException("API Key must not be empty");
 
         String apiTypeString = (String) configuration.getOrDefault(API_TYPE_CONF_KEY,
-                apocConfig.getString(APOC_ML_OPENAI_TYPE, ApiType.OPENAI.name())
+                apocConfig.getString(APOC_ML_OPENAI_TYPE, OpenAIRequestHandler.Type.OPENAI.name())
         );
-        ApiType apiType = ApiType.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
+        OpenAIRequestHandler apiType = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH))
+                .get();
 
         String endpoint = apiType.getEndpoint(configuration, apocConfig);
-
-        final String apiVersion;
+        
         final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        switch (apiType) {
-            case AZURE -> {
-                apiVersion = "?api-version=" + configuration.getOrDefault(API_VERSION_CONF_KEY, apocConfig.getString(APOC_ML_OPENAI_AZURE_VERSION));
-                headers.put("api-key", apiKey);
-            }
-            default -> {
-                apiVersion = "";
-                headers.put("Authorization", "Bearer " + apiKey);
-            }
-        }
+        apiType.addHeaders(headers, apiKey);
+        final String apiVersion = apiType.getApiVersion(configuration, apocConfig);
 
         var config = new HashMap<>(configuration);
         // we remove these keys from config, since the json payload is calculated starting from the config map

@@ -11,6 +11,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Map;
 
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
+import static apoc.ml.OpenAITestResultUtils.assertCompletion;
 import static apoc.util.TestUtil.testCall;
 
 public class OpenAIIT {
@@ -40,7 +41,7 @@ public class OpenAIIT {
     public void completion() {
         testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
                 Map.of("apiKey",openaiKey),
-                OpenAITestResultUtils::assertCompletion);
+                (row) -> assertCompletion(row, "text-davinci-003"));
     }
 
     @Test

@@ -14,7 +14,7 @@ public class OpenAITestResultUtils {
         assertEquals(1536, embedding.size());
     }
 
-    public static void assertCompletion(Map<String, Object> row) {
+    public static void assertCompletion(Map<String, Object> row, String expectedModel) {
         var result = (Map<String,Object>) row.get("value");
         assertTrue(result.get("created") instanceof Number);
         assertTrue(result.containsKey("choices"));
@@ -25,7 +25,7 @@ public class OpenAITestResultUtils {
         assertTrue(text.toLowerCase().contains("blue"));
         assertTrue(result.containsKey("usage"));
         assertTrue(((Map) result.get("usage")).get("prompt_tokens") instanceof Number);
-        assertEquals("text-davinci-003", result.get("model"));
+        assertEquals(expectedModel, result.get("model"));
         assertEquals("text_completion", result.get("object"));
     }
 
