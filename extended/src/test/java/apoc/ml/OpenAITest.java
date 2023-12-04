@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ public class OpenAITest {
         // openaiKey = System.getenv("OPENAI_KEY");
         // Assume.assumeNotNull("No OPENAI_KEY environment configured", openaiKey);
         var path = Paths.get(getUrlFileName("embeddings").toURI()).getParent().toUri();
-        System.setProperty(OpenAI.APOC_ML_OPENAI_URL, path.toString());
+        System.setProperty(APOC_ML_OPENAI_URL, path.toString());
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, OpenAI.class);
     }
