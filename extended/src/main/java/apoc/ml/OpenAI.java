@@ -60,8 +60,7 @@ public class OpenAI {
         
         final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        apiType.addHeaders(headers, apiKey);
-        final String apiVersion = apiType.getApiVersion(configuration, apocConfig);
+        apiType.addApiKey(headers, apiKey);
 
         var config = new HashMap<>(configuration);
         // we remove these keys from config, since the json payload is calculated starting from the config map
@@ -74,9 +73,7 @@ public class OpenAI {
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
-        var url = Stream.of(endpoint, path, apiVersion)
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining("/"));
+        var url = apiType.getFullUrl(path, configuration, apocConfig);
         return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of());
     }
 

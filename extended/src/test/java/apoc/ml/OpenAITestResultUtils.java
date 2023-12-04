@@ -21,6 +21,7 @@ public class OpenAITestResultUtils {
         var finishReason = (String)((List<Map>) result.get("choices")).get(0).get("finish_reason");
         assertTrue(finishReason.matches("stop|length"));
         String text = (String) ((List<Map>) result.get("choices")).get(0).get("text");
+        System.out.println("OpenAI text response for assertCompletion = " + text);
         assertTrue(text != null && !text.isBlank());
         assertTrue(text.toLowerCase().contains("blue"));
         assertTrue(result.containsKey("usage"));

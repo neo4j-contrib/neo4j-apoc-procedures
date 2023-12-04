@@ -3,6 +3,7 @@ package apoc.ml;
 import apoc.util.TestUtil;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -40,7 +41,7 @@ public class OpenAIIT {
     @Test
     public void completion() {
         testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
-                Map.of("apiKey",openaiKey),
+                Map.of("apiKey", openaiKey),
                 (row) -> assertCompletion(row, "text-davinci-003"));
     }
 
