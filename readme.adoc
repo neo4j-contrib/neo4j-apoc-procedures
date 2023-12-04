@@ -1,8 +1,8 @@
 :readme:
 :branch: 5.4
 :docs: https://neo4j.com/labs/apoc/5
-:apoc-release: 5.17.0
-:neo4j-version: 5.17.0
+:apoc-release: 5.18.0
+:neo4j-version: 5.18.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
 https://community.neo4j.com[image:https://img.shields.io/discourse/users?logo=discourse&server=https%3A%2F%2Fcommunity.neo4j.com[Discourse users]]
