@@ -37,8 +37,9 @@ public enum ExportFormat {
 
     GEPHI("gephi", "", "", "", ""),
 
-    TINKERPOP("tinkerpop", "", "", "", "");
+    TINKERPOP("tinkerpop", "", "", "", ""),
 
+    CSV("csv", "", "", "", "");
 
     private final String format;
 
@@ -50,6 +51,9 @@ public enum ExportFormat {
 
     private String schemaAwait;
 
+    public String getFormat() {
+        return format;
+    }
     ExportFormat(String format, String commit, String begin, String schemaAwait, String indexAwait) {
         this.format = format;
         this.begin = begin;
