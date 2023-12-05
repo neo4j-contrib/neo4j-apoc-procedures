@@ -59,6 +59,7 @@ runs:
       if: ${{ success() && steps.git-check.outputs.modified == 'true' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
+        token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
         comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
         reaction-type: hooray
@@ -67,6 +68,7 @@ runs:
       if: ${{ success() && steps.git-check.outputs.modified == 'false' }}
       uses: peter-evans/create-or-update-comment@v2
       with:
+        token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
         comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
         reaction-type: '+1'
@@ -81,6 +83,7 @@ runs:
       if: ${{ !success() }}
       uses: peter-evans/create-or-update-comment@v2
       with:
+        token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
         issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
         body: |
@@ -92,6 +95,7 @@ runs:
       if: ${{ !success() }}
       uses: peter-evans/create-or-update-comment@v2
       with:
+        token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
         comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
         reaction-type: '-1'
