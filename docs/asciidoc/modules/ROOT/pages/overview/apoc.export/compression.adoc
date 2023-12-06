@@ -26,7 +26,7 @@ Moreover, you can use it with a file split into batches:
 
 [source,cypher]
 ----
-CALL apoc.export.csv.all(null, {compression: 'DEFLATE',stream:true,batchSize:2,useOptimizations:{unwindBatchSize:2}})
+CALL apoc.export.csv.all(null, {compression: 'DEFLATE',stream:true,batchSize:2})
 YIELD data RETURN data
 ----
 
