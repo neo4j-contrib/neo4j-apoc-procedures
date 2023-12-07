@@ -38,7 +38,9 @@ runs:
     - name: Check for modified files
       shell: bash
       id: git-check
-      run: echo modified=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi) >> $GITHUB_OUTPUT
+      run: |
+        git update-index --refresh
+        echo modified=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi) >> $GITHUB_OUTPUT
 
     - name: Commit to the PR branch
       shell: bash
