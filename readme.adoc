@@ -1,5 +1,5 @@
 :readme:
-:branch: 5.4
+:branch: 5.15
 :docs: https://neo4j.com/labs/apoc/5
 :apoc-release: 5.15.0
 :neo4j-version: 5.15.0
