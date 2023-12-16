@@ -27,14 +27,6 @@ shadowJar {
     mergeServiceFiles()
 }
 
-def commonExclusions = {
-    exclude group: 'io.netty'
-    exclude group: 'com.sun.jersey'
-    exclude group: 'org.eclipse.jetty'
-    exclude group: 'org.eclipse.jetty.aggregate'
-    exclude group: 'org.slf4j', module: 'slf4j-api'
-}
-
 dependencies {
     implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.5', commonExclusions
     implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.5', commonExclusions
