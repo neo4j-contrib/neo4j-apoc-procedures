@@ -44,6 +44,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadCsvS3() throws Exception {
         String url = s3Container.putFile("src/test/resources/test.csv");
+        url = removeRegionFromUrl(url);
+        
         testResult(db, "CALL apoc.load.csv($url,{failOnError:false})", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
             assertRow(r, "Rana", "11", 1L);
@@ -54,6 +56,7 @@ public class LoadS3Test extends S3BaseTest {
 
     @Test public void testLoadJsonS3() throws Exception {
         String url = s3Container.putFile("src/test/resources/map.json");
+        url = removeRegionFromUrl(url);
 
         testCall(db, "CALL apoc.load.json($url,'')",map("url", url),
                 (row) -> {
@@ -63,11 +66,16 @@ public class LoadS3Test extends S3BaseTest {
 
     @Test public void testLoadXmlS3() throws Exception {
         String url = s3Container.putFile("src/test/resources/xml/books.xml");
+        url = removeRegionFromUrl(url);
 
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
             Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
         });
+    }
+
+    private String removeRegionFromUrl(String url) {
+        return url.replace(s3Container.getEndpointConfiguration().getSigningRegion() + ".", "");
     }
 
 
