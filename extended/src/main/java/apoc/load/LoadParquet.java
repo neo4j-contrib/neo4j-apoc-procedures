@@ -5,6 +5,7 @@ import apoc.export.parquet.ApocParquetReader;
 import apoc.export.parquet.ParquetConfig;
 import apoc.result.MapResult;
 import apoc.util.Util;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -26,6 +27,8 @@ public class LoadParquet {
 
     @Context public Log log;
 
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     private static class ParquetSpliterator extends Spliterators.AbstractSpliterator<MapResult> {
 
@@ -61,7 +64,7 @@ public class LoadParquet {
 
         ParquetConfig conf = new ParquetConfig(config);
 
-        ApocParquetReader reader = getReader(input, conf);
+        ApocParquetReader reader = getReader(input, conf, urlAccessChecker);
         return StreamSupport.stream(new ParquetSpliterator(reader),false)
                 .onClose(() -> Util.close(reader));
     }
