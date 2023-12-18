@@ -11,6 +11,7 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -47,6 +48,9 @@ public class LoadDirectory {
     @Context
     public Transaction tx;
 
+    @Context
+    public URLAccessChecker urlAccessChecker;
+
 
     @Procedure(name="apoc.load.directory.async.add", mode = Mode.WRITE)
     @Description("apoc.load.directory.async.add(name, cypher, pattern, urlDir, {}) YIELD name, status, pattern, cypher, urlDir, config, error - Adds or replaces a folder listener with a specific name, which is triggered for all files with the given pattern and executes the specified Cypher query when triggered. Returns a list of all listeners. It is possible to specify the event type in the config parameter.")
@@ -55,7 +59,7 @@ public class LoadDirectory {
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
                                                              @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
-        apocConfig().checkReadAllowed(urlDir);
+        apocConfig().checkReadAllowed(urlDir, urlAccessChecker);
         Util.validateQuery(db, cypher, READ_WRITE, WRITE);
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);

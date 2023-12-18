@@ -10,6 +10,7 @@ import apoc.util.ExtendedFileUtils;
 import apoc.util.FileUtils;
 import apoc.util.SupportedProtocols;
 import apoc.util.Util;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -36,6 +37,9 @@ public class Metrics {
             "This may occur if the path in question is a symlink or other link.";
     @Context
     public Log log;
+
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     /** Simple DAO that pairs a config setting name with a File path that it refers to */
     public static class StoragePair {
@@ -187,7 +191,7 @@ public class Metrics {
         String url = file.getAbsolutePath();
         CountingReader reader = null;
         try {
-            reader = FileUtils.getStreamConnection(SupportedProtocols.file, url, null, null)
+            reader = FileUtils.getStreamConnection(SupportedProtocols.file, url, null, null, urlAccessChecker)
                     .toCountingInputStream(CompressionAlgo.NONE.name())
                     .asReader();
             return new LoadCsv()

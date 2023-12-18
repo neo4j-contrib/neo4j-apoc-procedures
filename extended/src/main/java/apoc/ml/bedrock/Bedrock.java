@@ -10,6 +10,8 @@ import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -20,6 +22,9 @@ import static apoc.ml.bedrock.BedrockInvokeResult.*;
 
 
 public class Bedrock {
+    @Context
+    public URLAccessChecker urlAccessChecker;
+    
     // public for testing purpose
     public static final String JURASSIC_2_ULTRA = "ai21.j2-ultra-v1";
     public static final String TITAN_EMBED_TEXT = "amazon.titan-embed-text-v1";
@@ -135,7 +140,7 @@ public class Bedrock {
                 AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString);
             }
 
-            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of());
+            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -11,6 +11,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -33,6 +34,9 @@ public class LoadCsv {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public URLAccessChecker urlAccessChecker;
+
     @Procedure
     @Description("apoc.load.csv('urlOrBinary',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<CSVResult> csv(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
@@ -51,7 +55,7 @@ public class LoadCsv {
                 httpHeaders = httpHeaders != null ? httpHeaders : new HashMap<>();
                 httpHeaders.putAll(Util.extractCredentialsIfNeeded(url, true));
             }
-            reader = FileUtils.readerFor(urlOrBinary, httpHeaders, payload, config.getCompressionAlgo());
+            reader = FileUtils.readerFor(urlOrBinary, httpHeaders, payload, config.getCompressionAlgo(), urlAccessChecker);
             return streamCsv(url, config, reader);
         } catch (IOException | CsvValidationException e) {
             closeReaderSafely(reader);

@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -49,6 +50,9 @@ public class LoadHtml {
 
     @Context
     public Log log;
+
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     @Procedure
     @Description("apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
@@ -103,7 +107,7 @@ public class LoadHtml {
             case CHROME:
                 return withSeleniumBrowser(() -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             default:
-                return FileUtils.inputStreamFor(url, null, null, null);
+                return FileUtils.inputStreamFor(url, null, null, null, urlAccessChecker);
         }
     }
 
