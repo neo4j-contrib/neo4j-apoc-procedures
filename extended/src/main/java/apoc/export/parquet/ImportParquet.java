@@ -12,6 +12,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -45,6 +46,9 @@ public class ImportParquet {
 
     @Context
     public Log log;
+    
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     @Procedure(name = "apoc.import.parquet", mode = Mode.WRITE)
     @Description("Imports parquet from the provided file or binary")
@@ -63,7 +67,7 @@ public class ImportParquet {
                     final ParquetConfig conf = new ParquetConfig(config);
 
                     final Map<Long, Long> idMapping = new HashMap<>();
-                    try (ApocParquetReader reader = getReader(input, conf)) {
+                    try (ApocParquetReader reader = getReader(input, conf, urlAccessChecker)) {
 
                         final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "parquet"));
 
