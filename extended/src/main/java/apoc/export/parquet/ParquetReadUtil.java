@@ -28,6 +28,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -43,10 +44,14 @@ public class ParquetReadUtil {
 
         if (object instanceof Collection) {
             // if there isn't a mapping config, we convert the list to a String[]
-            return ((Collection<?>) object).stream()
+            List<Object> collect = ((Collection<?>) object).stream()
                     .map(i -> toValidValue(i, field, config))
-                    .collect(Collectors.toList())
-                    .toArray(new String[0]);
+                    .collect(Collectors.toList());
+            try {
+                return collect.toArray(new String[0]);
+            } catch (ArrayStoreException e) {
+                return collect.toArray(new Object[0]);
+            }
         }
         if (object instanceof Map) {
             return ((Map<String, Object>) object).entrySet().stream()

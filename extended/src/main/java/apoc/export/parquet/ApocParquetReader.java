@@ -141,7 +141,7 @@ public final class ApocParquetReader implements Closeable {
         String fieldName = path[0];
         try {
             // if it's a list, create a list of consumed sub-records
-            boolean isAList = path.length == 3 && path[1].equals("list");
+            boolean isAList = path.length >= 3 && path[1].equals("list");
             record.compute(fieldName, (k, v) -> {
                 if (v == null) {
                     if (isAList) {
