@@ -99,7 +99,7 @@ public class OpenAI {
       "usage": { "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12 }
     }
     */
-        return executeRequest(apiKey, configuration, "completions", "text-davinci-003", "prompt", prompt, "$", apocConfig)
+        return executeRequest(apiKey, configuration, "completions", "gpt-3.5-turbo-instruct", "prompt", prompt, "$", apocConfig)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
 
