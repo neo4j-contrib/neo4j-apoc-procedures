@@ -92,7 +92,7 @@ public class SageMakerIT {
             try {
                 String text = "Test endpoint";
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.chat($messages, $conf)",
-                        Map.of("messages", List.of(Map.of("content", text)), "conf",
+                        Map.of("messages", List.of(Map.of("role", "admin", "content", text)), "conf",
                                 Map.of(ENDPOINT_NAME_KEY, "Endpoint-Distilbart-xsum-1-1-1",
                                         REGION_KEY, "us-east-1"
                                 )), r -> {

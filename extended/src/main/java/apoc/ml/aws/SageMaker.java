@@ -4,6 +4,8 @@ import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -20,6 +22,9 @@ import static apoc.ml.aws.SageMakerConfig.ENDPOINT_NAME_KEY;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 
 public class SageMaker {
+    
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     public record EmbeddingResult(long index, String text, List<Double> embedding) {}
     
@@ -108,10 +113,10 @@ public class SageMaker {
             headers.putIfAbsent("accept", "*/*");
 
             if (!headers.containsKey("Authorization")) {
-                AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString, "sagemaker");
+                AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString, headers, "sagemaker");
             }
 
-            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of());
+            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
             
         } catch (IOException e) {
             throw new RuntimeException(e);

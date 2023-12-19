@@ -84,7 +84,7 @@ Additional configuration can be passed to the API, the default endpoint name is 
 .apoc.ml.sagemaker.chat
 [source,cypher]
 ----
-CALL apoc.ml.sagemaker.chat([{content: "Test answer"}],
+CALL apoc.ml.sagemaker.chat([{role: "admin", content: "Test answer"}],
     {endpointName: 'Endpoint-Distilbart-xsum-1-1-1', region: 'us-east-1'}
 )
 ----
