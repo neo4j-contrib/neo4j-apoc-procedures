@@ -1,0 +1,71 @@
+The examples in this section are based on a database that has applied the following constraints:
+
+[source,cypher]
+----
+// lookup index
+CREATE LOOKUP INDEX lookupRelIndex IF NOT EXISTS FOR ()-[r]-() ON EACH type(r);
+
+// indexes
+CREATE INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.since);
+CREATE FULLTEXT INDEX fullIdxRel FOR ()-[r:TYPE1|TYPE2]-() ON EACH [r.alpha, r.beta];
+
+// constraints
+CREATE CONSTRAINT like_day ON ()-[like:LIKED]-() ASSERT exists(like.day);
+----
+
+We can compare relationship indexes and constraints via `apoc.schema.relationship.compareIndexesAndConstraints($config)`
+and obtain:
+- the list of properties to which both an index and a constraint are associated (column `commonProps`).
+- the maps with key the type of index and value the list of properties that are not associated with any constraint (column `onlyIdxProps`).
+- vice versa, the maps with key the type of constraint and value the list of properties that are not associated with any index (column `onlyConstraintsProps`).
+
+Here is an example: 
+
+[source,cypher]
+----
+CALL apoc.schema.relationship.compareIndexesAndConstraints()
+----
+
+.Results
+[opts="header"]
+|===
+| type	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "<any-types>"	| [] | {":<any-types>()": []} | {}
+| "KNOWS"	| [] { ":KNOWS(since)": ["since"]}| {}
+| "RELATIONSHIP_PROPERTY_EXISTENCE"	| [] | {} | { "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL": ["day"]}
+| "TYPE1"	| []{":[TYPE1, TYPE2],(alpha,beta)": ["alpha","beta"]} |{}
+| "TYPE2"	| [] | {":[TYPE1, TYPE2],(alpha,beta)": ["alpha","beta"]} |{}
+|===
+
+
+We can compare only some relationship types with the config `relationships`, for example:
+
+[source,cypher]
+----
+CALL apoc.schema.relationship.compareIndexesAndConstraints({relationships: ['KNOWS']})
+----
+
+.Results
+[opts="header"]
+|===
+| type	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "KNOWS"	| [] { ":KNOWS(since)": ["since"]}| {}
+|===
+
+
+We can exclude some relationship types from comparison with the config `excludeRelationships`, for example:
+
+[source,cypher]
+----
+CALL apoc.schema.relationship.compareIndexesAndConstraints({excludeRelationships: ['KNOWS']})
+----
+
+.Results
+[opts="header"]
+|===
+| type	| commonProps	| onlyIdxProps	| onlyConstraintsProps
+| "<any-types>"	| [] | {":<any-types>()": []} | {}
+| "RELATIONSHIP_PROPERTY_EXISTENCE"	| [] | {} | { "CONSTRAINT ON ()-[liked:LIKED]-() ASSERT (liked.day) IS NOT NULL": ["day"]}
+| "TYPE1"	| []{":[TYPE1, TYPE2],(alpha,beta)": ["alpha","beta"]} |{}
+| "TYPE2"	| [] | {":[TYPE1, TYPE2],(alpha,beta)": ["alpha","beta"]} |{}
+|===

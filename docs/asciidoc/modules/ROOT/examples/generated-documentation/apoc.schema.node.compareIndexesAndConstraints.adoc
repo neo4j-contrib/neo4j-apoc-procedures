@@ -1,0 +1,5 @@
+¦xref::overview/apoc.schema/apoc.schema.node.compareIndexesAndConstraints.adoc[apoc.schema.node.compareIndexesAndConstraints icon:book[]] +
+
+CALL apoc.schema.node.compareIndexesAndConstraints($config) - to compare node constraints and indexes
+¦label:procedure[]
+¦label:apoc-full[]

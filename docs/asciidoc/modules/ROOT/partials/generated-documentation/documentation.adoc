@@ -2899,6 +2899,11 @@ returns type for (virtual) relationships
 apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.schema/apoc.schema.node.compareIndexesAndConstraints.adoc[apoc.schema.node.compareIndexesAndConstraints icon:book[]]
+
+CALL apoc.schema.node.compareIndexesAndConstraints($config) - to compare node constraints and indexes
+|label:procedure[]
+|label:apoc-full[]
 |xref::overview/apoc.schema/apoc.schema.nodes.adoc[apoc.schema.nodes icon:book[]]
 
 CALL apoc.schema.nodes([config]) yield name, label, properties, status, type
@@ -2914,6 +2919,11 @@ apoc.schema.properties.distinct(label, key) - quickly returns all distinct value
 apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.schema/apoc.schema.relationship.compareIndexesAndConstraints.adoc[apoc.schema.relationship.compareIndexesAndConstraints icon:book[]]
+
+CALL apoc.schema.relationship.compareIndexesAndConstraints($config) - to compare rel constraints and indexes
+|label:procedure[]
+|label:apoc-full[]
 |xref::overview/apoc.schema/apoc.schema.relationships.adoc[apoc.schema.relationships icon:book[]]
 
 CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel, properties, status
