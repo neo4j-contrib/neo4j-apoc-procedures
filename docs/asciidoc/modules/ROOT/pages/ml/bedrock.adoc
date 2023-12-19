@@ -42,6 +42,8 @@ instead of returning a generic `Object` as a result
 | model | String | see below | (This config is ignored with the `bedrock.list` proc.) The Bedrock Model 
 | path | String | "foundation-models" | (Valid only with the `bedrock.list`) The endpoint path. 
     It will create an endpoint of the type `https://bedrock.<regionConfigValue>.amazonaws.com/<path>`, i.e. with default `https://bedrock.us-east-1.amazonaws.com/foundation-models`
+| openAICompatible | String | false | To pass a body request compatible with OpenAI Chat Completions API, using the apoc.ml.bedrock.chat,
+    for example: `{role:"system", content:"Only answer with a single word"} ,{role:"user", content:"What planet do humans live on?"}`
 |===
 
 The `endpoint` config takes precedence over the `model` one.
@@ -105,6 +107,31 @@ CALL apoc.ml.bedrock.chat([
 |  value
 | {"stop_reason": "stop_sequence","completion": " Hello!"}
 |===
+
+
+We can use the config `openAICompatible: true`, to use a `message` body request consistent with the apoc.ml.openai.chat procedure.
+With this config, the `prompt` request will be placed in an entry `{content: '<promts>'}` 
+and will have a default "\n\nHuman:"` prefix and `\n\nAssistant:` suffix, if not present.
+
+For example, instead of:
+
+.apoc.ml.bedrock.chat (with openAICompatible: false)
+[source,cypher]
+----
+CALL apoc.ml.bedrock.chat(
+    [ {prompt: "\n\nHuman: Hello world\n\nAssistant:",max_tokens_to_sample: 200} ]
+)
+----
+
+we can execute this query (note that the `role:"system"` entry is optional, it is just to be consistent with the OpenAI body):
+
+.apoc.ml.bedrock.chat (with openAICompatible: true)
+[source,cypher]
+----
+CALL apoc.ml.bedrock.chat([
+    {role:"system", content:"Hello world"}
+])
+----
 
 === Text Completion API
 

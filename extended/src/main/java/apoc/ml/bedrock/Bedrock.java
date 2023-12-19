@@ -14,6 +14,7 @@ import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.apache.commons.lang3.StringUtils;
 
 import static apoc.ml.bedrock.BedrockConfig.JSON_PATH;
 import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
@@ -56,19 +57,36 @@ public class Bedrock {
     @Procedure("apoc.ml.bedrock.chat")
     @Description("apoc.ml.bedrock.chat(messages, $conf) - prompts the completion API")
     public Stream<MapResult> chatCompletion(
-            @Name("messages") List<Map<String, String>> messages,
+            @Name("messages") List<Map<String, Object>> messages,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
 
         var config = new HashMap<>(configuration);
         config.putIfAbsent(MODEL, ANTHROPIC_CLAUDE_V2);
 
-        BedrockConfig conf = new BedrockInvokeConfig(config);
-        
+        BedrockInvokeConfig conf = new BedrockInvokeConfig(config);
+
         return messages
                 .stream()
-                .flatMap(message -> executeRequestReturningMap(message, conf)
-                        .map(MapResult::new)
-                );
+                .flatMap(message -> {
+                    if (conf.isOpenAICompatible()) {
+                        transformOpenAiToBedrockRequestBody(message);
+                    }
+                    // default body value
+                    message.putIfAbsent("max_tokens_to_sample", 200);
+                    
+                    return executeRequestReturningMap(message, conf)
+                            .map(MapResult::new);
+                });
+    }
+
+    private void transformOpenAiToBedrockRequestBody(Map<String, Object> message) {
+        String content = (String) message.get("content");
+
+        content = StringUtils.prependIfMissing(content, "\n\nHuman:");
+        content = StringUtils.appendIfMissing(content, "\n\nAssistant:");
+        
+        message.clear();
+        message.put("prompt", content);
     }
 
     @Procedure("apoc.ml.bedrock.completion")
@@ -132,15 +150,15 @@ public class Bedrock {
                 bodyString = OBJECT_MAPPER.writeValueAsString(body);
             }
             
-            Map<String, Object> headers = conf.getHeaders();
+            Map<String, Object> headers = new HashMap<>(conf.getHeaders());
             headers.putIfAbsent("Content-Type", "application/json");
             headers.putIfAbsent("accept", "*/*");
 
             if (!headers.containsKey("Authorization")) {
-                AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString);
+                AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString, headers);
             }
 
-            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
+            return JsonUtil.loadJson(conf.getEndpoint(), headers, bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
