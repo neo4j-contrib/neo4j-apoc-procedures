@@ -1,8 +1,8 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import java.util.Map;
 
-public class BedrockGetModelsConfig extends BedrockConfig {
+public class BedrockGetModelsConfig extends AWSConfig {
     public static final String DEFAULT_PATH = "foundation-models";
     public static final String PATH_GET = "path";
 
