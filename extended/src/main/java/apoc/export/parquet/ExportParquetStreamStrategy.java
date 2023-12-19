@@ -8,8 +8,6 @@ import apoc.util.Util;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
-import org.apache.parquet.io.OutputFile;
-import org.apache.parquet.io.PositionOutputStream;
 import org.apache.parquet.schema.MessageType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
@@ -17,7 +15,6 @@ import org.neo4j.procedure.TerminationGuard;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +22,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 
 public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ByteArrayResult>>  {
 
@@ -96,61 +92,4 @@ public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportPar
 
     public abstract Iterator<TYPE> toIterator(IN data);
 
-    // create OutputFile
-    private record ParquetBufferedWriter(OutputStream out) implements OutputFile {
-
-        @Override
-        public PositionOutputStream create(long blockSizeHint) {
-            return createPositionOutputstream();
-        }
-
-        @Override
-        public PositionOutputStream createOrOverwrite(long blockSizeHint) throws IOException {
-            return createPositionOutputstream();
-        }
-
-        private PositionOutputStream createPositionOutputstream() {
-            return new PositionOutputStream() {
-
-                int pos = 0;
-
-                @Override
-                public long getPos() throws IOException {
-                    return pos;
-                }
-
-                @Override
-                public void flush() throws IOException {
-                    out.flush();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    out.close();
-                }
-
-                @Override
-                public void write(int b) throws IOException {
-                    out.write(b);
-                    pos++;
-                }
-
-                @Override
-                public void write(byte[] b, int off, int len) throws IOException {
-                    out.write(b, off, len);
-                    pos += len;
-                }
-            };
-        }
-
-        @Override
-        public boolean supportsBlockSize() {
-            return false;
-        }
-
-        @Override
-        public long defaultBlockSize() {
-            return 0;
-        }
-    }
 }

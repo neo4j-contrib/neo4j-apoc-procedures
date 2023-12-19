@@ -34,7 +34,7 @@ public class ExtendedTestContainerUtil
 
         // add all extra deps to the plugin docker folder
         final File directory = new File(extraDepsDir, "build/allJars");
-        final IOFileFilter instance = new WildcardFileFilter("*-all.jar");
+        final IOFileFilter instance = new WildcardFileFilter("*.jar");
         copyFilesToPlugin(directory, instance, TestContainerUtil.pluginsFolder);
     }
 

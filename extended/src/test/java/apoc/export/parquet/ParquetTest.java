@@ -48,7 +48,7 @@ public class ParquetTest {
     public static final Map<String, Map<String, String>> MAPPING_QUERY = Map.of("mapping",
             Map.of("n", "Node", "r", "Relationship", "o", "Node")
     );
-    private static File directory = new File("target/parquet import");
+    private static File directory = new File("target/parquetImport");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
@@ -107,12 +107,10 @@ public class ParquetTest {
 
     @Test
     public void testStreamRoundtripParquetAllWithImportExportConfsDisabled() {
-        // disable both export and import configs
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
-        // should work regardless of the previous config
-        testStreamRoundtripAllCommon();
+        assertFails("CALL apoc.export.parquet.all('ignore.parquet')", EXPORT_TO_FILE_PARQUET_ERROR);
     }
 
     @Test
