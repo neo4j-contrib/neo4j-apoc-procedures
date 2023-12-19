@@ -95,6 +95,10 @@ apoc.ml.schema
 apoc.ml.openai.chat
 apoc.ml.openai.completion
 apoc.ml.openai.embedding
+apoc.ml.sagemaker.chat
+apoc.ml.sagemaker.completion
+apoc.ml.sagemaker.custom
+apoc.ml.sagemaker.embedding
 apoc.ml.vertexai.chat
 apoc.ml.vertexai.completion
 apoc.ml.vertexai.embedding
