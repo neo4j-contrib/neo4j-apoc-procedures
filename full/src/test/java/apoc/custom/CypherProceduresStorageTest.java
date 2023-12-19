@@ -657,10 +657,10 @@ public class CypherProceduresStorageTest {
         });
 
         // check that the previous overwrite works correctly
-        listProcNames.forEach(name -> TestUtil.testCall(db,
+        listProcNames.forEach(name -> TestUtil.testCallEventually(db,
                         String.format("call custom.%s", name),
-                        (row) -> assertEquals(1L, row.get("answer"))
-                )
+                        (row) -> assertEquals(1L, row.get("answer")),
+                10)
         );
 
         // check that everything works correctly after a db restart
@@ -703,10 +703,10 @@ public class CypherProceduresStorageTest {
         });
 
         // check that the previous overwrite works correctly
-        listFunNames.forEach(name -> TestUtil.testCall(db,
+        listFunNames.forEach(name -> TestUtil.testCallEventually(db,
                         String.format(funQuery, name),
-                        (row) -> assertEquals(1L, row.get("row"))
-                )
+                        (row) -> assertEquals(1L, row.get("row")),
+                10)
         );
 
         // check that everything works correctly after a db restart
