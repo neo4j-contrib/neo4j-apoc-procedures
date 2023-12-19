@@ -1,8 +1,6 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
-import java.time.LocalDate
-import java.time.ZonedDateTime
 import java.security.MessageDigest
 
 /**
@@ -13,24 +11,24 @@ import java.security.MessageDigest
  * @return
  */
 def collectNeo4jReleases() {
-    def slurper = new JsonSlurper()
+    def url = new URL("https://repo1.maven.org/maven2/org/neo4j/neo4j-kernel/maven-metadata.xml")
+    def xmlString = url.getText()
 
-    def htmlString = 'https://repo1.maven.org/maven2/org/neo4j/neo4j-kernel/'.toURL().text
-            .replace("<!DOCTYPE html>", "")
-            .replace("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">", "")
+    def rootNode = new XmlParser().parseText(xmlString)
+    def releases = []
 
-    def rootNode = new XmlParser().parseText(htmlString)
+    def versions = rootNode.versioning.versions.version
 
-    def actualReleases = []
-    for (a in rootNode.body.main.pre.a) {
-        def href = a.attributes()["href"]
-        if (!href.contains("xml")) {
-            actualReleases.add(href[0..-2])
+    for (a in versions) {
+        def version = a.value()
+        def size = version.size()
+        if (size > 0) {
+            releases.add(version.get(0))
         }
     }
 
     // We sort considering that X.Y.Z-SOMETHING should be considered lower than X.Y.Z --> it's not a lexicographical ordering
-    return actualReleases
+    return releases
             .findAll { it >= "3.0" }
             .sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
             .reverse()
