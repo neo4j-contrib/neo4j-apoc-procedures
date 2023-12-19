@@ -49,9 +49,9 @@ import static org.junit.Assume.assumeTrue;
 public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
-        try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "60s")
+        try (Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())) {
+
+            neo4jContainer.withNeo4jConfig("dbms.transaction.timeout", "60s")
                     .withNeo4jConfig(APOC_IMPORT_FILE_ENABLED, "true");
 
             neo4jContainer.start();
@@ -63,7 +63,6 @@ public class CoreExtendedTest {
             assertTrue(coreCount > 0);
             assertTrue(extendedCount > 0);
 
-            neo4jContainer.close();
         } catch (Exception ex) {
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();
@@ -74,9 +73,9 @@ public class CoreExtendedTest {
 
     @Test
     public void matchesSpreadsheet() {
-        try {
-            Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())
-                    .withNeo4jConfig("dbms.transaction.timeout", "5s");
+        try(Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), !TestUtil.isRunningInCI())) {
+
+            neo4jContainer.withNeo4jConfig("dbms.transaction.timeout", "5s");
 
             File apocCoreCsv = new File(ClassLoader.getSystemResource("apoc-core-extended.csv").getFile());
             FileUtils.copyFileToDirectory(apocCoreCsv, importFolder);
@@ -105,7 +104,6 @@ public class CoreExtendedTest {
 
             assertEquals(different.toString(), 0, different.size());
 
-            neo4jContainer.close();
         } catch (Exception ex) {
             if (TestContainerUtil.isDockerImageAvailable(ex)) {
                 ex.printStackTrace();
