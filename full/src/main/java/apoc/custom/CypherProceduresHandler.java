@@ -223,7 +223,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         ), statement, forceSingle);
     }
 
-    public void restoreProceduresAndFunctions() {
+    public synchronized void restoreProceduresAndFunctions() {
         lastUpdate = System.currentTimeMillis();
         Set<ProcedureSignature> currentProceduresToRemove = new HashSet<>(registeredProcedureSignatures);
         Set<UserFunctionSignature> currentUserFunctionsToRemove = new HashSet<>(registeredUserFunctionSignatures);
@@ -254,7 +254,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    public void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
+    public synchronized void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
@@ -275,7 +275,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
     }
 
-    public void storeProcedure(ProcedureSignature signature, String statement) {
+    public synchronized void storeProcedure(ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
