@@ -39,7 +39,12 @@ public class QueueUtil {
      * @param checkDuringOffering a callback supposed to throw an exception to terminate
      * @param <T>
      */
-    public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds, boolean failWithExecption, Runnable checkDuringOffering) {
+    public static <T> void put(
+            BlockingQueue<T> queue,
+            T item,
+            long timeoutSeconds,
+            boolean failWithExecption,
+            Runnable checkDuringOffering) {
         try {
             long timeoutTimestamp = System.currentTimeMillis() + timeoutSeconds * 1000;
             while (true) {
@@ -81,5 +86,4 @@ public class QueueUtil {
             throw new RuntimeException(e);
         }
     }
-
 }

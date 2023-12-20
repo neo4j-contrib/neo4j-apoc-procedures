@@ -21,11 +21,10 @@ package apoc.export.util;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.neo4j.graphdb.spatial.Point;
-import org.neo4j.values.storable.CoordinateReferenceSystem;
-
 import java.io.IOException;
 import java.util.List;
+import org.neo4j.graphdb.spatial.Point;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
 
 public class PointSerializer extends JsonSerializer<Point> {
     @Override
@@ -36,19 +35,20 @@ public class PointSerializer extends JsonSerializer<Point> {
 
         if (crsType.startsWith(CoordinateReferenceSystem.Cartesian.toString())) {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
+                jsonGenerator.writeObject(
+                        new PointCartesian(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
             } else {
                 jsonGenerator.writeObject(new PointCartesian(crsType, coordinate.get(0), coordinate.get(1)));
             }
         } else {
             if (coordinate.size() == 3) {
-                jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
+                jsonGenerator.writeObject(
+                        new PointWgs(crsType, coordinate.get(0), coordinate.get(1), coordinate.get(2)));
             } else {
                 jsonGenerator.writeObject(new PointWgs(crsType, coordinate.get(0), coordinate.get(1)));
             }
         }
     }
-
 
     class PointCartesian {
         private String crs;
@@ -102,7 +102,6 @@ public class PointSerializer extends JsonSerializer<Point> {
         }
     }
 
-
     class PointWgs {
         private String crs;
         private Double latitude;
@@ -154,5 +153,4 @@ public class PointSerializer extends JsonSerializer<Point> {
             this.height = height;
         }
     }
-
 }

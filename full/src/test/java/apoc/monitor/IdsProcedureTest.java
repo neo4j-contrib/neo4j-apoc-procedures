@@ -18,6 +18,9 @@
  */
 package apoc.monitor;
 
+import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -26,9 +29,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.assertEquals;
 
 public class IdsProcedureTest {
 
@@ -73,5 +73,4 @@ public class IdsProcedureTest {
             tx.commit();
         }
     }
-
 }

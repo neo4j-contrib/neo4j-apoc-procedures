@@ -18,13 +18,12 @@
  */
 package apoc.path;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.traversal.Evaluation;
+import static org.neo4j.graphdb.traversal.Evaluation.*;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.neo4j.graphdb.traversal.Evaluation.*;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.traversal.Evaluation;
 
 /**
  * A matcher for evaluating whether or not a node is accepted by a group of matchers comprised of a blacklist, whitelist, endNode and termination node matchers.
@@ -44,7 +43,7 @@ public class LabelMatcherGroup {
     private LabelMatcher terminatorNodeMatcher = new LabelMatcher();
 
     public LabelMatcherGroup addLabels(String fullFilterString) {
-        if (fullFilterString !=  null && !fullFilterString.isEmpty()) {
+        if (fullFilterString != null && !fullFilterString.isEmpty()) {
             String[] elements = fullFilterString.split("\\|");
 
             for (String filterString : elements) {
@@ -56,7 +55,7 @@ public class LabelMatcherGroup {
     }
 
     public LabelMatcherGroup addLabel(String filterString) {
-        if (filterString !=  null && !filterString.isEmpty()) {
+        if (filterString != null && !filterString.isEmpty()) {
             LabelMatcher matcher;
 
             char operator = filterString.charAt(0);

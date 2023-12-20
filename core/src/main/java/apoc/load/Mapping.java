@@ -18,17 +18,14 @@
  */
 package apoc.load;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.util.Util.parseCharFromConfig;
+import static java.util.Collections.emptyList;
+import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone;
+
 import apoc.load.util.LoadCsvConfig;
 import apoc.meta.Meta;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.values.storable.DateTimeValue;
-import org.neo4j.values.storable.DateValue;
-import org.neo4j.values.storable.DurationValue;
-import org.neo4j.values.storable.LocalDateTimeValue;
-import org.neo4j.values.storable.LocalTimeValue;
-import org.neo4j.values.storable.TimeValue;
-
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,11 +36,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.Util.parseCharFromConfig;
-import static java.util.Collections.emptyList;
-import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.values.storable.DateTimeValue;
+import org.neo4j.values.storable.DateValue;
+import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.LocalDateTimeValue;
+import org.neo4j.values.storable.LocalTimeValue;
+import org.neo4j.values.storable.TimeValue;
 
 public class Mapping {
     public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
@@ -60,7 +59,7 @@ public class Mapping {
         this.name = mapping.getOrDefault("name", name).toString();
         this.array = (Boolean) mapping.getOrDefault("array", false);
         this.optionalData = (Map<String, Object>) mapping.get("optionalData");
-        
+
         this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
         this.nullValues = (Collection<String>) mapping.getOrDefault("nullValues", emptyList());
         this.arraySep = parseCharFromConfig(mapping, "arraySep", arraySep);
@@ -70,8 +69,8 @@ public class Mapping {
         if (this.type == null) {
             // Call this out to the user explicitly because deep inside of LoadCSV and others you will get
             // NPEs that are hard to spot if this is allowed to go through.
-            throw new RuntimeException("In specified mapping, there is no type by the name " +
-                    mapping.getOrDefault("type", "STRING").toString());
+            throw new RuntimeException("In specified mapping, there is no type by the name "
+                    + mapping.getOrDefault("type", "STRING").toString());
         }
     }
 
@@ -94,12 +93,13 @@ public class Mapping {
         }
         if (type == Meta.Types.STRING) return value;
 
-        final Supplier<ZoneId> timezone = () -> ZoneId.of((String) optionalData.getOrDefault("timezone", apocConfig().getString(db_temporal_timezone.name())));
+        final Supplier<ZoneId> timezone = () -> ZoneId.of(
+                (String) optionalData.getOrDefault("timezone", apocConfig().getString(db_temporal_timezone.name())));
         switch (type) {
             case POINT:
                 return Util.toPoint(Util.fromJson(value, Map.class), optionalData);
             case LOCAL_DATE_TIME:
-                // asObjectCopy() returns LocalDateTime, 
+                // asObjectCopy() returns LocalDateTime,
                 // because in case of array entity.setProperty() fails with LocalDateTimeValue[]
                 return LocalDateTimeValue.parse(value).asObjectCopy();
             case LOCAL_TIME:
@@ -112,12 +112,20 @@ public class Mapping {
                 return DateValue.parse(value).asObjectCopy();
             case DURATION:
                 return DurationValue.parse(value);
-            case INTEGER: return Util.toLong(value);
-            case FLOAT: return Util.toDouble(value);
-            case BOOLEAN: return Util.toBoolean(value);
-            case NULL: return null;
-            case LIST: return Arrays.stream(arrayPattern.split(value)).map(this::convertType).collect(Collectors.toList());
-            default: return value;
+            case INTEGER:
+                return Util.toLong(value);
+            case FLOAT:
+                return Util.toDouble(value);
+            case BOOLEAN:
+                return Util.toBoolean(value);
+            case NULL:
+                return null;
+            case LIST:
+                return Arrays.stream(arrayPattern.split(value))
+                        .map(this::convertType)
+                        .collect(Collectors.toList());
+            default:
+                return value;
         }
     }
 }

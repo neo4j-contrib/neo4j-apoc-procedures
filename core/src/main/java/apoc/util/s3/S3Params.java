@@ -28,8 +28,14 @@ public class S3Params {
     private final String key;
     private final String region;
 
-    public S3Params(String accessKey, String secretKey, String sessionToken,
-                    String endpoint, String bucket, String key, String region) {
+    public S3Params(
+            String accessKey,
+            String secretKey,
+            String sessionToken,
+            String endpoint,
+            String bucket,
+            String key,
+            String region) {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.sessionToken = sessionToken;
@@ -55,7 +61,9 @@ public class S3Params {
         return endpoint;
     }
 
-    public String getBucket() { return bucket; }
+    public String getBucket() {
+        return bucket;
+    }
 
     public String getKey() {
         return key;
@@ -64,5 +72,4 @@ public class S3Params {
     public String getRegion() {
         return region;
     }
-
 }

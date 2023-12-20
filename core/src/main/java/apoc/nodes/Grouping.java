@@ -18,26 +18,25 @@
  */
 package apoc.nodes;
 
+import static java.util.Collections.*;
+
 import apoc.Description;
 import apoc.Pools;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Collections.*;
+import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 /**
  * @author mh
@@ -80,28 +79,35 @@ public class Grouping {
         }
 
         public Stream<GroupResult> spread() {
-            return Stream.concat(Stream.of(this), relationships.stream().skip(1).map(r -> new GroupResult(node,r)));
+            return Stream.concat(Stream.of(this), relationships.stream().skip(1).map(r -> new GroupResult(node, r)));
         }
     }
 
     @Procedure
-    @Description("Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information, you can provide an aggregations map [{kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`,'count'}]")
-    public Stream<GroupResult> group(@Name("labels") List<String> labelNames, @Name("groupByProperties") List<String> groupByProperties,
-                                     @Name(value = "aggregations", defaultValue = "[{`*`:\"count\"},{`*`:\"count\"}]") List<Map<String, Object>> aggregations,
-                                     @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    @Description(
+            "Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information, you can provide an aggregations map [{kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`,'count'}]")
+    public Stream<GroupResult> group(
+            @Name("labels") List<String> labelNames,
+            @Name("groupByProperties") List<String> groupByProperties,
+            @Name(value = "aggregations", defaultValue = "[{`*`:\"count\"},{`*`:\"count\"}]")
+                    List<Map<String, Object>> aggregations,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         Set<String> labels = new HashSet<>(labelNames);
-        if (labels.remove("*")) labels.addAll(Iterables.stream(tx.getAllLabels()).map(Label::name).collect(Collectors.toSet()));
+        if (labels.remove("*"))
+            labels.addAll(Iterables.stream(tx.getAllLabels()).map(Label::name).collect(Collectors.toSet()));
 
         String[] keys = groupByProperties.toArray(new String[groupByProperties.size()]);
 
         if (aggregations == null || aggregations.isEmpty()) {
-            aggregations = Arrays.asList(singletonMap("*","count"),singletonMap("*","count"));
+            aggregations = Arrays.asList(singletonMap("*", "count"), singletonMap("*", "count"));
         }
-        Map<String, List<String>> nodeAggNames = (aggregations.size() > 0) ? toStringListMap(aggregations.get(0)) : emptyMap();
+        Map<String, List<String>> nodeAggNames =
+                (aggregations.size() > 0) ? toStringListMap(aggregations.get(0)) : emptyMap();
         String[] nodeAggKeys = keyArray(nodeAggNames, "*");
 
-        Map<String, List<String>> relAggNames = (aggregations.size() > 1) ? toStringListMap(aggregations.get(1)) : emptyMap();
+        Map<String, List<String>> relAggNames =
+                (aggregations.size() > 1) ? toStringListMap(aggregations.get(1)) : emptyMap();
         String[] relAggKeys = keyArray(relAggNames, "*");
 
         // todo bitset
@@ -110,16 +116,16 @@ public class Grouping {
         /*
         config:{orphans:false,selfRels:false,limitNodes:100, limitRels:1000, filter:{Person.count_*.min,10,Person.sum_age.max,200,KNOWS.count_*.min:5}}
          */
-        boolean orphans = (boolean)config.getOrDefault("orphans",true);
-        boolean selfRels = (boolean)config.getOrDefault("selfRels",true);
-        long limitNodes = (long)config.getOrDefault("limitNodes",-1L);
-        long limitRels = (long)config.getOrDefault("limitRels",-1L);
-        long relsPerNode = (long)config.getOrDefault("relsPerNode",-1L);
+        boolean orphans = (boolean) config.getOrDefault("orphans", true);
+        boolean selfRels = (boolean) config.getOrDefault("selfRels", true);
+        long limitNodes = (long) config.getOrDefault("limitNodes", -1L);
+        long limitRels = (long) config.getOrDefault("limitRels", -1L);
+        long relsPerNode = (long) config.getOrDefault("relsPerNode", -1L);
 
         // filter min, max on aggregated properties
         // (TYPE.)prop.min: value,(TYPE.)prop.max: value,
         // also filter (esp. max) during aggregation?
-        Map<String,Number> filter = configuredFilter(config);
+        Map<String, Number> filter = configuredFilter(config);
 
         Map<NodeKey, Set<Node>> grouped = new ConcurrentHashMap<>();
         Map<NodeKey, VirtualNode> virtualNodes = new ConcurrentHashMap<>();
@@ -132,7 +138,8 @@ public class Grouping {
             Label label = Label.label(labelName);
             Label[] singleLabel = {label};
 
-            try (ResourceIterator<Node> nodes = (labelName.equals("*")) ? tx.getAllNodes().iterator() : tx.findNodes(label)) {
+            try (ResourceIterator<Node> nodes =
+                    (labelName.equals("*")) ? tx.getAllNodes().iterator() : tx.findNodes(label)) {
                 while (nodes.hasNext()) {
                     List<Node> batch = Util.take(nodes, BATCHSIZE);
                     futures.add(Util.inTxFuture(pool, db, txInThread -> {
@@ -146,16 +153,20 @@ public class Grouping {
                                     return v;
                                 });
                                 virtualNodes.compute(key, (k, v) -> {
-                                            if (v == null) {
-                                                v = new VirtualNode(singleLabel, propertiesFor(boundNode, keys));
-                                            }
-                                            VirtualNode vn = v;
-                                            if (!nodeAggNames.isEmpty()) {
-                                                aggregate(vn, nodeAggNames, nodeAggKeys.length > 0 ? boundNode.getProperties(nodeAggKeys) : Collections.emptyMap());
-                                            }
-                                            return vn;
-                                        }
-                                );
+                                    if (v == null) {
+                                        v = new VirtualNode(singleLabel, propertiesFor(boundNode, keys));
+                                    }
+                                    VirtualNode vn = v;
+                                    if (!nodeAggNames.isEmpty()) {
+                                        aggregate(
+                                                vn,
+                                                nodeAggNames,
+                                                nodeAggKeys.length > 0
+                                                        ? boundNode.getProperties(nodeAggKeys)
+                                                        : Collections.emptyMap());
+                                    }
+                                    return vn;
+                                });
                             }
                         } catch (Exception e) {
                             log.error("Error grouping nodes", e);
@@ -187,7 +198,9 @@ public class Grouping {
                                 NodeKey startKey = entry.getKey();
                                 VirtualNode v1 = virtualNodes.get(startKey);
                                 for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
-                                    if (includeRels != null && !includeRels.contains(rel.getType().name())) continue;
+                                    if (includeRels != null
+                                            && !includeRels.contains(
+                                                    rel.getType().name())) continue;
                                     Node endNode = rel.getEndNode();
                                     for (NodeKey endKey : keysFor(endNode, labels, keys)) {
                                         VirtualNode v2 = virtualNodes.get(endKey);
@@ -196,7 +209,12 @@ public class Grouping {
                                         virtualRels.compute(new RelKey(startKey, endKey, rel), (rk, vRel) -> {
                                             if (vRel == null) vRel = v1.createRelationshipTo(v2, rel.getType());
                                             if (!relAggNames.isEmpty()) {
-                                                aggregate(vRel, relAggNames, relAggKeys.length > 0 ? rel.getProperties(relAggKeys) : Collections.emptyMap());
+                                                aggregate(
+                                                        vRel,
+                                                        relAggNames,
+                                                        relAggKeys.length > 0
+                                                                ? rel.getProperties(relAggKeys)
+                                                                : Collections.emptyMap());
                                             }
                                             return vRel;
                                         });
@@ -218,8 +236,11 @@ public class Grouping {
         if (filter != null) stream = stream.filter(n -> filter(n.getLabels(), n.getAllProperties(), filter));
         if (limitNodes > -1) stream = stream.limit(limitNodes);
 
-        Stream<GroupResult> groupResultStream = stream.map(n -> new GroupResult(n, getRelationships(n, filter, (int) relsPerNode)));
-        if (!orphans) groupResultStream = groupResultStream.filter(g -> g.relationships!=null && !g.relationships.isEmpty() && g.node.getDegree() > 0);
+        Stream<GroupResult> groupResultStream =
+                stream.map(n -> new GroupResult(n, getRelationships(n, filter, (int) relsPerNode)));
+        if (!orphans)
+            groupResultStream = groupResultStream.filter(
+                    g -> g.relationships != null && !g.relationships.isEmpty() && g.node.getDegree() > 0);
         groupResultStream = groupResultStream.flatMap(GroupResult::spread);
 
         if (limitRels > -1) groupResultStream = groupResultStream.limit(limitRels);
@@ -232,13 +253,13 @@ public class Grouping {
         return filter;
     }
 
-    private boolean filter(String type, Map<String,Object> props, Map<String,Number> filter) {
+    private boolean filter(String type, Map<String, Object> props, Map<String, Number> filter) {
         if (filter == null || props.isEmpty()) return true;
-        return filterProps(type,props,filter);
+        return filterProps(type, props, filter);
     }
 
-    private boolean filter(Iterable<Label> types, Map<String,Object> props, Map<String,Number> filter) {
-        if (filter==null || props.isEmpty()) return true;
+    private boolean filter(Iterable<Label> types, Map<String, Object> props, Map<String, Number> filter) {
+        if (filter == null || props.isEmpty()) return true;
         for (Label label : types) {
             String type = label.name();
             if (!filterProps(type, props, filter)) return false;
@@ -250,9 +271,9 @@ public class Grouping {
         for (Map.Entry<String, Object> entry : props.entrySet()) {
             if (!(entry.getValue() instanceof Number)) continue;
             long value = ((Number) entry.getValue()).longValue();
-            Number min = filter.getOrDefault(type +"."+entry.getKey()+".min",filter.get(entry.getKey()+".min"));
+            Number min = filter.getOrDefault(type + "." + entry.getKey() + ".min", filter.get(entry.getKey() + ".min"));
             if (min != null && min.longValue() > value) return false;
-            Number max = filter.getOrDefault(type +"."+entry.getKey()+".max",filter.get(entry.getKey()+".max"));
+            Number max = filter.getOrDefault(type + "." + entry.getKey() + ".max", filter.get(entry.getKey() + ".max"));
             if (max != null && max.longValue() < value) return false;
         }
         return true;
@@ -260,7 +281,7 @@ public class Grouping {
 
     public List<Relationship> getRelationships(Node n, Map<String, Number> filter, int relsPerNode) {
         List<Relationship> rels = fixAggregates(Iterables.asList(n.getRelationships(Direction.OUTGOING)));
-        if (filter != null) rels.removeIf(r -> !filter(r.getType().name(),r.getAllProperties(),filter));
+        if (filter != null) rels.removeIf(r -> !filter(r.getType().name(), r.getAllProperties(), filter));
         if (relsPerNode > -1) rels = rels.subList(0, Math.min(relsPerNode, rels.size()));
         return rels;
     }
@@ -268,7 +289,9 @@ public class Grouping {
     public Set<String> computeIncludedRels(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (!config.containsKey("includeRels") && !config.containsKey("excludeRels")) return null;
 
-        Set<String> includeRels = Iterables.stream(tx.getAllRelationshipTypes()).map(RelationshipType::name).collect(Collectors.toSet());
+        Set<String> includeRels = Iterables.stream(tx.getAllRelationshipTypes())
+                .map(RelationshipType::name)
+                .collect(Collectors.toSet());
         if (config.containsKey("includeRels")) {
             Object rels = config.get("includeRels");
             if (rels instanceof Collection) includeRels.retainAll((Collection<String>) rels);
@@ -284,7 +307,11 @@ public class Grouping {
 
     private Map<String, List<String>> toStringListMap(Map<String, Object> input) {
         Map<String, List<String>> nodeAggNames = new LinkedHashMap<>(input.size());
-        input.forEach((k, v) -> nodeAggNames.put(k, v instanceof List ? ((List<Object>) v).stream().map(Object::toString).collect(Collectors.toList()) : singletonList(v.toString())));
+        input.forEach((k, v) -> nodeAggNames.put(
+                k,
+                v instanceof List
+                        ? ((List<Object>) v).stream().map(Object::toString).collect(Collectors.toList())
+                        : singletonList(v.toString())));
         return nodeAggNames;
     }
 
@@ -334,13 +361,22 @@ public class Grouping {
                                 pc.setProperty(key, ((Number) pc.getProperty(key, 0)).longValue() + 1);
                                 break;
                             case "sum":
-                                pc.setProperty(key, ((Number) pc.getProperty(key, 0)).doubleValue() + Util.toDouble(value));
+                                pc.setProperty(
+                                        key, ((Number) pc.getProperty(key, 0)).doubleValue() + Util.toDouble(value));
                                 break;
                             case "min":
-                                pc.setProperty(key, Math.min(((Number) pc.getProperty(key, Double.MAX_VALUE)).doubleValue(), Util.toDouble(value)));
+                                pc.setProperty(
+                                        key,
+                                        Math.min(
+                                                ((Number) pc.getProperty(key, Double.MAX_VALUE)).doubleValue(),
+                                                Util.toDouble(value)));
                                 break;
                             case "max":
-                                pc.setProperty(key, Math.max(((Number) pc.getProperty(key, Double.MIN_VALUE)).doubleValue(), Util.toDouble(value)));
+                                pc.setProperty(
+                                        key,
+                                        Math.max(
+                                                ((Number) pc.getProperty(key, Double.MIN_VALUE)).doubleValue(),
+                                                Util.toDouble(value)));
                                 break;
                             case "avg": {
                                 double[] avg = (double[]) pc.getProperty(key, new double[2]);

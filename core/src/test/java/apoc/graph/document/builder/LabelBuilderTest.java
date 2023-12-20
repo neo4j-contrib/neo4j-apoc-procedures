@@ -18,16 +18,15 @@
  */
 package apoc.graph.document.builder;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import apoc.graph.util.GraphsConfig;
 import apoc.util.MapUtil;
+import java.util.HashMap;
+import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class LabelBuilderTest {
 
@@ -66,7 +65,7 @@ public class LabelBuilderTest {
 
     @Test
     public void firstLetterOfWordsCapitalised() {
-        Map<String, Object> conf = new HashMap< >();
+        Map<String, Object> conf = new HashMap<>();
         conf.put("mappings", MapUtil.map("$", "KeyPhrase{!text,@metadata}"));
 
         LabelBuilder labelBuilder = new LabelBuilder(new GraphsConfig(conf));

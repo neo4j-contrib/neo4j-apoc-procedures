@@ -18,6 +18,13 @@
  */
 package apoc.load;
 
+import static apoc.load.LoadCsvTest.assertRow;
+import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -33,13 +40,6 @@ import org.junit.Test;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static apoc.load.LoadCsvTest.assertRow;
-import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testResult;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
 
 public class LoadS3Test {
 
@@ -86,23 +86,26 @@ public class LoadS3Test {
         });
     }
 
-    @Test public void testLoadJsonS3() throws Exception {
+    @Test
+    public void testLoadJsonS3() throws Exception {
         String url = minio.putFile("src/test/resources/map.json");
 
-        testCall(db, "CALL apoc.load.json($url,'')",map("url", url),
-                (row) -> {
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                });
-    }
-
-    @Test public void testLoadXmlS3() throws Exception {
-        String url = minio.putFile("src/test/resources/xml/books.xml");
-
-        testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
-            Object value = Iterables.single(r.values());
-            Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
+        testCall(db, "CALL apoc.load.json($url,'')", map("url", url), (row) -> {
+            assertEquals(map("foo", asList(1L, 2L, 3L)), row.get("value"));
         });
     }
 
+    @Test
+    public void testLoadXmlS3() throws Exception {
+        String url = minio.putFile("src/test/resources/xml/books.xml");
 
+        testCall(
+                db,
+                "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result",
+                Util.map("url", url),
+                (r) -> {
+                    Object value = Iterables.single(r.values());
+                    Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
+                });
+    }
 }

@@ -34,5 +34,4 @@ public class IdsResult {
         this.propIds = propIds;
         this.relTypeIds = relTypeIds;
     }
-
 }

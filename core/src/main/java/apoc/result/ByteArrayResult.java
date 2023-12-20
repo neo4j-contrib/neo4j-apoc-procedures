@@ -19,7 +19,7 @@
 package apoc.result;
 
 public class ByteArrayResult {
-    public final static ByteArrayResult NULL = new ByteArrayResult(null);
+    public static final ByteArrayResult NULL = new ByteArrayResult(null);
 
     public final byte[] value;
 

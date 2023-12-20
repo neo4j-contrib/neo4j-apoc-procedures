@@ -18,11 +18,11 @@
  */
 package apoc.cypher;
 
-import org.junit.Test;
-
 import static apoc.cypher.CypherInitializer.isVersionDifferent;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class CypherIsVersionDifferentTest {
 
@@ -51,7 +51,7 @@ public class CypherIsVersionDifferentTest {
         assertFalse(isVersionDifferent("5_22_1", "5_22_0_1"));
         assertFalse(isVersionDifferent("5_0", "5_0_0_1"));
         assertFalse(isVersionDifferent("5_0_1", "5_0_0_1"));
-        
+
         assertFalse(isVersionDifferent("5-1-9-9", "5-1-0-1"));
     }
 }

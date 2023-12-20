@@ -41,8 +41,7 @@ public class StoreInfoResult {
             long relStoreSize,
             long propStoreSize,
             long totalStoreSize,
-            long nodeStoreSize
-    ) {
+            long nodeStoreSize) {
         this.logSize = logSize;
         this.stringStoreSize = stringStoreSize;
         this.arrayStoreSize = arrayStoreSize;
@@ -51,5 +50,4 @@ public class StoreInfoResult {
         this.totalStoreSize = totalStoreSize;
         this.nodeStoreSize = nodeStoreSize;
     }
-
 }

@@ -22,14 +22,12 @@ import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.export.util.ProgressReporter;
 import apoc.systemdb.SystemDbConfig;
+import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.helpers.collection.Pair;
-
-import java.util.List;
-import java.util.Optional;
-
 
 public interface ExportMetadata {
 
@@ -54,13 +52,13 @@ public interface ExportMetadata {
             final String name = label.name();
             if (name.equalsIgnoreCase(SystemLabels.Procedure.name())) {
                 return get(CypherProcedure, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.Function.name())) {
+            } else if (name.equalsIgnoreCase(SystemLabels.Function.name())) {
                 return get(CypherFunction, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
+            } else if (name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
                 return get(Trigger, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.ApocUuid.name())) {
+            } else if (name.equalsIgnoreCase(SystemLabels.ApocUuid.name())) {
                 return get(Uuid, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.DataVirtualizationCatalog.name())) {
+            } else if (name.equalsIgnoreCase(SystemLabels.DataVirtualizationCatalog.name())) {
                 return get(DataVirtualizationCatalog, config);
             }
             return Optional.empty();

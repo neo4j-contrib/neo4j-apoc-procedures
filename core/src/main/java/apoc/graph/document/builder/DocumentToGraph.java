@@ -24,12 +24,6 @@ import apoc.result.VirtualNode;
 import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
-
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -37,7 +31,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 
 public class DocumentToGraph {
 
@@ -50,7 +48,7 @@ public class DocumentToGraph {
     private GraphsConfig config;
 
     public DocumentToGraph(Transaction tx, GraphsConfig config) {
-       this(tx, config, new HashSet<>());
+        this(tx, config, new HashSet<>());
     }
 
     public DocumentToGraph(Transaction tx, GraphsConfig config, Set<Node> initialNodes) {
@@ -63,8 +61,7 @@ public class DocumentToGraph {
 
     public <T> Set<T> toSet(Iterable<T> collection) {
         HashSet<T> set = new HashSet<T>();
-        for (T item: collection)
-            set.add(item);
+        for (T item : collection) set.add(item);
         return set;
     }
 
@@ -82,10 +79,9 @@ public class DocumentToGraph {
     }
 
     public Map<Map<String, Object>, List<String>> validate(Map<String, Object> map, String path) {
-        return flatMapFieldsWithPath(map, path)
-                .entrySet()
-                .stream()
-                .flatMap(elem -> elem.getValue().stream().map(data -> new AbstractMap.SimpleEntry<>(elem.getKey(), data)))
+        return flatMapFieldsWithPath(map, path).entrySet().stream()
+                .flatMap(elem ->
+                        elem.getValue().stream().map(data -> new AbstractMap.SimpleEntry<>(elem.getKey(), data)))
                 .map(elem -> {
                     String subPath = elem.getKey();
                     List<String> valueObjects = config.valueObjectForPath(subPath);
@@ -114,9 +110,13 @@ public class DocumentToGraph {
         }
     }
 
-    private void fromDocument(Map<String, Object> document, Node source, String type,
-                              Map<Set<String>, Set<Node>> nodes, Set<Relationship> relationships,
-                              String propertyName) {
+    private void fromDocument(
+            Map<String, Object> document,
+            Node source,
+            String type,
+            Map<Set<String>, Set<Node>> nodes,
+            Set<Relationship> relationships,
+            String propertyName) {
         String path = propertyName == null ? JSON_ROOT : propertyName;
 
         // clean the object form unwanted properties
@@ -171,18 +171,16 @@ public class DocumentToGraph {
                 });
 
         // get child nodes
-        document.entrySet().stream()
-                .filter(e -> !isSimpleType(e, path))
-                .forEach(e -> {
-                    String newPath = path + "."  + e.getKey();
-                    if (e.getValue() instanceof Map) { // if value is a complex object (map)
-                        Map inner = (Map) e.getValue();
-                        fromDocument(inner, node, e.getKey(), nodes, relationships, newPath);
-                    } else {
-                        List<Map> list = (List) e.getValue(); // if value is and array
-                        list.forEach(map -> fromDocument(map, node, e.getKey(), nodes, relationships, newPath));
-                    }
-                });
+        document.entrySet().stream().filter(e -> !isSimpleType(e, path)).forEach(e -> {
+            String newPath = path + "." + e.getKey();
+            if (e.getValue() instanceof Map) { // if value is a complex object (map)
+                Map inner = (Map) e.getValue();
+                fromDocument(inner, node, e.getKey(), nodes, relationships, newPath);
+            } else {
+                List<Map> list = (List) e.getValue(); // if value is and array
+                list.forEach(map -> fromDocument(map, node, e.getKey(), nodes, relationships, newPath));
+            }
+        });
 
         Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
         nodesWithSameIds.add(node);
@@ -190,7 +188,6 @@ public class DocumentToGraph {
         if (!isRootNode) {
             relationships.addAll(documentRelationBuilder.buildRelation(source, node, type));
         }
-
     }
 
     private void throwError(Map<Map<String, Object>, List<String>> errors) {
@@ -200,7 +197,8 @@ public class DocumentToGraph {
 
     private String formatError(Map<Map<String, Object>, List<String>> errors) {
         return errors.entrySet().stream()
-                .map(e -> "The object `" + formatDocument(e.getKey()) + "` must have " + String.join(" and ", e.getValue()))
+                .map(e -> "The object `" + formatDocument(e.getKey()) + "` must have "
+                        + String.join(" and ", e.getValue()))
                 .collect(Collectors.joining(StringUtils.LF));
     }
 
@@ -220,7 +218,7 @@ public class DocumentToGraph {
     private Map<String, Object> filterNodeIdProperties(Map<String, Object> document, String path) {
         List<String> ids = config.idsForPath(path);
         Map<String, Object> idMap = new HashMap<>(document);
-        if(ids.isEmpty()) {
+        if (ids.isEmpty()) {
             idMap.keySet().retainAll(Collections.singleton(config.getIdField()));
         } else {
             idMap.keySet().retainAll(ids);
@@ -232,7 +230,6 @@ public class DocumentToGraph {
         Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
         return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
     }
-
 
     private boolean isSimpleType(Map.Entry<String, Object> e, String path) {
         List<String> valueObjects = config.valueObjectForPath(path);
@@ -254,7 +251,7 @@ public class DocumentToGraph {
     private List<Map<String, Object>> getDocumentCollection(Object document) {
         List<Map<String, Object>> coll;
         if (document instanceof String) {
-            document  = JsonUtil.parse((String) document, null, Object.class);
+            document = JsonUtil.parse((String) document, null, Object.class);
         }
         if (document instanceof List) {
             coll = (List) document;
@@ -281,7 +278,11 @@ public class DocumentToGraph {
         Map<Set<String>, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();
         coll.forEach(map -> fromDocument(map, null, null, nodes, relationships, JSON_ROOT));
-        return new VirtualGraph("Graph", nodes.values().stream().flatMap(Set::stream).collect(Collectors.toCollection(LinkedHashSet::new)), relationships, Collections.emptyMap());
+        return new VirtualGraph(
+                "Graph",
+                nodes.values().stream().flatMap(Set::stream).collect(Collectors.toCollection(LinkedHashSet::new)),
+                relationships,
+                Collections.emptyMap());
     }
 
     public Map<Long, List<String>> findDuplicates(Object doc) {
@@ -291,42 +292,40 @@ public class DocumentToGraph {
         return getDocumentCollection(doc).stream()
                 .flatMap(e -> {
                     long lineDup = index.incrementAndGet();
-                    return flatMapFields(e)
-                            .map(ee -> new AbstractMap.SimpleEntry<Map, Long>(ee, lineDup));
+                    return flatMapFields(e).map(ee -> new AbstractMap.SimpleEntry<Map, Long>(ee, lineDup));
                 })
-                .collect(Collectors.groupingBy(Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())))
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())))
                 .entrySet()
                 .stream()
                 .filter(e -> e.getValue().size() > 1)
                 .map(e -> {
                     long line = e.getValue().get(0);
                     String elem = formatDocument(e.getKey());
-                    String dupLines = e.getValue().subList(1, e.getValue().size())
-                            .stream()
+                    String dupLines = e.getValue().subList(1, e.getValue().size()).stream()
                             .map(ee -> String.valueOf(ee))
                             .collect(Collectors.joining(","));
-                    return new AbstractMap.SimpleEntry<>(line,
-                            String.format("The object `%s` has duplicate at lines [%s]", elem, dupLines));
+                    return new AbstractMap.SimpleEntry<>(
+                            line, String.format("The object `%s` has duplicate at lines [%s]", elem, dupLines));
                 })
-                .collect(Collectors.groupingBy(Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
     private Stream<Map<String, Object>> flatMapFields(Map<String, Object> map) {
         Stream<Map<String, Object>> stream = Stream.of(map);
-        return Stream.concat(stream, map.values()
-                .stream()
-                .filter(e -> e instanceof Map)
-                .flatMap(e -> flatMapFields((Map<String, Object>) e)));
+        return Stream.concat(
+                stream,
+                map.values().stream()
+                        .filter(e -> e instanceof Map)
+                        .flatMap(e -> flatMapFields((Map<String, Object>) e)));
     }
 
     private Map<String, List<Map<String, Object>>> flatMapFieldsWithPath(Map<String, Object> map, String path) {
         Map<String, List<Map<String, Object>>> flatWithPath = new HashMap<>();
         String newPath = path == null ? JSON_ROOT : path;
         flatWithPath.computeIfAbsent(newPath, e -> new ArrayList<>()).add(map);
-        Map<String, List<Map<String, Object>>> collect = map.entrySet()
-                .stream()
+        Map<String, List<Map<String, Object>>> collect = map.entrySet().stream()
                 .filter(e -> !isSimpleType(e, path))
                 .flatMap(e -> {
                     String subPath = newPath + "." + e.getKey();
@@ -338,8 +337,8 @@ public class DocumentToGraph {
                     }
                 })
                 .flatMap(e -> e.getValue().stream().map(ee -> new AbstractMap.SimpleEntry<>(e.getKey(), ee)))
-                .collect(Collectors.groupingBy(e -> e.getKey(),
-                        Collectors.mapping(e -> e.getValue(), Collectors.toList())));
+                .collect(Collectors.groupingBy(
+                        e -> e.getKey(), Collectors.mapping(e -> e.getValue(), Collectors.toList())));
         flatWithPath.putAll(collect);
 
         return flatWithPath;
@@ -381,8 +380,11 @@ public class DocumentToGraph {
             this.tx = tx;
             this.initialNodes = new HashMap<>();
             for (Node initialNode : initialNodes) {
-                Set<String> labels = StreamSupport.stream(initialNode.getLabels().spliterator(), false).map(Label::name).collect(Collectors.toSet());
-                if(this.initialNodes.containsKey(labels)) {
+                Set<String> labels = StreamSupport.stream(
+                                initialNode.getLabels().spliterator(), false)
+                        .map(Label::name)
+                        .collect(Collectors.toSet());
+                if (this.initialNodes.containsKey(labels)) {
                     this.initialNodes.get(labels).add(initialNode);
                 } else {
                     this.initialNodes.put(labels, new HashSet<>(Arrays.asList(initialNode)));
@@ -399,15 +401,15 @@ public class DocumentToGraph {
                     .orElseGet(() -> tx.createNode(labels));
         }
 
-        public Node getOrCreateVirtualNode(Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
+        public Node getOrCreateVirtualNode(
+                Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
             Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
             Set<Node> initialNodesWithSameIds = getNodesWithSameLabels(this.initialNodes, labels);
 
             HashSet<Node> searchableNodes = new HashSet<>(nodesWithSameIds);
             searchableNodes.addAll(initialNodesWithSameIds);
 
-            return searchableNodes
-                    .stream()
+            return searchableNodes.stream()
                     .filter(n -> {
                         if (Stream.of(labels).anyMatch(label -> n.hasLabel(label))) {
                             Map<String, Object> ids = filterNodeIdProperties(n, idValues);
@@ -417,7 +419,8 @@ public class DocumentToGraph {
                                 .anyMatch(r -> {
                                     Node otherNode = r.getOtherNode(n);
                                     Map<String, Object> ids = filterNodeIdProperties(otherNode, idValues);
-                                    return Stream.of(labels).anyMatch(label -> otherNode.hasLabel(label)) && idValues.equals(ids);
+                                    return Stream.of(labels).anyMatch(label -> otherNode.hasLabel(label))
+                                            && idValues.equals(ids);
                                 });
                     })
                     .findFirst()
@@ -425,14 +428,13 @@ public class DocumentToGraph {
         }
 
         private Map<String, Object> filterNodeIdProperties(Node n, Map<String, Object> idMap) {
-            return n.getProperties(idMap.keySet().toArray(new String[idMap.keySet().size()]));
+            return n.getProperties(
+                    idMap.keySet().toArray(new String[idMap.keySet().size()]));
         }
 
         private Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
             Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
             return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
         }
-
     }
-
 }

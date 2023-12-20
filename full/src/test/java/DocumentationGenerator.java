@@ -16,18 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.jetbrains.annotations.NotNull;
-import org.neo4j.common.DependencyResolver;
-import org.neo4j.internal.kernel.api.procs.*;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.internal.kernel.api.procs.*;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 class DocumentationGenerator {
     private final List<Row> rows;
@@ -47,7 +46,7 @@ class DocumentationGenerator {
             String[] parts = name.split("\\.");
             int newLength = 2;
 
-            if ( parts.length == 2 ) {
+            if (parts.length == 2) {
                 newLength = 1;
             }
 
@@ -70,7 +69,6 @@ class DocumentationGenerator {
         rows = new ArrayList<>();
         resolver = db.getDependencyResolver();
 
-
         List<Row> procedureRows = collectProcedures();
         List<Row> functionRows = collectFunctions();
 
@@ -79,8 +77,12 @@ class DocumentationGenerator {
     }
 
     public Set<String> getDeprecated() {
-        Stream<String> procedures = allProcedures().stream().filter(item -> item.deprecated().isPresent()).map(item -> item.name().toString());
-        Stream<String> functions = allFunctions().filter(item -> item.deprecated().isPresent()).map(item -> item.name().toString());
+        Stream<String> procedures = allProcedures().stream()
+                .filter(item -> item.deprecated().isPresent())
+                .map(item -> item.name().toString());
+        Stream<String> functions = allFunctions()
+                .filter(item -> item.deprecated().isPresent())
+                .map(item -> item.name().toString());
         return Stream.concat(procedures, functions).collect(Collectors.toSet());
     }
 
@@ -89,7 +91,9 @@ class DocumentationGenerator {
     }
 
     public void writeAllToCsv(Map<String, String> docs, Set<String> extended) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, "documentation.csv")), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(
+                new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, "documentation.csv")),
+                StandardCharsets.UTF_8)) {
             writer.write("¦type¦qualified name¦signature¦description¦core¦documentation\n");
             for (Row row : rows) {
 
@@ -98,7 +102,8 @@ class DocumentationGenerator {
                         .map(value -> String.format("xref::%s", docs.get(value)))
                         .findFirst();
                 String description = row.description.replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                writer.write(String.format("¦%s¦%s¦%s¦%s¦%s¦%s\n",
+                writer.write(String.format(
+                        "¦%s¦%s¦%s¦%s¦%s¦%s\n",
                         row.type,
                         row.name,
                         row.signature,
@@ -119,9 +124,11 @@ class DocumentationGenerator {
             return String.join(".", parts);
         }));
 
-
         for (Map.Entry<String, List<Row>> record : namespaces.entrySet()) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))), StandardCharsets.UTF_8)) {
+            try (Writer writer = new OutputStreamWriter(
+                    new FileOutputStream(
+                            new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.csv", record.getKey()))),
+                    StandardCharsets.UTF_8)) {
                 writer.write("¦Qualified Name¦Type¦Release\n");
                 for (Row row : record.getValue()) {
                     String releaseType = extended.contains(row.name) ? "full" : "core";
@@ -129,8 +136,13 @@ class DocumentationGenerator {
                             .replace("|", "\\|")
                             .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
 
-                    writer.write(String.format("|%s\n|%s\n|%s\n",
-                            String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + record.getKey() + "/" + row.namespace + ".adoc", row.name, description),
+                    writer.write(String.format(
+                            "|%s\n|%s\n|%s\n",
+                            String.format(
+                                    "xref::%s[%s icon:book[]]\n\n%s",
+                                    "overview/" + record.getKey() + "/" + row.namespace + ".adoc",
+                                    row.name,
+                                    description),
                             String.format("label:%s[]", row.type),
                             String.format("label:apoc-%s[]", releaseType)));
                 }
@@ -141,7 +153,10 @@ class DocumentationGenerator {
         }
 
         for (Map.Entry<String, List<Row>> record : namespaces.entrySet()) {
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))), StandardCharsets.UTF_8)) {
+            try (Writer writer = new OutputStreamWriter(
+                    new FileOutputStream(new File(
+                            DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", record.getKey()))),
+                    StandardCharsets.UTF_8)) {
                 writer.write("¦signature\n");
                 for (Row row : record.getValue()) {
                     writer.write(String.format("¦%s\n", row.signature));
@@ -151,11 +166,13 @@ class DocumentationGenerator {
                 throw new RuntimeException(e.getMessage(), e);
             }
         }
-
     }
 
     private void writeRowLight(Row row) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(
+                new FileOutputStream(
+                        new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s-lite.csv", row.name))),
+                StandardCharsets.UTF_8)) {
             writer.write("¦signature\n");
             writer.write(String.format("¦%s\n", row.signature));
         } catch (Exception e) {
@@ -171,8 +188,13 @@ class DocumentationGenerator {
     public void writeNavAndOverview() {
         Map<String, List<Row>> topLevelNamespaces = topLevelNamespaces();
 
-        try (Writer overviewWriter = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_PARTIALS_DOCUMENTATION_DIR, "documentation.adoc")), StandardCharsets.UTF_8);
-             Writer navWriter = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_PARTIALS_DOCUMENTATION_DIR, "nav.adoc")), StandardCharsets.UTF_8)) {
+        try (Writer overviewWriter = new OutputStreamWriter(
+                        new FileOutputStream(
+                                new File(DocsTest.GENERATED_PARTIALS_DOCUMENTATION_DIR, "documentation.adoc")),
+                        StandardCharsets.UTF_8);
+                Writer navWriter = new OutputStreamWriter(
+                        new FileOutputStream(new File(DocsTest.GENERATED_PARTIALS_DOCUMENTATION_DIR, "nav.adoc")),
+                        StandardCharsets.UTF_8)) {
             writeAutoGeneratedHeader(overviewWriter);
             writeAutoGeneratedHeader(navWriter);
 
@@ -193,15 +215,19 @@ class DocumentationGenerator {
                         String description = row.description
                                 .replace("|", "\\|")
                                 .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                        overviewWriter.write(String.format("|%s\n|%s\n|%s\n",
-                                String.format("%s[%s icon:book[]]\n\n%s", "xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, description),
+                        overviewWriter.write(String.format(
+                                "|%s\n|%s\n|%s\n",
+                                String.format(
+                                        "%s[%s icon:book[]]\n\n%s",
+                                        "xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc",
+                                        row.name,
+                                        description),
                                 String.format("label:%s[]", row.type),
                                 String.format("label:apoc-%s[]", releaseType)));
                         navWriter.write("*** xref::overview/" + topLevelNamespace + "/" + row.name + ".adoc[]\n");
                     }
 
                     overviewWriter.write(footer());
-
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -219,9 +245,7 @@ class DocumentationGenerator {
 
     @NotNull
     private String header() {
-        return "[.procedures, opts=header, cols='5a,1a,1a']\n" +
-                "|===\n" +
-                "| Qualified Name | Type | Release\n";
+        return "[.procedures, opts=header, cols='5a,1a,1a']\n" + "|===\n" + "| Qualified Name | Type | Release\n";
     }
 
     private void writeAutoGeneratedHeader(Writer overviewWriter) throws IOException {
@@ -231,20 +255,26 @@ class DocumentationGenerator {
     private void writeTopLevelNamespacePage(Map<String, List<Row>> topLevelNamespaces, String topLevelNamespace) {
         new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelNamespace).mkdirs();
 
-        try (Writer sectionWriter = new OutputStreamWriter(new FileOutputStream(new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelNamespace), "index.adoc")), StandardCharsets.UTF_8)) {
+        try (Writer sectionWriter = new OutputStreamWriter(
+                new FileOutputStream(
+                        new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelNamespace), "index.adoc")),
+                StandardCharsets.UTF_8)) {
             writeAutoGeneratedHeader(sectionWriter);
             sectionWriter.write("= " + topLevelNamespace + "\n");
-            sectionWriter.write(":description: This section contains reference documentation for the " + topLevelNamespace + " procedures.\n\n");
+            sectionWriter.write(":description: This section contains reference documentation for the "
+                    + topLevelNamespace + " procedures.\n\n");
 
             sectionWriter.write(header());
 
             for (Row row : topLevelNamespaces.get(topLevelNamespace)) {
                 String releaseType = extended.contains(row.name) ? "full" : "core";
-                String description = row.description
-                        .replace("|", "\\|")
-                        .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
-                sectionWriter.write(String.format("|%s\n|%s\n|%s\n",
-                        String.format("xref::%s[%s icon:book[]]\n\n%s", "overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, description),
+                String description =
+                        row.description.replace("|", "\\|").replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+                sectionWriter.write(String.format(
+                        "|%s\n|%s\n|%s\n",
+                        String.format(
+                                "xref::%s[%s icon:book[]]\n\n%s",
+                                "overview/" + topLevelNamespace + "/" + row.name + ".adoc", row.name, description),
                         String.format("label:%s[]", row.type),
                         String.format("label:apoc-%s[]", releaseType)));
             }
@@ -258,11 +288,11 @@ class DocumentationGenerator {
 
     public void writeProcedurePages() {
         for (ProcedureSignature procedure : allProcedures()) {
-//            String[] parts = procedure.name().toString().split("\\.");
-//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            //            String[] parts = procedure.name().toString().split("\\.");
+            //            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
 
             String[] parts = procedure.name().toString().split("\\.");
-            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length - 1));
             String topLevelDirectory = String.join(".", parts);
 
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
@@ -273,11 +303,11 @@ class DocumentationGenerator {
 
     public void writeFunctionPages() {
         allFunctions().forEach(userFunctionSignature -> {
-//            String[] parts = userFunctionSignature.name().toString().split("\\.");
-//            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
+            //            String[] parts = userFunctionSignature.name().toString().split("\\.");
+            //            String topLevelDirectory = String.format("%s.%s", parts[0], parts[1]);
 
             String[] parts = userFunctionSignature.name().toString().split("\\.");
-            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length - 1));
             String topLevelDirectory = String.join(".", parts);
 
             new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory).mkdirs();
@@ -287,9 +317,17 @@ class DocumentationGenerator {
     }
 
     private void writeFunctionPage(UserFunctionSignature userFunctionSignature, String topLevelDirectory) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory), userFunctionSignature.name().toString() + ".adoc")), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(
+                new FileOutputStream(new File(
+                        new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory),
+                        userFunctionSignature.name().toString() + ".adoc")),
+                StandardCharsets.UTF_8)) {
             writeIndividualPageHeader(writer, userFunctionSignature.name().toString(), "function");
-            writeLabel(writer, userFunctionSignature.name(), "function", userFunctionSignature.deprecated().isPresent());
+            writeLabel(
+                    writer,
+                    userFunctionSignature.name(),
+                    "function",
+                    userFunctionSignature.deprecated().isPresent());
             writeDescription(writer, userFunctionSignature.description());
             writeSignature(writer, userFunctionSignature.toString());
             writeInputParameters(writer, userFunctionSignature.inputSignature());
@@ -303,9 +341,17 @@ class DocumentationGenerator {
     }
 
     private void writeProcedurePage(ProcedureSignature procedure, String topLevelDirectory) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory), procedure.name().toString() + ".adoc")), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(
+                new FileOutputStream(new File(
+                        new File(DocsTest.GENERATED_OVERVIEW_DIR, topLevelDirectory),
+                        procedure.name().toString() + ".adoc")),
+                StandardCharsets.UTF_8)) {
             writeIndividualPageHeader(writer, procedure.name().toString(), "procedure");
-            writeLabel(writer, procedure.name(), "procedure", procedure.deprecated().isPresent());
+            writeLabel(
+                    writer,
+                    procedure.name(),
+                    "procedure",
+                    procedure.deprecated().isPresent());
             writeDescription(writer, procedure.description());
             writeSignature(writer, procedure.toString());
             writeInputParameters(writer, procedure.inputSignature());
@@ -329,63 +375,78 @@ class DocumentationGenerator {
     }
 
     private final List<String> readsFromFile = Arrays.asList(
-            "apoc.cypher.runFile", "apoc.cypher.runFiles", "apoc.cypher.runSchemaFile", "apoc.cypher.runSchemaFiles",
-            "apoc.load.json", "apoc.load.jsonParams", "apoc.load.csv", "apoc.import.graphml", "apoc.import.xml", "apoc.load.xml"
-    );
+            "apoc.cypher.runFile",
+            "apoc.cypher.runFiles",
+            "apoc.cypher.runSchemaFile",
+            "apoc.cypher.runSchemaFiles",
+            "apoc.load.json",
+            "apoc.load.jsonParams",
+            "apoc.load.csv",
+            "apoc.import.graphml",
+            "apoc.import.xml",
+            "apoc.load.xml");
 
     private final List<String> writeToFile = Arrays.asList(
-            "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
-            "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
-    );
+            "apoc.export.json.all",
+            "apoc.export.json.data",
+            "apoc.export.json.graph",
+            "apoc.export.json.query",
+            "apoc.export.cypher.all",
+            "apoc.export.cypher.data",
+            "apoc.export.cypher.query");
     private final List<String> writeToStream = Arrays.asList(
-            "apoc.export.json.all", "apoc.export.json.data", "apoc.export.json.graph", "apoc.export.json.query",
-            "apoc.export.cypher.all", "apoc.export.cypher.data", "apoc.export.cypher.query"
-    );
+            "apoc.export.json.all",
+            "apoc.export.json.data",
+            "apoc.export.json.graph",
+            "apoc.export.json.query",
+            "apoc.export.cypher.all",
+            "apoc.export.cypher.data",
+            "apoc.export.cypher.query");
 
     private void writeReadingFromFile(Writer writer, String name) throws IOException {
-        if(readsFromFile.contains(name)) {
+        if (readsFromFile.contains(name)) {
             writer.write("== Reading from a file\n");
             writer.write("include::../../import/includes/enableFileImport.adoc[]\n\n");
         }
     }
 
     private void writeExportToFile(Writer writer, String name) throws IOException {
-        if(writeToFile.contains(name)) {
+        if (writeToFile.contains(name)) {
             writer.write("== Exporting to a file\n");
             writer.write("include::partial$enableFileExport.adoc[]\n\n");
         }
     }
 
     private void writeExportToStream(Writer writer, String name) throws IOException {
-        if(writeToStream.contains(name)) {
+        if (writeToStream.contains(name)) {
             writer.write("== Exporting a stream\n");
             writer.write("include::partial$streamExport.adoc[]\n\n");
         }
     }
 
     private void writeUuid(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.uuid")) {
+        if (name.startsWith("apoc.uuid")) {
             writer.write("== Enable automatic UUIDs\n");
             writer.write("include::partial$uuids.adoc[]\n\n");
         }
     }
 
     private void writeTTL(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.ttl")) {
+        if (name.startsWith("apoc.ttl")) {
             writer.write("== Enable TTL\n");
             writer.write("include::partial$ttl.adoc[]\n\n");
         }
     }
 
     private void writeTrigger(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.trigger")) {
+        if (name.startsWith("apoc.trigger")) {
             writer.write("== Enable Triggers\n");
             writer.write("include::partial$triggers.adoc[]\n\n");
         }
     }
 
     private void writeNlpDependencies(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.nlp")) {
+        if (name.startsWith("apoc.nlp")) {
             writer.write("== Install Dependencies\n");
             writer.write("include::partial$nlp-dependencies.adoc[]\n\n");
             writer.write("== Setting up API Key\n");
@@ -399,7 +460,7 @@ class DocumentationGenerator {
     }
 
     private void writeMongodbDependencies(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.mongodb")) {
+        if (name.startsWith("apoc.mongodb")) {
             writer.write("== Install Dependencies\n");
             writer.write("include::partial$mongodb-dependencies.adoc[]\n\n");
         }
@@ -407,28 +468,28 @@ class DocumentationGenerator {
 
     private void writeXlsDependencies(Writer writer, String name) throws IOException {
         // Commented until we do a release
-        if(name.startsWith("apoc.load.xls") || name.startsWith("apoc.export.xls")) {
+        if (name.startsWith("apoc.load.xls") || name.startsWith("apoc.export.xls")) {
             writer.write("== Install Dependencies\n");
             writer.write("include::partial$xls-dependencies.adoc[]\n\n");
         }
     }
 
     private void writeEmailDependencies(Writer writer, String name) throws IOException {
-        if(name.startsWith("apoc.data.email")) {
+        if (name.startsWith("apoc.data.email")) {
             writer.write("== Install Dependencies\n");
             writer.write("include::partial$email-dependencies.adoc[]\n\n");
         }
     }
 
     private void writeConfigParameters(Writer writer, String name) throws IOException {
-        if(new File("../docs/asciidoc/modules/ROOT/partials/usage/config", name + ".adoc").exists()) {
+        if (new File("../docs/asciidoc/modules/ROOT/partials/usage/config", name + ".adoc").exists()) {
             writer.write("== Config parameters\n");
             writer.write("include::partial$usage/config/" + name + ".adoc[]\n\n");
         }
     }
 
     private void writeUsageExample(Writer writer, String name) throws IOException {
-        if(new File("../docs/asciidoc/modules/ROOT/partials/usage", name + ".adoc").exists()) {
+        if (new File("../docs/asciidoc/modules/ROOT/partials/usage", name + ".adoc").exists()) {
             writer.write("[[usage-" + name + "]]\n== Usage Examples\n");
             writer.write("include::partial$usage/" + name + ".adoc[]\n\n");
         }
@@ -437,14 +498,16 @@ class DocumentationGenerator {
     Map<String, List<Row>> topLevelNamespaces() {
         return rows.stream().collect(Collectors.groupingBy(value -> {
             String[] parts = value.name.split("\\.");
-            parts = Arrays.copyOf(parts, Math.min(2, parts.length-1));
+            parts = Arrays.copyOf(parts, Math.min(2, parts.length - 1));
             return String.join(".", parts);
         }));
     }
 
-
     private void writeRow(Row row) {
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.adoc", row.name))), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(
+                new FileOutputStream(
+                        new File(DocsTest.GENERATED_DOCUMENTATION_DIR, String.format("%s.adoc", row.name))),
+                StandardCharsets.UTF_8)) {
             String releaseType = extended.contains(row.name) ? "full" : "core";
             Pattern splitBy = Pattern.compile(" (-|\\|) ");
             String[] parts = row.description
@@ -453,26 +516,28 @@ class DocumentationGenerator {
 
             String description = "";
 
-            if ( parts.length > 0 ) {
+            if (parts.length > 0) {
                 description = String.format("`%s`", parts[0]);
             }
 
             // @AC
-            if ( parts.length > 1 ) {
+            if (parts.length > 1) {
                 description += " - " + parts[1];
             }
-            if ( description == "``" ) {
+            if (description == "``") {
                 description = "";
             }
 
             String link = row.namespace + "/" + row.name;
 
-            if ( row.name.split(".").length == 2  ) {
+            if (row.name.split(".").length == 2) {
                 link = row.namespace;
             }
 
-            writer.write(String.format("¦%s\n¦%s\n¦%s\n",
-                    String.format("xref::%s[%s icon:book[]] +\n\n%s", "overview/" + link + ".adoc", row.name, description),
+            writer.write(String.format(
+                    "¦%s\n¦%s\n¦%s\n",
+                    String.format(
+                            "xref::%s[%s icon:book[]] +\n\n%s", "overview/" + link + ".adoc", row.name, description),
                     String.format("label:%s[]", row.type),
                     String.format("label:apoc-%s[]", releaseType)));
         } catch (Exception e) {
@@ -483,15 +548,14 @@ class DocumentationGenerator {
     private void writeExtraDocumentation(Writer writer, QualifiedName name) throws IOException {
         Optional<String> documentation = findExtraDocumentations(name);
         if (documentation.isPresent()) {
-            writer.write(documentation.get() + "[More documentation of " + name.toString() + ",role=more information]\n\n");
+            writer.write(
+                    documentation.get() + "[More documentation of " + name.toString() + ",role=more information]\n\n");
         }
     }
 
     @NotNull
     private String extractDescription(Optional<String> description) {
-        return description
-                .orElse("")
-                .replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
+        return description.orElse("").replaceAll("(\\{[a-zA-Z0-9_][a-zA-Z0-9_-]+})", "\\\\$1");
     }
 
     private void writeOutputParameters(ProcedureSignature procedure, Writer writer) throws IOException {
@@ -499,7 +563,9 @@ class DocumentationGenerator {
             writeOutputParametersHeader(writer);
 
             for (FieldSignature fieldSignature : procedure.outputSignature()) {
-                writer.write(String.format("|%s|%s\n", fieldSignature.name(), fieldSignature.neo4jType().toString()));
+                writer.write(String.format(
+                        "|%s|%s\n",
+                        fieldSignature.name(), fieldSignature.neo4jType().toString()));
             }
             writeParametersFooter(writer);
         }
@@ -510,7 +576,14 @@ class DocumentationGenerator {
         if (x.size() > 0) {
             writeInputParametersHeader(writer);
             for (FieldSignature fieldSignature : x) {
-                writer.write(String.format("|%s|%s|%s\n", fieldSignature.name(), fieldSignature.neo4jType().toString(), fieldSignature.defaultValue().map(DefaultParameterValue::value).orElse(null)));
+                writer.write(String.format(
+                        "|%s|%s|%s\n",
+                        fieldSignature.name(),
+                        fieldSignature.neo4jType().toString(),
+                        fieldSignature
+                                .defaultValue()
+                                .map(DefaultParameterValue::value)
+                                .orElse(null)));
             }
             writeParametersFooter(writer);
         }
@@ -523,7 +596,8 @@ class DocumentationGenerator {
 
     private void writeLabel(Writer writer, QualifiedName name, String type, boolean isDeprecated) throws IOException {
         String release = extended.contains(name.toString()) ? "full" : "core";
-        writer.write("label:" + type + "[] label:apoc-" + release + "[]" + (isDeprecated ? " label:deprecated[]" : "") + "\n\n");
+        writer.write("label:" + type + "[] label:apoc-" + release + "[]" + (isDeprecated ? " label:deprecated[]" : "")
+                + "\n\n");
     }
 
     private void writeDescription(Writer writer, Optional<String> potentialDescription) throws IOException {
@@ -536,27 +610,34 @@ class DocumentationGenerator {
     private void writeIndividualPageHeader(Writer writer, String thing, String type) throws IOException {
         writeAutoGeneratedHeader(writer);
         writer.write("= " + thing + "\n");
-        writer.write(":description: This section contains reference documentation for the " + thing + " " + type + ".\n\n");
+        writer.write(
+                ":description: This section contains reference documentation for the " + thing + " " + type + ".\n\n");
     }
 
     private List<Row> collectProcedures() {
-        return db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
+        return db.executeTransactionally(
+                "CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature",
+                Collections.emptyMap(),
+                result -> result.stream()
+                        .map(record -> new Row(
+                                record.get("type").toString(),
+                                record.get("name").toString(),
+                                record.get("signature").toString(),
+                                record.get("description").toString()))
+                        .collect(Collectors.toList()));
     }
 
     private List<Row> collectFunctions() {
-        return db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
-                result -> result.stream().map(record -> new Row(
-                        record.get("type").toString(),
-                        record.get("name").toString(),
-                        record.get("signature").toString(),
-                        record.get("description").toString())
-                ).collect(Collectors.toList()));
+        return db.executeTransactionally(
+                "CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature",
+                Collections.emptyMap(),
+                result -> result.stream()
+                        .map(record -> new Row(
+                                record.get("type").toString(),
+                                record.get("name").toString(),
+                                record.get("signature").toString(),
+                                record.get("description").toString()))
+                        .collect(Collectors.toList()));
     }
 
     private void writeParametersFooter(Writer writer) throws IOException {
@@ -565,16 +646,12 @@ class DocumentationGenerator {
 
     private void writeInputParametersHeader(Writer writer) throws IOException {
         writer.write("== Input parameters\n");
-        writer.write("[.procedures, opts=header]\n" +
-                "|===\n" +
-                "| Name | Type | Default \n");
+        writer.write("[.procedures, opts=header]\n" + "|===\n" + "| Name | Type | Default \n");
     }
 
     private void writeOutputParametersHeader(Writer writer) throws IOException {
         writer.write("== Output parameters\n");
-        writer.write("[.procedures, opts=header]\n" +
-                "|===\n" +
-                "| Name | Type \n");
+        writer.write("[.procedures, opts=header]\n" + "|===\n" + "| Name | Type \n");
     }
 
     @NotNull
@@ -588,14 +665,20 @@ class DocumentationGenerator {
     @NotNull
     private Set<ProcedureSignature> allProcedures() {
         GlobalProcedures globalProcedures = resolver.resolveDependency(GlobalProcedures.class);
-        Set<ProcedureSignature> allProcedures = globalProcedures.getAllProcedures().stream().filter(signature -> signature.name().toString().startsWith("apoc")).collect(Collectors.toSet());
+        Set<ProcedureSignature> allProcedures = globalProcedures.getAllProcedures().stream()
+                .filter(signature -> signature.name().toString().startsWith("apoc"))
+                .collect(Collectors.toSet());
         return allProcedures;
     }
 
     @NotNull
     private Stream<UserFunctionSignature> allFunctions() {
-        Stream<UserFunctionSignature> loadedFunctions = resolver.resolveDependency(GlobalProcedures.class).getAllNonAggregatingFunctions().filter(signature -> signature.name().toString().startsWith("apoc"));
-        Stream<UserFunctionSignature> loadedAggregationFunctions = resolver.resolveDependency(GlobalProcedures.class).getAllAggregatingFunctions().filter(signature -> signature.name().toString().startsWith("apoc"));
+        Stream<UserFunctionSignature> loadedFunctions = resolver.resolveDependency(GlobalProcedures.class)
+                .getAllNonAggregatingFunctions()
+                .filter(signature -> signature.name().toString().startsWith("apoc"));
+        Stream<UserFunctionSignature> loadedAggregationFunctions = resolver.resolveDependency(GlobalProcedures.class)
+                .getAllAggregatingFunctions()
+                .filter(signature -> signature.name().toString().startsWith("apoc"));
         return Stream.concat(loadedFunctions, loadedAggregationFunctions);
     }
 }

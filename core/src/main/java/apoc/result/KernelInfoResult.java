@@ -56,5 +56,4 @@ public class KernelInfoResult {
         this.storeLogVersion = storeLogVersion;
         this.storeCreationDate = format.format(storeCreationDate);
     }
-
 }

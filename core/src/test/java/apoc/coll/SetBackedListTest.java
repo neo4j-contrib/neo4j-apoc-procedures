@@ -18,14 +18,13 @@
  */
 package apoc.coll;
 
-import org.junit.Test;
-
-import java.util.*;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_SET;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
+
+import java.util.*;
+import org.junit.Test;
 
 /**
  * @author mh
@@ -33,28 +32,28 @@ import static org.junit.Assert.*;
  */
 public class SetBackedListTest {
 
-
     @Test
     public void testEmptyList() throws Exception {
         SetBackedList list = new SetBackedList(EMPTY_SET);
-        assertEquals(0,list.size());
-        assertEquals(true,list.isEmpty());
-        assertEquals(false,list.contains(1));
-        assertEquals(false,list.iterator().hasNext());
+        assertEquals(0, list.size());
+        assertEquals(true, list.isEmpty());
+        assertEquals(false, list.contains(1));
+        assertEquals(false, list.iterator().hasNext());
         ListIterator it = list.listIterator();
         assertEquals(false, it.hasNext());
         assertEquals(-1, it.previousIndex());
         assertEquals(0, it.nextIndex());
     }
+
     @Test
     public void testSingleList() throws Exception {
         SetBackedList list = new SetBackedList(singleton(1));
-        assertEquals(1,list.size());
-        assertEquals(false,list.isEmpty());
-        assertEquals(true,list.contains(1));
-        assertEquals(false,list.contains(0));
-        assertEquals(true,list.iterator().hasNext());
-        assertEquals(1,list.iterator().next());
+        assertEquals(1, list.size());
+        assertEquals(false, list.isEmpty());
+        assertEquals(true, list.contains(1));
+        assertEquals(false, list.contains(0));
+        assertEquals(true, list.iterator().hasNext());
+        assertEquals(1, list.iterator().next());
         ListIterator it = list.listIterator();
         assertEquals(true, it.hasNext());
         assertEquals(-1, it.previousIndex());
@@ -68,15 +67,14 @@ public class SetBackedListTest {
         assertEquals(false, it.hasNext());
     }
 
-
     @Test
     public void testDoubleList() throws Exception {
-        SetBackedList list = new SetBackedList(new LinkedHashSet<>(asList(1,2)));
-        assertEquals(2,list.size());
-        assertEquals(false,list.isEmpty());
-        assertEquals(true,list.contains(1));
-        assertEquals(true,list.contains(2));
-        assertEquals(false,list.contains(0));
+        SetBackedList list = new SetBackedList(new LinkedHashSet<>(asList(1, 2)));
+        assertEquals(2, list.size());
+        assertEquals(false, list.isEmpty());
+        assertEquals(true, list.contains(1));
+        assertEquals(true, list.contains(2));
+        assertEquals(false, list.contains(0));
         Iterator it = list.iterator();
         assertEquals(true, it.hasNext());
         assertEquals(1, it.next());
@@ -107,14 +105,16 @@ public class SetBackedListTest {
     public void testReverse() throws Exception {
         LinkedHashSet set = new LinkedHashSet(asList(1, 2, 3, 4, 5));
         SetBackedList list = new SetBackedList(set);
-        assertEquals(asList(1,2,3,4,5),list);
+        assertEquals(asList(1, 2, 3, 4, 5), list);
 
         ListIterator it = list.listIterator();
         while (it.hasNext()) it.next();
         List result = new ArrayList(set.size());
-        while (it.hasPrevious()) { result.add(it.previous()); }
+        while (it.hasPrevious()) {
+            result.add(it.previous());
+        }
 
-        assertEquals(asList(5,4,3,2,1),result);
+        assertEquals(asList(5, 4, 3, 2, 1), result);
     }
 
     @Test
@@ -124,7 +124,7 @@ public class SetBackedListTest {
         assertEquals(true, list.contains(1));
         assertEquals(true, list.contains(3));
         assertEquals(false, list.contains(7));
-        assertEquals(false, list.containsAll(asList(1,2,8)));
-        assertEquals(true, list.containsAll(asList(1,2,5)));
+        assertEquals(false, list.containsAll(asList(1, 2, 8)));
+        assertEquals(true, list.containsAll(asList(1, 2, 5)));
     }
 }

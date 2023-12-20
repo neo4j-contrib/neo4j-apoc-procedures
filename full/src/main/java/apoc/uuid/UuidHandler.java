@@ -18,11 +18,25 @@
  */
 package apoc.uuid;
 
+import static apoc.ApocConfig.APOC_UUID_FORMAT;
+import static apoc.util.SystemDbUtil.getLastUpdate;
+import static apoc.uuid.Uuid.setExistingNodes;
+import static apoc.uuid.UuidConfig.*;
+
 import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.commons.collections4.IterableUtils;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -43,21 +57,6 @@ import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static apoc.ApocConfig.APOC_UUID_FORMAT;
-import static apoc.util.SystemDbUtil.getLastUpdate;
-import static apoc.uuid.Uuid.setExistingNodes;
-import static apoc.uuid.UuidConfig.*;
-
 public class UuidHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
     private final GraphDatabaseAPI db;
@@ -66,7 +65,8 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private final ApocConfig apocConfig;
     // Snapshot of uuid configuration per label/property.
     // The containing map is immutable!
-    private final AtomicReference<Map<String, UuidConfig>> labelAndPropertyNamesSnapshot = new AtomicReference<>(Map.of());
+    private final AtomicReference<Map<String, UuidConfig>> labelAndPropertyNamesSnapshot =
+            new AtomicReference<>(Map.of());
     private final ApocConfig.UuidFormatType uuidFormat;
     private final JobScheduler jobScheduler;
     private final Pools pools;
@@ -76,16 +76,22 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     public static final String APOC_UUID_REFRESH = "apoc.uuid.refresh";
 
-    public static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
-            " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
+    public static final String NOT_ENABLED_ERROR = "UUID have not been enabled."
+            + " Set 'apoc.uuid.enabled=true' or 'apoc.uuid.enabled.%s=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, JobScheduler jobScheduler,
-                       Pools pools) {
+    public UuidHandler(
+            GraphDatabaseAPI db,
+            DatabaseManagementService databaseManagementService,
+            Log log,
+            ApocConfig apocConfig,
+            JobScheduler jobScheduler,
+            Pools pools) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.apocConfig = apocConfig;
-        this.uuidFormat = apocConfig.getEnumProperty(APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
+        this.uuidFormat = apocConfig.getEnumProperty(
+                APOC_UUID_FORMAT, ApocConfig.UuidFormatType.class, ApocConfig.UuidFormatType.hex);
         this.jobScheduler = jobScheduler;
         this.pools = pools;
     }
@@ -97,12 +103,16 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             // not to cause breaking-change, with deprecated procedures we don't schedule the refresh()
             Integer uuidRefresh = apocConfig.getConfig().getInteger(APOC_UUID_REFRESH, null);
             if (uuidRefresh != null) {
-                refreshUuidHandle = jobScheduler.scheduleRecurring(Group.STORAGE_MAINTENANCE, () -> {
+                refreshUuidHandle = jobScheduler.scheduleRecurring(
+                        Group.STORAGE_MAINTENANCE,
+                        () -> {
                             if (getLastUpdate(db.databaseName(), SystemLabels.ApocUuidMeta) >= lastUpdate) {
                                 refreshAndAdd();
                             }
                         },
-                        uuidRefresh, uuidRefresh, TimeUnit.MILLISECONDS);
+                        uuidRefresh,
+                        uuidRefresh,
+                        TimeUnit.MILLISECONDS);
             }
 
             databaseManagementService.registerTransactionEventListener(db.databaseName(), this);
@@ -124,20 +134,32 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         }
     }
 
-    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty) {
+    private void checkAndRestoreUuidProperty(
+            Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty) {
         checkAndRestoreUuidProperty(nodeProperties, label, uuidProperty, null);
     }
 
-    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty, Predicate<PropertyEntry<Node>> predicate) {
+    private void checkAndRestoreUuidProperty(
+            Iterable<PropertyEntry<Node>> nodeProperties,
+            String label,
+            String uuidProperty,
+            Predicate<PropertyEntry<Node>> predicate) {
         if (nodeProperties.iterator().hasNext()) {
             nodeProperties.forEach(nodePropertyEntry -> {
                 if (predicate == null) {
-                    if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
+                    if (nodePropertyEntry.entity().hasLabel(Label.label(label))
+                            && nodePropertyEntry.key().equals(uuidProperty)) {
+                        nodePropertyEntry
+                                .entity()
+                                .setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 } else {
-                    if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty) && predicate.test(nodePropertyEntry)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
+                    if (nodePropertyEntry.entity().hasLabel(Label.label(label))
+                            && nodePropertyEntry.key().equals(uuidProperty)
+                            && predicate.test(nodePropertyEntry)) {
+                        nodePropertyEntry
+                                .entity()
+                                .setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 }
             });
@@ -154,7 +176,9 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         labelAndPropertyNamesSnapshot.get().forEach((label, config) -> {
             final String propertyName = config.getUuidProperty();
             List<Node> nodes = config.isAddToSetLabels()
-                    ? StreamSupport.stream(txData.assignedLabels().spliterator(), false).map(LabelEntry::node).collect(Collectors.toList())
+                    ? StreamSupport.stream(txData.assignedLabels().spliterator(), false)
+                            .map(LabelEntry::node)
+                            .collect(Collectors.toList())
                     : IterableUtils.toList(txData.createdNodes());
             try {
                 nodes.forEach(node -> {
@@ -163,8 +187,12 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                         node.setProperty(propertyName, uuid);
                     }
                 });
-                checkAndRestoreUuidProperty(assignedNodeProperties, label, propertyName,
-                        (nodePropertyEntry) -> nodePropertyEntry.value() == null || nodePropertyEntry.value().equals(""));
+                checkAndRestoreUuidProperty(
+                        assignedNodeProperties,
+                        label,
+                        propertyName,
+                        (nodePropertyEntry) -> nodePropertyEntry.value() == null
+                                || nodePropertyEntry.value().equals(""));
                 checkAndRestoreUuidProperty(removedNodeProperties, label, propertyName);
             } catch (Exception e) {
                 log.warn("Error executing uuid " + label + " in phase before", e);
@@ -174,14 +202,10 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     @Override
-    public void afterCommit(TransactionData data, Void state, GraphDatabaseService databaseService) {
-
-    }
+    public void afterCommit(TransactionData data, Void state, GraphDatabaseService databaseService) {}
 
     @Override
-    public void afterRollback(TransactionData data, Void state, GraphDatabaseService databaseService) {
-
-    }
+    public void afterRollback(TransactionData data, Void state, GraphDatabaseService databaseService) {}
 
     private void checkEnabled() {
         UUIDHandlerNewProcedures.checkEnabled(db.databaseName());
@@ -200,15 +224,19 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     public void checkConstraintUuid(Transaction tx, String label, String propertyName) {
         Schema schema = tx.schema();
-        Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
+        Stream<ConstraintDefinition> constraintDefinitionStream =
+                StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
         boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
-            Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
+            Stream<String> streamPropertyKeys =
+                    StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
             return streamPropertyKeys.anyMatch(property -> property.equals(propertyName));
         });
         if (!exists) {
-            String error = String.format("`CREATE CONSTRAINT FOR (%s:%s) REQUIRE %s.%s IS UNIQUE`",
+            String error = String.format(
+                    "`CREATE CONSTRAINT FOR (%s:%s) REQUIRE %s.%s IS UNIQUE`",
                     label.toLowerCase(), label, label.toLowerCase(), propertyName);
-            throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
+            throw new RuntimeException("No constraint found for label: " + label
+                    + ", please add the constraint with the following : " + error);
         }
     }
 
@@ -218,11 +246,13 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         checkConstraintUuid(tx, label, propertyName);
 
         try (Transaction sysTx = apocConfig.getSystemDb().beginTx()) {
-            Node node = Util.mergeNode(sysTx, SystemLabels.ApocUuid, null,
+            Node node = Util.mergeNode(
+                    sysTx,
+                    SystemLabels.ApocUuid,
+                    null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
                     Pair.of(SystemPropertyKeys.label.name(), label),
-                    Pair.of(SystemPropertyKeys.propertyName.name(), propertyName)
-                    );
+                    Pair.of(SystemPropertyKeys.propertyName.name(), propertyName));
             node.setProperty(SystemPropertyKeys.addToSetLabel.name(), config.isAddToSetLabels());
             sysTx.commit();
         }
@@ -243,10 +273,9 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             localCache.forEach((label, conf) -> {
                 // auto-create uuid constraint
                 if (conf.isCreateConstraint()) {
-                    String queryConst = String.format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
-                            Util.quote(label),
-                            Util.quote(conf.getUuidProperty())
-                    );
+                    String queryConst = String.format(
+                            "CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE (n.%s) IS UNIQUE",
+                            Util.quote(label), Util.quote(conf.getUuidProperty()));
                     db.executeTransactionally(queryConst);
                     conf.setCreateConstraint(false);
                 }
@@ -269,16 +298,15 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
 
     public Map<String, UuidConfig> provisionalRefresh() {
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            return tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
-                    .stream()
+            return tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName()).stream()
                     .collect(Collectors.toUnmodifiableMap(
-                        node -> (String) node.getProperty(SystemPropertyKeys.label.name()),
-                        node -> new UuidConfig(Map.of(
-                                UUID_PROPERTY_KEY, node.getProperty(SystemPropertyKeys.propertyName.name()),
-                                ADD_TO_SET_LABELS_KEY, node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false),
-                                ADD_TO_EXISTING_NODES_KEY, node.getProperty(SystemPropertyKeys.addToExistingNodes.name(), false)
-                        ))
-                    ));
+                            node -> (String) node.getProperty(SystemPropertyKeys.label.name()),
+                            node -> new UuidConfig(Map.of(
+                                    UUID_PROPERTY_KEY, node.getProperty(SystemPropertyKeys.propertyName.name()),
+                                    ADD_TO_SET_LABELS_KEY,
+                                            node.getProperty(SystemPropertyKeys.addToSetLabel.name(), false),
+                                    ADD_TO_EXISTING_NODES_KEY,
+                                            node.getProperty(SystemPropertyKeys.addToExistingNodes.name(), false)))));
         }
     }
 
@@ -293,8 +321,12 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     public synchronized UuidConfig remove(String label) {
         final var oldValue = labelAndPropertyNamesSnapshot.get().get(label);
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.label.name(), label)
+            tx.findNodes(
+                            SystemLabels.ApocUuid,
+                            SystemPropertyKeys.database.name(),
+                            db.databaseName(),
+                            SystemPropertyKeys.label.name(),
+                            label)
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }
@@ -306,12 +338,11 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         final var retval = labelAndPropertyNamesSnapshot.get();
         labelAndPropertyNamesSnapshot.set(Map.of());
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
-            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName() )
+            tx.findNodes(SystemLabels.ApocUuid, SystemPropertyKeys.database.name(), db.databaseName())
                     .forEachRemaining(node -> node.delete());
             tx.commit();
         }
         refresh();
         return retval;
     }
-
 }

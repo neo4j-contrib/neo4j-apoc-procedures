@@ -18,13 +18,12 @@
  */
 package apoc.load;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import static org.junit.Assert.*;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
 
 public class SkipWhitespaceInputStreamTest {
 
@@ -38,5 +37,4 @@ public class SkipWhitespaceInputStreamTest {
         InputStream inputStream = IOUtils.toInputStream(input, "UTF-8");
         assertEquals(expected, IOUtils.toString(new SkipWhitespaceInputStream(inputStream), "UTF-8"));
     }
-
 }

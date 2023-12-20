@@ -26,6 +26,7 @@ import apoc.result.ProgressInfo;
  */
 public interface Reporter {
     void progress(String msg);
+
     void update(long nodes, long rels, long properties);
 
     void done();

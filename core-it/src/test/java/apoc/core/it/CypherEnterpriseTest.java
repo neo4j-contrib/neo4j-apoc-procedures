@@ -1,18 +1,5 @@
 package apoc.core.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.types.Node;
-
-import java.util.List;
-import java.util.Map;
-
 import static apoc.cypher.CypherTestUtil.CREATE_RESULT_NODES;
 import static apoc.cypher.CypherTestUtil.CREATE_RETURNQUERY_NODES;
 import static apoc.cypher.CypherTestUtil.SET_AND_RETURN_QUERIES;
@@ -25,6 +12,18 @@ import static apoc.cypher.CypherTestUtil.testRunProcedureWithSimpleReturnResults
 import static apoc.util.TestContainerUtil.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestUtil;
+import java.util.List;
+import java.util.Map;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
 
 public class CypherEnterpriseTest {
     private static Neo4jContainerExtension neo4jContainer;
@@ -71,7 +70,8 @@ public class CypherEnterpriseTest {
 
         session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
 
-        // even if this procedure is read-only and execute a write operation, it doesn't fail but just skip the statements
+        // even if this procedure is read-only and execute a write operation, it doesn't fail but just skip the
+        // statements
         testCallEmpty(session, query, params);
     }
 
@@ -122,10 +122,9 @@ public class CypherEnterpriseTest {
 
         session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
 
-        RuntimeException e = assertThrows(RuntimeException.class,
-                () -> testCall(session, query, params, (res) -> {})
-        );
-        String expectedMessage = "Set property for property 'updated' on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ.";
+        RuntimeException e = assertThrows(RuntimeException.class, () -> testCall(session, query, params, (res) -> {}));
+        String expectedMessage =
+                "Set property for property 'updated' on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ.";
         Assertions.assertThat(e.getMessage()).contains(expectedMessage);
     }
 
@@ -170,5 +169,4 @@ public class CypherEnterpriseTest {
             assertFalse(r.hasNext());
         });
     }
-
 }

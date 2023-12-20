@@ -18,6 +18,8 @@
  */
 package apoc;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
@@ -28,9 +30,6 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.service.Services;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NOTE: this is a GLOBAL component, so only once per DBMS
@@ -54,6 +53,7 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
 
     public interface Dependencies {
         LogService log();
+
         GlobalProcedures globalProceduresRegistry();
     }
 
@@ -73,23 +73,25 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
         @Override
         public void init() throws Exception {
 
-            for (ApocGlobalComponents c: Services.loadAll(ApocGlobalComponents.class)) {
-                for (Class clazz: c.getContextClasses()) {
+            for (ApocGlobalComponents c : Services.loadAll(ApocGlobalComponents.class)) {
+                for (Class clazz : c.getContextClasses()) {
                     resolvers.put(clazz, new ConcurrentHashMap<>());
                 }
             }
 
-            resolvers.forEach(
-                    (clazz, dbFunctionMap) -> globalProceduresRegistry.registerComponent(clazz, context -> {
+            resolvers.forEach((clazz, dbFunctionMap) -> globalProceduresRegistry.registerComponent(
+                    clazz,
+                    context -> {
                         String databaseName = context.graphDatabaseAPI().databaseName();
                         Object instance = dbFunctionMap.get(databaseName);
                         if (instance == null) {
-                            log.warn("couldn't find a instance for clazz %s and database %s", clazz.getName(), databaseName);
+                            log.warn(
+                                    "couldn't find a instance for clazz %s and database %s",
+                                    clazz.getName(), databaseName);
                         }
                         return instance;
-                    }, true)
-            );
+                    },
+                    true));
         }
-
     }
 }

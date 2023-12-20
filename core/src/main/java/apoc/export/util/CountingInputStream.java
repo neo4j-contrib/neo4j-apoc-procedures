@@ -18,13 +18,12 @@
  */
 package apoc.export.util;
 
-import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
-import org.apache.commons.io.input.BOMInputStream;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
-
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
+import org.apache.commons.io.input.BOMInputStream;
 
 /**
  * @author mh
@@ -34,7 +33,7 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
 
     public static final int BUFFER_SIZE = 1024 * 1024;
     private final long total;
-    private long count=0;
+    private long count = 0;
     private long newLines;
 
     public CountingInputStream(InputStream stream, long total) {
@@ -52,8 +51,8 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
     @Override
     public int read(byte[] buf, int off, int len) throws IOException {
         int read = super.read(buf, off, len);
-        count+=read;
-        for (int i=off;i<off+len;i++) {
+        count += read;
+        for (int i = off; i < off + len; i++) {
             if (buf[i] == '\n') newLines++;
         }
         return read;
@@ -88,17 +87,17 @@ public class CountingInputStream extends FilterInputStream implements SizeCounte
     @Override
     public long getPercent() {
         if (total <= 0) return 0;
-        return count*100 / total;
+        return count * 100 / total;
     }
 
     public InputStream getStream() {
-	   return in;
+        return in;
     }
 
-	public CountingReader asReader() throws IOException {
-		Reader reader = new InputStreamReader(in,"UTF-8");
-        return new CountingReader(reader,total);
-	}
+    public CountingReader asReader() throws IOException {
+        Reader reader = new InputStreamReader(in, "UTF-8");
+        return new CountingReader(reader, total);
+    }
 
     public SeekableByteChannel asChannel() throws IOException {
         return new SeekableInMemoryByteChannel(this.readAllBytes());

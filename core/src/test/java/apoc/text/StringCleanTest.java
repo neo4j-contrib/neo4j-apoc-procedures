@@ -18,7 +18,13 @@
  */
 package apoc.text;
 
+import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.TestUtil;
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -29,13 +35,6 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Stefan Armbruster
@@ -53,15 +52,15 @@ public class StringCleanTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Parameters(name = "{0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                { "&N[]eo  4 #J-(3.0)  ", "neo4j30"},
-                { "German umlaut Ä Ö Ü ä ö ü ß ", "germanumlautaeoeueaeoeuess" },
-                { "French çÇéèêëïîôœàâæùûü", "frenchcceeeeiioœaaæuuue"}
+        return Arrays.asList(new Object[][] {
+            {"&N[]eo  4 #J-(3.0)  ", "neo4j30"},
+            {"German umlaut Ä Ö Ü ä ö ü ß ", "germanumlautaeoeueaeoeuess"},
+            {"French çÇéèêëïîôœàâæùûü", "frenchcceeeeiioœaaæuuue"}
         });
     }
 
@@ -73,10 +72,10 @@ public class StringCleanTest {
 
     @Test
     public void testClean() throws Exception {
-        testCall(db,
+        testCall(
+                db,
                 "RETURN apoc.text.clean($a) AS value",
                 map("a", dirty),
                 row -> assertEquals(clean, row.get("value")));
     }
-
 }

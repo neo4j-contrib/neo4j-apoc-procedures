@@ -18,6 +18,13 @@
  */
 package apoc.couchbase;
 
+import static apoc.util.TestUtil.isRunningInCI;
+import static com.couchbase.client.java.query.QueryOptions.queryOptions;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
+
 import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
@@ -28,24 +35,16 @@ import com.couchbase.client.java.manager.collection.CollectionManager;
 import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
 import com.couchbase.client.java.query.QueryScanConsistency;
-import org.testcontainers.containers.Container;
-import org.testcontainers.couchbase.BucketDefinition;
-import org.testcontainers.couchbase.CouchbaseContainer;
-
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static apoc.util.TestUtil.isRunningInCI;
-import static com.couchbase.client.java.query.QueryOptions.queryOptions;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeFalse;
+import java.util.stream.Stream;
+import org.testcontainers.containers.Container;
+import org.testcontainers.couchbase.BucketDefinition;
+import org.testcontainers.couchbase.CouchbaseContainer;
 
 public class CouchbaseTestUtils {
 
@@ -58,7 +57,6 @@ public class CouchbaseTestUtils {
     public static final String SECOND_COLL_NAME = "anotherTwo";
     public static final String SECOND_SCOPE = "secondScope";
 
-
     private static final String QUERY = "select * from %s where lastName = 'Van Gogh'";
 
     protected static final String COUCHBASE_CONFIG_KEY = "demo";
@@ -69,39 +67,48 @@ public class CouchbaseTestUtils {
     protected static CouchbaseContainer couchbase;
     protected static Collection collection;
     protected static String HOST = null;
-    
-    public static final JsonObject BIG_JSON = JsonObject.from(IntStream.range(0, 99999).boxed().collect(Collectors.toMap(Object::toString, Object::toString)));
+
+    public static final JsonObject BIG_JSON = JsonObject.from(
+            IntStream.range(0, 99999).boxed().collect(Collectors.toMap(Object::toString, Object::toString)));
 
     public static final JsonObject VINCENT_VAN_GOGH = JsonObject.create()
             .put("firstName", "Vincent")
             .put("secondName", "Willem")
             .put("lastName", "Van Gogh")
-            .put("notableWorks", JsonArray.from("Starry Night", "Sunflowers", "Bedroom in Arles", "Portrait of Dr Gachet", "Sorrow"));
+            .put(
+                    "notableWorks",
+                    JsonArray.from(
+                            "Starry Night", "Sunflowers", "Bedroom in Arles", "Portrait of Dr Gachet", "Sorrow"));
 
     public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
-        QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
-                queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+        QueryResult queryResult = cluster.query(
+                String.format(QUERY, BUCKET_NAME), queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
         final CollectionManager collectionManager = couchbaseBucket.collections();
         collectionManager.createScope(SECOND_SCOPE);
         collectionManager.createCollection(CollectionSpec.create(COLL_NAME, CollectionIdentifier.DEFAULT_COLLECTION));
         collectionManager.createCollection(CollectionSpec.create(SECOND_COLL_NAME, SECOND_SCOPE));
-        
+
         Collection anotherCollection = couchbaseBucket.collection(COLL_NAME);
         anotherCollection.insert("foo:bar", JsonObject.create().put("alpha", "beta"));
-        
+
         Collection secondScopeCollection = couchbaseBucket.scope(SECOND_SCOPE).collection(SECOND_COLL_NAME);
         secondScopeCollection.insert(SECOND_SCOPE, JsonObject.create().put("one", "two"));
-        
+
         return queryResult.rowsAsObject().size() == 1;
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getFirstMappedPort());
+        return String.format(
+                "couchbase://%s:%s@%s:%s",
+                USERNAME,
+                PASSWORD,
+                couchbaseContainer.getContainerIpAddress(),
+                couchbaseContainer.getFirstMappedPort());
     }
-    
+
     @SuppressWarnings("unchecked")
     public static void checkListResult(Map<String, Object> r) {
         assertTrue(r.get("queryResult") instanceof List);
@@ -127,7 +134,8 @@ public class CouchbaseTestUtils {
                 notableWorks);
     }
 
-    public static void checkDocumentContent(String firstName, String secondName, String lastName, List<String> notableWorks) {
+    public static void checkDocumentContent(
+            String firstName, String secondName, String lastName, List<String> notableWorks) {
         assertEquals("Vincent", firstName);
         assertEquals("Willem", secondName);
         assertEquals("Van Gogh", lastName);
@@ -149,7 +157,8 @@ public class CouchbaseTestUtils {
         couchbase.start();
         COUCHBASE_HOST = couchbase.getHost();
 
-        Cluster cluster = Cluster.connect(couchbase.getConnectionString(), couchbase.getUsername(), couchbase.getPassword());
+        Cluster cluster =
+                Cluster.connect(couchbase.getConnectionString(), couchbase.getUsername(), couchbase.getPassword());
         cluster.waitUntilReady(Duration.of(30, ChronoUnit.SECONDS));
 
         fillDB(cluster);
@@ -160,7 +169,8 @@ public class CouchbaseTestUtils {
 
     protected static int getNumConnections() {
         try {
-            final Container.ExecResult execResult = couchbase.execInContainer("cbstats", COUCHBASE_HOST + ":11210", "-p", PASSWORD, "-u", USERNAME, "-a", "all");
+            final Container.ExecResult execResult = couchbase.execInContainer(
+                    "cbstats", COUCHBASE_HOST + ":11210", "-p", PASSWORD, "-u", USERNAME, "-a", "all");
             return Stream.of(execResult.getStdout().split(System.lineSeparator()))
                     .filter(line -> line.contains("curr_connections"))
                     .findFirst()
@@ -172,5 +182,4 @@ public class CouchbaseTestUtils {
             throw new RuntimeException(e);
         }
     }
-
 }

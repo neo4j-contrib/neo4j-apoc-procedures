@@ -18,19 +18,18 @@
  */
 package apoc.monitor;
 
+import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.*;
+
 import apoc.date.Date;
 import apoc.util.TestUtil;
+import java.text.SimpleDateFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.text.SimpleDateFormat;
-
-import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.*;
 
 public class KernelProcedureTest {
 

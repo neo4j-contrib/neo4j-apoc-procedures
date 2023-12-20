@@ -20,6 +20,13 @@ package apoc.export.arrow;
 
 import apoc.Pools;
 import apoc.result.ByteArrayResult;
+import java.io.OutputStream;
+import java.nio.channels.Channels;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
@@ -33,14 +40,6 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
-import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Stream;
-
 public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubGraph>, ExportGraphStrategy {
 
     private final GraphDatabaseService db;
@@ -52,8 +51,8 @@ public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubG
 
     private Schema schema;
 
-
-    public ExportGraphStreamStrategy(GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+    public ExportGraphStreamStrategy(
+            GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
         this.db = db;
         this.pools = pools;
         this.terminationGuard = terminationGuard;

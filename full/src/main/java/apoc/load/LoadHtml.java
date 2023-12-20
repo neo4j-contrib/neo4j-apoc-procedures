@@ -18,12 +18,23 @@
  */
 package apoc.load;
 
+import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
+import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
+
 import apoc.Extended;
 import apoc.result.MapResult;
-import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
+import apoc.util.MissingDependencyException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -36,19 +47,6 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import static apoc.load.LoadHtmlBrowser.getChromeInputStream;
-import static apoc.load.LoadHtmlBrowser.getFirefoxInputStream;
 
 @Extended
 public class LoadHtml {
@@ -63,18 +61,27 @@ public class LoadHtml {
     public Log log;
 
     @Procedure
-    @Description("apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
-    public Stream<MapResult> htmlPlainText(@Name("urlOrHtml") String urlOrHtml, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
+    public Stream<MapResult> htmlPlainText(
+            @Name("urlOrHtml") String urlOrHtml,
+            @Name(value = "query", defaultValue = "{}") Map<String, String> query,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return readHtmlPage(urlOrHtml, query, config, HtmlResultInterface.Type.PLAIN_TEXT);
     }
 
     @Procedure
-    @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
-    public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
+    public Stream<MapResult> html(
+            @Name("url") String url,
+            @Name(value = "query", defaultValue = "{}") Map<String, String> query,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return readHtmlPage(url, query, config, HtmlResultInterface.Type.DEFAULT);
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> conf, HtmlResultInterface.Type type) {
+    private Stream<MapResult> readHtmlPage(
+            String url, Map<String, String> query, Map<String, Object> conf, HtmlResultInterface.Type type) {
         LoadHtmlConfig config = new LoadHtmlConfig(conf);
         try {
             // baseUri is used to resolve relative paths
@@ -100,44 +107,47 @@ public class LoadHtml {
             throw new RuntimeException("Invalid config: " + config);
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found from: " + url);
-        } catch(Exception e) {
-            throw new RuntimeException("Can't read the HTML from: "+ url, e);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't read the HTML from: " + url, e);
         }
     }
 
-    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException {
+    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config)
+            throws IOException {
 
         final boolean isHeadless = config.isHeadless();
         final boolean isAcceptInsecureCerts = config.isAcceptInsecureCerts();
         switch (config.getBrowser()) {
             case FIREFOX:
-                return withSeleniumBrowser(() -> getFirefoxInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
+                return withSeleniumBrowser(
+                        () -> getFirefoxInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             case CHROME:
-                return withSeleniumBrowser(() -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
+                return withSeleniumBrowser(
+                        () -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             default:
                 return FileUtils.inputStreamFor(url, null, null, null);
         }
     }
 
-    public static List<Map<String, Object>> getElements(Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
+    public static List<Map<String, Object>> getElements(
+            Elements elements, LoadHtmlConfig conf, List<String> errorList, Log log) {
 
         List<Map<String, Object>> elementList = new ArrayList<>();
 
         for (Element element : elements) {
             withError(element, errorList, conf.getFailSilently(), log, () -> {
                 Map<String, Object> result = new HashMap<>();
-                if(element.attributes().size() > 0) result.put("attributes", getAttributes(element));
-                if(!element.data().isEmpty()) result.put("data", element.data());
-                if(!element.val().isEmpty()) result.put("value", element.val());
-                if(!element.tagName().isEmpty()) result.put("tagName", element.tagName());
+                if (element.attributes().size() > 0) result.put("attributes", getAttributes(element));
+                if (!element.data().isEmpty()) result.put("data", element.data());
+                if (!element.val().isEmpty()) result.put("value", element.val());
+                if (!element.tagName().isEmpty()) result.put("tagName", element.tagName());
 
                 if (conf.isChildren()) {
-                    if(element.hasText()) result.put("text", element.ownText());
+                    if (element.hasText()) result.put("text", element.ownText());
 
                     result.put("children", getElements(element.children(), conf, errorList, log));
-                }
-                else {
-                    if(element.hasText()) result.put("text", element.text());
+                } else {
+                    if (element.hasText()) result.put("text", element.text());
                 }
                 elementList.add(result);
                 return null;
@@ -173,7 +183,8 @@ public class LoadHtml {
         return attributes;
     }
 
-    public static <T> T withError(Element element, List<String> errorList, LoadHtmlConfig.FailSilently failConfig, Log log, Supplier<T> fun) {
+    public static <T> T withError(
+            Element element, List<String> errorList, LoadHtmlConfig.FailSilently failConfig, Log log, Supplier<T> fun) {
 
         try {
             return fun.get();
@@ -197,9 +208,9 @@ public class LoadHtml {
         try {
             return action.get();
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException("Cannot find jars into the plugins folder.\n" +
-                    "See the documentation: https://neo4j.com/labs/apoc/4.1/overview/apoc.load/apoc.load.html/#selenium-depencencies");
+            throw new MissingDependencyException(
+                    "Cannot find jars into the plugins folder.\n"
+                            + "See the documentation: https://neo4j.com/labs/apoc/4.1/overview/apoc.load/apoc.load.html/#selenium-depencencies");
         }
     }
-
 }

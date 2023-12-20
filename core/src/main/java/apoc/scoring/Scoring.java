@@ -25,9 +25,7 @@ import org.neo4j.procedure.UserFunction;
 public class Scoring {
     @UserFunction
     @Description("apoc.scoring.existence(5, true) returns the provided score if true, 0 if false")
-    public double existence(
-            final @Name("score") long score,
-            final @Name("exists") boolean exists) {
+    public double existence(final @Name("score") long score, final @Name("exists") boolean exists) {
         return (double) (exists ? score : 0);
     }
 
@@ -40,8 +38,7 @@ public class Scoring {
             final @Name("score") long score) {
         if (score < minimumThreshold) {
             return 0.0d;
-        }
-        else {
+        } else {
             double alpha = Math.log((double) 5) / eightyPercentValue;
             double exp = Math.exp(-alpha * score);
 
@@ -49,4 +46,3 @@ public class Scoring {
         }
     }
 }
-

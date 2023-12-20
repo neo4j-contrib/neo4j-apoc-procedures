@@ -18,7 +18,23 @@
  */
 package apoc.export.arrow;
 
+import static apoc.export.arrow.ArrowUtils.FIELD_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
+import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
+import static apoc.export.arrow.ExportArrowStrategy.toField;
+
 import apoc.util.Util;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.neo4j.cypher.export.SubGraph;
@@ -31,51 +47,31 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.internal.helpers.collection.Iterables;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static apoc.export.arrow.ArrowUtils.FIELD_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
-import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
-import static apoc.export.arrow.ExportArrowStrategy.toField;
-
 public interface ExportGraphStrategy {
 
     default Schema schemaFor(GraphDatabaseService db, List<Map<String, Object>> records) {
         final Function<Map<String, Object>, Stream<? extends Field>> flatMapStream = m -> {
             String propertyName = (String) m.get("propertyName");
             List<String> propertyTypes = (List<String>) m.get("propertyTypes");
-            return propertyTypes.stream()
-                    .map(propertyType -> toField(propertyName, new HashSet<>(propertyTypes)));
+            return propertyTypes.stream().map(propertyType -> toField(propertyName, new HashSet<>(propertyTypes)));
         };
         final Predicate<Map<String, Object>> filterStream = m -> m.get("propertyName") != null;
-        final ResultTransformer<Set<Field>> parsePropertiesResult = result -> result.stream()
-                .filter(filterStream)
-                .flatMap(flatMapStream)
-                .collect(Collectors.toSet());
+        final ResultTransformer<Set<Field>> parsePropertiesResult = result ->
+                result.stream().filter(filterStream).flatMap(flatMapStream).collect(Collectors.toSet());
 
         final Map<String, Object> cfg = records.get(0);
         final Map<String, Object> parameters = Map.of("config", cfg);
         final Set<Field> allFields = new HashSet<>();
-        Set<Field> nodeFields = db.executeTransactionally("CALL apoc.meta.nodeTypeProperties($config)",
-                parameters, parsePropertiesResult);
+        Set<Field> nodeFields = db.executeTransactionally(
+                "CALL apoc.meta.nodeTypeProperties($config)", parameters, parsePropertiesResult);
 
         allFields.add(FIELD_ID);
         allFields.add(FIELD_LABELS);
         allFields.addAll(nodeFields);
 
         if (cfg.containsKey("includeRels")) {
-            final Set<Field> relFields = db.executeTransactionally("CALL apoc.meta.relTypeProperties($config)",
-                    parameters, parsePropertiesResult);
+            final Set<Field> relFields = db.executeTransactionally(
+                    "CALL apoc.meta.relTypeProperties($config)", parameters, parsePropertiesResult);
             allFields.add(FIELD_SOURCE_ID);
             allFields.add(FIELD_TARGET_ID);
             allFields.add(FIELD_TYPE);
@@ -100,9 +96,8 @@ public interface ExportGraphStrategy {
     }
 
     default Map<String, Object> createConfigMap(SubGraph subGraph, ArrowConfig config) {
-        final List<String> allLabelsInUse = Iterables.stream(subGraph.getAllLabelsInUse())
-                .map(Label::name)
-                .collect(Collectors.toList());
+        final List<String> allLabelsInUse =
+                Iterables.stream(subGraph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList());
         final List<String> allRelationshipTypesInUse = Iterables.stream(subGraph.getAllRelationshipTypesInUse())
                 .map(RelationshipType::name)
                 .collect(Collectors.toList());

@@ -1,9 +1,8 @@
 package apoc.util;
 
+import java.time.Duration;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-
-import java.time.Duration;
 
 public class MySQLContainerExtension extends MySQLContainer<MySQLContainerExtension> {
 

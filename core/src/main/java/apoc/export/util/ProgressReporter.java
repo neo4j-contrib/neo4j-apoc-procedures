@@ -19,11 +19,10 @@
 package apoc.export.util;
 
 import apoc.result.ProgressInfo;
-import org.neo4j.graphdb.QueryStatistics;
-
 import java.io.PrintWriter;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.neo4j.graphdb.QueryStatistics;
 
 /**
  * @author mh
@@ -58,7 +57,13 @@ public class ProgressReporter implements Reporter {
     public void progress(String msg) {
         long now = System.currentTimeMillis();
         // todo report percentages back
-        println(String.format(msg + " %d. %d%%: %s time %d ms total %d ms", counter++, percent(), progressInfo, now - time, now - start));
+        println(String.format(
+                msg + " %d. %d%%: %s time %d ms total %d ms",
+                counter++,
+                percent(),
+                progressInfo,
+                now - time,
+                now - start));
         time = now;
     }
 
@@ -87,7 +92,7 @@ public class ProgressReporter implements Reporter {
     }
 
     public void updateRunningBatch(ProgressInfo progressInfo) {
-        lastBatch = Math.max(totalEntities / batchSize,lastBatch);
+        lastBatch = Math.max(totalEntities / batchSize, lastBatch);
         progressInfo.batches = lastBatch;
         this.progressInfo.rows = totalEntities;
         this.progressInfo.updateTime(start);
@@ -129,5 +134,4 @@ public class ProgressReporter implements Reporter {
         this.totalEntities++;
         acceptBatch();
     }
-
 }

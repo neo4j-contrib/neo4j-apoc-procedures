@@ -19,13 +19,6 @@
 package apoc;
 
 import apoc.periodic.Periodic;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.lifecycle.LifecycleAdapter;
-import org.neo4j.logging.Log;
-import org.neo4j.logging.internal.LogService;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,11 +38,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
+import org.neo4j.logging.Log;
+import org.neo4j.logging.internal.LogService;
 
 public class Pools extends LifecycleAdapter {
 
-    public final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
-    public final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+    public static final int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
+    public static final int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     private final Log log;
     private final GlobalProcedures globalProceduresRegistry;
     private final ApocConfig apocConfig;
@@ -58,7 +57,7 @@ public class Pools extends LifecycleAdapter {
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService defaultExecutorService;
 
-    private final Map<Periodic.JobInfo,Future> jobList = new ConcurrentHashMap<>();
+    private final Map<Periodic.JobInfo, Future> jobList = new ConcurrentHashMap<>();
 
     public Pools(LogService log, GlobalProcedures globalProceduresRegistry, ApocConfig apocConfig) {
 
@@ -74,7 +73,8 @@ public class Pools extends LifecycleAdapter {
     @Override
     public void init() {
 
-        int threads = Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
+        int threads =
+                Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
 
         int queueSize = Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_QUEUE_SIZE, threads * 5));
 
@@ -84,35 +84,56 @@ public class Pools extends LifecycleAdapter {
             t.setDaemon(true);
             return t;
         };
-        this.singleExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
-                threadFactory, new CallerBlocksPolicy());
+        this.singleExecutorService = new ThreadPoolExecutor(
+                1,
+                1,
+                0L,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(queueSize),
+                threadFactory,
+                new CallerBlocksPolicy());
 
-        this.defaultExecutorService = new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
-                threadFactory, new CallerBlocksPolicy());
+        this.defaultExecutorService = new ThreadPoolExecutor(
+                threads / 2,
+                threads,
+                30L,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(queueSize),
+                threadFactory,
+                new CallerBlocksPolicy());
 
         this.scheduledExecutorService = Executors.newScheduledThreadPool(
-                Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS)),
-                threadFactory
-        );
+                Math.max(
+                        1,
+                        apocConfig.getInt(
+                                ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS)),
+                threadFactory);
 
-        scheduledExecutorService.scheduleAtFixedRate(() -> {
-            for (Iterator<Map.Entry<Periodic.JobInfo, Future>> it = jobList.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Periodic.JobInfo, Future> entry = it.next();
-                if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
-            }
-        },10,10,TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(
+                () -> {
+                    for (Iterator<Map.Entry<Periodic.JobInfo, Future>> it =
+                                    jobList.entrySet().iterator();
+                            it.hasNext(); ) {
+                        Map.Entry<Periodic.JobInfo, Future> entry = it.next();
+                        if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
+                    }
+                },
+                10,
+                10,
+                TimeUnit.SECONDS);
     }
 
     @Override
     public void shutdown() throws Exception {
-        Stream.of(singleExecutorService, defaultExecutorService, scheduledExecutorService).forEach( service -> {
-            try {
-                service.shutdown();
-                service.awaitTermination(10, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Shutdown failed to complete with error: " + e.getMessage());
-            }
-        });
+        Stream.of(singleExecutorService, defaultExecutorService, scheduledExecutorService)
+                .forEach(service -> {
+                    try {
+                        service.shutdown();
+                        service.awaitTermination(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("Shutdown failed to complete with error: " + e.getMessage());
+                    }
+                });
     }
 
     public ExecutorService getSingleExecutorService() {
@@ -134,24 +155,21 @@ public class Pools extends LifecycleAdapter {
     static class CallerBlocksPolicy implements RejectedExecutionHandler {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            // Submit again by directly injecting the task into the work queue, waiting if necessary, but also periodically checking if the pool has been
+            // Submit again by directly injecting the task into the work queue, waiting if necessary, but also
+            // periodically checking if the pool has been
             // shut down.
-            FutureTask<Void> task = new FutureTask<>( r, null );
+            FutureTask<Void> task = new FutureTask<>(r, null);
             BlockingQueue<Runnable> queue = executor.getQueue();
             while (!executor.isShutdown()) {
                 try {
-                    if ( queue.offer( task, 250, TimeUnit.MILLISECONDS ) )
-                    {
-                        while ( !executor.isShutdown() )
-                        {
-                            try
-                            {
-                                task.get( 250, TimeUnit.MILLISECONDS );
+                    if (queue.offer(task, 250, TimeUnit.MILLISECONDS)) {
+                        while (!executor.isShutdown()) {
+                            try {
+                                task.get(250, TimeUnit.MILLISECONDS);
                                 return; // Success!
-                            }
-                            catch ( TimeoutException ignore )
-                            {
-                                // This is fine an expected. We just want to check that the executor hasn't been shut down.
+                            } catch (TimeoutException ignore) {
+                                // This is fine an expected. We just want to check that the executor hasn't been shut
+                                // down.
                             }
                         }
                     }
@@ -164,13 +182,12 @@ public class Pools extends LifecycleAdapter {
 
     public <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, BiConsumer<Transaction, T> action) {
         return defaultExecutorService.submit(() -> {
-                try (Transaction tx = db.beginTx()) {
-                    batch.forEach(t -> action.accept(tx, t));
-                    tx.commit();
-                }
-                return null;
+            try (Transaction tx = db.beginTx()) {
+                batch.forEach(t -> action.accept(tx, t));
+                tx.commit();
             }
-        );
+            return null;
+        });
     }
 
     public static <T> T force(Future<T> future) throws ExecutionException {

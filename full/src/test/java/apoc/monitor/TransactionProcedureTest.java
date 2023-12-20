@@ -18,23 +18,21 @@
  */
 package apoc.monitor;
 
+import static apoc.util.CypherInitializerUtil.getInitializer;
+import static apoc.util.TestUtil.testCall;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.isOneOf;
+import static org.junit.Assert.assertEquals;
+
 import apoc.cypher.CypherInitializer;
 import apoc.util.TestUtil;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.concurrent.atomic.AtomicLong;
-
-import static apoc.util.CypherInitializerUtil.getInitializer;
-import static apoc.util.TestUtil.testCall;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TransactionProcedureTest {
 
@@ -66,7 +64,7 @@ public class TransactionProcedureTest {
             assertEquals(3l, lastTxId.addAndGet((long) row.get("lastTxId")));
             assertEquals(1l, row.get("currentOpenedTx"));
             assertEquals(4l, totalOpenedTx.addAndGet((long) row.get("totalOpenedTx")));
-            assertEquals(3l, totalTx.addAndGet((long )row.get("totalTx")));
+            assertEquals(3l, totalTx.addAndGet((long) row.get("totalTx")));
         });
 
         db.executeTransactionally("create ()");

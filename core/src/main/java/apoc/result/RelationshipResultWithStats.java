@@ -18,10 +18,8 @@
  */
 package apoc.result;
 
-import org.neo4j.graphdb.Relationship;
-
 import java.util.Map;
-
+import org.neo4j.graphdb.Relationship;
 
 public class RelationshipResultWithStats extends RelationshipResult {
     public final Map<String, Object> stats;

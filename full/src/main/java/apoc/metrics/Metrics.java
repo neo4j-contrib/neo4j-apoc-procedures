@@ -18,6 +18,9 @@
  */
 package apoc.metrics;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.util.FileUtils.closeReaderSafely;
+
 import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
@@ -26,9 +29,6 @@ import apoc.load.util.LoadCsvConfig;
 import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -37,9 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.FileUtils.closeReaderSafely;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 /**
  * @author moxious
@@ -47,9 +46,11 @@ import static apoc.util.FileUtils.closeReaderSafely;
  */
 @Extended
 public class Metrics {
-    public static final String OUTSIDE_DIR_ERR_MSG = "The path you are trying to access is outside the metrics directory and " +
-            "this procedure is only permitted to access files in it. " +
-            "This may occur if the path in question is a symlink or other link.";
+    public static final String OUTSIDE_DIR_ERR_MSG =
+            "The path you are trying to access is outside the metrics directory and "
+                    + "this procedure is only permitted to access files in it. "
+                    + "This may occur if the path in question is a symlink or other link.";
+
     @Context
     public Log log;
 
@@ -57,6 +58,7 @@ public class Metrics {
     public static class StoragePair {
         public final String setting;
         public final File dir;
+
         public StoragePair(String setting, File dir) {
             this.setting = setting;
             this.dir = dir;
@@ -92,7 +94,7 @@ public class Metrics {
             this.freeSpaceBytes = freeSpaceBytes;
             this.totalSpaceBytes = totalSpaceBytes;
             this.usableSpaceBytes = usableSpaceBytes;
-            this.percentFree = (totalSpaceBytes <= 0) ? 0.0 : ((double)freeSpaceBytes / (double)totalSpaceBytes);
+            this.percentFree = (totalSpaceBytes <= 0) ? 0.0 : ((double) freeSpaceBytes / (double) totalSpaceBytes);
         }
 
         /** Produce a StorageMetric object from a pair */
@@ -111,9 +113,9 @@ public class Metrics {
     public static class GenericMetric {
         public final long timestamp;
         public final String metric;
-        public final Map<String,Object> map;
+        public final Map<String, Object> map;
 
-        public GenericMetric(String metric, long t, Map<String,Object> map) {
+        public GenericMetric(String metric, long t, Map<String, Object> map) {
             this.timestamp = t;
             this.metric = metric;
             this.map = map;
@@ -130,31 +132,29 @@ public class Metrics {
         }
     }
 
-    @Procedure(mode=Mode.DBMS)
+    @Procedure(mode = Mode.DBMS)
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMeasuredMetric> list() {
         File metricsDir = FileUtils.getMetricsDirectory();
 
         final FilenameFilter filter = (dir, name) -> name.toLowerCase().endsWith(".csv");
-        return Arrays.asList(metricsDir.listFiles(filter))
-                .stream()
-                .map(metricFile -> {
-                    String name = metricFile.getName();
-                    String metricName = name.substring(0, name.length() - 4);
-                    File f = new File(metricsDir, name);
-                    return new Neo4jMeasuredMetric(metricName, f.lastModified());
-                });
+        return Arrays.asList(metricsDir.listFiles(filter)).stream().map(metricFile -> {
+            String name = metricFile.getName();
+            String metricName = name.substring(0, name.length() - 4);
+            File f = new File(metricsDir, name);
+            return new Neo4jMeasuredMetric(metricName, f.lastModified());
+        });
     }
 
     /**
      * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
      * header row.  We want to discard those.
      */
-    private static final Predicate<CSVResult> duplicatedHeaderRows = new Predicate <CSVResult> () {
+    private static final Predicate<CSVResult> duplicatedHeaderRows = new Predicate<CSVResult>() {
         public boolean test(CSVResult o) {
             if (o == null) return false;
 
-            Map<String,Object> map = o.map;
+            Map<String, Object> map = o.map;
 
             // Most commonly CSV has a timestamp "t" field, if its value = "t"
             // Then it's a repeated header.  This is just a shortcut for the most common
@@ -165,7 +165,7 @@ public class Metrics {
             if ("t".equals(map.get("t"))) {
                 return false;
             } else {
-                for(Object value : map.values()) {
+                for (Object value : map.values()) {
                     if (value instanceof Number) {
                         // Any value which is a number got type converted, and is not a header.
                         return true;
@@ -179,16 +179,16 @@ public class Metrics {
         }
     };
 
-    public Stream<GenericMetric> loadCsvForMetric(String metricName, Map<String,Object> config) {
+    public Stream<GenericMetric> loadCsvForMetric(String metricName, Map<String, Object> config) {
         // These config parameters are generally true of Neo4j metrics.
         config.put("sep", ",");
         config.put("header", true);
 
         File metricsDir = FileUtils.getMetricsDirectory();
         if (metricsDir == null) {
-            throw new RuntimeException("Metrics directory either does not exist or is not readable.  " +
-                    "To use this procedure please ensure CSV metrics are configured " +
-                    "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
+            throw new RuntimeException("Metrics directory either does not exist or is not readable.  "
+                    + "To use this procedure please ensure CSV metrics are configured "
+                    + "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
         }
 
         final File file = new File(metricsDir, metricName + ".csv");
@@ -209,19 +209,21 @@ public class Metrics {
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)
                     .filter(Metrics.duplicatedHeaderRows)
-                    .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
+                    .map(csvResult ->
+                            new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
         } catch (Exception e) {
             closeReaderSafely(reader);
             throw new RuntimeException(e);
         }
     }
 
-    @Procedure(mode=Mode.DBMS)
-    @Description("apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. " +
-            "directorySetting may be any valid neo4j directory setting name, such as 'dbms.directories.data'.  If null is provided " +
-            "as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, " +
-            "see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are " +
-            "a neo4j.conf setting key name")
+    @Procedure(mode = Mode.DBMS)
+    @Description(
+            "apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. "
+                    + "directorySetting may be any valid neo4j directory setting name, such as 'dbms.directories.data'.  If null is provided "
+                    + "as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, "
+                    + "see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are "
+                    + "a neo4j.conf setting key name")
     public Stream<StorageMetric> storage(@Name("directorySetting") String directorySetting) {
         // Permit case-insensitive checks.
         String input = directorySetting == null ? null : directorySetting.toLowerCase();
@@ -230,8 +232,8 @@ public class Metrics {
 
         if (!validSetting) {
             String validOptions = String.join(", ", FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES);
-            throw new RuntimeException("Invalid directory setting specified.  Valid options are one of: " +
-                    validOptions);
+            throw new RuntimeException(
+                    "Invalid directory setting specified.  Valid options are one of: " + validOptions);
         }
 
         return FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream()
@@ -239,20 +241,24 @@ public class Metrics {
                 .filter(dirSetting -> (input == null || input.equals(dirSetting)))
                 .map(StoragePair::fromDirectorySetting)
                 .filter(sp -> {
-                    if (sp == null) { return false; }
+                    if (sp == null) {
+                        return false;
+                    }
 
                     if (sp.dir.exists() && sp.dir.isDirectory() && sp.dir.canRead()) {
                         return true;
                     }
 
-                    log.warn("System directory " + sp.setting + " => " + sp.dir + " does not exist or is not readable.");
+                    log.warn(
+                            "System directory " + sp.setting + " => " + sp.dir + " does not exist or is not readable.");
                     return false;
                 })
                 .map(StorageMetric::fromStoragePair);
     }
 
-    @Procedure(mode=Mode.DBMS)
-    @Description("apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.")
+    @Procedure(mode = Mode.DBMS)
+    @Description(
+            "apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.")
     /**
      * This method is a specialization of apoc.load.csv, it just happens that the directory and file path
      * are local.  For Neo4j metrics, see: https://neo4j.com/docs/operations-manual/current/monitoring/metrics/reference/
@@ -263,12 +269,12 @@ public class Metrics {
      */
     public Stream<GenericMetric> get(
             @Name("metricName") String metricName,
-            @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
-        Map<String,Object> csvConfig = config;
+        Map<String, Object> csvConfig = config;
 
-        if(csvConfig == null) {
-            csvConfig = new HashMap<String,Object>();
+        if (csvConfig == null) {
+            csvConfig = new HashMap<String, Object>();
         }
 
         // Add default mappings for metrics only if user hasn't overridden them.
@@ -279,12 +285,13 @@ public class Metrics {
         return loadCsvForMetric(metricName, csvConfig);
     }
 
-    private static final Map<String,Object> METRIC_TYPE_MAPPINGS = new HashMap<String,Object>();
-    static {
-        final Map<String,String> typeFloat = new HashMap<String,String>();
-        typeFloat.put("type", "float");  // "float" ends up as a double in Meta.java
+    private static final Map<String, Object> METRIC_TYPE_MAPPINGS = new HashMap<String, Object>();
 
-        final Map<String,String> typeLong = new HashMap<String,String>();
+    static {
+        final Map<String, String> typeFloat = new HashMap<String, String>();
+        typeFloat.put("type", "float"); // "float" ends up as a double in Meta.java
+
+        final Map<String, String> typeLong = new HashMap<String, String>();
         typeLong.put("type", "long");
 
         // These are the various fields that are possible in metrics.

@@ -18,16 +18,15 @@
  */
 package apoc.load;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.regex.Pattern;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.regex.Pattern;
 
 @RunWith(Parameterized.class)
 public class SimpleXmlTest {
@@ -35,8 +34,8 @@ public class SimpleXmlTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {"some text with spaces", Arrays.asList("some" ," ", "text", " ", "with", " ", "spaces")},
-                {" some text with spaces", Arrays.asList(" ", "some" ," ", "text", " ", "with", " ", "spaces")}
+            {"some text with spaces", Arrays.asList("some", " ", "text", " ", "with", " ", "spaces")},
+            {" some text with spaces", Arrays.asList(" ", "some", " ", "text", " ", "with", " ", "spaces")}
         });
     }
 

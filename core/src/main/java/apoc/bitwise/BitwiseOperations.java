@@ -29,8 +29,10 @@ import org.neo4j.procedure.UserFunction;
 public class BitwiseOperations {
 
     @UserFunction("apoc.bitwise.op")
-    @Description("apoc.bitwise.op(60,'|',13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation")
-    public Long op(@Name("a") final Long a, @Name("operator") final String operator, @Name("b") final Long b) throws Exception {
+    @Description(
+            "apoc.bitwise.op(60,'|',13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation")
+    public Long op(@Name("a") final Long a, @Name("operator") final String operator, @Name("b") final Long b)
+            throws Exception {
         if (a == null || operator == null || operator.isEmpty()) {
             return null;
         }

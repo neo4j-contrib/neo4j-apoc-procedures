@@ -18,8 +18,15 @@
  */
 package apoc.help;
 
+import static apoc.util.Util.map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import apoc.Extended;
 import apoc.util.TestUtil;
+import java.io.*;
+import java.util.Collections;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,14 +37,6 @@ import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
-
-import java.io.*;
-import java.util.Collections;
-import java.util.Set;
-
-import static apoc.util.Util.map;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 /**
  * @author mh
@@ -71,8 +70,8 @@ public class HelpExtendedTest {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .forPackages("apoc")
                 .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                .filterInputsBy(input -> !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$"))
-        );
+                .filterInputsBy(input ->
+                        !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$")));
 
         return reflections.getTypesAnnotatedWith(Extended.class);
     }
@@ -83,7 +82,9 @@ public class HelpExtendedTest {
         FileOutputStream fos = new FileOutputStream(extendedFile);
 
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
-            db.executeTransactionally("CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
+            db.executeTransactionally(
+                    "CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name",
+                    Collections.emptyMap(),
                     result -> {
                         result.stream().forEach(record -> {
                             try {
@@ -95,7 +96,9 @@ public class HelpExtendedTest {
                         return null;
                     });
 
-            db.executeTransactionally("CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name", Collections.emptyMap(),
+            db.executeTransactionally(
+                    "CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name",
+                    Collections.emptyMap(),
                     result -> {
                         result.stream().forEach(record -> {
                             try {
@@ -112,5 +115,4 @@ public class HelpExtendedTest {
             assertEquals(false, row.get("core"));
         });
     }
-
 }

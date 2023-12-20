@@ -19,13 +19,12 @@
 package apoc.refactor.util;
 
 import apoc.util.ArrayBackedList;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.Relationship;
-
 import java.lang.reflect.Array;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Relationship;
 
 /**
  * @author AgileLARUS
@@ -33,8 +32,7 @@ import java.util.Set;
  */
 public class PropertiesManager {
 
-    private PropertiesManager() {
-    }
+    private PropertiesManager() {}
 
     public static void mergeProperties(Map<String, Object> properties, Entity target, RefactorConfig refactorConfig) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
@@ -44,7 +42,12 @@ public class PropertiesManager {
         }
     }
 
-    private static void mergeProperty(Entity target, RefactorConfig refactorConfig, Map.Entry<String, Object> prop, String key, String mergeMode) {
+    private static void mergeProperty(
+            Entity target,
+            RefactorConfig refactorConfig,
+            Map.Entry<String, Object> prop,
+            String key,
+            String mergeMode) {
         switch (mergeMode) {
             case RefactorConfig.OVERWRITE:
             case RefactorConfig.OVERRIDE:
@@ -62,18 +65,14 @@ public class PropertiesManager {
     }
 
     public static void combineProperties(Map.Entry<String, Object> prop, Entity target, RefactorConfig refactorConfig) {
-        if (!target.hasProperty(prop.getKey()))
-            target.setProperty(prop.getKey(), prop.getValue());
+        if (!target.hasProperty(prop.getKey())) target.setProperty(prop.getKey(), prop.getValue());
         else {
             Set<Object> values = new LinkedHashSet<>();
             if (target.getProperty(prop.getKey()).getClass().isArray())
                 values.addAll(new ArrayBackedList(target.getProperty(prop.getKey())));
-            else
-                values.add(target.getProperty(prop.getKey()));
-            if (prop.getValue().getClass().isArray())
-                values.addAll(new ArrayBackedList(prop.getValue()));
-            else
-                values.add(prop.getValue());
+            else values.add(target.getProperty(prop.getKey()));
+            if (prop.getValue().getClass().isArray()) values.addAll(new ArrayBackedList(prop.getValue()));
+            else values.add(prop.getValue());
             Object array = createPropertyValueFromSet(values, refactorConfig);
             if (array != null) {
                 target.setProperty(prop.getKey(), array);
@@ -109,8 +108,7 @@ public class PropertiesManager {
         Object[] elements = input.toArray();
         Class first = elements[0].getClass();
         for (int i = 1; i < elements.length; i++) {
-            if (!first.equals(elements[i].getClass()))
-                return false;
+            if (!first.equals(elements[i].getClass())) return false;
         }
         return true;
     }

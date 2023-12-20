@@ -18,6 +18,8 @@
  */
 package apoc.algo;
 
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -25,8 +27,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -45,13 +45,14 @@ public class CoverTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Test
     public void testCover() throws Exception {
-        TestUtil.testCall(db,
+        TestUtil.testCall(
+                db,
                 "match (n) with collect(id(n)) as nodes call apoc.algo.cover(nodes) yield rel return count(*) as c",
-                (r) -> assertEquals(3L,r.get("c")));
+                (r) -> assertEquals(3L, r.get("c")));
     }
 }

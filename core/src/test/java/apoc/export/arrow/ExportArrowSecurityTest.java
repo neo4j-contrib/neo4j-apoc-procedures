@@ -18,11 +18,34 @@
  */
 package apoc.export.arrow;
 
+import static apoc.export.ExportCoreSecurityTest.FILENAME;
+import static apoc.export.ExportCoreSecurityTest.PARAM_NAMES;
+import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.EXCEPTION_NOT_FOUND_CONSUMER;
+import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.dataPairs;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.MAIN_DIR_CONSUMER;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.SUB_DIR_CONSUMER;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.case10;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.mainDirCases;
+import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.subDirCases;
+import static apoc.export.SecurityTestUtil.ERROR_KEY;
+import static apoc.export.SecurityTestUtil.PROCEDURE_KEY;
+import static apoc.export.SecurityTestUtil.getApocProcedure;
+import static apoc.export.SecurityTestUtil.setExportFileApocConfigs;
+import static apoc.export.arrow.ExportArrowService.EXPORT_TO_FILE_ARROW_ERROR;
+
 import apoc.export.ExportCoreSecurityTest;
 import apoc.export.SecurityTestUtil;
 import apoc.meta.Meta;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -35,30 +58,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static apoc.export.ExportCoreSecurityTest.FILENAME;
-import static apoc.export.ExportCoreSecurityTest.PARAM_NAMES;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.case10;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.EXCEPTION_NOT_FOUND_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestIllegalExternalFSAccess.dataPairs;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.MAIN_DIR_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.SUB_DIR_CONSUMER;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.mainDirCases;
-import static apoc.export.ExportCoreSecurityTest.TestPathTraversalIsNormalisedWithinDirectory.subDirCases;
-import static apoc.export.SecurityTestUtil.ERROR_KEY;
-import static apoc.export.SecurityTestUtil.PROCEDURE_KEY;
-import static apoc.export.SecurityTestUtil.getApocProcedure;
-import static apoc.export.SecurityTestUtil.setExportFileApocConfigs;
-import static apoc.export.arrow.ExportArrowService.EXPORT_TO_FILE_ARROW_ERROR;
 
 @RunWith(Enclosed.class)
 public class ExportArrowSecurityTest {
@@ -79,12 +78,13 @@ public class ExportArrowSecurityTest {
     public static List<Pair<String, String>> EXPORT_PROCEDURES = List.of(
             Pair.of("query", "$fileName, 'RETURN 1', {}"),
             Pair.of("all", "$fileName, {}"),
-            Pair.of("graph", "$fileName, {nodes: [], relationships: []}, {}")
-    );
+            Pair.of("graph", "$fileName, {nodes: [], relationships: []}, {}"));
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+            .withSetting(
+                    GraphDatabaseSettings.load_csv_file_url_root,
+                    directory.toPath().toAbsolutePath());
 
     @BeforeClass
     public static void setUp() {
@@ -113,9 +113,12 @@ public class ExportArrowSecurityTest {
         private final String fileName;
         private final Consumer consumer;
 
-        public TestIllegalExternalFSAccess(String exportMethod, String exportMethodType, String exportMethodArguments,
-                                           String fileName,
-                                           Consumer consumer) {
+        public TestIllegalExternalFSAccess(
+                String exportMethod,
+                String exportMethodType,
+                String exportMethodArguments,
+                String fileName,
+                Consumer consumer) {
             this.apocProcedure = getApocProcedure(exportMethod, exportMethodType, exportMethodArguments);
             this.fileName = fileName;
             this.consumer = consumer;
@@ -166,9 +169,7 @@ public class ExportArrowSecurityTest {
             try {
                 assertPathTraversalWithoutErrors();
             } catch (QueryExecutionException e) {
-                EXCEPTION_NOT_FOUND_CONSUMER.accept(
-                        Util.map(ERROR_KEY, e, PROCEDURE_KEY, apocProcedure)
-                );
+                EXCEPTION_NOT_FOUND_CONSUMER.accept(Util.map(ERROR_KEY, e, PROCEDURE_KEY, apocProcedure));
             }
         }
 
@@ -188,19 +189,24 @@ public class ExportArrowSecurityTest {
         private final String fileName;
         private final Consumer consumer;
 
-        public TestPathTraversalIsNormalisedWithinDirectory(String exportMethod, String exportMethodType, String exportMethodArguments,
-                                                            String fileName,
-                                                            Consumer consumer) {
+        public TestPathTraversalIsNormalisedWithinDirectory(
+                String exportMethod,
+                String exportMethodType,
+                String exportMethodArguments,
+                String fileName,
+                Consumer consumer) {
             this.apocProcedure = getApocProcedure(exportMethod, exportMethodType, exportMethodArguments);
             this.fileName = fileName;
             this.consumer = consumer;
         }
 
-
         @Parameterized.Parameters(name = PARAM_NAMES)
         public static Collection<Object[]> data() {
-            List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream().map(i -> Pair.of(i, MAIN_DIR_CONSUMER)).collect(Collectors.toList());
-            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
+            List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream()
+                    .map(i -> Pair.of(i, MAIN_DIR_CONSUMER))
+                    .collect(Collectors.toList());
+            List<Pair<String, Consumer<Map>>> collect2 =
+                    subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
             collect.addAll(collect2);
 
             return ExportArrowSecurityTest.getParameterData(collect);

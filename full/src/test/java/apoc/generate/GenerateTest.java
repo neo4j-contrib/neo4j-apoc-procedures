@@ -18,6 +18,11 @@
  */
 package apoc.generate;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.neo4j.internal.helpers.collection.Iterables.count;
+import static org.neo4j.internal.helpers.collection.Iterables.firstOrNull;
+
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -26,11 +31,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.neo4j.internal.helpers.collection.Iterables.count;
-import static org.neo4j.internal.helpers.collection.Iterables.firstOrNull;
 
 /**
  * Integration test for {@link Generate}.
@@ -57,8 +57,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(20, count(tx.getAllNodes()));
             assertEquals(100, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
 
             tx.commit();
@@ -72,8 +75,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(1000, count(tx.getAllNodes()));
             assertEquals(10000, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
 
             tx.commit();
@@ -87,8 +93,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(20, count(tx.getAllNodes()));
             assertEquals(100, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
 
             tx.commit();
@@ -102,8 +111,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(100, count(tx.getAllNodes()));
             assertEquals(294, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
             tx.commit();
         }
@@ -116,8 +128,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(100, count(tx.getAllNodes()));
             assertEquals(294, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
             tx.commit();
         }
@@ -130,8 +145,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(1000, count(tx.getAllNodes()));
             assertEquals(1997, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
             tx.commit();
         }
@@ -144,8 +162,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(100, count(tx.getAllNodes()));
             assertEquals(500, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
             tx.commit();
         }
@@ -158,8 +179,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(1000, count(tx.getAllNodes()));
             assertEquals(2000, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
             tx.commit();
         }
@@ -172,8 +196,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(1000, count(tx.getAllNodes()));
             assertEquals(2000, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
             tx.commit();
         }
@@ -186,8 +213,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(10, count(tx.getAllNodes()));
             assertEquals(45, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
             tx.commit();
         }
@@ -200,8 +230,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(10, count(tx.getAllNodes()));
             assertEquals(45, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
             tx.commit();
         }
@@ -214,8 +247,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(4, count(tx.getAllNodes()));
             assertEquals(4, count(tx.getAllRelationships()));
-            assertEquals("TestLabel", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "TestLabel",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "TEST_REL", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("uuid"));
             tx.commit();
         }
@@ -228,8 +264,11 @@ public class GenerateTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(4, count(tx.getAllNodes()));
             assertEquals(4, count(tx.getAllRelationships()));
-            assertEquals("Person", firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
-            assertEquals("FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
+            assertEquals(
+                    "Person",
+                    firstOrNull(firstOrNull(tx.getAllNodes()).getLabels()).name());
+            assertEquals(
+                    "FRIEND_OF", firstOrNull(tx.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(tx.getAllNodes()).hasProperty("name"));
             tx.commit();
         }

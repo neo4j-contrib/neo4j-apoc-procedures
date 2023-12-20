@@ -18,11 +18,16 @@
  */
 package apoc.generate;
 
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.internal.helpers.collection.Iterables.count;
+
 import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.config.WattsStrogatzConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import apoc.generate.relationship.WattsStrogatzRelationshipGenerator;
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,12 +37,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
-import static org.neo4j.internal.helpers.collection.Iterables.count;
-
 /**
  * Integration test for {@link Neo4jGraphGenerator} with {@link WattsStrogatzRelationshipGenerator}.
  */
@@ -46,12 +45,12 @@ public class WattsStrogatzGeneratorTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {100, 4, 0.1},
-                {100, 6, 0.85},
-                {100, 8, 0.5},
-                {100, 10, 0.5},
-                {1000, 50, 0.5}
+        return Arrays.asList(new Object[][] {
+            {100, 4, 0.1},
+            {100, 6, 0.85},
+            {100, 8, 0.5},
+            {100, 10, 0.5},
+            {1000, 50, 0.5}
         });
     }
 
@@ -69,11 +68,12 @@ public class WattsStrogatzGeneratorTest {
 
     @Test
     public void shouldGenerateCorrectNumberOfNodesAndRelationships() throws Exception {
-        new Neo4jGraphGenerator(db).generateGraph(new BasicGeneratorConfig(
-                new WattsStrogatzRelationshipGenerator(new WattsStrogatzConfig(numberOfNodes, meanDegree, beta)),
-                new SocialNetworkNodeCreator(),
-                new SocialNetworkRelationshipCreator()
-        ));
+        new Neo4jGraphGenerator(db)
+                .generateGraph(new BasicGeneratorConfig(
+                        new WattsStrogatzRelationshipGenerator(
+                                new WattsStrogatzConfig(numberOfNodes, meanDegree, beta)),
+                        new SocialNetworkNodeCreator(),
+                        new SocialNetworkRelationshipCreator()));
         try (Transaction tx = db.beginTx()) {
             assertEquals(numberOfNodes, count(tx.getAllNodes()));
             assertEquals((meanDegree * numberOfNodes) / 2, count(tx.getAllRelationships()));
@@ -87,5 +87,4 @@ public class WattsStrogatzGeneratorTest {
     public void shouldGenerateRelationshipsForLargeGraphInAReasonableAmountOfTime() {
         new WattsStrogatzRelationshipGenerator(new WattsStrogatzConfig(1_000_000, 10, 0.5)).generateEdges();
     }
-
 }

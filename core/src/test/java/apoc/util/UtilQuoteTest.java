@@ -18,6 +18,10 @@
  */
 package apoc.util;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -25,11 +29,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
 public class UtilQuoteTest {
@@ -39,27 +38,27 @@ public class UtilQuoteTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][] {
-                { "abc", true },
-                { "_id", true },
-                { "some_var", true },
-                { "$lock", false },
-                { "has$inside", false },
-                { "ähhh", true },
-                { "rübe", true },
-                { "rådhuset", true },
-                { "1first", false },
-                { "first1", true },
-                { "a weird identifier", false },
-                { "^n", false },
-                { "$$n", false },
-                { " var ", false },
-                { "foo.bar.baz", false },
+            {"abc", true},
+            {"_id", true},
+            {"some_var", true},
+            {"$lock", false},
+            {"has$inside", false},
+            {"ähhh", true},
+            {"rübe", true},
+            {"rådhuset", true},
+            {"1first", false},
+            {"first1", true},
+            {"a weird identifier", false},
+            {"^n", false},
+            {"$$n", false},
+            {" var ", false},
+            {"foo.bar.baz", false},
         });
     }
 
@@ -80,12 +79,8 @@ public class UtilQuoteTest {
 
     @Test
     public void shouldNotQuoteWhenAvoidQuoteIsTrue() {
-        final String expectedIdentifier = shouldAvoidQuote
-                ? identifier
-                : '`' + identifier + '`';
+        final String expectedIdentifier = shouldAvoidQuote ? identifier : '`' + identifier + '`';
 
-        assertEquals(expectedIdentifier,
-                Util.quote(identifier));
+        assertEquals(expectedIdentifier, Util.quote(identifier));
     }
-
 }

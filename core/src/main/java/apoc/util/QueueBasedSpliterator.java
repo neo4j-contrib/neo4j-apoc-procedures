@@ -18,11 +18,10 @@
  */
 package apoc.util;
 
-import org.neo4j.procedure.TerminationGuard;
-
 import java.util.Spliterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
+import org.neo4j.procedure.TerminationGuard;
 
 /**
  * @author mh
@@ -35,7 +34,8 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
     private volatile boolean foundTombstone = false;
     private final int timeoutSeconds;
 
-    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, int timeoutSeconds) {
+    public QueueBasedSpliterator(
+            BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, int timeoutSeconds) {
         this.queue = queue;
         this.tombstone = tombstone;
         this.terminationGuard = terminationGuard;

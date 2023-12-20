@@ -23,6 +23,21 @@ import apoc.result.MapResult;
 import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.DateMilliVector;
@@ -40,22 +55,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.values.storable.Values;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class LoadArrow {
 
@@ -95,24 +94,25 @@ public class LoadArrow {
                         return false;
                     }
                 }
-                final Map<String, Object> row = schemaRoot.getFieldVectors()
-                        .stream()
-                        .collect(HashMap::new, (map, fieldVector) -> map.put(fieldVector.getName(), read(fieldVector, counter.get())), HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
+                final Map<String, Object> row = schemaRoot.getFieldVectors().stream()
+                        .collect(
+                                HashMap::new,
+                                (map, fieldVector) -> map.put(fieldVector.getName(), read(fieldVector, counter.get())),
+                                HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
                 counter.incrementAndGet();
                 action.accept(new MapResult(row));
                 return true;
             } catch (Exception e) {
                 return false;
             }
-
         }
     }
 
     @Procedure(name = "apoc.load.arrow.stream")
     @Description("apoc.load.arrow.stream(source, config) - imports nodes and relationships from the provided byte[]")
     public Stream<MapResult> stream(
-            @Name("source") byte[] source,
-            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+            @Name("source") byte[] source, @Name(value = "config", defaultValue = "{}") Map<String, Object> config)
+            throws IOException {
         RootAllocator allocator = new RootAllocator();
         ByteArrayInputStream inputStream = new ByteArrayInputStream(source);
         ArrowStreamReader streamReader = new ArrowStreamReader(inputStream, allocator);
@@ -129,10 +129,10 @@ public class LoadArrow {
     @Procedure(name = "apoc.load.arrow")
     @Description("apoc.load.arrow(fileName, config) - imports nodes and relationships from the provided file")
     public Stream<MapResult> file(
-            @Name("source") String fileName,
-            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
-        final SeekableByteChannel channel = FileUtils.inputStreamFor(fileName, null, null, null)
-                .asChannel();
+            @Name("source") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config)
+            throws IOException {
+        final SeekableByteChannel channel =
+                FileUtils.inputStreamFor(fileName, null, null, null).asChannel();
         RootAllocator allocator = new RootAllocator();
         ArrowFileReader streamReader = new ArrowFileReader(channel, allocator);
         VectorSchemaRoot schemaRoot = streamReader.getVectorSchemaRoot();
@@ -162,13 +162,11 @@ public class LoadArrow {
 
     private static Object getObject(Object object) {
         if (object instanceof Collection) {
-            return ((Collection<?>) object).stream()
-                    .map(LoadArrow::getObject)
-                    .collect(Collectors.toList());
+            return ((Collection<?>) object).stream().map(LoadArrow::getObject).collect(Collectors.toList());
         }
         if (object instanceof Map) {
-            return ((Map<String, Object>) object).entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> getObject(e.getValue())));
+            return ((Map<String, Object>) object)
+                    .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> getObject(e.getValue())));
         }
         if (object instanceof Text) {
             return object.toString();
@@ -185,5 +183,4 @@ public class LoadArrow {
     private static String valueToString(Object value) {
         return JsonUtil.writeValueAsString(value);
     }
-
 }

@@ -19,6 +19,17 @@
 package apoc.hashing;
 
 import apoc.util.Util;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Label;
@@ -32,18 +43,6 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 public class Fingerprinting {
 
     @Context
@@ -53,17 +52,28 @@ public class Fingerprinting {
     public Log log;
 
     @UserFunction
-    @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
-    public String fingerprint(@Name("some object") Object thing, @Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
-        FingerprintingConfig config = new FingerprintingConfig(Util.map("allNodesDisallowList", excludedPropertyKeys,
-                "allRelsDisallowList", excludedPropertyKeys, "mapDisallowList", excludedPropertyKeys,
-                "strategy", FingerprintingConfig.FingerprintStrategy.EAGER.toString()));
+    @Description(
+            "calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
+    public String fingerprint(
+            @Name("some object") Object thing,
+            @Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
+        FingerprintingConfig config = new FingerprintingConfig(Util.map(
+                "allNodesDisallowList",
+                excludedPropertyKeys,
+                "allRelsDisallowList",
+                excludedPropertyKeys,
+                "mapDisallowList",
+                excludedPropertyKeys,
+                "strategy",
+                FingerprintingConfig.FingerprintStrategy.EAGER.toString()));
         return fingerprint(thing, config);
     }
 
     @UserFunction
-    @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
-    public String fingerprinting(@Name("some object") Object thing, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+    @Description(
+            "calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
+    public String fingerprinting(
+            @Name("some object") Object thing, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
         FingerprintingConfig config = new FingerprintingConfig(conf);
         return fingerprint(thing, config);
     }
@@ -93,13 +103,12 @@ public class Fingerprinting {
     }
 
     private void fingerprintPath(DiagnosingMessageDigestDecorator md, Path thing, FingerprintingConfig conf) {
-        StreamSupport.stream(thing.nodes().spliterator(), false)
-                .forEach(o -> fingerprint(md, o, conf));
-        StreamSupport.stream(thing.relationships().spliterator(), false)
-                .forEach(o -> fingerprint(md, o, conf));
+        StreamSupport.stream(thing.nodes().spliterator(), false).forEach(o -> fingerprint(md, o, conf));
+        StreamSupport.stream(thing.relationships().spliterator(), false).forEach(o -> fingerprint(md, o, conf));
     }
 
-    private void fingerprintMap(DiagnosingMessageDigestDecorator md, FingerprintingConfig conf, Map<String, Object> map) {
+    private void fingerprintMap(
+            DiagnosingMessageDigestDecorator md, FingerprintingConfig conf, Map<String, Object> map) {
         map.entrySet().stream()
                 .filter(e -> {
                     if (!conf.getMapAllowList().isEmpty()) {
@@ -116,45 +125,57 @@ public class Fingerprinting {
     }
 
     @UserFunction
-    @Description("calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.")
-    public String fingerprintGraph(@Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
-        FingerprintingConfig config = new FingerprintingConfig(Util.map("allNodesDisallowList", excludedPropertyKeys,
-                "allRelsDisallowList", excludedPropertyKeys, "mapDisallowList", excludedPropertyKeys,
-                "strategy", FingerprintingConfig.FingerprintStrategy.EAGER.toString()));
+    @Description(
+            "calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.")
+    public String fingerprintGraph(
+            @Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
+        FingerprintingConfig config = new FingerprintingConfig(Util.map(
+                "allNodesDisallowList",
+                excludedPropertyKeys,
+                "allRelsDisallowList",
+                excludedPropertyKeys,
+                "mapDisallowList",
+                excludedPropertyKeys,
+                "strategy",
+                FingerprintingConfig.FingerprintStrategy.EAGER.toString()));
         return withMessageDigest(config, messageDigest -> {
             // step 1: load all nodes, calc their hash and map them to id
-            Map<Long, String> idToNodeHash = tx.getAllNodes().stream().collect(Collectors.toMap(
-                    Node::getId,
-                    node -> fingerprint(node, config),
-                    (aLong, aLong2) -> {
-                        throw new RuntimeException();
-                    },
-                    () -> new TreeMap<>()
-            ));
+            Map<Long, String> idToNodeHash = tx.getAllNodes().stream()
+                    .collect(Collectors.toMap(
+                            Node::getId,
+                            node -> fingerprint(node, config),
+                            (aLong, aLong2) -> {
+                                throw new RuntimeException();
+                            },
+                            () -> new TreeMap<>()));
 
             // step 2: build inverse map
-            final Map<String, List<Long>> nodeHashToId = idToNodeHash.entrySet()
-                    .stream()
-                    .collect(Collectors
-                            .groupingBy(Map.Entry::getValue, TreeMap::new,Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+            final Map<String, List<Long>> nodeHashToId = idToNodeHash.entrySet().stream()
+                    .collect(Collectors.groupingBy(
+                            Map.Entry::getValue,
+                            TreeMap::new,
+                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
 
             // step 3: iterate nodes in order of their hash (we cannot rely on internal ids)
             nodeHashToId.forEach((hash, ids) -> ids.forEach(id -> {
                 messageDigest.update(hash.getBytes());
                 Node node = tx.getNodeById(id);
-                List<EndNodeRelationshipHashTuple> endNodeRelationshipHashTuples = StreamSupport.stream(node.getRelationships(Direction.OUTGOING).spliterator(), false)
+                List<EndNodeRelationshipHashTuple> endNodeRelationshipHashTuples = StreamSupport.stream(
+                                node.getRelationships(Direction.OUTGOING).spliterator(), false)
                         .map(relationship -> {
                             String endNodeHash = idToNodeHash.get(relationship.getEndNodeId());
                             String relationshipHash = fingerprint(relationship, excludedPropertyKeys);
                             return new EndNodeRelationshipHashTuple(endNodeHash, relationshipHash);
-                        }).collect(Collectors.toList());
+                        })
+                        .collect(Collectors.toList());
 
                 endNodeRelationshipHashTuples.stream().sorted().forEach(endNodeRelationshipHashTuple -> {
-                    messageDigest.update(endNodeRelationshipHashTuple.getEndNodeHash().getBytes());
-                    messageDigest.update(endNodeRelationshipHashTuple.getRelationshipHash().getBytes());
+                    messageDigest.update(
+                            endNodeRelationshipHashTuple.getEndNodeHash().getBytes());
+                    messageDigest.update(
+                            endNodeRelationshipHashTuple.getRelationshipHash().getBytes());
                 });
             }));
-
         });
     }
 
@@ -185,7 +206,9 @@ public class Fingerprinting {
             EndNodeRelationshipHashTuple that = (EndNodeRelationshipHashTuple) o;
 
             if (endNodeHash != null ? !endNodeHash.equals(that.endNodeHash) : that.endNodeHash != null) return false;
-            return relationshipHash != null ? relationshipHash.equals(that.relationshipHash) : that.relationshipHash == null;
+            return relationshipHash != null
+                    ? relationshipHash.equals(that.relationshipHash)
+                    : that.relationshipHash == null;
         }
 
         @Override
@@ -239,7 +262,8 @@ public class Fingerprinting {
         fingerprint(md, allProperties, config);
     }
 
-    private void fingerprintRelationship(DiagnosingMessageDigestDecorator md, Relationship rel, FingerprintingConfig config) {
+    private void fingerprintRelationship(
+            DiagnosingMessageDigestDecorator md, Relationship rel, FingerprintingConfig config) {
         switch (config.getStrategy()) {
             case EAGER:
                 md.update(rel.getType().name().getBytes());
@@ -255,19 +279,19 @@ public class Fingerprinting {
         }
 
         final List<String> keysToRetain = new ArrayList<>(config.getAllRelsAllowList());
-        keysToRetain.addAll(config.getRelAllowMap()
-                .getOrDefault(rel.getType().name(), Collections.emptyList()));
+        keysToRetain.addAll(config.getRelAllowMap().getOrDefault(rel.getType().name(), Collections.emptyList()));
 
         final List<String> keysToRemove = new ArrayList<>(config.getAllRelsDisallowList());
-        keysToRemove.addAll(config.getRelDisallowMap()
-                .getOrDefault(rel.getType().name(), Collections.emptyList()));
+        keysToRemove.addAll(
+                config.getRelDisallowMap().getOrDefault(rel.getType().name(), Collections.emptyList()));
         keysToRemove.addAll(config.getMapDisallowList()); // just to backwards compatibility remove it
 
         final Map<String, Object> allProperties = getEntityProperties(rel, config, keysToRetain, keysToRemove);
         fingerprint(md, allProperties, config);
     }
 
-    private Map<String, Object> getEntityProperties(Entity entity, FingerprintingConfig config, List<String> keysToRetain, List<String> keysToRemove) {
+    private Map<String, Object> getEntityProperties(
+            Entity entity, FingerprintingConfig config, List<String> keysToRetain, List<String> keysToRemove) {
         final Map<String, Object> allProperties;
         if (keysToRetain.isEmpty() && keysToRemove.isEmpty()) {
             switch (config.getStrategy()) {
@@ -338,7 +362,8 @@ public class Fingerprinting {
                 sb.append(l);
             }
         } else {
-            throw new UnsupportedOperationException("cannot yet deal with " + value.getClass().getName());
+            throw new UnsupportedOperationException(
+                    "cannot yet deal with " + value.getClass().getName());
         }
         return sb.toString();
     }

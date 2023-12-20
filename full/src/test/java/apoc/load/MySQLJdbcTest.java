@@ -1,19 +1,18 @@
 package apoc.load;
 
+import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.MySQLContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Map;
-
-import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.assertEquals;
 
 public class MySQLJdbcTest extends AbstractJdbcTest {
 
@@ -37,10 +36,10 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbc() {
-        testCall(db, "CALL apoc.load.jdbc($url, $table, [])",
-                Util.map(
-                        "url", mysql.getJdbcUrl(),
-                        "table", "country"),
+        testCall(
+                db,
+                "CALL apoc.load.jdbc($url, $table, [])",
+                Util.map("url", mysql.getJdbcUrl(), "table", "country"),
                 row -> {
                     Map<String, Object> expected = Util.map(
                             "Code", "NLD",

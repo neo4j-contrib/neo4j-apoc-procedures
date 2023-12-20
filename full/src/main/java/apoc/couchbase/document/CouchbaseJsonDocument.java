@@ -22,7 +22,6 @@ import com.couchbase.client.core.msg.kv.MutationToken;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.GetResult;
 import com.couchbase.client.java.kv.MutationResult;
-
 import java.util.Map;
 
 /**
@@ -57,12 +56,11 @@ public class CouchbaseJsonDocument extends CouchbaseObjectDocument<Map<String, O
 
     @Override
     public String toString() {
-        return "CouchbaseJsonDocument {" +
-                "content=" + content +
-                ", id='" + id + '\'' +
-                ", expiry=" + expiry +
-                ", cas=" + cas +
-                ", mutationToken=" + mutationToken +
-                '}';
+        return "CouchbaseJsonDocument {" + "content="
+                + content + ", id='"
+                + id + '\'' + ", expiry="
+                + expiry + ", cas="
+                + cas + ", mutationToken="
+                + mutationToken + '}';
     }
 }

@@ -18,8 +18,23 @@
  */
 package apoc.periodic;
 
+import static apoc.periodic.PeriodicUtils.submitJob;
+import static apoc.periodic.PeriodicUtils.submitProc;
+import static apoc.periodic.PeriodicUtils.wrapTask;
+import static apoc.util.Util.merge;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType;
+
 import apoc.Pools;
 import apoc.util.Util;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
@@ -34,42 +49,42 @@ import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import static org.neo4j.graphdb.QueryExecutionType.QueryType;
-import static apoc.periodic.PeriodicUtils.submitJob;
-import static apoc.periodic.PeriodicUtils.submitProc;
-import static apoc.periodic.PeriodicUtils.wrapTask;
-import static apoc.util.Util.merge;
-
 public class Periodic {
-    
-    enum Planner {DEFAULT, COST, IDP, DP }
 
-    public static final Pattern PLANNER_PATTERN = Pattern.compile("\\bplanner\\s*=\\s*[^\\s]*", Pattern.CASE_INSENSITIVE);
+    enum Planner {
+        DEFAULT,
+        COST,
+        IDP,
+        DP
+    }
+
+    public static final Pattern PLANNER_PATTERN =
+            Pattern.compile("\\bplanner\\s*=\\s*[^\\s]*", Pattern.CASE_INSENSITIVE);
     public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
     public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("^\\s*\\bcypher\\b", Pattern.CASE_INSENSITIVE);
     public static final String CYPHER_RUNTIME_SLOTTED = " runtime=slotted ";
-    final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
+    static final Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
 
-    @Context public GraphDatabaseService db;
-    @Context public TerminationGuard terminationGuard;
-    @Context public Log log;
-    @Context public Pools pools;
-    @Context public Transaction tx;
+    @Context
+    public GraphDatabaseService db;
+
+    @Context
+    public TerminationGuard terminationGuard;
+
+    @Context
+    public Log log;
+
+    @Context
+    public Pools pools;
+
+    @Context
+    public Transaction tx;
 
     @Admin
     @Procedure(mode = Mode.SCHEMA)
-    @Description("apoc.periodic.truncate({config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood")
-    public void truncate(@Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    @Description(
+            "apoc.periodic.truncate({config}) - removes all entities (and optionally indexes and constraints) from db using the apoc.periodic.iterate under the hood")
+    public void truncate(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         iterate("MATCH ()-[r]->() RETURN id(r) as id", "MATCH ()-[r]->() WHERE id(r) = id DELETE r", config);
         iterate("MATCH (n) RETURN id(n) as id", "MATCH (n) WHERE id(n) = id DELETE n", config);
@@ -84,14 +99,18 @@ public class Periodic {
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
     public Stream<JobInfo> list() {
-        return pools.getJobList().entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
+        return pools.getJobList().entrySet().stream().map((e) -> e.getKey().update(e.getValue()));
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
-    public Stream<RundownResult> commit(@Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+    @Description(
+            "apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
+    public Stream<RundownResult> commit(
+            @Name("statement") String statement,
+            @Name(value = "params", defaultValue = "{}") Map<String, Object> parameters)
+            throws ExecutionException, InterruptedException {
         validateQuery(statement);
-        Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
+        Map<String, Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long total = 0, executions = 0, updates = 0;
         long start = System.nanoTime();
 
@@ -101,9 +120,9 @@ public class Periodic {
 
         AtomicInteger batches = new AtomicInteger();
         AtomicInteger failedCommits = new AtomicInteger();
-        Map<String,Long> commitErrors = new ConcurrentHashMap<>();
+        Map<String, Long> commitErrors = new ConcurrentHashMap<>();
         AtomicInteger failedBatches = new AtomicInteger();
-        Map<String,Long> batchErrors = new ConcurrentHashMap<>();
+        Map<String, Long> batchErrors = new ConcurrentHashMap<>();
         String periodicId = UUID.randomUUID().toString();
         if (log.isDebugEnabled()) {
             log.debug("Starting periodic commit from `%s` in separate thread with id: `%s`", statement, periodicId);
@@ -111,16 +130,20 @@ public class Periodic {
 
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
-            updates = Util.getFuture(pools.getScheduledExecutorService().submit(() -> {
-                batches.incrementAndGet();
-                try {
-                    return executeNumericResultStatement(statement, merge(window, params));
-                } catch(Exception e) {
-                    failedBatches.incrementAndGet();
-                    recordError(batchErrors, e);
-                    return 0L;
-                }
-            }), commitErrors, failedCommits, 0L);
+            updates = Util.getFuture(
+                    pools.getScheduledExecutorService().submit(() -> {
+                        batches.incrementAndGet();
+                        try {
+                            return executeNumericResultStatement(statement, merge(window, params));
+                        } catch (Exception e) {
+                            failedBatches.incrementAndGet();
+                            recordError(batchErrors, e);
+                            return 0L;
+                        }
+                    }),
+                    commitErrors,
+                    failedCommits,
+                    0L);
             total += updates;
             if (updates > 0) executions++;
             if (log.isDebugEnabled()) {
@@ -132,12 +155,22 @@ public class Periodic {
         }
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
-        return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors, wasTerminated));
+        return Stream.of(new RundownResult(
+                total,
+                executions,
+                timeTaken,
+                batches.get(),
+                failedBatches.get(),
+                batchErrors,
+                failedCommits.get(),
+                commitErrors,
+                wasTerminated));
     }
 
     private static void recordError(Map<String, Long> executionErrors, Exception e) {
         String msg = ExceptionUtils.getRootCause(e).getMessage();
-        // String msg = ExceptionUtils.getThrowableList(e).stream().map(Throwable::getMessage).collect(Collectors.joining(","))
+        // String msg =
+        // ExceptionUtils.getThrowableList(e).stream().map(Throwable::getMessage).collect(Collectors.joining(","))
         executionErrors.compute(msg, (s, i) -> i == null ? 1 : i + 1);
     }
 
@@ -152,7 +185,16 @@ public class Periodic {
         public final Map<String, Long> commitErrors;
         public final boolean wasTerminated;
 
-        public RundownResult(long total, long executions, long timeTaken, long batches, long failedBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors, boolean wasTerminated) {
+        public RundownResult(
+                long total,
+                long executions,
+                long timeTaken,
+                long batches,
+                long failedBatches,
+                Map<String, Long> batchErrors,
+                long failedCommits,
+                Map<String, Long> commitErrors,
+                boolean wasTerminated) {
             this.updates = total;
             this.executions = executions;
             this.runtime = timeTaken;
@@ -165,10 +207,11 @@ public class Periodic {
         }
     }
 
-    private long executeNumericResultStatement(@Name("statement") String statement, @Name("params") Map<String, Object> parameters) {
+    private long executeNumericResultStatement(
+            @Name("statement") String statement, @Name("params") Map<String, Object> parameters) {
         return db.executeTransactionally(statement, parameters, result -> {
             String column = Iterables.single(result.columns());
-            return result.columnAs(column).stream().mapToLong( o -> (long)o).sum();
+            return result.columnAs(column).stream().mapToLong(o -> (long) o).sum();
         });
     }
 
@@ -185,51 +228,70 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.submit('name',statement,params) - creates a background job which executes a Cypher statement once. The parameter 'params' is optional and can contain query parameters for the Cypher statement")
-    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> config) {
+    @Description(
+            "apoc.periodic.submit('name',statement,params) - creates a background job which executes a Cypher statement once. The parameter 'params' is optional and can contain query parameters for the Cypher statement")
+    public Stream<JobInfo> submit(
+            @Name("name") String name,
+            @Name("statement") String statement,
+            @Name(value = "params", defaultValue = "{}") Map<String, Object> config) {
         validateQuery(statement);
         return submitProc(name, statement, config, db, log, pools);
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background query. The parameter 'config' is optional and can contain a 'params' entry usable in nested Cypher statement.")
-    public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
+    @Description(
+            "apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background query. The parameter 'config' is optional and can contain a 'params' entry usable in nested Cypher statement.")
+    public Stream<JobInfo> repeat(
+            @Name("name") String name,
+            @Name("statement") String statement,
+            @Name("rate") long rate,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         validateQuery(statement);
-        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        JobInfo info = schedule(name, () -> {
-            // `resultAsString` in order to consume result
-            db.executeTransactionally(statement, params, Result::resultAsString);
-        },0,rate);
+        Map<String, Object> params = (Map) config.getOrDefault("params", Collections.emptyMap());
+        JobInfo info = schedule(
+                name,
+                () -> {
+                    // `resultAsString` in order to consume result
+                    db.executeTransactionally(statement, params, Result::resultAsString);
+                },
+                0,
+                rate);
         return Stream.of(info);
     }
 
     private void validateQuery(String statement) {
-        Util.validateQuery(db, statement, 
+        Util.validateQuery(
+                db,
+                statement,
                 Set.of(Mode.WRITE, Mode.READ, Mode.DEFAULT),
-                QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE);
+                QueryType.READ_ONLY,
+                QueryType.WRITE,
+                QueryType.READ_WRITE);
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) creates a background job that will repeatedly execute the given Cypher statement until it returns 0.")
-    public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
+    @Description(
+            "apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) creates a background job that will repeatedly execute the given Cypher statement until it returns 0.")
+    public Stream<JobInfo> countdown(
+            @Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         validateQuery(statement);
         JobInfo info = submitJob(name, new Countdown(name, statement, rate, log), log, pools);
         info.rate = rate;
         return Stream.of(info);
     }
 
-
     /**
      * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
      */
     public JobInfo schedule(String name, Runnable task, long delay, long repeat) {
-        JobInfo info = new JobInfo(name,delay,repeat);
+        JobInfo info = new JobInfo(name, delay, repeat);
         Future future = pools.getJobList().remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
         Runnable wrappingTask = wrapTask(name, task, log);
-        ScheduledFuture<?> newFuture = pools.getScheduledExecutorService().scheduleWithFixedDelay(wrappingTask, delay, repeat, TimeUnit.SECONDS);
-        pools.getJobList().put(info,newFuture);
+        ScheduledFuture<?> newFuture = pools.getScheduledExecutorService()
+                .scheduleWithFixedDelay(wrappingTask, delay, repeat, TimeUnit.SECONDS);
+        pools.getJobList().put(info, newFuture);
         return info;
     }
 
@@ -239,45 +301,61 @@ public class Periodic {
      * @param cypherAction
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:<NUM_PROCESSORS>,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
+    @Description(
+            "apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:<NUM_PROCESSORS>,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> iterate(
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
-            @Name("config") Map<String,Object> config) {
+            @Name("config") Map<String, Object> config) {
         validateQuery(cypherIterate);
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
         if (batchSize < 1) {
             throw new IllegalArgumentException("batchSize parameter must be > 0");
         }
-        int concurrency = Util.toInteger(config.getOrDefault("concurrency", Runtime.getRuntime().availableProcessors()));
+        int concurrency = Util.toInteger(
+                config.getOrDefault("concurrency", Runtime.getRuntime().availableProcessors()));
         if (concurrency < 1) {
             throw new IllegalArgumentException("concurrency parameter must be > 0");
         }
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
-        long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
+        long retries = Util.toLong(config.getOrDefault(
+                "retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
 
         BatchMode batchMode = BatchMode.fromConfig(config);
-        Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
+        Map<String, Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
 
-        try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
-            Pair<String,Boolean> prepared = PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
-            String innerStatement = applyPlanner(prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.DEFAULT.name())));
+        try (Result result = tx.execute(slottedRuntime(cypherIterate), params)) {
+            Pair<String, Boolean> prepared =
+                    PeriodicUtils.prepareInnerStatement(cypherAction, batchMode, result.columns(), "_batch");
+            String innerStatement = applyPlanner(
+                    prepared.first(), Planner.valueOf((String) config.getOrDefault("planner", Planner.DEFAULT.name())));
             boolean iterateList = prepared.other();
             String periodicId = UUID.randomUUID().toString();
             if (log.isDebugEnabled()) {
-            	log.debug("Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`", cypherIterate,cypherAction, periodicId);
+                log.debug(
+                        "Starting periodic iterate from `%s` operation using iteration `%s` in separate thread with id: `%s`",
+                        cypherIterate, cypherAction, periodicId);
             }
             return PeriodicUtils.iterateAndExecuteBatchedInSeparateThread(
-                    db, terminationGuard, log, pools,
-                    (int)batchSize, parallel, iterateList, retries, result,
+                    db,
+                    terminationGuard,
+                    log,
+                    pools,
+                    (int) batchSize,
+                    parallel,
+                    iterateList,
+                    retries,
+                    result,
                     (tx, p) -> {
                         final Result r = tx.execute(innerStatement, merge(params, p));
                         Iterators.count(r); // XXX: consume all results
                         return r.getQueryStatistics();
                     },
-                    concurrency, failedParams, periodicId);
+                    concurrency,
+                    failedParams,
+                    periodicId);
         }
     }
 
@@ -285,12 +363,12 @@ public class Periodic {
         if (RUNTIME_PATTERN.matcher(cypherIterate).find()) {
             return cypherIterate;
         }
-        
+
         return prependQueryOption(cypherIterate, CYPHER_RUNTIME_SLOTTED);
     }
 
     public static String applyPlanner(String query, Planner planner) {
-        if(planner.equals(Planner.DEFAULT)) {
+        if (planner.equals(Planner.DEFAULT)) {
             return query;
         }
         Matcher matcher = PLANNER_PATTERN.matcher(query);
@@ -309,18 +387,18 @@ public class Periodic {
                 : completePrefix + query;
     }
 
-
-    static abstract class ExecuteBatch implements Function<Transaction, Long> {
+    abstract static class ExecuteBatch implements Function<Transaction, Long> {
 
         protected TerminationGuard terminationGuard;
         protected BatchAndTotalCollector collector;
-        protected List<Map<String,Object>> batch;
+        protected List<Map<String, Object>> batch;
         protected BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer;
 
-        ExecuteBatch(TerminationGuard terminationGuard,
-                     BatchAndTotalCollector collector,
-                     List<Map<String, Object>> batch,
-                     BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
+        ExecuteBatch(
+                TerminationGuard terminationGuard,
+                BatchAndTotalCollector collector,
+                List<Map<String, Object>> batch,
+                BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             this.terminationGuard = terminationGuard;
             this.collector = collector;
             this.batch = batch;
@@ -337,10 +415,11 @@ public class Periodic {
 
     static class ListExecuteBatch extends ExecuteBatch {
 
-        ListExecuteBatch(TerminationGuard terminationGuard,
-                         BatchAndTotalCollector collector,
-                         List<Map<String, Object>> batch,
-                         BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
+        ListExecuteBatch(
+                TerminationGuard terminationGuard,
+                BatchAndTotalCollector collector,
+                List<Map<String, Object>> batch,
+                BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -354,10 +433,11 @@ public class Periodic {
 
     static class OneByOneExecuteBatch extends ExecuteBatch {
 
-        OneByOneExecuteBatch(TerminationGuard terminationGuard,
-                             BatchAndTotalCollector collector,
-                             List<Map<String, Object>> batch,
-                             BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
+        OneByOneExecuteBatch(
+                TerminationGuard terminationGuard,
+                BatchAndTotalCollector collector,
+                List<Map<String, Object>> batch,
+                BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer) {
             super(terminationGuard, collector, batch, consumer);
         }
 
@@ -365,22 +445,29 @@ public class Periodic {
         public final Long apply(Transaction txInThread) {
             if (Util.transactionIsTerminated(terminationGuard)) return 0L;
             AtomicLong localCount = new AtomicLong(collector.getCount());
-            return batch.stream().mapToLong(
-                    p -> {
+            return batch.stream()
+                    .mapToLong(p -> {
                         if (localCount.get() % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) {
                             return 0;
                         }
                         Map<String, Object> params = merge(p, Util.map("_count", localCount.get(), "_batch", batch));
                         return executeAndReportErrors(txInThread, consumer, params, batch, 1, localCount, collector);
-                    }).sum();
+                    })
+                    .sum();
         }
     }
 
-    private static long executeAndReportErrors(Transaction tx, BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer, Map<String, Object> params,
-                                        List<Map<String, Object>> batch, int returnValue, AtomicLong localCount, BatchAndTotalCollector collector) {
+    private static long executeAndReportErrors(
+            Transaction tx,
+            BiFunction<Transaction, Map<String, Object>, QueryStatistics> consumer,
+            Map<String, Object> params,
+            List<Map<String, Object>> batch,
+            int returnValue,
+            AtomicLong localCount,
+            BatchAndTotalCollector collector) {
         try {
             QueryStatistics statistics = consumer.apply(tx, params);
-            if (localCount!=null) {
+            if (localCount != null) {
                 localCount.getAndIncrement();
             }
             collector.updateStatistics(statistics);
@@ -431,7 +518,7 @@ public class Periodic {
         private final String name;
         private final String statement;
         private final long rate;
-        private transient final Log log;
+        private final transient Log log;
 
         public Countdown(String name, String statement, long rate, Log log) {
             this.name = name;
@@ -443,7 +530,8 @@ public class Periodic {
         @Override
         public void run() {
             if (Periodic.this.executeNumericResultStatement(statement, Collections.emptyMap()) > 0) {
-                pools.getScheduledExecutorService().schedule(() -> submitJob(name, this, log, pools), rate, TimeUnit.SECONDS);
+                pools.getScheduledExecutorService()
+                        .schedule(() -> submitJob(name, this, log, pools), rate, TimeUnit.SECONDS);
             }
         }
     }

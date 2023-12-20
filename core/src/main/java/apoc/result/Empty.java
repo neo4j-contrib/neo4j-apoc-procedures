@@ -27,5 +27,7 @@ import java.util.stream.Stream;
 public class Empty {
     private static final Empty INSTANCE = new Empty();
 
-    public static Stream<Empty> stream(boolean value) { return value ? Stream.of(INSTANCE) : Stream.empty(); }
+    public static Stream<Empty> stream(boolean value) {
+        return value ? Stream.of(INSTANCE) : Stream.empty();
+    }
 }

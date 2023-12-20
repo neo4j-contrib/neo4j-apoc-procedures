@@ -18,14 +18,13 @@
  */
 package apoc.uuid;
 
-import apoc.SystemPropertyKeys;
-import org.neo4j.graphdb.Node;
-
-import java.util.Collections;
-import java.util.Map;
-
 import static apoc.uuid.UuidConfig.ADD_TO_SET_LABELS_KEY;
 import static apoc.uuid.UuidConfig.UUID_PROPERTY_KEY;
+
+import apoc.SystemPropertyKeys;
+import java.util.Collections;
+import java.util.Map;
+import org.neo4j.graphdb.Node;
 
 public class UuidInfo {
     public final String label;
@@ -46,8 +45,7 @@ public class UuidInfo {
         this.label = (String) node.getProperty(SystemPropertyKeys.label.name());
         boolean addToSetLabel = (boolean) node.getProperty(SystemPropertyKeys.addToSetLabel.name());
         String propertyName = (String) node.getProperty(SystemPropertyKeys.propertyName.name());
-        this.properties = Map.of(UUID_PROPERTY_KEY, propertyName,
-                ADD_TO_SET_LABELS_KEY, addToSetLabel);
+        this.properties = Map.of(UUID_PROPERTY_KEY, propertyName, ADD_TO_SET_LABELS_KEY, addToSetLabel);
         this.installed = installed;
     }
 

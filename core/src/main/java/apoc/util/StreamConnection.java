@@ -18,9 +18,9 @@
  */
 package apoc.util;
 
-import apoc.export.util.CountingInputStream;
-import org.apache.commons.io.FileUtils;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 
+import apoc.export.util.CountingInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +28,7 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
-
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author mh
@@ -37,12 +36,15 @@ import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
  */
 public interface StreamConnection {
     InputStream getInputStream() throws IOException;
+
     String getEncoding();
+
     long getLength();
+
     String getName();
 
     default CountingInputStream toCountingInputStream(String algo) throws IOException {
-        InputStream iStream = toLimitedIStream( getInputStream() , getLength() );
+        InputStream iStream = toLimitedIStream(getInputStream(), getLength());
 
         if ("gzip".equals(getEncoding()) || getName().endsWith(".gz")) {
             return new CountingInputStream(new GZIPInputStream(iStream), getLength());
@@ -68,7 +70,7 @@ public interface StreamConnection {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return toLimitedIStream( con.getInputStream(), getLength() );
+            return toLimitedIStream(con.getInputStream(), getLength());
         }
 
         @Override
@@ -108,7 +110,7 @@ public interface StreamConnection {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return toLimitedIStream( FileUtils.openInputStream(file), getLength() );
+            return toLimitedIStream(FileUtils.openInputStream(file), getLength());
         }
 
         @Override

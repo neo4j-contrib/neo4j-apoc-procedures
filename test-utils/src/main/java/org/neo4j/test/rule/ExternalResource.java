@@ -9,46 +9,30 @@ import org.junit.runners.model.Statement;
  * #after(boolean)}.
  */
 @Deprecated
-public abstract class ExternalResource implements TestRule
-{
+public abstract class ExternalResource implements TestRule {
     @Override
-    public Statement apply( final Statement base, Description description )
-    {
-        return new Statement()
-        {
+    public Statement apply(final Statement base, Description description) {
+        return new Statement() {
             @Override
-            public void evaluate() throws Throwable
-            {
+            public void evaluate() throws Throwable {
                 before();
                 Throwable failure = null;
-                try
-                {
+                try {
                     base.evaluate();
-                }
-                catch ( Throwable e )
-                {
+                } catch (Throwable e) {
                     failure = e;
-                }
-                finally
-                {
-                    try
-                    {
-                        after( failure == null );
-                    }
-                    catch ( Throwable e )
-                    {
-                        if ( failure != null )
-                        {
-                            failure.addSuppressed( e );
-                        }
-                        else
-                        {
+                } finally {
+                    try {
+                        after(failure == null);
+                    } catch (Throwable e) {
+                        if (failure != null) {
+                            failure.addSuppressed(e);
+                        } else {
                             failure = e;
                         }
                     }
                 }
-                if ( failure != null )
-                {
+                if (failure != null) {
                     throw failure;
                 }
             }
@@ -60,16 +44,14 @@ public abstract class ExternalResource implements TestRule
      *
      * @throws Throwable if setup fails (which will disable {@code after}
      */
-    protected void before() throws Throwable
-    {
+    protected void before() throws Throwable {
         // do nothing
     }
 
     /**
      * Override to tear down your specific external resource.
      */
-    protected void after( boolean successful ) throws Throwable
-    {
+    protected void after(boolean successful) throws Throwable {
         // do nothing
     }
 }

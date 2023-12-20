@@ -18,17 +18,19 @@
  */
 package apoc.export.graphml;
 
+import static apoc.export.util.ExportConfig.NodeConfig;
+
 import apoc.export.util.ExportConfig;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
-import static apoc.export.util.ExportConfig.NodeConfig;
-
 public class XmlNodeExport {
-    
+
     public interface ExportNode {
         NodeConfig getNodeConfig(ExportConfig config);
+
         NodeConfig getNodeConfigReader(XmlGraphMLReader reader);
+
         Node getNode(Relationship rel);
     }
 
@@ -49,7 +51,7 @@ public class XmlNodeExport {
                 return reader.getSource();
             }
         }),
-        
+
         TARGET("target", new ExportNode() {
             @Override
             public ExportConfig.NodeConfig getNodeConfig(ExportConfig config) {

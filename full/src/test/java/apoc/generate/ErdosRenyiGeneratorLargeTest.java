@@ -33,7 +33,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
  */
 public class ErdosRenyiGeneratorLargeTest {
 
-
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -53,5 +52,4 @@ public class ErdosRenyiGeneratorLargeTest {
     public void shouldGenerateRelationshipsForLargeGraphInAReasonableAmountOfTime2() {
         new ErdosRenyiRelationshipGenerator(new ErdosRenyiConfig(10000, 25_000_000)).generateEdges();
     }
-
 }

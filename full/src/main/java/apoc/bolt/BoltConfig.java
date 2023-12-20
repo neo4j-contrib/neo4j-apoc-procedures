@@ -19,16 +19,15 @@
 package apoc.bolt;
 
 import apoc.util.Util;
-import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Config;
-import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.internal.logging.JULogging;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.internal.logging.JULogging;
 
 public class BoltConfig {
     private final boolean virtual;
@@ -48,7 +47,8 @@ public class BoltConfig {
         this.readOnly = (boolean) config.getOrDefault("readOnly", true);
         this.streamStatements = (boolean) config.getOrDefault("streamStatements", false);
         this.databaseName = (String) config.getOrDefault("databaseName", "neo4j");
-        this.driverConfig = toDriverConfig((Map<String, Object>) config.getOrDefault("driverConfig", Collections.emptyMap()));
+        this.driverConfig =
+                toDriverConfig((Map<String, Object>) config.getOrDefault("driverConfig", Collections.emptyMap()));
         this.localParams = (Map<String, Object>) config.getOrDefault("localParams", Collections.emptyMap());
         this.remoteParams = (Map<String, Object>) config.getOrDefault("remoteParams", Collections.emptyMap());
         this.withRelationshipNodeProperties = Util.toBoolean(config.get("withRelationshipNodeProperties"));
@@ -70,33 +70,35 @@ public class BoltConfig {
         Config.ConfigBuilder config = Config.builder();
 
         config.withLogging(new JULogging(Level.parse(logging)));
-        if(encryption) config.withEncryption();
+        if (encryption) config.withEncryption();
         config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-        if(!logLeakedSessions) config.withoutEncryption();
+        if (!logLeakedSessions) config.withoutEncryption();
 
-        if (connectionAcquisitionTimeout!=null) {
+        if (connectionAcquisitionTimeout != null) {
             config.withConnectionAcquisitionTimeout(connectionAcquisitionTimeout, TimeUnit.MILLISECONDS);
         }
-        if (maxConnectionLifeTime!=null) {
+        if (maxConnectionLifeTime != null) {
             config.withMaxConnectionLifetime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
         }
-        if (maxConnectionPoolSize!=null) {
+        if (maxConnectionPoolSize != null) {
             config.withMaxConnectionPoolSize(maxConnectionPoolSize.intValue());
         }
-        if (routingTablePurgeDelay!=null) {
+        if (routingTablePurgeDelay != null) {
             config.withRoutingTablePurgeDelay(routingTablePurgeDelay, TimeUnit.MILLISECONDS);
         }
-        if (idleTimeBeforeConnectionTest!=null) {
+        if (idleTimeBeforeConnectionTest != null) {
             config.withConnectionLivenessCheckTimeout(idleTimeBeforeConnectionTest, TimeUnit.MILLISECONDS);
         }
-        if (connectionTimeoutMillis!=null) {
+        if (connectionTimeoutMillis != null) {
             config.withConnectionTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
         }
-        if (maxRetryTimeMs!=null) {
+        if (maxRetryTimeMs != null) {
             config.withMaxTransactionRetryTime(maxRetryTimeMs, TimeUnit.MILLISECONDS);
         }
-        if(trustStrategy.equals("TRUST_ALL_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-        else if(trustStrategy.equals("TRUST_SYSTEM_CA_SIGNED_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustSystemCertificates());
+        if (trustStrategy.equals("TRUST_ALL_CERTIFICATES"))
+            config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
+        else if (trustStrategy.equals("TRUST_SYSTEM_CA_SIGNED_CERTIFICATES"))
+            config.withTrustStrategy(Config.TrustStrategy.trustSystemCertificates());
         else {
             File file = new File(trustStrategy);
             config.withTrustStrategy(Config.TrustStrategy.trustCustomCertificateSignedBy(file));
@@ -109,8 +111,7 @@ public class BoltConfig {
         if (this.databaseName != null) {
             builder.withDatabase(this.databaseName);
         }
-        return builder
-                .withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
+        return builder.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
                 .build();
     }
 
@@ -121,7 +122,6 @@ public class BoltConfig {
     public boolean isAddStatistics() {
         return addStatistics;
     }
-
 
     public boolean isStreamStatements() {
         return streamStatements;

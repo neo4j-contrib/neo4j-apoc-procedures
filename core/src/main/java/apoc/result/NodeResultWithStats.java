@@ -18,10 +18,8 @@
  */
 package apoc.result;
 
-import org.neo4j.graphdb.Node;
-
 import java.util.Map;
-
+import org.neo4j.graphdb.Node;
 
 public class NodeResultWithStats extends NodeResult {
     public final Map<String, Object> stats;

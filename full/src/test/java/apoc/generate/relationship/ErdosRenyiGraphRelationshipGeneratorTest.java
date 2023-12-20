@@ -18,9 +18,12 @@
  */
 package apoc.generate.relationship;
 
+import static org.junit.Assert.assertEquals;
+
 import apoc.generate.Generate;
 import apoc.generate.config.ErdosRenyiConfig;
 import apoc.util.TestUtil;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,12 +32,7 @@ import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-
-
-public class ErdosRenyiGraphRelationshipGeneratorTest  {
+public class ErdosRenyiGraphRelationshipGeneratorTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -72,5 +70,4 @@ public class ErdosRenyiGraphRelationshipGeneratorTest  {
     private void assertCorrectNumberOfEdgesGenerated(long numberOfEdges, List<Pair<Integer, Integer>> edges) {
         assertEquals(numberOfEdges, edges.size());
     }
-
 }

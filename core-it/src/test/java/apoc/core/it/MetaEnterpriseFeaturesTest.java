@@ -18,24 +18,23 @@
  */
 package apoc.core.it;
 
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.testResult;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.Session;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.testResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Session;
 
 /**
  * @author as
@@ -60,14 +59,15 @@ public class MetaEnterpriseFeaturesTest {
         neo4jContainer.close();
     }
 
-    public static boolean hasRecordMatching(List<Map<String,Object>> records, Predicate<Map<String,Object>> predicate) {
+    public static boolean hasRecordMatching(
+            List<Map<String, Object>> records, Predicate<Map<String, Object>> predicate) {
         return records.stream().filter(predicate).count() > 0;
     }
 
-    public static List<Map<String,Object>> gatherRecords(Iterator<Map<String,Object>> r) {
-        List<Map<String,Object>> rows = new ArrayList<>();
-        while(r.hasNext()) {
-            Map<String,Object> row = r.next();
+    public static List<Map<String, Object>> gatherRecords(Iterator<Map<String, Object>> r) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        while (r.hasNext()) {
+            Map<String, Object> row = r.next();
             rows.add(row);
         }
         return rows;
@@ -86,22 +86,25 @@ public class MetaEnterpriseFeaturesTest {
             return null;
         });
         testResult(session, "CALL apoc.meta.nodeTypeProperties();", (r) -> {
-            List<Map<String,Object>> records = gatherRecords(r);
-            assertTrue(hasRecordMatching(records, m ->
-                        m.get("nodeType").equals(":`Foo`") &&
-                                ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
-                                m.get("propertyName").equals("s") &&
-                                m.get("mandatory").equals(true)));
+            List<Map<String, Object>> records = gatherRecords(r);
+            assertTrue(hasRecordMatching(
+                    records,
+                    m -> m.get("nodeType").equals(":`Foo`")
+                            && ((List) m.get("nodeLabels")).get(0).equals("Foo")
+                            && m.get("propertyName").equals("s")
+                            && m.get("mandatory").equals(true)));
 
-            assertTrue(hasRecordMatching(records, m ->
-                    m.get("propertyName").equals("s") &&
-                            ((List)m.get("propertyTypes")).get(0).equals("String")));
+            assertTrue(hasRecordMatching(
+                    records,
+                    m -> m.get("propertyName").equals("s")
+                            && ((List) m.get("propertyTypes")).get(0).equals("String")));
 
-            assertTrue(hasRecordMatching(records, m ->
-                    m.get("nodeType").equals(":`Foo`") &&
-                            ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
-                            m.get("propertyName").equals("dl") &&
-                            m.get("mandatory").equals(false)));
+            assertTrue(hasRecordMatching(
+                    records,
+                    m -> m.get("nodeType").equals(":`Foo`")
+                            && ((List) m.get("nodeLabels")).get(0).equals("Foo")
+                            && m.get("propertyName").equals("dl")
+                            && m.get("mandatory").equals(false)));
 
             assertEquals(5, records.size());
         });

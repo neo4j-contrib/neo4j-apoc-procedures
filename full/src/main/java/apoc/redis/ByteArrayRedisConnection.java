@@ -23,7 +23,6 @@ import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -90,9 +89,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
 
     @Override
     public Map<String, Object> hgetall(byte[] key) {
-        return this.commands.hgetall(key)
-                .entrySet()
-                .stream()
+        return this.commands.hgetall(key).entrySet().stream()
                 .collect(Collectors.toMap(e -> new String(e.getKey()), Map.Entry::getValue));
     }
 
@@ -106,9 +103,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
 
     @Override
     public byte[] pop(byte[] key) {
-        return this.conf.isRight()
-                ? this.commands.rpop(key)
-                : this.commands.lpop(key);
+        return this.conf.isRight() ? this.commands.rpop(key) : this.commands.lpop(key);
     }
 
     @Override
@@ -162,7 +157,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
     public long zrem(byte[] source, List<Object> members) {
         return this.commands.zrem(source, toBytesArray(members));
     }
-    
+
     // -- Script
     @Override
     public byte[] eval(String script, ScriptOutputType outputType, List<Object> keys, List<Object> values) {
@@ -183,9 +178,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
 
     @Override
     public boolean pexpire(byte[] key, long time, boolean isExpireAt) {
-        return isExpireAt
-                ? this.commands.pexpireat(key, time)
-                : this.commands.pexpire(key, time);
+        return isExpireAt ? this.commands.pexpireat(key, time) : this.commands.pexpire(key, time);
     }
 
     @Override
@@ -213,7 +206,7 @@ public class ByteArrayRedisConnection extends RedisConnection<byte[]> {
     public Map<String, Object> configGet(String parameter) {
         return Collections.unmodifiableMap(this.commands.configGet(parameter));
     }
-    
+
     private byte[][] toBytesArray(List<Object> fields) {
         return fields.stream().map(byte[].class::cast).toArray(byte[][]::new);
     }

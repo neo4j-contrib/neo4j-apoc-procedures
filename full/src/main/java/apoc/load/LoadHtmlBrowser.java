@@ -18,9 +18,15 @@
  */
 package apoc.load;
 
+import static java.util.Optional.ofNullable;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.github.bonigarcia.wdm.config.Architecture;
 import io.github.bonigarcia.wdm.config.OperatingSystem;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -31,16 +37,14 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Map;
-
-import static java.util.Optional.ofNullable;
-
 public class LoadHtmlBrowser {
-    
-    public static InputStream getChromeInputStream(String url, Map<String, String> query, LoadHtmlConfig config, boolean isHeadless, boolean isAcceptInsecureCerts) {
+
+    public static InputStream getChromeInputStream(
+            String url,
+            Map<String, String> query,
+            LoadHtmlConfig config,
+            boolean isHeadless,
+            boolean isAcceptInsecureCerts) {
         setupWebDriverManager(WebDriverManager.chromedriver(), config);
 
         ChromeOptions chromeOptions = new ChromeOptions();
@@ -48,49 +52,41 @@ public class LoadHtmlBrowser {
         chromeOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new ChromeDriver(chromeOptions));
     }
-    
-    public static InputStream getFirefoxInputStream(String url, Map<String, String> query, LoadHtmlConfig config, boolean isHeadless, boolean isAcceptInsecureCerts) {
+
+    public static InputStream getFirefoxInputStream(
+            String url,
+            Map<String, String> query,
+            LoadHtmlConfig config,
+            boolean isHeadless,
+            boolean isAcceptInsecureCerts) {
         setupWebDriverManager(WebDriverManager.firefoxdriver(), config);
-        
+
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         firefoxOptions.setHeadless(isHeadless);
         firefoxOptions.setAcceptInsecureCerts(isAcceptInsecureCerts);
         return getInputStreamWithBrowser(url, query, config, new FirefoxDriver(firefoxOptions));
     }
-    
+
     private static void setupWebDriverManager(WebDriverManager driver, LoadHtmlConfig config) {
         // strings
-        ofNullable(config.getDriverVersion())
-                .ifPresent(driver::driverVersion);
-        ofNullable(config.getBrowserVersion())
-                .ifPresent(driver::browserVersion);
-        ofNullable(config.getCachePath())
-                .ifPresent(driver::cachePath);
-        ofNullable(config.getResolutionCachePath())
-                .ifPresent(driver::resolutionCachePath);
-        ofNullable(config.getProxy())
-                .ifPresent(driver::proxy);
-        ofNullable(config.getProxyUser())
-                .ifPresent(driver::proxyUser);
-        ofNullable(config.getProxyPass())
-                .ifPresent(driver::proxyPass);
-        ofNullable(config.getGitHubToken())
-                .ifPresent(driver::gitHubToken);
-        
+        ofNullable(config.getDriverVersion()).ifPresent(driver::driverVersion);
+        ofNullable(config.getBrowserVersion()).ifPresent(driver::browserVersion);
+        ofNullable(config.getCachePath()).ifPresent(driver::cachePath);
+        ofNullable(config.getResolutionCachePath()).ifPresent(driver::resolutionCachePath);
+        ofNullable(config.getProxy()).ifPresent(driver::proxy);
+        ofNullable(config.getProxyUser()).ifPresent(driver::proxyUser);
+        ofNullable(config.getProxyPass()).ifPresent(driver::proxyPass);
+        ofNullable(config.getGitHubToken()).ifPresent(driver::gitHubToken);
+
         // URLs
-        ofNullable(config.getDriverRepositoryUrl())
-                .ifPresent(c -> driver.driverRepositoryUrl(fromUrl(c)));
-        ofNullable(config.getVersionsPropertiesUrl())
-                .ifPresent(c -> driver.versionsPropertiesUrl(fromUrl(c)));
-        ofNullable(config.getCommandsPropertiesUrl())
-                .ifPresent(c -> driver.commandsPropertiesUrl(fromUrl(c)));
-        
+        ofNullable(config.getDriverRepositoryUrl()).ifPresent(c -> driver.driverRepositoryUrl(fromUrl(c)));
+        ofNullable(config.getVersionsPropertiesUrl()).ifPresent(c -> driver.versionsPropertiesUrl(fromUrl(c)));
+        ofNullable(config.getCommandsPropertiesUrl()).ifPresent(c -> driver.commandsPropertiesUrl(fromUrl(c)));
+
         // enums
-        ofNullable(config.getOperatingSystem())
-                .ifPresent(c -> driver.operatingSystem(OperatingSystem.valueOf(c)));
-        ofNullable(config.getArchitecture())
-                .ifPresent(c -> driver.architecture(Architecture.valueOf(c)));
-        
+        ofNullable(config.getOperatingSystem()).ifPresent(c -> driver.operatingSystem(OperatingSystem.valueOf(c)));
+        ofNullable(config.getArchitecture()).ifPresent(c -> driver.architecture(Architecture.valueOf(c)));
+
         // booleans
         if (config.isForceDownload()) {
             driver.forceDownload();
@@ -133,10 +129,10 @@ public class LoadHtmlBrowser {
         ofNullable(config.getTimeout()).ifPresent(driver::timeout);
         ofNullable(config.getTtl()).ifPresent(driver::ttl);
         ofNullable(config.getTtlBrowsers()).ifPresent(driver::ttlBrowsers);
-        
+
         driver.setup();
     }
-    
+
     private static URL fromUrl(String url) {
         try {
             return new URL(url);
@@ -144,8 +140,9 @@ public class LoadHtmlBrowser {
             throw new RuntimeException(e);
         }
     }
-    
-    private static InputStream getInputStreamWithBrowser(String url, Map<String, String> query, LoadHtmlConfig config, WebDriver driver) {
+
+    private static InputStream getInputStreamWithBrowser(
+            String url, Map<String, String> query, LoadHtmlConfig config, WebDriver driver) {
         driver.get(url);
 
         final long wait = config.getWait();
@@ -153,7 +150,8 @@ public class LoadHtmlBrowser {
             Wait<WebDriver> driverWait = new WebDriverWait(driver, wait);
             try {
                 driverWait.until(webDriver -> query.values().stream()
-                        .noneMatch(selector -> webDriver.findElements(By.cssSelector(selector)).isEmpty()));
+                        .noneMatch(selector ->
+                                webDriver.findElements(By.cssSelector(selector)).isEmpty()));
             } catch (org.openqa.selenium.TimeoutException ignored) {
                 // We continue the execution even if 1 or more elements were not found
             }

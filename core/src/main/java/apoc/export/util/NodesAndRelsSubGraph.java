@@ -18,8 +18,15 @@
  */
 package apoc.export.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -30,14 +37,6 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterables;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author mh
@@ -91,7 +90,7 @@ public class NodesAndRelsSubGraph implements SubGraph {
         return definitions;
     }
 
-    private <T> ArrayList<T> getDefinitions( BiFunction<Schema, Label, Iterable<T>> biFunction) {
+    private <T> ArrayList<T> getDefinitions(BiFunction<Schema, Label, Iterable<T>> biFunction) {
         Schema schema = tx.schema();
         ArrayList<T> definitions = new ArrayList<>(labels.size() * 2);
         for (String label : labels) {
@@ -134,16 +133,12 @@ public class NodesAndRelsSubGraph implements SubGraph {
 
     @Override
     public Iterable<RelationshipType> getAllRelationshipTypesInUse() {
-        return types.stream()
-                .map(RelationshipType::withName)
-                .collect(Collectors.toSet());
+        return types.stream().map(RelationshipType::withName).collect(Collectors.toSet());
     }
 
     @Override
     public Iterable<Label> getAllLabelsInUse() {
-        return labels.stream()
-                .map(Label::label)
-                .collect(Collectors.toSet());
+        return labels.stream().map(Label::label).collect(Collectors.toSet());
     }
 
     @Override
@@ -160,15 +155,11 @@ public class NodesAndRelsSubGraph implements SubGraph {
 
     @Override
     public long countsForNode(Label label) {
-        return nodes.stream()
-                .filter(n -> n.hasLabel(label))
-                .count();
+        return nodes.stream().filter(n -> n.hasLabel(label)).count();
     }
 
     @Override
     public Iterator<Node> findNodes(Label label) {
-        return nodes.stream()
-                .filter(n -> n.hasLabel(label))
-                .iterator();
+        return nodes.stream().filter(n -> n.hasLabel(label)).iterator();
     }
 }

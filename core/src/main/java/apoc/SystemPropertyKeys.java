@@ -18,7 +18,7 @@
  */
 package apoc;
 
-public enum SystemPropertyKeys  {
+public enum SystemPropertyKeys {
     database,
     name,
 
@@ -40,7 +40,7 @@ public enum SystemPropertyKeys  {
 
     // dv
     data,
-    
+
     // uuid handler
     label,
     addToSetLabel,

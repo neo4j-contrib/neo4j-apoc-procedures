@@ -18,26 +18,22 @@
  */
 package apoc.full.it;
 
+import static apoc.util.TestContainerUtil.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
+import java.util.List;
+import java.util.Map;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static apoc.util.TestContainerUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class TTLMultiDbTest {
 
@@ -55,12 +51,19 @@ public class TTLMultiDbTest {
     @BeforeClass
     public static void setupContainer() {
         neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
-                .withEnv(Map.of("apoc.ttl.enabled." + DB_TEST, "false",
-                        "apoc.ttl.enabled", "true",
-                        "apoc.ttl.schedule", "2",
-                        "apoc.ttl.schedule." + DB_FOO, "7",
-                        "apoc.ttl.limit", "200",
-                        "apoc.ttl.limit." + DB_BAR, "2000"));
+                .withEnv(Map.of(
+                        "apoc.ttl.enabled." + DB_TEST,
+                        "false",
+                        "apoc.ttl.enabled",
+                        "true",
+                        "apoc.ttl.schedule",
+                        "2",
+                        "apoc.ttl.schedule." + DB_FOO,
+                        "7",
+                        "apoc.ttl.limit",
+                        "200",
+                        "apoc.ttl.limit." + DB_BAR,
+                        "2000"));
         neo4jContainer.start();
         driver = neo4jContainer.getDriver();
         createDatabases();
@@ -138,7 +141,7 @@ public class TTLMultiDbTest {
     }
 
     private static void createDatabases() {
-        try(Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
+        try (Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
             systemSession.writeTransaction(tx -> {
                 tx.run("CREATE DATABASE " + DB_TEST + " WAIT;");
                 tx.run("CREATE DATABASE " + DB_FOO + " WAIT;");

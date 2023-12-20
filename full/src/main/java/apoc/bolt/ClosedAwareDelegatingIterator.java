@@ -18,10 +18,9 @@
  */
 package apoc.bolt;
 
-import org.neo4j.driver.exceptions.ResultConsumedException;
-
 import java.util.Iterator;
 import java.util.function.Consumer;
+import org.neo4j.driver.exceptions.ResultConsumedException;
 
 /**
  * if we would pass through a bolt result stream directly as a procedure result stream, there's an issue regarding

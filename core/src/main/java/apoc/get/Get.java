@@ -21,10 +21,9 @@ package apoc.get;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
+import java.util.stream.Stream;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Name;
-
-import java.util.stream.Stream;
 
 public class Get {
 
@@ -41,5 +40,4 @@ public class Get {
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
         return Util.relsStream(tx, ids).map(RelationshipResult::new);
     }
-
 }

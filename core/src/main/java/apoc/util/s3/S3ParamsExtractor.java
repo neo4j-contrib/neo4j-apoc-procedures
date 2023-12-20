@@ -20,7 +20,6 @@ package apoc.util.s3;
 
 import apoc.util.Util;
 import com.amazonaws.regions.Regions;
-
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
@@ -45,7 +44,7 @@ public class S3ParamsExtractor {
             throw new IllegalArgumentException("Unsupported protocol '" + uri.getScheme() + "'");
         }
 
-        //aws credentials
+        // aws credentials
         String accessKey = null;
         String secretKey = null;
         String sessionToken = null;
@@ -62,10 +61,16 @@ public class S3ParamsExtractor {
             // User info part cannot contain session token.
         } else {
             Map<String, String> params = Util.getRequestParameter(uri.getQuery());
-            if(Objects.nonNull(params)) {
-                if(params.containsKey(ACCESS_KEY)){accessKey = params.get(ACCESS_KEY);}
-                if(params.containsKey(SECRET_KEY)){secretKey = params.get(SECRET_KEY);}
-                if(params.containsKey(SESSION_TOKEN)){sessionToken = params.get(SESSION_TOKEN);}
+            if (Objects.nonNull(params)) {
+                if (params.containsKey(ACCESS_KEY)) {
+                    accessKey = params.get(ACCESS_KEY);
+                }
+                if (params.containsKey(SECRET_KEY)) {
+                    secretKey = params.get(SECRET_KEY);
+                }
+                if (params.containsKey(SESSION_TOKEN)) {
+                    sessionToken = params.get(SESSION_TOKEN);
+                }
             }
         }
 
@@ -74,40 +79,38 @@ public class S3ParamsExtractor {
         // The downside is we have to clean the credentials preceding the @ if they are there,
         // which .getHost would not return
         String endpoint = uri.getAuthority();
-        int atIndex = endpoint.indexOf( "@" );
-        if (atIndex != -1)
-            endpoint = endpoint.substring( atIndex + 1 );
+        int atIndex = endpoint.indexOf("@");
+        if (atIndex != -1) endpoint = endpoint.substring(atIndex + 1);
 
         Integer slashIndex = uri.getPath().indexOf("/", 1);
         String key;
-        String bucket ;
+        String bucket;
 
-        if(slashIndex > 0){
+        if (slashIndex > 0) {
             // key
             key = uri.getPath().substring(slashIndex + 1);
             // bucket
             bucket = uri.getPath().substring(1, slashIndex);
+        } else {
+            throw new IllegalArgumentException(
+                    "Invalid url. Must be:\n's3://accessKey:secretKey@endpoint:port/bucket/key' or\n's3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey'");
         }
-        else{
-            throw new IllegalArgumentException("Invalid url. Must be:\n's3://accessKey:secretKey@endpoint:port/bucket/key' or\n's3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey'");
-        }
-
 
         String region = null;
 
         if (Objects.nonNull(endpoint)) {
 
             // Look for endpoint contains region
-            for (Regions r: Regions.values()){
-                if(endpoint.toLowerCase().contains(r.getName().toLowerCase())){
+            for (Regions r : Regions.values()) {
+                if (endpoint.toLowerCase().contains(r.getName().toLowerCase())) {
                     region = r.getName().toLowerCase();
                     break;
                 }
             }
 
-            if(Objects.nonNull(region)) {
-                //has specific endpoints for regions, otherwise remove region from endpoint
-                if(!endpoint.contains("amazonaws.com")) {
+            if (Objects.nonNull(region)) {
+                // has specific endpoints for regions, otherwise remove region from endpoint
+                if (!endpoint.contains("amazonaws.com")) {
                     endpoint = endpoint.substring(endpoint.indexOf(".") + 1);
                 }
 
@@ -119,7 +122,7 @@ public class S3ParamsExtractor {
         }
 
         if (endpoint != null) {
-            endpoint = endpoint.replaceAll( ":443", "").replaceAll( ":80", "" );
+            endpoint = endpoint.replaceAll(":443", "").replaceAll(":80", "");
         }
 
         if (Objects.nonNull(endpoint) && endpoint.isEmpty()) {

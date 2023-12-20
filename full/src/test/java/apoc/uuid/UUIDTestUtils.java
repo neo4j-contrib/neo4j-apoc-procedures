@@ -18,12 +18,6 @@
  */
 package apoc.uuid;
 
-import org.hamcrest.Matchers;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.neo4j.graphdb.GraphDatabaseService;
-
-import java.util.Map;
-
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.util.SystemDbTestUtil.PROCEDURE_DEFAULT_REFRESH;
 import static apoc.util.SystemDbTestUtil.TIMEOUT;
@@ -35,6 +29,11 @@ import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Map;
+import org.hamcrest.Matchers;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.neo4j.graphdb.GraphDatabaseService;
+
 public class UUIDTestUtils {
     public static ProvideSystemProperty setUuidApocConfs() {
         return new ProvideSystemProperty(APOC_UUID_REFRESH, String.valueOf(PROCEDURE_DEFAULT_REFRESH))
@@ -45,15 +44,19 @@ public class UUIDTestUtils {
         awaitUuidDiscovered(db, label, DEFAULT_UUID_PROPERTY, DEFAULT_ADD_TO_SET_LABELS);
     }
 
-    public static void awaitUuidDiscovered(GraphDatabaseService db, String label, String expectedUuidProp, boolean expectedAddToSetLabels) {
-        String call = "CALL apoc.uuid.list() YIELD properties, label WHERE label = $label " +
-                "RETURN properties.uuidProperty AS uuidProperty, properties.addToSetLabels AS addToSetLabels";
-        testCallEventually(db, call,
+    public static void awaitUuidDiscovered(
+            GraphDatabaseService db, String label, String expectedUuidProp, boolean expectedAddToSetLabels) {
+        String call = "CALL apoc.uuid.list() YIELD properties, label WHERE label = $label "
+                + "RETURN properties.uuidProperty AS uuidProperty, properties.addToSetLabels AS addToSetLabels";
+        testCallEventually(
+                db,
+                call,
                 Map.of("label", label),
                 row -> {
                     assertEquals(expectedUuidProp, row.get(UUID_PROPERTY_KEY));
                     assertEquals(expectedAddToSetLabels, row.get(ADD_TO_SET_LABELS_KEY));
-                }, TIMEOUT);
+                },
+                TIMEOUT);
     }
 
     public static void assertIsUUID(Object uuid) {

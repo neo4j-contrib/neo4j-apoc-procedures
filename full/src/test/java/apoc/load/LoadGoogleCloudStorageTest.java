@@ -18,13 +18,6 @@
  */
 package apoc.load;
 
-import apoc.util.GoogleCloudStorageContainerExtension;
-import apoc.util.TestUtil;
-import org.junit.*;
-
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -32,6 +25,12 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
+import apoc.util.GoogleCloudStorageContainerExtension;
+import apoc.util.TestUtil;
+import org.junit.*;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 public class LoadGoogleCloudStorageTest {
 
@@ -70,7 +69,7 @@ public class LoadGoogleCloudStorageTest {
     public void testLoadJSON() {
         String url = gcsUrl("b/folder/o/map.json?alt=media");
         testCall(db, "CALL apoc.load.jsonArray($url, '$.foo')", map("url", url), (r) -> {
-            assertEquals(asList(1L,2L,3L), r.get("value"));
+            assertEquals(asList(1L, 2L, 3L), r.get("value"));
         });
     }
 

@@ -7,6 +7,7 @@ public class SyncIndexingGraphDatabaseState extends IndexTrackingGraphDatabaseSt
     @Override
     void setupGraphDatabase(GraphDatabaseService graphDatabaseService) {
         super.setupGraphDatabase(graphDatabaseService);
-        graphDatabaseService.execute("CALL apoc.index.addAllNodesExtended('person_index',{Person:['name']},{autoUpdate:true})");
+        graphDatabaseService.execute(
+                "CALL apoc.index.addAllNodesExtended('person_index',{Person:['name']},{autoUpdate:true})");
     }
 }

@@ -18,14 +18,13 @@
  */
 package apoc.generate.relationship;
 
-import apoc.generate.config.NumberOfNodesBasedConfig;
-import org.junit.Test;
-import org.neo4j.internal.helpers.collection.Pair;
-
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import apoc.generate.config.NumberOfNodesBasedConfig;
+import java.util.List;
+import org.junit.Test;
+import org.neo4j.internal.helpers.collection.Pair;
 
 public class CompleteGraphRelationshipGeneratorTest {
 

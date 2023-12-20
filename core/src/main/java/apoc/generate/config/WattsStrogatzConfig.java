@@ -72,9 +72,7 @@ public class WattsStrogatzConfig extends NumberOfNodesBasedConfig {
      */
     @Override
     public boolean isValid() {
-        return !(meanDegree % 2 != 0 ||
-                meanDegree < 3 ||
-                meanDegree > getNumberOfNodes() - 1) &&
-                (0 <= beta && beta <= 1);
+        return !(meanDegree % 2 != 0 || meanDegree < 3 || meanDegree > getNumberOfNodes() - 1)
+                && (0 <= beta && beta <= 1);
     }
 }

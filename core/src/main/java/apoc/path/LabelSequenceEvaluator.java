@@ -18,18 +18,17 @@
  */
 package apoc.path;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
+import static org.neo4j.graphdb.traversal.Evaluation.EXCLUDE_AND_CONTINUE;
+import static org.neo4j.graphdb.traversal.Evaluation.INCLUDE_AND_CONTINUE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.neo4j.graphdb.traversal.Evaluation.EXCLUDE_AND_CONTINUE;
-import static org.neo4j.graphdb.traversal.Evaluation.INCLUDE_AND_CONTINUE;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.traversal.Evaluation;
+import org.neo4j.graphdb.traversal.Evaluator;
 
 // when no commas present, acts as a pathwide label filter
 public class LabelSequenceEvaluator implements Evaluator {
@@ -41,7 +40,8 @@ public class LabelSequenceEvaluator implements Evaluator {
     private boolean beginSequenceAtStart;
     private long minLevel = -1;
 
-    public LabelSequenceEvaluator(String labelSequence, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
+    public LabelSequenceEvaluator(
+            String labelSequence, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
         List<String> labelSequenceList;
 
         // parse sequence
@@ -54,11 +54,13 @@ public class LabelSequenceEvaluator implements Evaluator {
         initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
     }
 
-    public LabelSequenceEvaluator(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
+    public LabelSequenceEvaluator(
+            List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
         initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
     }
 
-    private void initialize(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
+    private void initialize(
+            List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
         this.filterStartNode = filterStartNode;
         this.beginSequenceAtStart = beginSequenceAtStart;
         this.minLevel = minLevel;
@@ -92,8 +94,10 @@ public class LabelSequenceEvaluator implements Evaluator {
             return whitelistAllowedEvaluation;
         }
 
-        // the user may want the sequence to begin at the start node (default), or the sequence may only apply from the next node on
-        LabelMatcherGroup matcherGroup = sequenceMatchers.get((beginSequenceAtStart ? depth : depth - 1) % sequenceMatchers.size());
+        // the user may want the sequence to begin at the start node (default), or the sequence may only apply from the
+        // next node on
+        LabelMatcherGroup matcherGroup =
+                sequenceMatchers.get((beginSequenceAtStart ? depth : depth - 1) % sequenceMatchers.size());
 
         return matcherGroup.evaluate(node, belowMinLevel);
     }

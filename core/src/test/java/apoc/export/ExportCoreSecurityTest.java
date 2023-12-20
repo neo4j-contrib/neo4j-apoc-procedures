@@ -18,6 +18,15 @@
  */
 package apoc.export;
 
+import static apoc.export.SecurityTestUtil.ERROR_KEY;
+import static apoc.export.SecurityTestUtil.EXPORT_PROCEDURES;
+import static apoc.export.SecurityTestUtil.PROCEDURE_KEY;
+import static apoc.export.SecurityTestUtil.assertPathTraversalError;
+import static apoc.export.SecurityTestUtil.getApocProcedure;
+import static apoc.export.SecurityTestUtil.setExportFileApocConfigs;
+import static apoc.util.TestUtil.assertError;
+import static org.junit.Assert.assertTrue;
+
 import apoc.ApocConfig;
 import apoc.export.csv.ExportCSV;
 import apoc.export.cypher.ExportCypher;
@@ -26,6 +35,16 @@ import apoc.export.json.ExportJson;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -40,26 +59,6 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static apoc.export.SecurityTestUtil.ERROR_KEY;
-import static apoc.export.SecurityTestUtil.EXPORT_PROCEDURES;
-import static apoc.export.SecurityTestUtil.PROCEDURE_KEY;
-import static apoc.export.SecurityTestUtil.assertPathTraversalError;
-import static apoc.export.SecurityTestUtil.getApocProcedure;
-import static apoc.export.SecurityTestUtil.setExportFileApocConfigs;
-import static apoc.util.TestUtil.assertError;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(Enclosed.class)
 public class ExportCoreSecurityTest {
     private static final File directory = new File("target/import");
@@ -69,7 +68,6 @@ public class ExportCoreSecurityTest {
 
     public static final String FILENAME = "my-test.txt";
     public static final String PARAM_NAMES = "Procedure: {0}.{1}, fileName: {3}";
-
 
     static {
         //noinspection ResultOfMethodCallIgnored
@@ -82,7 +80,9 @@ public class ExportCoreSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+            .withSetting(
+                    GraphDatabaseSettings.load_csv_file_url_root,
+                    directory.toPath().toAbsolutePath());
 
     @BeforeClass
     public static void setUp() {
@@ -105,19 +105,18 @@ public class ExportCoreSecurityTest {
         return getParameterData(fileAndErrors, EXPORT_PROCEDURES, APOC_EXPORT_PROCEDURE_NAME);
     }
 
-    public static List<Object[]> getParameterData(List<Pair<String, Consumer<Map>>> fileAndErrors, List<Pair<String, String>> importAndLoadProcedures, List<String> procedureNames) {
+    public static List<Object[]> getParameterData(
+            List<Pair<String, Consumer<Map>>> fileAndErrors,
+            List<Pair<String, String>> importAndLoadProcedures,
+            List<String> procedureNames) {
         // from a stream of fileNames and a List of Pair<procName, procArgs>
         // returns a List of String[]{ procName, procArgs, fileName }
         return fileAndErrors.stream()
-                .flatMap(fileName -> importAndLoadProcedures
-                        .stream()
-                        .flatMap(procPair -> procedureNames
-                                .stream()
-                                .map(procName ->
-                                        new Object[] { procName, procPair.getLeft(), procPair.getRight(), fileName.getLeft(), fileName.getRight() }
-                                )
-                        )
-                ).collect(Collectors.toList());
+                .flatMap(fileName -> importAndLoadProcedures.stream()
+                        .flatMap(procPair -> procedureNames.stream().map(procName -> new Object[] {
+                            procName, procPair.getLeft(), procPair.getRight(), fileName.getLeft(), fileName.getRight()
+                        })))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -129,19 +128,21 @@ public class ExportCoreSecurityTest {
 
         // these 2 consumers accept a Map.of("error", <errorMsg>, "procedure", <procedureQuery>)
         public static final Consumer<Map> EXCEPTION_OUTDIR_CONSUMER = (Map e) -> assertError(
-                (Exception) e.get(ERROR_KEY), FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, (String) e.get(PROCEDURE_KEY)
-        );
+                (Exception) e.get(ERROR_KEY), FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, (String)
+                        e.get(PROCEDURE_KEY));
         public static final Consumer<Map> EXCEPTION_NOT_FOUND_CONSUMER = (Map e) -> assertTrue(
-                ((Exception) e.get(ERROR_KEY)).getMessage().contains("test.txt (No such file or directory)")
-        );
+                ((Exception) e.get(ERROR_KEY)).getMessage().contains("test.txt (No such file or directory)"));
 
         private final String apocProcedure;
         private final String fileName;
         private final Consumer consumer;
 
-        public TestIllegalExternalFSAccess(String exportMethod, String exportMethodType, String exportMethodArguments,
-                                           String fileName,
-                                           Consumer consumer) {
+        public TestIllegalExternalFSAccess(
+                String exportMethod,
+                String exportMethodType,
+                String exportMethodArguments,
+                String fileName,
+                Consumer consumer) {
             this.apocProcedure = getApocProcedure(exportMethod, exportMethodType, exportMethodArguments);
             this.fileName = fileName;
             this.consumer = consumer;
@@ -164,22 +165,26 @@ public class ExportCoreSecurityTest {
         private static final String case07 = "tests/../../" + FILENAME;
         private static final String case08 = "tests/..//..//" + FILENAME;
 
-        public static final List<String> casesOutsideDir = Arrays.asList(case01, case02, case03, case04, case05, case07, case08);
+        public static final List<String> casesOutsideDir =
+                Arrays.asList(case01, case02, case03, case04, case05, case07, case08);
 
         /*
-         All of these will resolve to a local path after normalization which will point to
-         a non-existing directory in our import folder: /apoc. Causing them to error that is
-         not found. They all attempt to exit the import folder back to the apoc folder:
-         Directory Layout: .../apoc/core/target/import
-         */
+        All of these will resolve to a local path after normalization which will point to
+        a non-existing directory in our import folder: /apoc. Causing them to error that is
+        not found. They all attempt to exit the import folder back to the apoc folder:
+        Directory Layout: .../apoc/core/target/import
+        */
         private static final String case10 = "file://%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f/apoc/" + FILENAME;
         private static final String case11 = "file://../../../../apoc/" + FILENAME;
         private static final String case12 = "file:///..//..//..//..//apoc//core//..//" + FILENAME;
         private static final String case13 = "file:///..//..//..//..//apoc/" + FILENAME;
-        private static final String case14 = "file://" + directory.getAbsolutePath() + "//..//..//..//..//apoc/" + FILENAME;
-        private static final String case15 = "file:///%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f/apoc/" + FILENAME;
+        private static final String case14 =
+                "file://" + directory.getAbsolutePath() + "//..//..//..//..//apoc/" + FILENAME;
+        private static final String case15 =
+                "file:///%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f/apoc/" + FILENAME;
 
-        public static final List<String> casesNotExistingDir = Arrays.asList(case10, case11, case12, case13, case14, case15);
+        public static final List<String> casesNotExistingDir =
+                Arrays.asList(case10, case11, case12, case13, case14, case15);
 
         public static List<Pair<String, Consumer<Map>>> dataPairs;
 
@@ -236,9 +241,7 @@ public class ExportCoreSecurityTest {
             try {
                 assertPathTraversalWithoutErrors();
             } catch (QueryExecutionException e) {
-                EXCEPTION_NOT_FOUND_CONSUMER.accept(
-                        Util.map(ERROR_KEY, e, PROCEDURE_KEY, apocProcedure)
-                );
+                EXCEPTION_NOT_FOUND_CONSUMER.accept(Util.map(ERROR_KEY, e, PROCEDURE_KEY, apocProcedure));
             }
         }
 
@@ -247,7 +250,6 @@ public class ExportCoreSecurityTest {
         }
     }
 
-
     /**
      * These tests normalize the path to be within the import directory (or subdirectory) and make the file there.
      * Some attempt to exit the directory.
@@ -255,25 +257,30 @@ public class ExportCoreSecurityTest {
     @RunWith(Parameterized.class)
     public static class TestPathTraversalIsNormalisedWithinDirectory {
 
-        public static final Consumer<Map> MAIN_DIR_CONSUMER = (r) -> assertTrue(((String) r.get("file")).contains("" + FILENAME));
-        public static final Consumer<Map> SUB_DIR_CONSUMER = (r) -> assertTrue(((String) r.get("file")).contains("tests/" + FILENAME));
+        public static final Consumer<Map> MAIN_DIR_CONSUMER =
+                (r) -> assertTrue(((String) r.get("file")).contains("" + FILENAME));
+        public static final Consumer<Map> SUB_DIR_CONSUMER =
+                (r) -> assertTrue(((String) r.get("file")).contains("tests/" + FILENAME));
 
         private final String apocProcedure;
         private final String fileName;
         private final Consumer consumer;
 
-        public TestPathTraversalIsNormalisedWithinDirectory(String exportMethod, String exportMethodType, String exportMethodArguments,
-                                                            String fileName,
-                                                            Consumer consumer) {
+        public TestPathTraversalIsNormalisedWithinDirectory(
+                String exportMethod,
+                String exportMethodType,
+                String exportMethodArguments,
+                String fileName,
+                Consumer consumer) {
             this.apocProcedure = getApocProcedure(exportMethod, exportMethodType, exportMethodArguments);
             this.fileName = fileName;
             this.consumer = consumer;
         }
 
         /*
-         These tests normalize the path to be within the import directory and make the file there.
-         They result in a file being created (and deleted after).
-         */
+        These tests normalize the path to be within the import directory and make the file there.
+        They result in a file being created (and deleted after).
+        */
         private static final String caseBase = "./" + FILENAME;
 
         private static final String case01 = "file:///..//..//..//..//apoc//..//..//..//..//" + FILENAME;
@@ -287,13 +294,14 @@ public class ExportCoreSecurityTest {
         private static final String case09 = "file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f/" + FILENAME;
         public static final String case10 = "file:///%2e%2e%2f%2f" + FILENAME;
 
-        public static final List<String> mainDirCases = Arrays.asList(caseBase, case01, case02, case03, case04, case05, case06, case07, case08, case09, case10);
+        public static final List<String> mainDirCases =
+                Arrays.asList(caseBase, case01, case02, case03, case04, case05, case06, case07, case08, case09, case10);
 
         /*
-         These tests normalize the path to be within the import directory and step into a subdirectory
-         to make the file there.
-         They result in a file in the directory /tests being created (and deleted after).
-         */
+        These tests normalize the path to be within the import directory and step into a subdirectory
+        to make the file there.
+        They result in a file in the directory /tests being created (and deleted after).
+        */
         private static final String case11 = "file:///../import/../import//..//tests/" + FILENAME;
         private static final String case12 = "file:///..//..//..//..//apoc//..//tests/" + FILENAME;
         private static final String case13 = "file:///../import/../import//..//tests/../tests/" + FILENAME;
@@ -302,11 +310,13 @@ public class ExportCoreSecurityTest {
 
         public static final List<String> subDirCases = Arrays.asList(case11, case12, case13, case14, case15);
 
-
         @Parameterized.Parameters(name = PARAM_NAMES)
         public static Collection<Object[]> data() {
-            List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream().map(i -> Pair.of(i, MAIN_DIR_CONSUMER)).collect(Collectors.toList());
-            List<Pair<String, Consumer<Map>>> collect2 = subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
+            List<Pair<String, Consumer<Map>>> collect = mainDirCases.stream()
+                    .map(i -> Pair.of(i, MAIN_DIR_CONSUMER))
+                    .collect(Collectors.toList());
+            List<Pair<String, Consumer<Map>>> collect2 =
+                    subDirCases.stream().map(i -> Pair.of(i, SUB_DIR_CONSUMER)).collect(Collectors.toList());
             collect.addAll(collect2);
 
             return getParameterData(collect);
@@ -357,26 +367,30 @@ public class ExportCoreSecurityTest {
 
     }
 
-
-
     public static class TestCypherSchema {
         private final String apocProcedure = "CALL apoc.export.cypher.schema(%s)";
 
         @Test
         public void testIllegalFSAccessExportCypherSchema() {
             setFileExport(false);
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                    () -> TestUtil.testCall(db, String.format(apocProcedure, "'./hello', {}"), (r) -> {
-                    })
-            );
+            QueryExecutionException e = Assert.assertThrows(
+                    QueryExecutionException.class,
+                    () -> TestUtil.testCall(db, String.format(apocProcedure, "'./hello', {}"), (r) -> {}));
             assertError(e, ApocConfig.EXPORT_TO_FILE_ERROR, RuntimeException.class, apocProcedure);
         }
 
         @Test
         public void testIllegalExternalFSAccessExportCypherSchema() {
             setFileExport(true);
-            assertPathTraversalError(db, String.format(apocProcedure, "'../hello', {}"), Map.of(),
-                    e -> assertError((Exception) e.get(ERROR_KEY), FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, (String) e.get(PROCEDURE_KEY)));
+            assertPathTraversalError(
+                    db,
+                    String.format(apocProcedure, "'../hello', {}"),
+                    Map.of(),
+                    e -> assertError(
+                            (Exception) e.get(ERROR_KEY),
+                            FileUtils.ACCESS_OUTSIDE_DIR_ERROR,
+                            IOException.class,
+                            (String) e.get(PROCEDURE_KEY)));
         }
     }
 }

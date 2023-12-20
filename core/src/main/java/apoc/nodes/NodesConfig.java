@@ -19,7 +19,6 @@
 package apoc.nodes;
 
 import apoc.util.Util;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,7 @@ public class NodesConfig {
 
     public static final String MAX_DEPTH_KEY = "maxDepth";
     public static final String REL_TYPES_KEY = "relTypes";
-    
+
     private final int maxDepth;
     private final List<String> relTypes;
 

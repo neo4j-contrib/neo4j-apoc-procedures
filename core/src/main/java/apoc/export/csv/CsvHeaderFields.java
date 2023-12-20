@@ -34,16 +34,15 @@ public class CsvHeaderFields {
      * @param quotationCharacter
      * @return
      */
-    public static List<CsvHeaderField> processHeader(final String header, final char delimiter, final char quotationCharacter) {
+    public static List<CsvHeaderField> processHeader(
+            final String header, final char delimiter, final char quotationCharacter) {
         final String separatorRegex = Pattern.quote(String.valueOf(delimiter));
         final List<String> attributes = Arrays.asList(header.split(separatorRegex));
 
-        final List<CsvHeaderField> fieldEntries =
-                IntStream.range(0, attributes.size())
-                        .mapToObj(i -> CsvHeaderField.parse(i, attributes.get(i), quotationCharacter))
-                        .collect(Collectors.toList());
+        final List<CsvHeaderField> fieldEntries = IntStream.range(0, attributes.size())
+                .mapToObj(i -> CsvHeaderField.parse(i, attributes.get(i), quotationCharacter))
+                .collect(Collectors.toList());
 
         return fieldEntries;
     }
-
 }

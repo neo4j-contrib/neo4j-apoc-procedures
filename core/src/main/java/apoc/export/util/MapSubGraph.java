@@ -18,6 +18,14 @@
  */
 package apoc.export.util;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -28,16 +36,6 @@ import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.IndexSetting;
 import org.neo4j.graphdb.schema.IndexType;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 
 public class MapSubGraph implements SubGraph {
 
@@ -51,7 +49,7 @@ public class MapSubGraph implements SubGraph {
             this.labels = labels.stream().map(Label::label).collect(Collectors.toList());
             this.properties = properties;
         }
-        
+
         @Override
         public Iterable<Label> getLabels() {
             return labels;
@@ -124,7 +122,6 @@ public class MapSubGraph implements SubGraph {
             this.properties = properties;
         }
 
-
         @Override
         public Label getLabel() {
             return label;
@@ -169,11 +166,13 @@ public class MapSubGraph implements SubGraph {
         this.nodes = (Collection<Node>) map.getOrDefault("nodes", Collections.emptyList());
         this.labels = this.nodes.stream()
                 .flatMap(node -> StreamSupport.stream(node.getLabels().spliterator(), true)
-                .map(Label::name))
+                        .map(Label::name))
                 .collect(Collectors.toSet());
-        Collection<Relationship> rels = (Collection<Relationship>) map.getOrDefault("relationships", Collections.emptyList());
+        Collection<Relationship> rels =
+                (Collection<Relationship>) map.getOrDefault("relationships", Collections.emptyList());
         this.rels = new HashSet<>(rels);
-        Collection<Map<String, Object>> schema = (Collection<Map<String, Object>>) map.getOrDefault("schema", Collections.emptyList());
+        Collection<Map<String, Object>> schema =
+                (Collection<Map<String, Object>>) map.getOrDefault("schema", Collections.emptyList());
         this.indexes = schema.stream().map(MapIndexDefinition::new).collect(Collectors.toList());
         this.constraints = schema.stream().map(MapConstraintDefinition::new).collect(Collectors.toList());
     }

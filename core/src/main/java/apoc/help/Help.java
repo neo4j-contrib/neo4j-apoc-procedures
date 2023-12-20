@@ -18,11 +18,7 @@
  */
 package apoc.help;
 
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import static apoc.util.Util.map;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,8 +27,11 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static apoc.util.Util.map;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 public class Help {
 
@@ -57,7 +56,8 @@ public class Help {
     }
 
     @Procedure("apoc.help")
-    @Description("Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.")
+    @Description(
+            "Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.")
     public Stream<HelpResult> info(@Name("proc") String name) throws Exception {
         boolean searchText = false;
         if (name != null) {
@@ -67,15 +67,16 @@ public class Help {
                 searchText = true;
             }
         }
-        String filter = " WHERE name starts with 'apoc.' " +
-                " AND ($name IS NULL  OR toLower(name) CONTAINS toLower($name) " +
-                " OR ($desc IS NOT NULL AND toLower(description) CONTAINS toLower($desc))) " +
-                "RETURN type, name, description, signature ";
+        String filter =
+                " WHERE name starts with 'apoc.' " + " AND ($name IS NULL  OR toLower(name) CONTAINS toLower($name) "
+                        + " OR ($desc IS NOT NULL AND toLower(description) CONTAINS toLower($desc))) "
+                        + "RETURN type, name, description, signature ";
 
-        String query = "WITH 'procedure' as type CALL dbms.procedures() yield name, description, signature " + filter +
-                " UNION ALL " +
-                "WITH 'function' as type CALL dbms.functions() yield name, description, signature " + filter;
-        return tx.execute(query, map("name", name, "desc", searchText ? name : null))
-                .stream().map(row -> new HelpResult(row, !extended.contains((String) row.get("name"))));
+        String query = "WITH 'procedure' as type CALL dbms.procedures() yield name, description, signature " + filter
+                + " UNION ALL "
+                + "WITH 'function' as type CALL dbms.functions() yield name, description, signature "
+                + filter;
+        return tx.execute(query, map("name", name, "desc", searchText ? name : null)).stream()
+                .map(row -> new HelpResult(row, !extended.contains((String) row.get("name"))));
     }
 }

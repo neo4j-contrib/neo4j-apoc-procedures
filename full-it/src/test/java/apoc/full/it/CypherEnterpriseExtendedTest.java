@@ -18,28 +18,6 @@
  */
 package apoc.full.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.util.Iterables;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Relationship;
-
 import static apoc.cypher.CypherTestUtil.CREATE_RESULT_NODES;
 import static apoc.cypher.CypherTestUtil.CREATE_RETURNQUERY_NODES;
 import static apoc.cypher.CypherTestUtil.SET_AND_RETURN_QUERIES;
@@ -52,10 +30,28 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.internal.util.Iterables;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 
 public class CypherEnterpriseExtendedTest {
     private static final String SET_RETURN_FILE = "set_and_return.cypher";
@@ -136,9 +132,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.parallel($file, {a: range(1,4)}, 'a')";
         Map<String, Object> params = Map.of("file", SET_NODE);
 
-        RuntimeException e = assertThrows(RuntimeException.class,
-                () -> testCall(session, query, params, (res) -> {})
-        );
+        RuntimeException e = assertThrows(RuntimeException.class, () -> testCall(session, query, params, (res) -> {}));
         String expectedMessage = "is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ.";
         Assertions.assertThat(e.getMessage()).contains(expectedMessage);
     }
@@ -150,10 +144,9 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.parallel2($file, {a: range(1,4)}, 'a')";
         Map<String, Object> params = Map.of("file", SET_NODE);
 
-        RuntimeException e = assertThrows(RuntimeException.class,
-                () -> testCall(session, query, params, (res) -> {})
-        );
-        String expectedMessage = "Creating new property name on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ";
+        RuntimeException e = assertThrows(RuntimeException.class, () -> testCall(session, query, params, (res) -> {}));
+        String expectedMessage =
+                "Creating new property name on database 'neo4j' is not allowed for user 'neo4j' with roles [PUBLIC, admin] overridden by READ";
         Assertions.assertThat(e.getMessage()).contains(expectedMessage);
     }
 
@@ -198,9 +191,9 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testCypherMapParallelWithResults() {
-        String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n" +
-                       "CALL apoc.cypher.mapParallel('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list)\n" +
-                       "YIELD value RETURN value";
+        String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n"
+                + "CALL apoc.cypher.mapParallel('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list)\n"
+                + "YIELD value RETURN value";
         Map<String, Object> params = Map.of("file", SIMPLE_RETURN_QUERIES);
 
         testCypherMapParallelCommon(query, params);
@@ -208,9 +201,9 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testCypherMapParallel2WithResults() {
-        String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n" +
-                       "CALL apoc.cypher.mapParallel2('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list, 1)\n" +
-                       "YIELD value RETURN value";
+        String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n"
+                + "CALL apoc.cypher.mapParallel2('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list, 1)\n"
+                + "YIELD value RETURN value";
         Map<String, Object> params = Map.of("file", SIMPLE_RETURN_QUERIES);
 
         testCypherMapParallelCommon(query, params);

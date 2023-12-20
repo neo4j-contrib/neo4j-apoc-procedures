@@ -18,9 +18,19 @@
  */
 package apoc.full.it;
 
+import static apoc.systemdb.SystemDb.REMOTE_SENSITIVE_PROP;
+import static apoc.systemdb.SystemDb.USER_SENSITIVE_PROP;
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.importFolder;
+import static org.junit.Assert.assertTrue;
+
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -28,23 +38,13 @@ import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import static apoc.systemdb.SystemDb.REMOTE_SENSITIVE_PROP;
-import static apoc.systemdb.SystemDb.USER_SENSITIVE_PROP;
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.importFolder;
-import static org.junit.Assert.assertTrue;
-
 public class SystemDbEnterpriseTest {
     private static final String USERNAME = "nonadmin";
     private static final String PASSWORD = "keystore-password";
 
     private static final String KEYSTORE_NAME_PKCS_12 = "keystore-name.pkcs12";
-    // we put the keystore file in the import folder for simplicity (because it's bound during the creation of the container)
+    // we put the keystore file in the import folder for simplicity (because it's bound during the creation of the
+    // container)
     private static File KEYSTORE_FILE;
 
     private static Neo4jContainerExtension neo4jContainer;
@@ -57,14 +57,25 @@ public class SystemDbEnterpriseTest {
         if (!importFolder.exists()) {
             importFolder.mkdir();
         }
-        KEYSTORE_FILE =  new File(importFolder, KEYSTORE_NAME_PKCS_12);
+        KEYSTORE_FILE = new File(importFolder, KEYSTORE_NAME_PKCS_12);
 
         // certificate file creation
-        final String[] args = new String[] { "keytool",
-                "-genseckey", "-keyalg", "aes", "-keysize", "256", "-storetype", "pkcs12",
-                "-keystore", KEYSTORE_FILE.getCanonicalPath(),
-                "-alias", randomKeyAlias,
-                "-storepass", PASSWORD};
+        final String[] args = new String[] {
+            "keytool",
+            "-genseckey",
+            "-keyalg",
+            "aes",
+            "-keysize",
+            "256",
+            "-storetype",
+            "pkcs12",
+            "-keystore",
+            KEYSTORE_FILE.getCanonicalPath(),
+            "-alias",
+            randomKeyAlias,
+            "-storepass",
+            PASSWORD
+        };
 
         Process proc = new ProcessBuilder(args).start();
         proc.waitFor();
@@ -80,7 +91,6 @@ public class SystemDbEnterpriseTest {
 
         neo4jContainer.start();
         session = neo4jContainer.getSession();
-
     }
 
     @AfterClass
@@ -95,8 +105,8 @@ public class SystemDbEnterpriseTest {
     public void systemDbGraphProcedureShouldObfuscateSensitiveData() {
 
         // user creation
-        session.run(String.format("CREATE USER %s SET PASSWORD '%s' SET PASSWORD CHANGE NOT REQUIRED",
-                USERNAME, PASSWORD));
+        session.run(
+                String.format("CREATE USER %s SET PASSWORD '%s' SET PASSWORD CHANGE NOT REQUIRED", USERNAME, PASSWORD));
 
         // steps for remote database alias creation
         session.run("CREATE ROLE remote");
@@ -104,21 +114,18 @@ public class SystemDbEnterpriseTest {
         session.run("GRANT MATCH {*} ON GRAPH neo4j TO remote");
         session.run(String.format("GRANT ROLE remote TO %s", USERNAME));
         // mock remote database alias creation
-        session.run(String.format("CREATE ALIAS `remote-neo4j` FOR DATABASE `neo4j` AT \"neo4j+s://location:7687\" USER %s PASSWORD '%s'",
+        session.run(String.format(
+                "CREATE ALIAS `remote-neo4j` FOR DATABASE `neo4j` AT \"neo4j+s://location:7687\" USER %s PASSWORD '%s'",
                 USERNAME, PASSWORD));
-        
+
         // get all apoc.systemdb.graph nodes
-        final List<Object> nodes = session.run("call apoc.systemdb.graph")
-                .single()
-                .get("nodes")
-                .asList();
+        final List<Object> nodes =
+                session.run("call apoc.systemdb.graph").single().get("nodes").asList();
 
         // check that there aren't sensitive properties
         final boolean noSensitiveProps = nodes.stream()
                 .map(node -> (Node) node)
-                .noneMatch(node -> node.containsKey(REMOTE_SENSITIVE_PROP) 
-                                || node.containsKey(USER_SENSITIVE_PROP));
+                .noneMatch(node -> node.containsKey(REMOTE_SENSITIVE_PROP) || node.containsKey(USER_SENSITIVE_PROP));
         assertTrue(noSensitiveProps);
     }
 }
-

@@ -39,7 +39,10 @@ public class BasicGeneratorConfig implements GeneratorConfiguration {
      * @param nodeCreator           component capable of creating nodes.
      * @param relationshipCreator   component capable of creating edges.
      */
-    public BasicGeneratorConfig(RelationshipGenerator relationshipGenerator, NodeCreator nodeCreator, RelationshipCreator relationshipCreator) {
+    public BasicGeneratorConfig(
+            RelationshipGenerator relationshipGenerator,
+            NodeCreator nodeCreator,
+            RelationshipCreator relationshipCreator) {
         this.relationshipGenerator = relationshipGenerator;
         this.nodeCreator = nodeCreator;
         this.relationshipCreator = relationshipCreator;

@@ -18,6 +18,16 @@
  */
 package apoc.util;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+import static apoc.util.DateFormatUtil.getOrCreate;
+import static java.lang.String.format;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
+import static org.eclipse.jetty.util.URIUtil.encodePath;
+import static org.neo4j.graphdb.schema.ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE;
+
 import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.convert.Convert;
@@ -25,43 +35,6 @@ import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.collections.api.iterator.LongIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotInTransactionException;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.QueryExecutionType;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.TransactionTerminatedException;
-import org.neo4j.graphdb.schema.ConstraintType;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
-import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.logging.Log;
-import org.neo4j.graphdb.ExecutionPlanDescription;
-import org.neo4j.graphdb.Result;
-import org.neo4j.kernel.impl.util.ValueUtils;
-import org.neo4j.logging.NullLog;
-import org.neo4j.procedure.Mode;
-import org.neo4j.values.AnyValue;
-import org.neo4j.procedure.TerminationGuard;
-import org.neo4j.values.storable.CoordinateReferenceSystem;
-import org.neo4j.values.storable.PointValue;
-import org.neo4j.values.storable.Values;
-
-import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -117,16 +90,42 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
-import static apoc.util.DateFormatUtil.getOrCreate;
-import static java.lang.String.format;
-import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
-import static org.eclipse.jetty.util.URIUtil.encodePath;
-import static org.neo4j.graphdb.schema.ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE;
+import javax.lang.model.SourceVersion;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.collections.api.iterator.LongIterator;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.ExecutionPlanDescription;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.QueryExecutionType;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionTerminatedException;
+import org.neo4j.graphdb.schema.ConstraintType;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.impl.util.ValueUtils;
+import org.neo4j.logging.Log;
+import org.neo4j.logging.NullLog;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.TerminationGuard;
+import org.neo4j.values.AnyValue;
+import org.neo4j.values.storable.CoordinateReferenceSystem;
+import org.neo4j.values.storable.PointValue;
+import org.neo4j.values.storable.Values;
 
 /**
  * @author mh
@@ -140,32 +139,40 @@ public class Util {
     public static final String ERROR_BYTES_OR_STRING = "Only byte[] or url String allowed";
     public static final int REDIRECT_LIMIT = 10;
 
-    public static String INVALID_QUERY_MODE_ERROR = "This procedure allows for READ-only, non-schema based queries. " +
-            "It is therefore not possible to perform writes or query the database with commands such as SHOW CONSTRAINTS/INDEXES.";
+    public static String INVALID_QUERY_MODE_ERROR = "This procedure allows for READ-only, non-schema based queries. "
+            + "It is therefore not possible to perform writes or query the database with commands such as SHOW CONSTRAINTS/INDEXES.";
 
     public static String labelString(Node n) {
         return joinLabels(n.getLabels(), ":");
     }
+
     public static String joinLabels(Iterable<Label> labels, String s) {
-        return StreamSupport.stream(labels.spliterator(), false).map(Label::name).collect(Collectors.joining(s));
+        return StreamSupport.stream(labels.spliterator(), false)
+                .map(Label::name)
+                .collect(Collectors.joining(s));
     }
+
     public static List<String> labelStrings(Node n) {
-        return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.toList());
+        return StreamSupport.stream(n.getLabels().spliterator(), false)
+                .map(Label::name)
+                .sorted()
+                .collect(Collectors.toList());
     }
+
     public static Label[] labels(Object labelNames) {
-        if (labelNames==null) return NO_LABELS;
+        if (labelNames == null) return NO_LABELS;
         if (labelNames instanceof List) {
             Set names = new LinkedHashSet((List) labelNames); // Removing duplicates
             Label[] labels = new Label[names.size()];
             int i = 0;
             for (Object l : names) {
-                if (l==null) continue;
+                if (l == null) continue;
                 labels[i++] = Label.label(l.toString());
             }
-            if (i <= labels.length) return Arrays.copyOf(labels,i);
+            if (i <= labels.length) return Arrays.copyOf(labels, i);
             return labels;
         }
-        return new Label[]{Label.label(labelNames.toString())};
+        return new Label[] {Label.label(labelNames.toString())};
     }
 
     public static RelationshipType type(Object type) {
@@ -176,18 +183,18 @@ public class Util {
     @SuppressWarnings("unchecked")
     public static LongStream ids(Object ids) {
         if (ids == null) return LongStream.empty();
-        if (ids instanceof Number) return LongStream.of(((Number)ids).longValue());
-        if (ids instanceof Node) return LongStream.of(((Node)ids).getId());
-        if (ids instanceof Relationship) return LongStream.of(((Relationship)ids).getId());
+        if (ids instanceof Number) return LongStream.of(((Number) ids).longValue());
+        if (ids instanceof Node) return LongStream.of(((Node) ids).getId());
+        if (ids instanceof Relationship) return LongStream.of(((Relationship) ids).getId());
         if (ids instanceof Collection) {
             Collection<Object> coll = (Collection<Object>) ids;
-            return coll.stream().mapToLong( (o) -> ((Number)o).longValue());
+            return coll.stream().mapToLong((o) -> ((Number) o).longValue());
         }
         if (ids instanceof Iterable) {
             Spliterator<Object> spliterator = ((Iterable) ids).spliterator();
-            return StreamSupport.stream(spliterator,false).mapToLong( (o) -> ((Number)o).longValue());
+            return StreamSupport.stream(spliterator, false).mapToLong((o) -> ((Number) o).longValue());
         }
-        throw new RuntimeException("Can't convert "+ids.getClass()+" to a stream of long ids");
+        throw new RuntimeException("Can't convert " + ids.getClass() + " to a stream of long ids");
     }
 
     public static Stream<Object> stream(Object values) {
@@ -199,9 +206,9 @@ public class Util {
     }
 
     public static Node node(Transaction tx, Object id) {
-        if (id instanceof Node) return rebind(tx, (Node)id);
-        if (id instanceof Number) return tx.getNodeById(((Number)id).longValue());
-        throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
+        if (id instanceof Node) return rebind(tx, (Node) id);
+        if (id instanceof Number) return tx.getNodeById(((Number) id).longValue());
+        throw new RuntimeException("Can't convert " + id.getClass() + " to a Node");
     }
 
     public static Stream<Relationship> relsStream(Transaction tx, Object ids) {
@@ -209,14 +216,13 @@ public class Util {
     }
 
     public static Relationship relationship(Transaction tx, Object id) {
-        if (id instanceof Relationship) return rebind(tx, (Relationship)id);
-        if (id instanceof Number) return tx.getRelationshipById(((Number)id).longValue());
-        throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
+        if (id instanceof Relationship) return rebind(tx, (Relationship) id);
+        if (id instanceof Number) return tx.getRelationshipById(((Number) id).longValue());
+        throw new RuntimeException("Can't convert " + id.getClass() + " to a Relationship");
     }
 
     public static double doubleValue(Entity pc, String prop, Number defaultValue) {
         return toDouble(pc.getProperty(prop, defaultValue));
-
     }
 
     public static double doubleValue(Entity pc, String prop) {
@@ -230,7 +236,8 @@ public class Util {
         try {
             return Direction.valueOf(direction.toUpperCase());
         } catch (Exception e) {
-            throw new RuntimeException(format("Cannot convert value '%s' to Direction. Legal values are '%s'",
+            throw new RuntimeException(format(
+                    "Cannot convert value '%s' to Direction. Legal values are '%s'",
                     direction, Arrays.toString(Direction.values())));
         }
     }
@@ -243,14 +250,20 @@ public class Util {
         return relTypes;
     }
 
-    public static <T> T retryInTx(Log log, GraphDatabaseService db, Function<Transaction, T> function, long retry, long maxRetries, Consumer<Long> callbackForRetry) {
+    public static <T> T retryInTx(
+            Log log,
+            GraphDatabaseService db,
+            Function<Transaction, T> function,
+            long retry,
+            long maxRetries,
+            Consumer<Long> callbackForRetry) {
         try (Transaction tx = db.beginTx()) {
             T result = function.apply(tx);
             tx.commit();
             return result;
         } catch (Exception e) {
             if (retry >= maxRetries) throw e;
-            if (log!=null) {
+            if (log != null) {
                 log.warn("Retrying operation %d of %d", retry, maxRetries);
             }
             callbackForRetry.accept(retry);
@@ -259,13 +272,14 @@ public class Util {
         }
     }
 
-    public static <T> Future<T> inTxFuture(Log log,
-                                           ExecutorService pool,
-                                           GraphDatabaseService db,
-                                           Function<Transaction, T> function,
-                                           long maxRetries,
-                                           Consumer<Long> callbackForRetry,
-                                           Consumer<Void> callbackAction) {
+    public static <T> Future<T> inTxFuture(
+            Log log,
+            ExecutorService pool,
+            GraphDatabaseService db,
+            Function<Transaction, T> function,
+            long maxRetries,
+            Consumer<Long> callbackForRetry,
+            Consumer<Void> callbackAction) {
         try {
             return pool.submit(() -> {
                 try {
@@ -279,7 +293,8 @@ public class Util {
         }
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function) {
+    public static <T> Future<T> inTxFuture(
+            ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function) {
         return inTxFuture(null, pool, db, function, 0, _ignored -> {}, _ignored -> {});
     }
 
@@ -290,7 +305,7 @@ public class Util {
             throw e;
         } catch (Exception e) {
             // TODO: consider dropping the exception to logs
-            throw new RuntimeException("Error executing in separate transaction: "+e.getMessage(), e);
+            throw new RuntimeException("Error executing in separate transaction: " + e.getMessage(), e);
         }
     }
 
@@ -298,7 +313,7 @@ public class Util {
         try {
             return inFuture(pools, callable).get();
         } catch (Exception e) {
-            throw new RuntimeException("Error executing in separate thread: "+e.getMessage(), e);
+            throw new RuntimeException("Error executing in separate thread: " + e.getMessage(), e);
         }
     }
 
@@ -310,9 +325,9 @@ public class Util {
         if (value == null) return null;
         if (value instanceof Number) return ((Number) value).doubleValue();
         try {
-        	return Double.parseDouble(value.toString());
+            return Double.parseDouble(value.toString());
         } catch (NumberFormatException e) {
-        	return null;
+            return null;
         }
     }
 
@@ -329,34 +344,35 @@ public class Util {
     }
 
     public static Long toLong(Object value) {
-    	if (value == null) return null;
-        if (value instanceof Number) return ((Number)value).longValue();
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).longValue();
         try {
             String s = value.toString();
-            if (s.contains(".")) return (long)Double.parseDouble(s);
+            if (s.contains(".")) return (long) Double.parseDouble(s);
             return Long.parseLong(s);
         } catch (NumberFormatException e) {
-        	return null;
+            return null;
         }
     }
+
     public static Integer toInteger(Object value) {
-    	if (value == null) return null;
-        if (value instanceof Number) return ((Number)value).intValue();
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).intValue();
         try {
             String s = value.toString();
-            if (s.contains(".")) return (int)Double.parseDouble(s);
-        	return Integer.parseInt(value.toString());
+            if (s.contains(".")) return (int) Double.parseDouble(s);
+            return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
-        	return null;
+            return null;
         }
     }
 
     public static URLConnection openUrlConnection(URL src, Map<String, Object> headers) throws IOException {
         URLConnection con = src.openConnection();
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
-       if (con instanceof HttpURLConnection) {
-                HttpURLConnection http = (HttpURLConnection) con;
-                http.setInstanceFollowRedirects(false);
+        if (con instanceof HttpURLConnection) {
+            HttpURLConnection http = (HttpURLConnection) con;
+            http.setInstanceFollowRedirects(false);
             if (headers != null) {
                 Object method = headers.get("method");
                 if (method != null) {
@@ -367,19 +383,21 @@ public class Util {
             }
         }
 
-        con.setConnectTimeout(apocConfig().getInt("apoc.http.timeout.connect",10_000));
-        con.setReadTimeout(apocConfig().getInt("apoc.http.timeout.read",60_000));
+        con.setConnectTimeout(apocConfig().getInt("apoc.http.timeout.connect", 10_000));
+        con.setReadTimeout(apocConfig().getInt("apoc.http.timeout.read", 60_000));
         return con;
     }
 
     public static boolean isRedirect(HttpURLConnection con) throws IOException {
         int responseCode = con.getResponseCode();
-        boolean isRedirectCode = responseCode >= 300 && responseCode <= 307 && responseCode != 306 && responseCode != HTTP_NOT_MODIFIED;
+        boolean isRedirectCode =
+                responseCode >= 300 && responseCode <= 307 && responseCode != 306 && responseCode != HTTP_NOT_MODIFIED;
         if (isRedirectCode) {
             URL location = new URL(con.getHeaderField("Location"));
             String oldProtocol = con.getURL().getProtocol();
             String protocol = location.getProtocol();
-            if (!protocol.equals(oldProtocol) && !protocol.startsWith(oldProtocol)) { // we allow http -> https redirect and similar
+            if (!protocol.equals(oldProtocol)
+                    && !protocol.startsWith(oldProtocol)) { // we allow http -> https redirect and similar
                 throw new RuntimeException("The redirect URI has a different protocol: " + location.toString());
             }
         }
@@ -389,18 +407,19 @@ public class Util {
     private static void writePayload(URLConnection con, String payload) throws IOException {
         if (payload == null) return;
         con.setDoOutput(true);
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(),"UTF-8"));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(), "UTF-8"));
         writer.write(payload);
         writer.close();
     }
 
     private static String handleRedirect(URLConnection con, String url) throws IOException {
-       if (!(con instanceof HttpURLConnection)) return url;
-       if (!isRedirect(((HttpURLConnection)con))) return url;
-       return con.getHeaderField("Location");
+        if (!(con instanceof HttpURLConnection)) return url;
+        if (!isRedirect(((HttpURLConnection) con))) return url;
+        return con.getHeaderField("Location");
     }
 
-    public static CountingInputStream openInputStream(Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
+    public static CountingInputStream openInputStream(
+            Object input, Map<String, Object> headers, String payload, String compressionAlgo) throws IOException {
         if (input instanceof String) {
             String urlAddress = (String) input;
             final ArchiveType archiveType = ArchiveType.from(urlAddress);
@@ -417,30 +436,31 @@ public class Util {
         }
     }
 
-    private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload, ArchiveType archiveType) throws IOException {
+    private static CountingInputStream getStreamCompressedFile(
+            String urlAddress, Map<String, Object> headers, String payload, ArchiveType archiveType)
+            throws IOException {
         StreamConnection sc;
         InputStream stream;
         String[] tokens = urlAddress.split("!");
         urlAddress = tokens[0];
         String zipFileName;
-        if(tokens.length == 2) {
+        if (tokens.length == 2) {
             zipFileName = tokens[1];
             sc = getStreamConnection(urlAddress, headers, payload);
             stream = getFileStreamIntoCompressedFile(sc.getInputStream(), zipFileName, archiveType);
             stream = toLimitedIStream(stream, sc.getLength());
-        }else
-            throw new IllegalArgumentException("filename can't be null or empty");
+        } else throw new IllegalArgumentException("filename can't be null or empty");
 
         return new CountingInputStream(stream, sc.getLength());
     }
 
-    public static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
-        return FileUtils.SupportedProtocols
-                .from(urlAddress)
-                .getStreamConnection(urlAddress, headers, payload);
+    public static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload)
+            throws IOException {
+        return FileUtils.SupportedProtocols.from(urlAddress).getStreamConnection(urlAddress, headers, payload);
     }
 
-    private static InputStream getFileStreamIntoCompressedFile(InputStream is, String fileName, ArchiveType archiveType) throws IOException {
+    private static InputStream getFileStreamIntoCompressedFile(InputStream is, String fileName, ArchiveType archiveType)
+            throws IOException {
         try (ArchiveInputStream archive = archiveType.getInputStream(is)) {
             ArchiveEntry archiveEntry;
 
@@ -454,7 +474,8 @@ public class Util {
         return null;
     }
 
-    public static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload, int redirectLimit) throws IOException {
+    public static StreamConnection readHttpInputStream(
+            String urlAddress, Map<String, Object> headers, String payload, int redirectLimit) throws IOException {
         URL url = ApocConfig.apocConfig().checkAllowedUrlAndPinToIP(urlAddress);
         URLConnection con = openUrlConnection(url, headers);
         writePayload(con, payload);
@@ -471,7 +492,14 @@ public class Util {
     }
 
     public static boolean toBoolean(Object value) {
-        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false") || ((String) value).equalsIgnoreCase("no")|| ((String) value).equalsIgnoreCase("0"))|| value instanceof Boolean && value.equals(false))) {
+        if ((value == null
+                || value instanceof Number && (((Number) value).longValue()) == 0L
+                || value instanceof String
+                        && (value.equals("")
+                                || ((String) value).equalsIgnoreCase("false")
+                                || ((String) value).equalsIgnoreCase("no")
+                                || ((String) value).equalsIgnoreCase("0"))
+                || value instanceof Boolean && value.equals(false))) {
             return false;
         }
         return true;
@@ -479,7 +507,7 @@ public class Util {
 
     public static String encodeUrlComponent(String value) {
         try {
-            return URLEncoder.encode(value,"UTF-8");
+            return URLEncoder.encode(value, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Unsupported character set utf-8");
         }
@@ -489,43 +517,48 @@ public class Util {
         try {
             return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
         } catch (IOException e) {
-            throw new RuntimeException("Can't convert "+value+" to JSON");
+            throw new RuntimeException("Can't convert " + value + " to JSON");
         }
     }
+
     public static <T> T fromJson(String value, Class<T> type) {
         try {
-            return JsonUtil.OBJECT_MAPPER.readValue(value,type);
+            return JsonUtil.OBJECT_MAPPER.readValue(value, type);
         } catch (IOException e) {
-            throw new RuntimeException("Can't convert "+value+" from JSON");
+            throw new RuntimeException("Can't convert " + value + " from JSON");
         }
     }
 
     public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions) {
-        return partitionSubList(data,partitions,null);
+        return partitionSubList(data, partitions, null);
     }
+
     public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions, List<Object> tombstone) {
-        if (partitions==0) partitions=1;
+        if (partitions == 0) partitions = 1;
         List<Object> list = new ArrayList<>(data);
         int total = list.size();
-        int batchSize = Math.max((int)Math.ceil((double)total / partitions),1);
-        Stream<List<Object>> stream = IntStream.range(0, partitions).parallel()
-                .mapToObj((part) -> list.subList(Math.min(part * batchSize, total), Math.min((part + 1) * batchSize, total)))
+        int batchSize = Math.max((int) Math.ceil((double) total / partitions), 1);
+        Stream<List<Object>> stream = IntStream.range(0, partitions)
+                .parallel()
+                .mapToObj((part) ->
+                        list.subList(Math.min(part * batchSize, total), Math.min((part + 1) * batchSize, total)))
                 .filter(partition -> !partition.isEmpty());
-        return tombstone == null ? stream : Stream.concat(stream,Stream.of(tombstone));
+        return tombstone == null ? stream : Stream.concat(stream, Stream.of(tombstone));
     }
 
     public static Long runNumericQuery(Transaction tx, String query, Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        try (ResourceIterator<Long> it = tx.execute(query,params).<Long>columnAs("result")) {
+        try (ResourceIterator<Long> it = tx.execute(query, params).<Long>columnAs("result")) {
             return it.next();
         }
     }
 
     public static long nodeCount(Transaction tx) {
-        return runNumericQuery(tx,NODE_COUNT,null);
+        return runNumericQuery(tx, NODE_COUNT, null);
     }
+
     public static long relCount(Transaction tx) {
-        return runNumericQuery(tx,REL_COUNT,null);
+        return runNumericQuery(tx, REL_COUNT, null);
     }
 
     public static LongStream toLongStream(LongIterator it) {
@@ -541,9 +574,10 @@ public class Util {
                 return it.next();
             }
         };
-        return StreamSupport.longStream(Spliterators.spliteratorUnknownSize(
-                iterator,
-                Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
+        return StreamSupport.longStream(
+                Spliterators.spliteratorUnknownSize(
+                        iterator, Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL),
+                false);
     }
 
     public static String readResourceFile(String name) {
@@ -552,11 +586,11 @@ public class Util {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String,Object> readMap(String value) {
+    public static Map<String, Object> readMap(String value) {
         try {
             return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't read as JSON "+value);
+            throw new RuntimeException("Couldn't read as JSON " + value);
         }
     }
 
@@ -571,16 +605,16 @@ public class Util {
     public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
         if (second == null || second.isEmpty()) return first == null ? Collections.EMPTY_MAP : first;
         if (first == null || first.isEmpty()) return second == null ? Collections.EMPTY_MAP : second;
-        Map<String,Object> combined = new HashMap<>(first);
+        Map<String, Object> combined = new HashMap<>(first);
         combined.putAll(second);
         return combined;
     }
 
-    public static <T> Map<String, T> map(T ... values) {
+    public static <T> Map<String, T> map(T... values) {
         Map<String, T> map = new LinkedHashMap<>();
-        for (int i = 0; i < values.length; i+=2) {
+        for (int i = 0; i < values.length; i += 2) {
             if (values[i] == null) continue;
-            map.put(values[i].toString(),values[i+1]);
+            map.put(values[i].toString(), values[i + 1]);
         }
         return map;
     }
@@ -596,11 +630,11 @@ public class Util {
         return res;
     }
 
-    public static <T,R> List<R> map(Stream<T> stream, Function<T,R> mapper) {
+    public static <T, R> List<R> map(Stream<T> stream, Function<T, R> mapper) {
         return stream.map(mapper).collect(Collectors.toList());
     }
 
-    public static <T,R> List<R> map(Collection<T> collection, Function<T,R> mapper) {
+    public static <T, R> List<R> map(Collection<T> collection, Function<T, R> mapper) {
         return map(collection.stream(), mapper);
     }
 
@@ -608,24 +642,24 @@ public class Util {
         if (keys == null || values == null || keys.size() != values.size())
             throw new RuntimeException("keys and values lists have to be not null and of same size");
         if (keys.isEmpty()) return Collections.emptyMap();
-        if (keys.size()==1) return Collections.singletonMap(keys.get(0),values.get(0));
+        if (keys.size() == 1) return Collections.singletonMap(keys.get(0), values.get(0));
         ListIterator<Object> it = values.listIterator();
         Map<String, Object> res = new LinkedHashMap<>(keys.size());
         for (String key : keys) {
-            res.put(key,it.next());
+            res.put(key, it.next());
         }
         return res;
     }
 
     public static Map<String, Object> mapFromPairs(List<List<Object>> pairs) {
         if (pairs.isEmpty()) return Collections.emptyMap();
-        Map<String,Object> map = new LinkedHashMap<>(pairs.size());
+        Map<String, Object> map = new LinkedHashMap<>(pairs.size());
         for (List<Object> pair : pairs) {
             if (pair.isEmpty()) continue;
             Object key = pair.get(0);
-            if (key==null) continue;
+            if (key == null) continue;
             Object value = pair.size() >= 2 ? pair.get(1) : null;
-            map.put(key.toString(),value);
+            map.put(key.toString(), value);
         }
         return map;
     }
@@ -634,8 +668,8 @@ public class Util {
         try {
             URL source = new URL(url);
             String file = source.getFile();
-            if (source.getRef() != null) file += "#"+source.getRef();
-            return new URL(source.getProtocol(),source.getHost(),source.getPort(),file).toString();
+            if (source.getRef() != null) file += "#" + source.getRef();
+            return new URL(source.getProtocol(), source.getHost(), source.getPort(), file).toString();
         } catch (MalformedURLException mfu) {
             return String.format("invalid URL (%s)", url);
         }
@@ -647,11 +681,13 @@ public class Util {
             return t;
         } catch (Exception e) {
             errors.incrementAndGet();
-            errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
+            errorMessages.compute(e.getMessage(), (s, i) -> i == null ? 1 : i + 1);
             return errorValue;
         }
     }
-    public static <T> T getFutureOrCancel(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
+
+    public static <T> T getFutureOrCancel(
+            Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
         try {
             if (f.isDone()) return f.get();
             else {
@@ -660,7 +696,7 @@ public class Util {
             }
         } catch (Exception e) {
             errors.incrementAndGet();
-            errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
+            errorMessages.compute(e.getMessage(), (s, i) -> i == null ? 1 : i + 1);
         }
         return errorValue;
     }
@@ -675,22 +711,22 @@ public class Util {
     }
 
     public static BigInteger sumLongs(long... numbers) {
-        return LongStream.of(numbers)
-                .mapToObj(BigInteger::valueOf)
-                .reduce(BigInteger.ZERO, (x, y) -> x.add(y));
+        return LongStream.of(numbers).mapToObj(BigInteger::valueOf).reduce(BigInteger.ZERO, (x, y) -> x.add(y));
     }
 
     public static void logErrors(String message, Map<String, Long> errors, Log log) {
         if (!errors.isEmpty()) {
             log.bulk(l -> {
                 l.warn(message);
-                errors.forEach((k, v) -> l.warn("%d times: %s",v,k));
+                errors.forEach((k, v) -> l.warn("%d times: %s", v, k));
             });
         }
     }
 
-    public static void checkAdmin(SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
-        if (!securityContext.allowExecuteAdminProcedure(callContext.id()).allowsAccess()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+    public static void checkAdmin(
+            SecurityContext securityContext, ProcedureCallContext callContext, String procedureName) {
+        if (!securityContext.allowExecuteAdminProcedure(callContext.id()).allowsAccess())
+            throw new RuntimeException("This procedure " + procedureName + " is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -715,14 +751,12 @@ public class Util {
     private static final Pattern PATTERN_LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?:`{2})*(?!`)");
 
     private static final List<String[]> SUPPORTED_ESCAPE_CHARS = Collections.unmodifiableList(Arrays.asList(
-            new String[] { "\\b", "\b" },
-            new String[] { "\\f", "\f" },
-            new String[] { "\\n", "\n" },
-            new String[] { "\\r", "\r" },
-            new String[] { "\\t", "\t" },
-            new String[] { "\\`", "``" }
-    ));
-
+            new String[] {"\\b", "\b"},
+            new String[] {"\\f", "\f"},
+            new String[] {"\\n", "\n"},
+            new String[] {"\\r", "\r"},
+            new String[] {"\\t", "\t"},
+            new String[] {"\\`", "``"}));
 
     /**
      * Sanitizes the given input to be used as a valid schema name
@@ -804,25 +838,26 @@ public class Util {
     }
 
     public static String param(String var) {
-        return var.charAt(0) == '$' ? var : '$'+quote(var);
+        return var.charAt(0) == '$' ? var : '$' + quote(var);
     }
 
     public static String withMapping(Stream<String> columns, Function<String, String> withMapping) {
         String with = columns.map(withMapping).collect(Collectors.joining(","));
-        return with.isEmpty() ? with : " WITH "+with+" ";
+        return with.isEmpty() ? with : " WITH " + with + " ";
     }
 
     public static boolean isWriteableInstance(GraphDatabaseService db) {
         return isWriteableInstance(db, db.databaseName());
     }
-    
+
     public static boolean isWriteableInstance(GraphDatabaseService db, String dbName) {
         try {
-            String role = db.executeTransactionally("CALL dbms.cluster.role($databaseName)",
+            String role = db.executeTransactionally(
+                    "CALL dbms.cluster.role($databaseName)",
                     Collections.singletonMap("databaseName", dbName),
                     result -> Iterators.single(result.columnAs("role")));
             return role.equalsIgnoreCase("LEADER");
-        } catch(QueryExecutionException e) {
+        } catch (QueryExecutionException e) {
             if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
             throw e;
         }
@@ -862,7 +897,7 @@ public class Util {
 
     public static void close(AutoCloseable closeable, Consumer<Exception> onError) {
         try {
-            if (closeable!=null) closeable.close();
+            if (closeable != null) closeable.close();
         } catch (Exception e) {
             // Consume the exception if requested, else ignore
             if (onError != null) {
@@ -876,16 +911,17 @@ public class Util {
     }
 
     public static boolean isNotNullOrEmpty(String s) {
-        return s!=null && s.trim().length()!=0;
-    }
-    public static boolean isNullOrEmpty(String s) {
-        return s==null || s.trim().length()==0;
+        return s != null && s.trim().length() != 0;
     }
 
-    public static Map<String, String> getRequestParameter(String parameters){
+    public static boolean isNullOrEmpty(String s) {
+        return s == null || s.trim().length() == 0;
+    }
+
+    public static Map<String, String> getRequestParameter(String parameters) {
         Map<String, String> params = null;
 
-        if(Objects.nonNull(parameters)){
+        if (Objects.nonNull(parameters)) {
             params = new HashMap<>();
             String[] queryStrings = parameters.split("&");
             for (String query : queryStrings) {
@@ -902,30 +938,32 @@ public class Util {
         try {
             Class.forName(className);
             return true;
-        } catch(ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException cnfe) {
             return false;
         }
     }
 
     public static <T> T createInstanceOrNull(String className) {
         try {
-            return (T)Class.forName(className).getDeclaredConstructor().newInstance();
-        } catch (IllegalAccessException | InstantiationException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
+            return (T) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (IllegalAccessException
+                | InstantiationException
+                | ClassNotFoundException
+                | NoSuchMethodException
+                | InvocationTargetException e) {
             return null;
         }
     }
 
-    public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix){
+    public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix) {
         key = Optional.ofNullable(key)
-                .map(s ->
-                        Stream.of("apoc", loadType, s, suffix).collect(Collectors.joining("."))
-                )
+                .map(s -> Stream.of("apoc", loadType, s, suffix).collect(Collectors.joining(".")))
                 .orElse(StringUtils.EMPTY);
         String value = apocConfig().getString(key);
         return Optional.ofNullable(value);
     }
 
-    public static String dateFormat(TemporalAccessor value, String format){
+    public static String dateFormat(TemporalAccessor value, String format) {
         return getFormat(format).format(value);
     }
 
@@ -946,7 +984,8 @@ public class Util {
             return '\t';
         }
         // "NONE" is used to resolve cases like issue #1376.
-        // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER: AXGEARBOXASSEMBLY"
+        // That is, when I have a line like "VER: AX\GEARBOX\ASSEMBLY" and I don't want to convert it in "VER:
+        // AXGEARBOXASSEMBLY"
         if ("NONE".equals(separator)) {
             return '\0';
         }
@@ -978,11 +1017,11 @@ public class Util {
     }
 
     public static Node rebind(Transaction tx, Node node) {
-         return node instanceof VirtualNode ? node : tx.getNodeById(node.getId());
+        return node instanceof VirtualNode ? node : tx.getNodeById(node.getId());
     }
 
     public static Relationship rebind(Transaction tx, Relationship rel) {
-         return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
+        return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
     }
 
     public static <T extends Entity> T rebind(Transaction tx, T e) {
@@ -994,17 +1033,15 @@ public class Util {
     }
 
     public static <T extends Entity> List<T> rebind(List<T> entities, Transaction tx) {
-        return entities.stream()
-                .map(n -> Util.rebind(tx, n))
-                .collect(Collectors.toList());
+        return entities.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());
     }
 
-    public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 Pair<String, Object>... pairs) {
+    public static Node mergeNode(
+            Transaction tx, Label primaryLabel, Label addtionalLabel, Pair<String, Object>... pairs) {
         Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[0].other()).stream()
                 .filter(n -> addtionalLabel == null || n.hasLabel(addtionalLabel))
-                .filter( n -> {
-                    for (int i=1; i<pairs.length; i++) {
+                .filter(n -> {
+                    for (int i = 1; i < pairs.length; i++) {
                         if (!Objects.deepEquals(pairs[i].other(), n.getProperty(pairs[i].first(), null))) {
                             return false;
                         }
@@ -1012,12 +1049,11 @@ public class Util {
                     return true;
                 })
                 .iterator());
-        if (node==null) {
-            Label[] labels = addtionalLabel == null ?
-                    new Label[]{primaryLabel} :
-                    new Label[]{primaryLabel, addtionalLabel};
+        if (node == null) {
+            Label[] labels =
+                    addtionalLabel == null ? new Label[] {primaryLabel} : new Label[] {primaryLabel, addtionalLabel};
             node = tx.createNode(labels);
-            for (int i=0; i<pairs.length; i++) {
+            for (int i = 0; i < pairs.length; i++) {
                 node.setProperty(pairs[i].first(), pairs[i].other());
             }
         }
@@ -1033,42 +1069,57 @@ public class Util {
         return intersection;
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+    public static void validateQuery(
+            GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
         validateQuery(db, statement, Collections.emptySet(), supportedQueryTypes);
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement, Set<Mode> supportedModes, QueryExecutionType.QueryType... supportedQueryTypes) {
-        validateQuery(db, statement,
+    public static void validateQuery(
+            GraphDatabaseService db,
+            String statement,
+            Set<Mode> supportedModes,
+            QueryExecutionType.QueryType... supportedQueryTypes) {
+        validateQuery(
+                db,
+                statement,
                 "Supported inner procedure modes for the operation are " + new TreeSet<>(supportedModes),
                 supportedModes,
                 "Supported query types for the operation are " + Arrays.toString(supportedQueryTypes),
                 supportedQueryTypes);
     }
 
-    public static void validateQuery(GraphDatabaseService db, String statement,
-                                     String supportedModesError, Set<Mode> supportedModes ,
-                                     String supportedQueryTypesError, QueryExecutionType.QueryType... supportedQueryTypes) {
+    public static void validateQuery(
+            GraphDatabaseService db,
+            String statement,
+            String supportedModesError,
+            Set<Mode> supportedModes,
+            String supportedQueryTypesError,
+            QueryExecutionType.QueryType... supportedQueryTypes) {
         db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(), result -> {
             if (!isQueryTypeValid(result, supportedQueryTypes)) {
                 throw new RuntimeException(supportedQueryTypesError);
             }
-            
+
             if (!procsAreValid(db, supportedModes, result)) {
                 throw new RuntimeException(supportedModesError);
             }
-            
+
             return null;
         });
     }
 
-    public static boolean isQueryValid(GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
-        return db.executeTransactionally("EXPLAIN " + statement, Collections.emptyMap(),
-                res -> isQueryTypeValid(res, supportedQueryTypes));
+    public static boolean isQueryValid(
+            GraphDatabaseService db, String statement, QueryExecutionType.QueryType... supportedQueryTypes) {
+        return db.executeTransactionally(
+                "EXPLAIN " + statement, Collections.emptyMap(), res -> isQueryTypeValid(res, supportedQueryTypes));
     }
 
     private static boolean isQueryTypeValid(Result result, QueryExecutionType.QueryType[] supportedQueryTypes) {
-        return supportedQueryTypes == null || supportedQueryTypes.length == 0 || Stream.of(supportedQueryTypes)
-                .anyMatch(sqt -> sqt.equals(result.getQueryExecutionType().queryType()));
+        return supportedQueryTypes == null
+                || supportedQueryTypes.length == 0
+                || Stream.of(supportedQueryTypes)
+                        .anyMatch(
+                                sqt -> sqt.equals(result.getQueryExecutionType().queryType()));
     }
 
     private static boolean procsAreValid(GraphDatabaseService db, Set<Mode> supportedModes, Result result) {
@@ -1077,25 +1128,27 @@ public class Util {
             // get procedures used in the query
             Set<String> queryProcNames = new HashSet<>();
             getAllQueryProcs(executionPlanDescription, queryProcNames);
-            
+
             if (!queryProcNames.isEmpty()) {
-                final Set<String> modes = supportedModes.stream().map(Mode::name).collect(Collectors.toSet());
-                // check if sub-procedures have valid mode 
-                final Set<String> procNames = db.executeTransactionally("SHOW PROCEDURES YIELD name, mode where mode in $modes return name",
+                final Set<String> modes =
+                        supportedModes.stream().map(Mode::name).collect(Collectors.toSet());
+                // check if sub-procedures have valid mode
+                final Set<String> procNames = db.executeTransactionally(
+                        "SHOW PROCEDURES YIELD name, mode where mode in $modes return name",
                         Map.of("modes", modes),
                         r -> Iterators.asSet(r.columnAs("name")));
 
                 return procNames.containsAll(queryProcNames);
             }
         }
-        
+
         return true;
     }
 
     public static void getAllQueryProcs(ExecutionPlanDescription executionPlanDescription, Set<String> procs) {
         executionPlanDescription.getChildren().forEach(i -> {
             // if executionPlanDescription is a ProcedureCall
-            // we return proc. name from "Details" 
+            // we return proc. name from "Details"
             // by extracting up to the first `(` char, e.g. apoc.schema.assert(null, null)....
             if (i.getName().equals("ProcedureCall")) {
                 final String procName = ((String) i.getArguments().get("Details")).split("\\(")[0];
@@ -1115,7 +1168,7 @@ public class Util {
         thread.setDaemon(true);
         return thread;
     }
-    
+
     public static String encodeUserColonPassToBase64(String userPass) {
         return new String(Base64.getEncoder().encode((userPass).getBytes()));
     }
@@ -1132,10 +1185,8 @@ public class Util {
                 }
             }
         } catch (Exception e) {
-            if(!failOnError)
-                return Collections.emptyMap();
-            else
-                throw new RuntimeException(e);
+            if (!failOnError) return Collections.emptyMap();
+            else throw new RuntimeException(e);
         }
 
         return Collections.emptyMap();
@@ -1150,10 +1201,12 @@ public class Util {
         double y;
         Double z = null;
 
-        final CoordinateReferenceSystem crs = CoordinateReferenceSystem.byName((String) getOrDefault(pointMap, defaultPointMap, "crs"));
+        final CoordinateReferenceSystem crs =
+                CoordinateReferenceSystem.byName((String) getOrDefault(pointMap, defaultPointMap, "crs"));
 
         // It does not depend on the prefix of crs, I could also pass a point({x: 56.7, y: 12.78, crs: 'wgs-84'})
-        final boolean isLatitudePresent = pointMap.containsKey("latitude") || (!pointMap.containsKey("x") && defaultPointMap.containsKey("latitude"));
+        final boolean isLatitudePresent = pointMap.containsKey("latitude")
+                || (!pointMap.containsKey("x") && defaultPointMap.containsKey("latitude"));
         final boolean isCoord3D = crs.getName().endsWith("-3d");
         if (isLatitudePresent) {
             x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "longitude"));
@@ -1163,7 +1216,7 @@ public class Util {
             }
         } else {
             x = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "x"));
-            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap,  "y"));
+            y = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "y"));
             if (isCoord3D) {
                 z = Util.toDouble(getOrDefault(pointMap, defaultPointMap, "z"));
             }
@@ -1195,50 +1248,43 @@ public class Util {
         return "{" + formatToString(builder) + "}";
     }
 
-    public static <T extends Entity> T withTransactionAndRebind(GraphDatabaseService db, Transaction transaction, Function<Transaction, T> action) {
+    public static <T extends Entity> T withTransactionAndRebind(
+            GraphDatabaseService db, Transaction transaction, Function<Transaction, T> action) {
         T result = retryInTx(NullLog.getInstance(), db, action, 0, 0, r -> {});
         return rebind(transaction, result);
     }
 
     public static boolean isWindows() {
-        return System.getProperty("os.name")
-                .toLowerCase()
-                .contains("win");
+        return System.getProperty("os.name").toLowerCase().contains("win");
     }
 
     public static <T> boolean valueEquals(T one, T other) {
         if (one == null || other == null) {
             return false;
         }
-        return ValueUtils.of(one)
-                .equals(ValueUtils.of(other));
+        return ValueUtils.of(one).equals(ValueUtils.of(other));
     }
 
     public static boolean containsValueEquals(Collection<Object> collection, Object value) {
-        return collection.stream()
-                .anyMatch(i -> Util.valueEquals(value, i));
+        return collection.stream().anyMatch(i -> Util.valueEquals(value, i));
     }
 
     public static <T> List<AnyValue> toAnyValues(List<T> list) {
-        return list.stream()
-                .map(ValueUtils::of)
-                .collect(Collectors.toList());
+        return list.stream().map(ValueUtils::of).collect(Collectors.toList());
     }
 
     public static int indexOf(List<Object> list, Object value) {
-        return ListUtils.indexOf(list,
-                (i) -> Util.valueEquals(i, value)
-        );
+        return ListUtils.indexOf(list, (i) -> Util.valueEquals(i, value));
     }
 
     public static boolean constraintIsUnique(ConstraintType type) {
-        return type == ConstraintType.NODE_KEY ||
-                type == ConstraintType.UNIQUENESS;
+        return type == ConstraintType.NODE_KEY || type == ConstraintType.UNIQUENESS;
     }
 
     public static boolean isNodeCategory(ConstraintType type) {
         return getConstraintCategory(type) == ConstraintCategory.NODE;
     }
+
     public static boolean isRelationshipCategory(ConstraintType type) {
         return getConstraintCategory(type) == ConstraintCategory.RELATIONSHIP;
     }
@@ -1252,7 +1298,7 @@ public class Util {
         if (type == RELATIONSHIP_PROPERTY_EXISTENCE) {
             return ConstraintCategory.RELATIONSHIP;
         } else {
-            return  ConstraintCategory.NODE;
+            return ConstraintCategory.NODE;
         }
     }
 }

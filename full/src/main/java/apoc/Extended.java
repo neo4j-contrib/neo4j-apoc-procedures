@@ -18,6 +18,4 @@
  */
 package apoc;
 
-public @interface Extended {
-
-}
+public @interface Extended {}

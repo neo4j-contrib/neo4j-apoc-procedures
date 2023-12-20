@@ -18,15 +18,14 @@
  */
 package apoc.agg;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.HdrHistogram.DoubleHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.HistogramUtil;
 import org.neo4j.procedure.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author mh
@@ -34,22 +33,24 @@ import static java.util.Arrays.asList;
  */
 public class Percentiles {
     @UserAggregationFunction("apoc.agg.percentiles")
-    @Description("apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values")
+    @Description(
+            "apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values")
     public PercentilesFunction percentiles() {
         return new PercentilesFunction();
     }
-
 
     public static class PercentilesFunction {
 
         private Histogram values = new Histogram(3);
         private DoubleHistogram doubles;
-        private List<Double> percentiles = asList(0.5D,0.75D,0.9D,0.95D,0.9D,0.99D);
+        private List<Double> percentiles = asList(0.5D, 0.75D, 0.9D, 0.95D, 0.9D, 0.99D);
 
         @UserAggregationUpdate
-        public void aggregate(@Name("value") Number value, @Name(value = "percentiles", defaultValue = "[0.5,0.75,0.9,0.95,0.99]") List<Double> percentiles) {
+        public void aggregate(
+                @Name("value") Number value,
+                @Name(value = "percentiles", defaultValue = "[0.5,0.75,0.9,0.95,0.99]") List<Double> percentiles) {
             if (value != null) {
-                if (doubles!=null) {
+                if (doubles != null) {
                     doubles.recordValue(value.doubleValue());
                 } else if (value instanceof Double || value instanceof Float) {
                     this.doubles = HistogramUtil.toDoubleHistogram(values, 5);

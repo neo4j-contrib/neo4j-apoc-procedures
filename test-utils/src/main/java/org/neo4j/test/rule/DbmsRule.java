@@ -1,5 +1,7 @@
 package org.neo4j.test.rule;
 
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
@@ -7,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
@@ -26,11 +27,8 @@ import org.neo4j.kernel.impl.factory.DbmsInfo;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.monitoring.Monitors;
 
-import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
-
 @Deprecated
-public abstract class DbmsRule extends ExternalResource implements GraphDatabaseAPI
-{
+public abstract class DbmsRule extends ExternalResource implements GraphDatabaseAPI {
     private DatabaseManagementServiceBuilder databaseBuilder;
     private GraphDatabaseAPI database;
     private boolean startEagerly = true;
@@ -42,34 +40,28 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      * Means the database will be started on first {@link #getGraphDatabaseAPI()}}
      * or {@link #ensureStarted()} call.
      */
-    public DbmsRule startLazily()
-    {
+    public DbmsRule startLazily() {
         startEagerly = false;
         return this;
     }
 
-    public <T> T executeAndCommit( Function<Transaction, T> function )
-    {
-        return transaction( function, true );
+    public <T> T executeAndCommit(Function<Transaction, T> function) {
+        return transaction(function, true);
     }
 
-    public <T> T executeAndRollback( Function<Transaction, T> function )
-    {
-        return transaction( function, false );
+    public <T> T executeAndRollback(Function<Transaction, T> function) {
+        return transaction(function, false);
     }
 
-    public <FROM, TO> Function<FROM,TO> tx( Function<FROM,TO> function )
-    {
-        return from ->
-        {
-            Function<Transaction,TO> inner = graphDb -> function.apply( from );
-            return executeAndCommit( inner );
+    public <FROM, TO> Function<FROM, TO> tx(Function<FROM, TO> function) {
+        return from -> {
+            Function<Transaction, TO> inner = graphDb -> function.apply(from);
+            return executeAndCommit(inner);
         };
     }
 
-    private <T> T transaction( Function<Transaction, T> function, boolean commit )
-    {
-        return tx( getGraphDatabaseAPI(), commit, function );
+    private <T> T transaction(Function<Transaction, T> function, boolean commit) {
+        return tx(getGraphDatabaseAPI(), commit, function);
     }
 
     /**
@@ -78,14 +70,12 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      * @param db {@link GraphDatabaseService} to apply the transaction on.
      * @param transaction {@link Consumer} containing the transaction logic.
      */
-    public static void tx( GraphDatabaseService db, Consumer<Transaction> transaction )
-    {
-        Function<Transaction,Void> voidFunction = tx ->
-        {
-            transaction.accept( tx );
+    public static void tx(GraphDatabaseService db, Consumer<Transaction> transaction) {
+        Function<Transaction, Void> voidFunction = tx -> {
+            transaction.accept(tx);
             return null;
         };
-        tx( db, true, voidFunction );
+        tx(db, true, voidFunction);
     }
 
     /**
@@ -97,13 +87,10 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      * @param transaction {@link Function} containing the transaction logic and returning a result.
      * @return result from transaction {@link Function}.
      */
-    public static <T> T tx( GraphDatabaseService db, boolean commit, Function<Transaction,T> transaction )
-    {
-        try ( Transaction tx = db.beginTx() )
-        {
-            T result = transaction.apply( tx );
-            if ( commit )
-            {
+    public static <T> T tx(GraphDatabaseService db, boolean commit, Function<Transaction, T> transaction) {
+        try (Transaction tx = db.beginTx()) {
+            T result = transaction.apply(tx);
+            if (commit) {
                 tx.commit();
             }
             return result;
@@ -111,89 +98,81 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
     }
 
     @Override
-    public void executeTransactionally( String query ) throws QueryExecutionException
-    {
-        getGraphDatabaseAPI().executeTransactionally( query );
+    public void executeTransactionally(String query) throws QueryExecutionException {
+        getGraphDatabaseAPI().executeTransactionally(query);
     }
 
     @Override
-    public void executeTransactionally( String query, Map<String,Object> parameters ) throws QueryExecutionException
-    {
-        getGraphDatabaseAPI().executeTransactionally( query, parameters );
+    public void executeTransactionally(String query, Map<String, Object> parameters) throws QueryExecutionException {
+        getGraphDatabaseAPI().executeTransactionally(query, parameters);
     }
 
     @Override
-    public <T> T executeTransactionally( String query, Map<String,Object> parameters, ResultTransformer<T> resultTransformer ) throws QueryExecutionException
-    {
-        return getGraphDatabaseAPI().executeTransactionally( query, parameters, resultTransformer );
+    public <T> T executeTransactionally(
+            String query, Map<String, Object> parameters, ResultTransformer<T> resultTransformer)
+            throws QueryExecutionException {
+        return getGraphDatabaseAPI().executeTransactionally(query, parameters, resultTransformer);
     }
 
     @Override
-    public <T> T executeTransactionally( String query, Map<String,Object> parameters, ResultTransformer<T> resultTransformer, Duration timeout )
-            throws QueryExecutionException
-    {
-        return getGraphDatabaseAPI().executeTransactionally( query, parameters, resultTransformer, timeout );
+    public <T> T executeTransactionally(
+            String query, Map<String, Object> parameters, ResultTransformer<T> resultTransformer, Duration timeout)
+            throws QueryExecutionException {
+        return getGraphDatabaseAPI().executeTransactionally(query, parameters, resultTransformer, timeout);
     }
 
     @Override
-    public InternalTransaction beginTransaction( KernelTransaction.Type type, LoginContext loginContext )
-    {
-        return getGraphDatabaseAPI().beginTransaction( type, loginContext );
+    public InternalTransaction beginTransaction(KernelTransaction.Type type, LoginContext loginContext) {
+        return getGraphDatabaseAPI().beginTransaction(type, loginContext);
     }
 
     @Override
-    public InternalTransaction beginTransaction( KernelTransaction.Type type, LoginContext loginContext, ClientConnectionInfo connectionInfo )
-    {
-        return getGraphDatabaseAPI().beginTransaction( type, loginContext, connectionInfo );
+    public InternalTransaction beginTransaction(
+            KernelTransaction.Type type, LoginContext loginContext, ClientConnectionInfo connectionInfo) {
+        return getGraphDatabaseAPI().beginTransaction(type, loginContext, connectionInfo);
     }
 
     @Override
-    public InternalTransaction beginTransaction( KernelTransaction.Type type, LoginContext loginContext, ClientConnectionInfo connectionInfo, long timeout,
-            TimeUnit unit )
-    {
-        return getGraphDatabaseAPI().beginTransaction( type, loginContext, connectionInfo, timeout, unit );
+    public InternalTransaction beginTransaction(
+            KernelTransaction.Type type,
+            LoginContext loginContext,
+            ClientConnectionInfo connectionInfo,
+            long timeout,
+            TimeUnit unit) {
+        return getGraphDatabaseAPI().beginTransaction(type, loginContext, connectionInfo, timeout, unit);
     }
 
     @Override
-    public Transaction beginTx()
-    {
+    public Transaction beginTx() {
         return getGraphDatabaseAPI().beginTx();
     }
 
     @Override
-    public Transaction beginTx( long timeout, TimeUnit timeUnit )
-    {
-        return getGraphDatabaseAPI().beginTx( timeout, timeUnit );
+    public Transaction beginTx(long timeout, TimeUnit timeUnit) {
+        return getGraphDatabaseAPI().beginTx(timeout, timeUnit);
     }
 
     @Override
-    protected void before()
-    {
+    protected void before() {
         create();
-        if ( startEagerly )
-        {
+        if (startEagerly) {
             ensureStarted();
         }
     }
 
     @Override
-    protected void after( boolean success )
-    {
-        shutdown( success );
+    protected void after(boolean success) {
+        shutdown(success);
     }
 
-    private void create()
-    {
+    private void create() {
         createResources();
-        try
-        {
+        try {
             databaseBuilder = newFactory();
-            databaseBuilder.setMonitors( monitors );
-            configure( databaseBuilder );
-            databaseBuilder.setConfig( globalConfig );
-        }
-        catch ( RuntimeException e )
-        {
+            databaseBuilder.setMonitors(monitors);
+            configure(databaseBuilder);
+            databaseBuilder.setConfig(globalConfig);
+        } catch (RuntimeException e) {
             deleteResources();
             throw e;
         }
@@ -202,23 +181,17 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
     /**
      * @return the high level monitor in the database.
      */
-    public Monitors getMonitors()
-    {
+    public Monitors getMonitors() {
         return monitors;
     }
 
-    protected void deleteResources()
-    {
-    }
+    protected void deleteResources() {}
 
-    protected void createResources()
-    {
-    }
+    protected void createResources() {}
 
     protected abstract DatabaseManagementServiceBuilder newFactory();
 
-    protected void configure( DatabaseManagementServiceBuilder databaseFactory )
-    {
+    protected void configure(DatabaseManagementServiceBuilder databaseFactory) {
         // Override to configure the database factory
     }
 
@@ -226,23 +199,19 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      * {@link DbmsRule} now implements {@link GraphDatabaseAPI} directly, so no need. Also for ensuring
      * a lazily started database is created, use {@link #ensureStarted()} instead.
      */
-    public GraphDatabaseAPI getGraphDatabaseAPI()
-    {
+    public GraphDatabaseAPI getGraphDatabaseAPI() {
         ensureStarted();
         return database;
     }
 
-    public DatabaseManagementService getManagementService()
-    {
+    public DatabaseManagementService getManagementService() {
         return managementService;
     }
 
-    public synchronized void ensureStarted()
-    {
-        if ( database == null )
-        {
+    public synchronized void ensureStarted() {
+        if (database == null) {
             managementService = databaseBuilder.build();
-            database = (GraphDatabaseAPI) managementService.database( DEFAULT_DATABASE_NAME );
+            database = (GraphDatabaseAPI) managementService.database(DEFAULT_DATABASE_NAME);
         }
     }
 
@@ -258,22 +227,18 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      * If this method is called when a database is already started an {@link IllegalStateException} will be thrown since the setting
      * will have no effect, instead letting the developer notice that and change the test code.
      */
-    public <T> DbmsRule withSetting( Setting<T> key, T value )
-    {
-        if ( database != null )
-        {
+    public <T> DbmsRule withSetting(Setting<T> key, T value) {
+        if (database != null) {
             // Database already started
-            throw new IllegalStateException( "Wanted to set " + key + "=" + value + ", but database has already been started" );
+            throw new IllegalStateException(
+                    "Wanted to set " + key + "=" + value + ", but database has already been started");
         }
-        if ( databaseBuilder != null )
-        {
+        if (databaseBuilder != null) {
             // Test already started, but db not yet started
-            databaseBuilder.setConfig( key, value );
-        }
-        else
-        {
+            databaseBuilder.setConfig(key, value);
+        } else {
             // Test haven't started, we're still in phase of constructing this rule
-            globalConfig.put( key, value );
+            globalConfig.put(key, value);
         }
         return this;
     }
@@ -283,59 +248,47 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
      *
      * @see #withSetting(Setting, Object)
      */
-    public DbmsRule withSettings( Map<Setting<?>,Object> configuration )
-    {
-        if ( database != null )
-        {
+    public DbmsRule withSettings(Map<Setting<?>, Object> configuration) {
+        if (database != null) {
             // Database already started
-            throw new IllegalStateException( "Wanted to set " + configuration + ", but database has already been started" );
+            throw new IllegalStateException(
+                    "Wanted to set " + configuration + ", but database has already been started");
         }
-        if ( databaseBuilder != null )
-        {
+        if (databaseBuilder != null) {
             // Test already started, but db not yet started
-            databaseBuilder.setConfig( configuration );
-        }
-        else
-        {
+            databaseBuilder.setConfig(configuration);
+        } else {
             // Test haven't started, we're still in phase of constructing this rule
-            globalConfig.putAll( configuration );
+            globalConfig.putAll(configuration);
         }
         return this;
     }
 
-    public GraphDatabaseAPI restartDatabase() throws IOException
-    {
-        return restartDatabase( Map.of() );
+    public GraphDatabaseAPI restartDatabase() throws IOException {
+        return restartDatabase(Map.of());
     }
 
-    public GraphDatabaseAPI restartDatabase( Map<Setting<?>,Object> configChanges ) throws IOException
-    {
+    public GraphDatabaseAPI restartDatabase(Map<Setting<?>, Object> configChanges) throws IOException {
         managementService.shutdown();
         database = null;
-        // This DatabaseBuilder has already been configured with the global settings as well as any test-specific settings,
+        // This DatabaseBuilder has already been configured with the global settings as well as any test-specific
+        // settings,
         // so just apply these additional settings.
-        databaseBuilder.setConfig( configChanges );
+        databaseBuilder.setConfig(configChanges);
         return getGraphDatabaseAPI();
     }
 
-    public void shutdown()
-    {
-        shutdown( true );
+    public void shutdown() {
+        shutdown(true);
     }
 
-    private void shutdown( boolean deleteResources )
-    {
-        try
-        {
-            if ( managementService != null )
-            {
+    private void shutdown(boolean deleteResources) {
+        try {
+            if (managementService != null) {
                 managementService.shutdown();
             }
-        }
-        finally
-        {
-            if ( deleteResources )
-            {
+        } finally {
+            if (deleteResources) {
                 deleteResources();
             }
             managementService = null;
@@ -343,49 +296,41 @@ public abstract class DbmsRule extends ExternalResource implements GraphDatabase
         }
     }
 
-    public void shutdownAndKeepStore()
-    {
-        shutdown( false );
+    public void shutdownAndKeepStore() {
+        shutdown(false);
     }
 
-    public <T> T resolveDependency( Class<T> type )
-    {
-        return getGraphDatabaseAPI().getDependencyResolver().resolveDependency( type );
+    public <T> T resolveDependency(Class<T> type) {
+        return getGraphDatabaseAPI().getDependencyResolver().resolveDependency(type);
     }
 
     @Override
-    public NamedDatabaseId databaseId()
-    {
+    public NamedDatabaseId databaseId() {
         return database.databaseId();
     }
 
     @Override
-    public DbmsInfo dbmsInfo()
-    {
+    public DbmsInfo dbmsInfo() {
         return database.dbmsInfo();
     }
 
     @Override
-    public DependencyResolver getDependencyResolver()
-    {
+    public DependencyResolver getDependencyResolver() {
         return database.getDependencyResolver();
     }
 
     @Override
-    public DatabaseLayout databaseLayout()
-    {
+    public DatabaseLayout databaseLayout() {
         return database.databaseLayout();
     }
 
     @Override
-    public boolean isAvailable( long timeout )
-    {
-        return database.isAvailable( timeout );
+    public boolean isAvailable(long timeout) {
+        return database.isAvailable(timeout);
     }
 
     @Override
-    public String databaseName()
-    {
+    public String databaseName() {
         return database.databaseName();
     }
 }

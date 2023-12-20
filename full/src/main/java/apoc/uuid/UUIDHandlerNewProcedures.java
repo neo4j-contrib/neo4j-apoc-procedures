@@ -18,26 +18,25 @@
  */
 package apoc.uuid;
 
-import apoc.ApocConfig;
-import apoc.SystemLabels;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import static apoc.ApocConfig.*;
-import static apoc.SystemPropertyKeys.*;
 import static apoc.SystemLabels.*;
+import static apoc.SystemPropertyKeys.*;
 import static apoc.util.SystemDbUtil.getSystemNodes;
 import static apoc.util.SystemDbUtil.setLastUpdate;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
+
+import apoc.ApocConfig;
+import apoc.SystemLabels;
+import apoc.SystemPropertyKeys;
+import apoc.util.Util;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Pair;
 
 public class UUIDHandlerNewProcedures {
     public static boolean isEnabled(String databaseName) {
@@ -53,14 +52,16 @@ public class UUIDHandlerNewProcedures {
         }
     }
 
-    public static UuidInfo create(String databaseName, String label,  UuidConfig config) {
+    public static UuidInfo create(String databaseName, String label, UuidConfig config) {
         final UuidInfo[] result = new UuidInfo[1];
 
         withSystemDb(sysTx -> {
-            Node node = Util.mergeNode(sysTx, SystemLabels.ApocUuid, null,
+            Node node = Util.mergeNode(
+                    sysTx,
+                    SystemLabels.ApocUuid,
+                    null,
                     Pair.of(database.name(), databaseName),
-                    Pair.of(SystemPropertyKeys.label.name(), label)
-            );
+                    Pair.of(SystemPropertyKeys.label.name(), label));
 
             node.setProperty(propertyName.name(), config.getUuidProperty());
             node.setProperty(addToSetLabel.name(), config.isAddToSetLabels());
@@ -77,15 +78,15 @@ public class UUIDHandlerNewProcedures {
 
     public static UuidInfo drop(String databaseName, String labelName) {
         return withSystemDb(tx -> {
-            UuidInfo uuidInfo = getUuidNodes(tx, databaseName, Map.of(SystemPropertyKeys.label.name(), labelName))
-                    .stream()
-                    .map(node -> {
-                        UuidInfo info = new UuidInfo(node);
-                        node.delete();
-                        return info;
-                    })
-                    .findAny()
-                    .orElse(null);
+            UuidInfo uuidInfo =
+                    getUuidNodes(tx, databaseName, Map.of(SystemPropertyKeys.label.name(), labelName)).stream()
+                            .map(node -> {
+                                UuidInfo info = new UuidInfo(node);
+                                node.delete();
+                                return info;
+                            })
+                            .findAny()
+                            .orElse(null);
 
             setLastUpdate(tx, databaseName, ApocUuidMeta);
 
@@ -95,8 +96,7 @@ public class UUIDHandlerNewProcedures {
 
     public static List<UuidInfo> dropAll(String databaseName) {
         return withSystemDb(tx -> {
-            List<UuidInfo> previous = getUuidNodes(tx, databaseName)
-                    .stream()
+            List<UuidInfo> previous = getUuidNodes(tx, databaseName).stream()
                     .map(node -> {
                         // we'll return previous uuid info
                         UuidInfo info = new UuidInfo(node);

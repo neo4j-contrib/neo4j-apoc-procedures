@@ -58,7 +58,17 @@ public class IndexConstraintNodeInfo {
      * @param size
      * @param userDescription
      */
-    public IndexConstraintNodeInfo(String name, Object label, List<String> properties, String status, String schemaType, String failure, float populationProgress, long size, double valuesSelectivity, String userDescription) {
+    public IndexConstraintNodeInfo(
+            String name,
+            Object label,
+            List<String> properties,
+            String status,
+            String schemaType,
+            String failure,
+            float populationProgress,
+            long size,
+            double valuesSelectivity,
+            String userDescription) {
         this.name = name;
         this.label = label;
         this.properties = properties;

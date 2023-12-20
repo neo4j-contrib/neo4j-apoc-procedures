@@ -23,11 +23,11 @@ package apoc.result;
  * @since 26.02.16
  */
 public class KeyValueResult {
-	public final String key;
-	public final Object value;
+    public final String key;
+    public final Object value;
 
-	public KeyValueResult(String key, Object value) {
-		this.key = key;
-		this.value = value;
-	}
+    public KeyValueResult(String key, Object value) {
+        this.key = key;
+        this.value = value;
+    }
 }

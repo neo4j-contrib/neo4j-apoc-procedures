@@ -18,10 +18,10 @@
  */
 package apoc.uuid;
 
+import static apoc.util.Util.toBoolean;
+
 import java.util.Collections;
 import java.util.Map;
-
-import static apoc.util.Util.toBoolean;
 
 public class UuidConfig {
 
@@ -37,15 +37,15 @@ public class UuidConfig {
     private static final boolean DEFAULT_ADD_TO_EXISTING_NODES = true;
     public static final boolean DEFAULT_ADD_TO_SET_LABELS = false;
 
-
     public UuidConfig(Map<String, Object> config) {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        this.addToExistingNodes = toBoolean(config.getOrDefault(ADD_TO_EXISTING_NODES_KEY, DEFAULT_ADD_TO_EXISTING_NODES));
+        this.addToExistingNodes =
+                toBoolean(config.getOrDefault(ADD_TO_EXISTING_NODES_KEY, DEFAULT_ADD_TO_EXISTING_NODES));
         this.addToSetLabels = toBoolean(config.getOrDefault(ADD_TO_SET_LABELS_KEY, DEFAULT_ADD_TO_SET_LABELS));
-        this.uuidProperty = config.getOrDefault(UUID_PROPERTY_KEY, DEFAULT_UUID_PROPERTY).toString();
-
+        this.uuidProperty =
+                config.getOrDefault(UUID_PROPERTY_KEY, DEFAULT_UUID_PROPERTY).toString();
     }
 
     public UuidConfig() {} // for Jackson deserialization

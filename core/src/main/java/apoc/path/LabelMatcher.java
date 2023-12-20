@@ -79,9 +79,8 @@ public class LabelMatcher {
                 compoundLabels = new ArrayList<>();
             }
 
-            List<String> elementsList = Arrays.stream(elements)
-                    .map(this::sanitizeLabel)
-                    .collect(Collectors.toList());
+            List<String> elementsList =
+                    Arrays.stream(elements).map(this::sanitizeLabel).collect(Collectors.toList());
             compoundLabels.add(elementsList);
         }
 
@@ -94,7 +93,7 @@ public class LabelMatcher {
     }
 
     public boolean matchesLabels(Set<String> nodeLabels) {
-        for ( String label : labels ) {
+        for (String label : labels) {
             if (nodeLabels.contains(label)) {
                 return true;
             }
@@ -115,5 +114,3 @@ public class LabelMatcher {
         return labels.isEmpty() && (compoundLabels == null || compoundLabels.isEmpty());
     }
 }
-
-

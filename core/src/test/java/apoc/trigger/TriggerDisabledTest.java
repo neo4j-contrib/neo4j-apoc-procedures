@@ -18,20 +18,19 @@
  */
 package apoc.trigger;
 
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
+import static org.junit.Assert.assertThrows;
+
 import apoc.util.TestUtil;
-import org.junit.BeforeClass;
+import java.util.Map;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Map;
-
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static org.junit.Assert.assertThrows;
 
 /**
  * @author alexiudice
@@ -57,7 +56,7 @@ public class TriggerDisabledTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Test
@@ -65,8 +64,8 @@ public class TriggerDisabledTest {
         assertThrows(
                 TriggerHandler.NOT_ENABLED_ERROR,
                 RuntimeException.class,
-                () -> db.executeTransactionally("CALL apoc.trigger.list() YIELD name RETURN name", Map.of(), Result::resultAsString)
-        );
+                () -> db.executeTransactionally(
+                        "CALL apoc.trigger.list() YIELD name RETURN name", Map.of(), Result::resultAsString));
     }
 
     @Test
@@ -74,8 +73,8 @@ public class TriggerDisabledTest {
         assertThrows(
                 TriggerHandler.NOT_ENABLED_ERROR,
                 RuntimeException.class,
-                () -> db.executeTransactionally("CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name")
-        );
+                () -> db.executeTransactionally(
+                        "CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name"));
     }
 
     @Test
@@ -83,8 +82,7 @@ public class TriggerDisabledTest {
         assertThrows(
                 TriggerHandler.NOT_ENABLED_ERROR,
                 RuntimeException.class,
-                () -> db.executeTransactionally("CALL apoc.trigger.remove('test-trigger')")
-        );
+                () -> db.executeTransactionally("CALL apoc.trigger.remove('test-trigger')"));
     }
 
     @Test
@@ -92,8 +90,7 @@ public class TriggerDisabledTest {
         assertThrows(
                 TriggerHandler.NOT_ENABLED_ERROR,
                 RuntimeException.class,
-                () -> db.executeTransactionally("CALL apoc.trigger.resume('test-trigger')")
-        );
+                () -> db.executeTransactionally("CALL apoc.trigger.resume('test-trigger')"));
     }
 
     @Test
@@ -101,7 +98,6 @@ public class TriggerDisabledTest {
         assertThrows(
                 TriggerHandler.NOT_ENABLED_ERROR,
                 RuntimeException.class,
-                () -> db.executeTransactionally("CALL apoc.trigger.pause('test-trigger')")
-        );
+                () -> db.executeTransactionally("CALL apoc.trigger.pause('test-trigger')"));
     }
 }

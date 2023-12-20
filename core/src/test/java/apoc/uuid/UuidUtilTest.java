@@ -18,12 +18,11 @@
  */
 package apoc.uuid;
 
-import org.junit.Test;
-
-import java.util.UUID;
-
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+
+import java.util.UUID;
+import org.junit.Test;
 
 public class UuidUtilTest {
 
@@ -68,9 +67,11 @@ public class UuidUtilTest {
     @Test
     public void shouldFailIfBase64LengthIsWrong() {
         var input1 = "KQ1sus6URV61nwKc8eO=="; // wrong length
-        assertThatCode(() -> UuidUtil.fromBase64ToHex(input1)).hasMessageStartingWith("Invalid UUID length. Expected 24 characters");
+        assertThatCode(() -> UuidUtil.fromBase64ToHex(input1))
+                .hasMessageStartingWith("Invalid UUID length. Expected 24 characters");
         var input2 = "Q1sus6URV61nwKc8eOVxQ"; // wrong length
-        assertThatCode(() -> UuidUtil.fromBase64ToHex(input2)).hasMessageStartingWith("Invalid UUID length. Expected 22 characters");
+        assertThatCode(() -> UuidUtil.fromBase64ToHex(input2))
+                .hasMessageStartingWith("Invalid UUID length. Expected 22 characters");
     }
 
     @Test

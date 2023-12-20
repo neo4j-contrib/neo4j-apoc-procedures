@@ -19,7 +19,6 @@
 package apoc.export.csv;
 
 import apoc.meta.Meta;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -33,7 +32,8 @@ public class CsvHeaderField {
     private final String idSpace;
     private final Map<String, Object> optionalData;
 
-    private CsvHeaderField(int index, String name, String type, boolean array, String idSpace, Map<String, Object> optionalData) {
+    private CsvHeaderField(
+            int index, String name, String type, boolean array, String idSpace, Map<String, Object> optionalData) {
         super();
         this.index = index;
         this.name = name;
@@ -68,9 +68,9 @@ public class CsvHeaderField {
     }
 
     public boolean isId() {
-        return CsvLoaderConstants.ID_FIELD.equals(type) ||
-                CsvLoaderConstants.START_ID_FIELD.equals(type) ||
-                CsvLoaderConstants.END_ID_FIELD.equals(type);
+        return CsvLoaderConstants.ID_FIELD.equals(type)
+                || CsvLoaderConstants.START_ID_FIELD.equals(type)
+                || CsvLoaderConstants.END_ID_FIELD.equals(type);
     }
 
     public boolean isMeta() {
@@ -90,9 +90,9 @@ public class CsvHeaderField {
         final String rawName = extractGroup(matcher, "name");
         final String typeExtracted = extractGroup(matcher, "type");
         String optParExtracted = extractGroup(matcher, "optPar");
-        
+
         Map<String, Object> optionalData = new HashMap<>();
-        
+
         if (optParExtracted != null) {
             optParExtracted = optParExtracted.replace("{", "").replace("}", "");
             Matcher matcherKeyValue = CsvLoaderConstants.KEY_VALUE_PATTERN.matcher(optParExtracted);
@@ -102,7 +102,7 @@ public class CsvHeaderField {
                 optionalData.put(key, value);
             }
         }
-        
+
         final String type = (typeExtracted != null) ? typeExtracted : Meta.Types.STRING.name();
         final String name = nameAndTypeToAttribute(rawName, type);
 
@@ -112,9 +112,7 @@ public class CsvHeaderField {
 
         // arrays are denoted with '[]'.
         // additionally, the ':LABEL' header type always denotes an array
-        boolean array =
-                CsvLoaderConstants.ARRAY_PATTERN.equals(extractGroup(matcher, "array")) ||
-                "LABEL".equals(type);
+        boolean array = CsvLoaderConstants.ARRAY_PATTERN.equals(extractGroup(matcher, "array")) || "LABEL".equals(type);
 
         return new CsvHeaderField(index, name, type, array, idSpace, optionalData);
     }
@@ -146,5 +144,4 @@ public class CsvHeaderField {
             return null;
         }
     }
-
 }

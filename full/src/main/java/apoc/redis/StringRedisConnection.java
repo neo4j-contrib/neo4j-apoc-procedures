@@ -23,20 +23,18 @@ import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.codec.StringCodec;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-
 public class StringRedisConnection extends RedisConnection<String> {
-    
+
     private final RedisCommands<String, String> commands;
 
     public StringRedisConnection(String uri, RedisConfig config) {
         super(uri, config);
-        
+
         StatefulRedisConnection<String, String> connection = client.connect(new StringCodec(conf.getCharset()));
         this.commands = connection.sync();
     }
@@ -46,7 +44,7 @@ public class StringRedisConnection extends RedisConnection<String> {
     public String get(String key) {
         return this.commands.get(key);
     }
-    
+
     @Override
     public String getSet(String key, String value) {
         return this.commands.setGet(key, value);
@@ -61,7 +59,7 @@ public class StringRedisConnection extends RedisConnection<String> {
     public long incrby(String key, long amount) {
         return this.commands.incrby(key, amount);
     }
-    
+
     // -- Hashes
     @Override
     public long hdel(String key, List<Object> fields) {
@@ -96,16 +94,14 @@ public class StringRedisConnection extends RedisConnection<String> {
     // -- Lists
     @Override
     public long push(String key, List<Object> values) {
-        return this.conf.isRight() 
-                ? this.commands.rpush(key, toStringArray(values)) 
+        return this.conf.isRight()
+                ? this.commands.rpush(key, toStringArray(values))
                 : this.commands.lpush(key, toStringArray(values));
     }
 
     @Override
     public String pop(String key) {
-        return this.conf.isRight()
-                ? this.commands.rpop(key)
-                : this.commands.lpop(key);
+        return this.conf.isRight() ? this.commands.rpop(key) : this.commands.lpop(key);
     }
 
     @Override
@@ -159,7 +155,7 @@ public class StringRedisConnection extends RedisConnection<String> {
     public long zrem(String source, List<Object> members) {
         return this.commands.zrem(source, toStringArray(members));
     }
-    
+
     // -- Script
     @Override
     public String eval(String script, ScriptOutputType outputType, List<Object> keys, List<Object> values) {
@@ -179,9 +175,7 @@ public class StringRedisConnection extends RedisConnection<String> {
 
     @Override
     public boolean pexpire(String key, long time, boolean isExpireAt) {
-        return isExpireAt
-                ? this.commands.pexpireat(key, time)
-                : this.commands.pexpire(key, time);
+        return isExpireAt ? this.commands.pexpireat(key, time) : this.commands.pexpire(key, time);
     }
 
     @Override

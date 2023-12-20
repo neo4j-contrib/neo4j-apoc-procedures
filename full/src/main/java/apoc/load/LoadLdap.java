@@ -18,21 +18,20 @@
  */
 package apoc.load;
 
+import static apoc.ApocConfig.apocConfig;
+
 import apoc.Extended;
 import com.novell.ldap.*;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-
-import java.io.UnsupportedEncodingException;
-import java.util.*;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static apoc.ApocConfig.apocConfig;
 
 @Extended
 public class LoadLdap {
@@ -41,8 +40,10 @@ public class LoadLdap {
     public Log log;
 
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
-    @Description("apoc.load.ldap(\"key\" or {connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
-    public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn, @Name("search") final Map<String,Object> search) {
+    @Description(
+            "apoc.load.ldap(\"key\" or {connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
+    public Stream<LDAPResult> ldapQuery(
+            @Name("connection") final Object conn, @Name("search") final Map<String, Object> search) {
 
         LDAPManager mgr = new LDAPManager(getConnectionMap(conn, log));
 
@@ -51,7 +52,7 @@ public class LoadLdap {
 
     public static Map<String, Object> getConnectionMap(Object conn, Log log) {
         if (conn instanceof String) {
-            //String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
+            // String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
             String key = String.format("apoc.loadldap.%s.config", conn);
             String value = apocConfig().getString(key);
             // format <ldaphost:port> <logindn> <loginpw>
@@ -64,11 +65,10 @@ public class LoadLdap {
                 // if the value is set and log == null (that is, not from the test LoadLdapTest.testLoadLDAPConfig),
                 // we print a log warn, since the correct way should be with a dot before <LDAP_KEY>
                 if (value != null && log != null) {
-                    String msgWarn = "Not to cause breaking-change, the current config `%s` is valid,\n" +
-                               "but in future releases it will be removed in favor of `%s` (with dot before `%s`),\n" +
-                               "as documented here: https://neo4j.com/labs/apoc/5/database-integration/load-ldap/#_credentials.\n";
-                    String msgWarnFormatted = String.format(msgWarn,
-                            keyOld, key, conn);
+                    String msgWarn = "Not to cause breaking-change, the current config `%s` is valid,\n"
+                            + "but in future releases it will be removed in favor of `%s` (with dot before `%s`),\n"
+                            + "as documented here: https://neo4j.com/labs/apoc/5/database-integration/load-ldap/#_credentials.\n";
+                    String msgWarnFormatted = String.format(msgWarn, keyOld, key, conn);
                     log.warn(msgWarnFormatted);
                 }
             }
@@ -87,7 +87,7 @@ public class LoadLdap {
             return config;
 
         } else {
-            return (Map<String,Object> ) conn;
+            return (Map<String, Object>) conn;
         }
     }
 
@@ -130,8 +130,11 @@ public class LoadLdap {
         public Stream<LDAPResult> executeSearch(Map<String, Object> search) {
             try {
                 Iterator<Map<String, Object>> supplier = new SearchResultsIterator(doSearch(search), attributeList);
-                Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
-                return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(() -> closeIt(lc));
+                Spliterator<Map<String, Object>> spliterator =
+                        Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
+                return StreamSupport.stream(spliterator, false)
+                        .map(LDAPResult::new)
+                        .onClose(() -> closeIt(lc));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -152,7 +155,8 @@ public class LoadLdap {
             } else if (sScope.equals(SCOPE_SUB)) {
                 searchScope = LDAPConnection.SCOPE_SUB;
             } else {
-                throw new RuntimeException("Invalid scope:" + sScope + ". value scopes are SCOPE_BASE, SCOPE_ONE and SCOPE_SUB");
+                throw new RuntimeException(
+                        "Invalid scope:" + sScope + ". value scopes are SCOPE_BASE, SCOPE_ONE and SCOPE_SUB");
             }
             // getting an ldap connection
             try {
@@ -164,7 +168,8 @@ public class LoadLdap {
                 if (attributeList == null || attributeList.size() == 0) {
                     searchResults = lc.search(searchBase, searchScope, searchFilter, null, false, cons);
                 } else {
-                    searchResults = lc.search(searchBase, searchScope, searchFilter, attributeList.toArray(new String[0]), false, cons);
+                    searchResults = lc.search(
+                            searchBase, searchScope, searchFilter, attributeList.toArray(new String[0]), false, cons);
                 }
                 return searchResults;
             } catch (Exception e) {
@@ -181,15 +186,14 @@ public class LoadLdap {
         }
 
         private LDAPConnection getConnection() throws LDAPException, UnsupportedEncodingException {
-//        LDAPSocketFactory ssf;
-//        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+            //        LDAPSocketFactory ssf;
+            //        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
             // String path ="C:\\j2sdk1.4.2_09\\jre\\lib\\security\\cacerts";
-            //op("the trustStore: " + System.getProperty("javax.net.ssl.trustStore"));
+            // op("the trustStore: " + System.getProperty("javax.net.ssl.trustStore"));
             // System.setProperty("javax.net.ssl.trustStore", path);
-//        op(" reading the strustStore: " + System.getProperty("javax.net.ssl.trustStore"));
-//        ssf = new LDAPJSSESecureSocketFactory();
-//        LDAPConnection.setSocketFactory(ssf);
-
+            //        op(" reading the strustStore: " + System.getProperty("javax.net.ssl.trustStore"));
+            //        ssf = new LDAPJSSESecureSocketFactory();
+            //        LDAPConnection.setSocketFactory(ssf);
 
             LDAPConnection lc = new LDAPConnection();
             lc.connect(ldapHost, ldapPort);
@@ -201,12 +205,13 @@ public class LoadLdap {
             //
             return lc;
         }
-
     }
+
     private static class SearchResultsIterator implements Iterator<Map<String, Object>> {
         private final LDAPSearchResults lsr;
         private final List<String> attributes;
-        private Map<String,Object> map;
+        private Map<String, Object> map;
+
         public SearchResultsIterator(LDAPSearchResults lsr, List<String> attributes) {
             this.lsr = lsr;
             this.attributes = attributes;
@@ -220,7 +225,7 @@ public class LoadLdap {
 
         @Override
         public Map<String, Object> next() {
-            Map<String,Object> current = this.map;
+            Map<String, Object> current = this.map;
             this.map = get();
             return current;
         }
@@ -235,7 +240,7 @@ public class LoadLdap {
                 if (attributes != null && attributes.size() > 0) {
                     for (int col = 0; col < attributes.size(); col++) {
                         Object val = readValue(en.getAttributeSet().getAttribute(attributes.get(col)));
-                        if (val != null) entry.put(attributes.get(col),val );
+                        if (val != null) entry.put(attributes.get(col), val);
                     }
                 } else {
                     // make it dynamic
@@ -253,12 +258,13 @@ public class LoadLdap {
             }
         }
 
-        private boolean handleEndOfResults()  {
+        private boolean handleEndOfResults() {
             if (!lsr.hasMore()) {
                 return true;
             }
             return false;
         }
+
         private Object readValue(LDAPAttribute att) {
             if (att == null) return null;
             if (att.size() == 1) {
@@ -270,5 +276,4 @@ public class LoadLdap {
             }
         }
     }
-
 }

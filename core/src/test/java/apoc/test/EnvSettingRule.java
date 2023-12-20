@@ -20,13 +20,12 @@ package apoc.test;
 
 import apoc.test.annotations.Env;
 import apoc.test.annotations.EnvSetting;
+import java.lang.reflect.Method;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import java.lang.reflect.Method;
 
 public class EnvSettingRule implements TestRule {
 
@@ -54,5 +53,4 @@ public class EnvSettingRule implements TestRule {
     public RuleChain around(TestRule enclosedRule) {
         return delegate.around(enclosedRule);
     }
-
 }

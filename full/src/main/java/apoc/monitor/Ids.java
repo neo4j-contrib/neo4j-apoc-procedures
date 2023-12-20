@@ -20,14 +20,13 @@ package apoc.monitor;
 
 import apoc.Extended;
 import apoc.result.IdsResult;
+import java.util.stream.Stream;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.impl.store.stats.StoreEntityCounters;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
-
-import java.util.stream.Stream;
 
 @Extended
 public class Ids {
@@ -45,12 +44,12 @@ public class Ids {
     @Description("apoc.monitor.ids() returns the object ids in use for this neo4j instance")
     public Stream<IdsResult> ids() {
 
-        StoreEntityCounters storeEntityCounters = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(StoreEntityCounters.class);
+        StoreEntityCounters storeEntityCounters =
+                ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(StoreEntityCounters.class);
         return Stream.of(new IdsResult(
                 storeEntityCounters.nodes(),
                 storeEntityCounters.relationships(),
                 storeEntityCounters.properties(),
-                storeEntityCounters.relationshipTypes()
-        ));
+                storeEntityCounters.relationshipTypes()));
     }
 }

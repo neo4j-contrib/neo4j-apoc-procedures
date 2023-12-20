@@ -18,6 +18,8 @@
  */
 package apoc.util;
 
+import static apoc.util.Util.getFormat;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -27,15 +29,13 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static apoc.util.Util.getFormat;
-
 public class DateParseUtil {
 
     private static Map<Class<? extends TemporalAccessor>, MethodHandle> parseDateMap = new ConcurrentHashMap<>();
     private static Map<Class<? extends TemporalAccessor>, MethodHandle> simpleParseDateMap = new ConcurrentHashMap<>();
     private static String METHOD_NAME = "parse";
 
-    public static TemporalAccessor dateParse(String value, Class<? extends TemporalAccessor> date, String...formats) {
+    public static TemporalAccessor dateParse(String value, Class<? extends TemporalAccessor> date, String... formats) {
         try {
             if (formats != null && formats.length > 0) {
                 for (String form : formats) {
@@ -63,12 +63,14 @@ public class DateParseUtil {
         throw new RuntimeException("Can't format the date with the pattern");
     }
 
-    private static TemporalAccessor getParse(Class<? extends TemporalAccessor> date, DateTimeFormatter format, String value) throws Throwable {
+    private static TemporalAccessor getParse(
+            Class<? extends TemporalAccessor> date, DateTimeFormatter format, String value) throws Throwable {
 
         MethodHandle methodHandle = parseDateMap.computeIfAbsent(date, method -> {
             MethodHandles.Lookup lookup = MethodHandles.publicLookup();
             try {
-                return lookup.findStatic(date, METHOD_NAME, MethodType.methodType(date, CharSequence.class, DateTimeFormatter.class));
+                return lookup.findStatic(
+                        date, METHOD_NAME, MethodType.methodType(date, CharSequence.class, DateTimeFormatter.class));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -88,5 +90,4 @@ public class DateParseUtil {
 
         return (TemporalAccessor) methodHandleSimple.invokeWithArguments(value);
     }
-
 }

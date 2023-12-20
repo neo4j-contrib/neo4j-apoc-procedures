@@ -35,7 +35,9 @@ public class PoolExtensionFactory extends ExtensionFactory<PoolExtensionFactory.
 
     public interface Dependencies {
         GlobalProcedures globalProceduresRegistry();
+
         LogService log();
+
         ApocConfig apocConfig();
     }
 
@@ -43,5 +45,4 @@ public class PoolExtensionFactory extends ExtensionFactory<PoolExtensionFactory.
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
         return new Pools(dependencies.log(), dependencies.globalProceduresRegistry(), dependencies.apocConfig());
     }
-
 }

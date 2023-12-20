@@ -18,14 +18,13 @@
  */
 package apoc.result;
 
-import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.FilteringIterable;
-import org.neo4j.internal.helpers.collection.Iterables;
+import static java.util.Arrays.asList;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.Arrays.asList;
+import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.FilteringIterable;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 /**
  * @author mh
@@ -91,7 +90,9 @@ public class WrappedNode implements Node {
     }
 
     private boolean isDirection(Relationship r, Direction direction) {
-        return direction == Direction.BOTH || direction == Direction.OUTGOING && r.getStartNode().equals(this) || direction == Direction.INCOMING && r.getEndNode().equals(this);
+        return direction == Direction.BOTH
+                || direction == Direction.OUTGOING && r.getStartNode().equals(this)
+                || direction == Direction.INCOMING && r.getEndNode().equals(this);
     }
 
     @Override
@@ -121,7 +122,7 @@ public class WrappedNode implements Node {
 
     @Override
     public Relationship createRelationshipTo(Node node, RelationshipType relationshipType) {
-        Relationship rel = new VirtualRelationship(this,node,relationshipType);
+        Relationship rel = new VirtualRelationship(this, node, relationshipType);
 
         return null;
     }
@@ -195,7 +196,7 @@ public class WrappedNode implements Node {
 
     @Override
     public void setProperty(String s, Object o) {
-        props.put(s,o);
+        props.put(s, o);
     }
 
     @Override
@@ -227,7 +228,6 @@ public class WrappedNode implements Node {
     @Override
     public boolean equals(Object o) {
         return this == o || o instanceof Node && id == ((Node) o).getId();
-
     }
 
     @Override

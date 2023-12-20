@@ -18,12 +18,20 @@
  */
 package apoc.cypher;
 
+import static apoc.SystemPropertyKeys.database;
+
 import apoc.ApocConfig;
 import apoc.SystemLabels;
 import apoc.util.LogsUtil;
 import apoc.util.QueryUtil;
 import apoc.util.Util;
 import apoc.version.Version;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.DependencyResolver;
@@ -32,28 +40,17 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.database.SystemGraphComponent.Status;
 import org.neo4j.dbms.database.SystemGraphComponents;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.DatabaseEventContext;
 import org.neo4j.graphdb.event.DatabaseEventListener;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.monitoring.DatabaseEventListeners;
 import org.neo4j.logging.Log;
-
-import java.util.Collection;
-
-import java.util.ConcurrentModificationException;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.BiConsumer;
-
-import static apoc.SystemPropertyKeys.database;
-import java.util.function.BooleanSupplier;
-
 
 public class CypherInitializer implements AvailabilityListener {
 
@@ -65,15 +62,16 @@ public class CypherInitializer implements AvailabilityListener {
     private final DatabaseManagementService databaseManagementService;
     private final DatabaseEventListeners databaseEventListeners;
 
-
     /**
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
      */
     private boolean finished = false;
 
-    public CypherInitializer(GraphDatabaseAPI db, Log userLog,
-                             DatabaseManagementService databaseManagementService,
-                             DatabaseEventListeners databaseEventListeners) {
+    public CypherInitializer(
+            GraphDatabaseAPI db,
+            Log userLog,
+            DatabaseManagementService databaseManagementService,
+            DatabaseEventListeners databaseEventListeners) {
         this.db = db;
         this.userLog = userLog;
         this.databaseManagementService = databaseManagementService;
@@ -105,30 +103,31 @@ public class CypherInitializer implements AvailabilityListener {
         return condition;
     }
 
-
     private void waitForSystemDbLifecycles() {
         /* Await 2 min at max for the system database to show in
-           status CURRENT or REQUIRES_UPGRADE.
-           We do not do anything for the other possible status because
-           the dbms would not even be able to operate normally in them
-           (i.e. UNSUPPORTED_BUT_CAN_UPGRADE, UNSUPPORTED, UNSUPPORTED_FUTURE).
+          status CURRENT or REQUIRES_UPGRADE.
+          We do not do anything for the other possible status because
+          the dbms would not even be able to operate normally in them
+          (i.e. UNSUPPORTED_BUT_CAN_UPGRADE, UNSUPPORTED, UNSUPPORTED_FUTURE).
 
-           The reason for that is that the first time we initialize
-           it the built-in roles (and possibly other system databases
-           structures) will not be populated immediately in 4.4.
-           I.e. system.isAvailable can output true but some of the
-           Lifecycles may not have been run yet (UNINITIALIZED status)
-         */
-        boolean condition = awaitUntil( () ->
-                                        {
-                                            var components = dependencyResolver.resolveDependency( SystemGraphComponents.class );
-                                            var status = components.detect( db );
-                                            return (status == Status.CURRENT || status == Status.REQUIRES_UPGRADE);
-                                        }, 120000 );
+          The reason for that is that the first time we initialize
+          it the built-in roles (and possibly other system databases
+          structures) will not be populated immediately in 4.4.
+          I.e. system.isAvailable can output true but some of the
+          Lifecycles may not have been run yet (UNINITIALIZED status)
+        */
+        boolean condition = awaitUntil(
+                () -> {
+                    var components = dependencyResolver.resolveDependency(SystemGraphComponents.class);
+                    var status = components.detect(db);
+                    return (status == Status.CURRENT || status == Status.REQUIRES_UPGRADE);
+                },
+                120000);
 
-        if ( !condition )
-        {
-            userLog.warn("attempting to execute apoc.initializer without waiting for system database to finish initialization, waiting time elapsed. This may result in failing apoc.initializer commands." );        }
+        if (!condition) {
+            userLog.warn(
+                    "attempting to execute apoc.initializer without waiting for system database to finish initialization, waiting time elapsed. This may result in failing apoc.initializer commands.");
+        }
     }
 
     @Override
@@ -138,55 +137,64 @@ public class CypherInitializer implements AvailabilityListener {
         // we need to wait until apoc procs are registered
         // unfortunately an AvailabilityListener is triggered before that
         Util.newDaemonThread(() -> {
-            try {
-                final boolean isSystemDatabase = db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
-                Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
-                var initializers = collectInitializers(isSystemDatabase, config);
-
-                // Wait for procedures to be loaded for the cypher initializer
-                if (!isSystemDatabase) {
-                    awaitApocProceduresRegistered();
-                } else {
-                    if (!initializers.isEmpty()) {
-                        waitForSystemDbLifecycles();
-                    }
-                    // Register listener to drop apoc nodes from system database once a database is deleted
-                    databaseEventListeners.registerDatabaseEventListener(new SystemFunctionalityListener());
-                }
-
-                if (defaultDb.equals(db.databaseName())) {
                     try {
-                       String neo4jVersion = org.neo4j.kernel.internal.Version.getNeo4jVersion();
-                        final String apocFullVersion = Version.class.getPackage().getImplementationVersion();
-                        if (isVersionDifferent(neo4jVersion, apocFullVersion)) {
-                            userLog.warn("The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n" +
-                                            "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
-                                    apocFullVersion, neo4jVersion);
-                        }
-                    } catch (Exception ignored) {
-                        userLog.info("Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
-                    }
-                }
+                        final boolean isSystemDatabase =
+                                db.databaseName().equals(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+                        Configuration config = dependencyResolver
+                                .resolveDependency(ApocConfig.class)
+                                .getConfig();
+                        var initializers = collectInitializers(isSystemDatabase, config);
 
-                for (String query : initializers) {
-                    if (QueryUtil.isValidQuery(query)) {
-                        String sanitizedQuery = LogsUtil.sanitizeQuery(query);
-                        try {
-                            // we need to apply a retry strategy here since in systemdb we potentially conflict with
-                            // creating constraints which could cause our query to fail with a transient error.
-                            Util.retryInTx(userLog, db, tx -> Iterators.count(tx.execute(query)), 0, 5, retries -> { });
-                            userLog.info("successfully initialized: " + sanitizedQuery);
-                        } catch (Exception e) {
-                            userLog.error("error upon initialization, running: " + sanitizedQuery, e);
+                        // Wait for procedures to be loaded for the cypher initializer
+                        if (!isSystemDatabase) {
+                            awaitApocProceduresRegistered();
+                        } else {
+                            if (!initializers.isEmpty()) {
+                                waitForSystemDbLifecycles();
+                            }
+                            // Register listener to drop apoc nodes from system database once a database is deleted
+                            databaseEventListeners.registerDatabaseEventListener(new SystemFunctionalityListener());
                         }
-                    } else {
-                        userLog.error("error upon initialization, invalid query: " + query);
+
+                        if (defaultDb.equals(db.databaseName())) {
+                            try {
+                                String neo4jVersion = org.neo4j.kernel.internal.Version.getNeo4jVersion();
+                                final String apocFullVersion =
+                                        Version.class.getPackage().getImplementationVersion();
+                                if (isVersionDifferent(neo4jVersion, apocFullVersion)) {
+                                    userLog.warn(
+                                            "The apoc version (%s) and the Neo4j DBMS versions %s are incompatible. \n"
+                                                    + "See the compatibility matrix in https://neo4j.com/labs/apoc/4.4/installation/ to see the correct version",
+                                            apocFullVersion, neo4jVersion);
+                                }
+                            } catch (Exception ignored) {
+                                userLog.info(
+                                        "Cannot check APOC version compatibility because of a transient error. Retrying your request at a later time may succeed");
+                            }
+                        }
+
+                        for (String query : initializers) {
+                            if (QueryUtil.isValidQuery(query)) {
+                                String sanitizedQuery = LogsUtil.sanitizeQuery(query);
+                                try {
+                                    // we need to apply a retry strategy here since in systemdb we potentially conflict
+                                    // with
+                                    // creating constraints which could cause our query to fail with a transient error.
+                                    Util.retryInTx(
+                                            userLog, db, tx -> Iterators.count(tx.execute(query)), 0, 5, retries -> {});
+                                    userLog.info("successfully initialized: " + sanitizedQuery);
+                                } catch (Exception e) {
+                                    userLog.error("error upon initialization, running: " + sanitizedQuery, e);
+                                }
+                            } else {
+                                userLog.error("error upon initialization, invalid query: " + query);
+                            }
+                        }
+                    } finally {
+                        finished = true;
                     }
-                }
-            } finally {
-                finished = true;
-            }
-        }).start();
+                })
+                .start();
     }
 
     // the visibility is public only for testing purpose, it could be private otherwise
@@ -194,7 +202,8 @@ public class CypherInitializer implements AvailabilityListener {
         final String[] apocSplit = splitVersion(apocVersion);
         final String[] neo4jSplit = splitVersion(neo4jVersion);
 
-        return !(apocSplit != null && neo4jSplit != null
+        return !(apocSplit != null
+                && neo4jSplit != null
                 && apocSplit[0].equals(neo4jSplit[0])
                 && apocSplit[1].equals(neo4jSplit[1]));
     }
@@ -221,8 +230,8 @@ public class CypherInitializer implements AvailabilityListener {
         return initializers.values();
     }
 
-    private void putIfNotBlank(Map<String,String> map, String key, String value) {
-        if ((value!=null) && (!value.isBlank())) {
+    private void putIfNotBlank(Map<String, String> map, String key, String value) {
+        if ((value != null) && (!value.isBlank())) {
             map.put(key, value);
         }
     }
@@ -235,7 +244,8 @@ public class CypherInitializer implements AvailabilityListener {
 
     private boolean areProceduresRegistered(String procStart) {
         try {
-            return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith(procStart));
+            return procs.getAllProcedures().stream()
+                    .anyMatch(signature -> signature.name().toString().startsWith(procStart));
         } catch (ConcurrentModificationException e) {
             // if a CME happens (possible during procedure scanning)
             // we return false and the caller will try again
@@ -274,7 +284,7 @@ public class CypherInitializer implements AvailabilityListener {
 
     private void forEachSystemLabel(BiConsumer<Transaction, Label> consumer) {
         try (Transaction tx = db.beginTx()) {
-            for (Label label: SystemLabels.values()) {
+            for (Label label : SystemLabels.values()) {
                 consumer.accept(tx, label);
             }
             tx.commit();

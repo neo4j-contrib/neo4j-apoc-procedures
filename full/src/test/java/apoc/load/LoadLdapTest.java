@@ -18,12 +18,23 @@
  */
 package apoc.load;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPSearchResults;
 import com.unboundid.ldap.sdk.LDAPConnection;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -35,19 +46,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.zapodot.junit.ldap.EmbeddedLdapRule;
 import org.zapodot.junit.ldap.EmbeddedLdapRuleBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.Map;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class LoadLdapTest {
     public static final String BIND_DSN = "uid=admin,cn=users,cn=accounts,dc=demo1,dc=freeipa";
@@ -63,8 +61,7 @@ public class LoadLdapTest {
     private static DatabaseManagementService dbms;
 
     @ClassRule
-    public static EmbeddedLdapRule embeddedLdapRule = EmbeddedLdapRuleBuilder
-            .newInstance()
+    public static EmbeddedLdapRule embeddedLdapRule = EmbeddedLdapRuleBuilder.newInstance()
             .usingBindDSN(BIND_DSN)
             .usingBindCredentials(BIND_PWD)
             .importingLdifs("ldap/example.ldif")
@@ -78,18 +75,22 @@ public class LoadLdapTest {
 
         ldapConnection = embeddedLdapRule.unsharedLdapConnection();
 
-        connParams = Map.of("ldapHost", "localhost:" + ldapConnection.getConnectedPort(),
-                "loginDN", BIND_DSN,
-                "loginPW", BIND_PWD);
+        connParams = Map.of(
+                "ldapHost", "localhost:" + ldapConnection.getConnectedPort(), "loginDN", BIND_DSN, "loginPW", BIND_PWD);
 
-        searchParams = Map.of("searchBase", "dc=example,dc=com",
-                "searchScope", "SCOPE_ONE",
-                "searchFilter", "(objectClass=*)",
-                "attributes", List.of("uid") );
+        searchParams = Map.of(
+                "searchBase",
+                "dc=example,dc=com",
+                "searchScope",
+                "SCOPE_ONE",
+                "searchFilter",
+                "(objectClass=*)",
+                "attributes",
+                List.of("uid"));
     }
 
     @AfterClass
-    public static void afterClass()  {
+    public static void afterClass() {
         ldapConnection.close();
         dbms.shutdown();
     }
@@ -127,13 +128,13 @@ public class LoadLdapTest {
 
     private void testWithStringConfigCommon(String key) {
         // set a config `key=localhost:port dns pwd`
-        String ldapValue = String.format("%s %s %s",
-                "localhost:" + ldapConnection.getConnectedPort(),
-                BIND_DSN,
-                BIND_PWD);
+        String ldapValue =
+                String.format("%s %s %s", "localhost:" + ldapConnection.getConnectedPort(), BIND_DSN, BIND_PWD);
         apocConfig().setProperty(key, ldapValue);
 
-        testCall(db, "call apoc.load.ldap($conn, $search)",
+        testCall(
+                db,
+                "call apoc.load.ldap($conn, $search)",
                 Map.of("conn", "myldap", "search", searchParams),
                 this::testLoadAssertionCommon);
 
@@ -147,8 +148,7 @@ public class LoadLdapTest {
 
         String expected = "No apoc.loadldap.wrongKey.config ldap access configuration specified";
         try {
-            testCall(db, "call apoc.load.ldap('wrongKey', {})",
-                    r -> fail("Should fail due to: " + expected));
+            testCall(db, "call apoc.load.ldap('wrongKey', {})", r -> fail("Should fail due to: " + expected));
         } catch (RuntimeException e) {
             String actual = e.getMessage();
             assertTrue("Current err. message is: " + actual, actual.contains(expected));
@@ -157,27 +157,25 @@ public class LoadLdapTest {
 
     @Test
     public void testLoadLDAP() {
-        testCall(db, "call apoc.load.ldap($conn, $search)",
+        testCall(
+                db,
+                "call apoc.load.ldap($conn, $search)",
                 Map.of("conn", connParams, "search", searchParams),
                 this::testLoadAssertionCommon);
     }
 
     private void testLoadAssertionCommon(Map<String, Object> r) {
-        final Map<String, String> expected = Map.of("uid", "training",
-                "dn", "uid=training,dc=example,dc=com");
+        final Map<String, String> expected = Map.of("uid", "training", "dn", "uid=training,dc=example,dc=com");
         assertEquals(expected, r.get("entry"));
     }
 
     @Test
     public void testLoadLDAPConfig() throws Exception {
         LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(LoadLdap.getConnectionMap(connParams, null));
-        
+
         LDAPSearchResults results = mgr.doSearch(searchParams);
         LDAPEntry le = results.next();
         assertEquals("uid=training,dc=example,dc=com", le.getDN());
         assertEquals("training", le.getAttribute("uid").getStringValue());
-
     }
-
 }
-

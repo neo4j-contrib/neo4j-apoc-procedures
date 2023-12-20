@@ -18,13 +18,12 @@
  */
 package apoc.export.csv;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.Util;
-
 import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Config class to store the configuration for loading the CSV file. Names and defaults are based on the import tool's
@@ -99,7 +98,9 @@ public class CsvLoaderConfig extends CompressionConfig {
         return batchSize;
     }
 
-    public boolean getIgnoreDuplicateNodes() { return ignoreDuplicateNodes; }
+    public boolean getIgnoreDuplicateNodes() {
+        return ignoreDuplicateNodes;
+    }
 
     public boolean isIgnoreBlankString() {
         return ignoreBlankString;
@@ -138,16 +139,20 @@ public class CsvLoaderConfig extends CompressionConfig {
 
         if (config.get(DELIMITER) != null) builder.delimiter(getCharacterOrString(config, DELIMITER));
         if (config.get(ARRAY_DELIMITER) != null) builder.arrayDelimiter(getCharacterOrString(config, ARRAY_DELIMITER));
-        if (config.get(QUOTATION_CHARACTER) != null) builder.quotationCharacter(getCharacterOrString(config, QUOTATION_CHARACTER));
+        if (config.get(QUOTATION_CHARACTER) != null)
+            builder.quotationCharacter(getCharacterOrString(config, QUOTATION_CHARACTER));
         if (config.get(STRING_IDS) != null) builder.stringIds((boolean) config.get(STRING_IDS));
         if (config.get(SKIP_LINES) != null) builder.skipLines(Util.toInteger(config.get(SKIP_LINES)));
         if (config.get(BATCH_SIZE) != null) builder.batchSize(Util.toInteger(config.get(BATCH_SIZE)));
-        if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
-        if (config.get(IGNORE_BLANK_STRING) != null) builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));
-        if (config.get(IGNORE_EMPTY_CELL_ARRAY) != null) builder.ignoreEmptyCellArray((boolean) config.get(IGNORE_EMPTY_CELL_ARRAY));
+        if (config.get(IGNORE_DUPLICATE_NODES) != null)
+            builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
+        if (config.get(IGNORE_BLANK_STRING) != null)
+            builder.ignoreBlankString((boolean) config.get(IGNORE_BLANK_STRING));
+        if (config.get(IGNORE_EMPTY_CELL_ARRAY) != null)
+            builder.ignoreEmptyCellArray((boolean) config.get(IGNORE_EMPTY_CELL_ARRAY));
         builder.binary((String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
         builder.charset((String) config.getOrDefault(CHARSET, UTF_8.name()));
-        
+
         return builder.build();
     }
 
@@ -167,8 +172,7 @@ public class CsvLoaderConfig extends CompressionConfig {
         private String compressionAlgo = null;
         private String charset = UTF_8.name();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder delimiter(char delimiter) {
             this.delimiter = delimiter;
@@ -229,5 +233,4 @@ public class CsvLoaderConfig extends CompressionConfig {
             return new CsvLoaderConfig(this);
         }
     }
-
 }

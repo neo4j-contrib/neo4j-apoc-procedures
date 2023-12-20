@@ -20,9 +20,8 @@ package apoc.generate.relationship;
 
 import apoc.generate.config.InvalidConfigException;
 import apoc.generate.config.RelationshipGeneratorConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.List;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * A component that generates relationships based on a given {@link RelationshipGeneratorConfig}.

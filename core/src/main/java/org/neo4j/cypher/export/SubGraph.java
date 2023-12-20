@@ -18,6 +18,11 @@
  */
 package org.neo4j.cypher.export;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -27,20 +32,12 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.internal.helpers.collection.Iterables;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-
-public interface SubGraph
-{
+public interface SubGraph {
     Iterable<Node> getNodes();
 
     Iterable<Relationship> getRelationships();
 
-    boolean contains( Relationship relationship );
+    boolean contains(Relationship relationship);
 
     Iterable<IndexDefinition> getIndexes();
 
@@ -118,5 +115,4 @@ public interface SubGraph
     }
 
     long countsForNode(Label label);
-
 }

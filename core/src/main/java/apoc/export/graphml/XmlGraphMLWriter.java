@@ -18,22 +18,21 @@
  */
 package apoc.export.graphml;
 
+import static apoc.export.util.MetaInformation.*;
+
 import apoc.export.util.*;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-
-import static apoc.export.util.MetaInformation.*;
 
 /**
  * @author mh
@@ -92,7 +91,8 @@ public class XmlGraphMLWriter {
         writeKey(writer, keyTypes, "edge", useTypes);
     }
 
-    private void writeKey(XMLStreamWriter writer, Map<String, Class> keyTypes, String forType, boolean useTypes) throws XMLStreamException {
+    private void writeKey(XMLStreamWriter writer, Map<String, Class> keyTypes, String forType, boolean useTypes)
+            throws XMLStreamException {
         for (Map.Entry<String, Class> entry : keyTypes.entrySet()) {
             Class typeClass = entry.getValue();
             String type = MetaInformation.typeFor(typeClass, MetaInformation.GRAPHML_ALLOWED);
@@ -141,14 +141,15 @@ public class XmlGraphMLWriter {
         if (config.getFormat() == ExportFormat.GEPHI) {
             writeData(writer, "TYPE", delimiter + FormatUtils.joinLabels(node, delimiter));
             writeData(writer, "label", getLabelsStringGephi(config, node));
-        } else if (config.getFormat() == ExportFormat.TINKERPOP){
+        } else if (config.getFormat() == ExportFormat.TINKERPOP) {
             writeData(writer, "labelV", FormatUtils.joinLabels(node, delimiter));
         } else {
             writeData(writer, "labels", labelsString);
         }
     }
 
-    private int writeRelationship(XMLStreamWriter writer, Relationship rel, ExportConfig config) throws XMLStreamException {
+    private int writeRelationship(XMLStreamWriter writer, Relationship rel, ExportConfig config)
+            throws XMLStreamException {
         writer.writeStartElement("edge");
         writer.writeAttribute("id", id(rel));
         getNodeAttribute(writer, XmlNodeExport.NodeType.SOURCE, config, rel);
@@ -167,7 +168,9 @@ public class XmlGraphMLWriter {
         return props;
     }
 
-    private void getNodeAttribute(XMLStreamWriter writer, XmlNodeExport.NodeType nodeType, ExportConfig config, Relationship rel) throws XMLStreamException {
+    private void getNodeAttribute(
+            XMLStreamWriter writer, XmlNodeExport.NodeType nodeType, ExportConfig config, Relationship rel)
+            throws XMLStreamException {
 
         final XmlNodeExport.ExportNode xmlNodeInterface = nodeType.get();
         final Node node = xmlNodeInterface.getNode(rel);
@@ -178,15 +181,17 @@ public class XmlGraphMLWriter {
             writer.writeAttribute(name, id(node));
             return;
         }
-        // with source/target with an id configured 
+        // with source/target with an id configured
         // we put a source with the property value and a sourceType with the prop type of node
         try {
             final Object nodeProperty = node.getProperty(nodeConfig.id);
             writer.writeAttribute(name, nodeProperty.toString());
-            writer.writeAttribute(nodeType.getNameType(), MetaInformation.typeFor(nodeProperty.getClass(), MetaInformation.GRAPHML_ALLOWED));
+            writer.writeAttribute(
+                    nodeType.getNameType(),
+                    MetaInformation.typeFor(nodeProperty.getClass(), MetaInformation.GRAPHML_ALLOWED));
         } catch (NotFoundException e) {
-            throw new RuntimeException(
-                    "The config source and/or target cannot be used because the node with id " + node.getId() + " doesn't have property " + nodeConfig.id);
+            throw new RuntimeException("The config source and/or target cannot be used because the node with id "
+                    + node.getId() + " doesn't have property " + nodeConfig.id);
         }
     }
 
@@ -229,8 +234,13 @@ public class XmlGraphMLWriter {
         newLine(writer);
         writer.writeStartElement("graphml"); // todo properties
         writer.writeNamespace("xmlns", "http://graphml.graphdrawing.org/xmlns");
-        writer.writeAttribute("xmlns", "http://graphml.graphdrawing.org/xmlns", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writer.writeAttribute("xsi", "", "schemaLocation", "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
+        writer.writeAttribute(
+                "xmlns", "http://graphml.graphdrawing.org/xmlns", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        writer.writeAttribute(
+                "xsi",
+                "",
+                "schemaLocation",
+                "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
         newLine(writer);
     }
 

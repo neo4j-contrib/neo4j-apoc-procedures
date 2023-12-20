@@ -19,11 +19,10 @@
 package apoc.meta;
 
 import apoc.util.Util;
+import java.util.*;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-
-import java.util.*;
 
 public class MetaConfig {
 
@@ -52,39 +51,44 @@ public class MetaConfig {
      * will be sampled.
      * - maxRels: the maximum number of relationships to look at per Node Label.
      */
-    public MetaConfig(Map<String,Object> config, Boolean shouldSampleByDefault) {
+    public MetaConfig(Map<String, Object> config, Boolean shouldSampleByDefault) {
         config = config != null ? config : Collections.emptyMap();
 
         // TODO: Remove in 6.0: To maintain backwards compatibility until then we still need to support;
         // "labels", "rels" and "excludes" for "includeLabels", "includeRels" and "excludeLabels" respectively.
 
-        Set<String> includesLabelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("labels",Collections.EMPTY_SET));
-        Set<String> includesRelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("rels",Collections.EMPTY_SET));
-        Set<String> excludesLocal = new HashSet<>((Collection<String>)config.getOrDefault("excludes",Collections.EMPTY_SET));
-
+        Set<String> includesLabelsLocal =
+                new HashSet<>((Collection<String>) config.getOrDefault("labels", Collections.EMPTY_SET));
+        Set<String> includesRelsLocal =
+                new HashSet<>((Collection<String>) config.getOrDefault("rels", Collections.EMPTY_SET));
+        Set<String> excludesLocal =
+                new HashSet<>((Collection<String>) config.getOrDefault("excludes", Collections.EMPTY_SET));
 
         if (includesLabelsLocal.isEmpty()) {
-            includesLabelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("includeLabels",Collections.EMPTY_SET));
+            includesLabelsLocal =
+                    new HashSet<>((Collection<String>) config.getOrDefault("includeLabels", Collections.EMPTY_SET));
         }
         if (includesRelsLocal.isEmpty()) {
-            includesRelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("includeRels",Collections.EMPTY_SET));
+            includesRelsLocal =
+                    new HashSet<>((Collection<String>) config.getOrDefault("includeRels", Collections.EMPTY_SET));
         }
         if (excludesLocal.isEmpty()) {
-            excludesLocal = new HashSet<>((Collection<String>)config.getOrDefault("excludeLabels",Collections.EMPTY_SET));
+            excludesLocal =
+                    new HashSet<>((Collection<String>) config.getOrDefault("excludeLabels", Collections.EMPTY_SET));
         }
 
         this.includeLabels = includesLabelsLocal;
         this.includeRels = includesRelsLocal;
         this.excludeLabels = excludesLocal;
-        this.excludeRels = new HashSet<>((Collection<String>)config.getOrDefault("excludeRels",Collections.EMPTY_SET));
+        this.excludeRels =
+                new HashSet<>((Collection<String>) config.getOrDefault("excludeRels", Collections.EMPTY_SET));
         this.sampleMetaConfig = new SampleMetaConfig(config, shouldSampleByDefault);
         this.addRelationshipsBetweenNodes = Util.toBoolean(config.getOrDefault("addRelationshipsBetweenNodes", true));
     }
 
-    public MetaConfig(Map<String,Object> config) {
+    public MetaConfig(Map<String, Object> config) {
         this(config, true);
     }
-
 
     public Set<String> getIncludeLabels() {
         return includeLabels;
@@ -119,8 +123,12 @@ public class MetaConfig {
      * @return true if the label matches the mask expressed by this object, false otherwise.
      */
     public boolean matches(Label l) {
-        if (getExcludeLabels().contains(l.name())) { return false; }
-        if (getIncludeLabels().isEmpty()) { return true; }
+        if (getExcludeLabels().contains(l.name())) {
+            return false;
+        }
+        if (getIncludeLabels().isEmpty()) {
+            return true;
+        }
         return getIncludeLabels().contains(l.name());
     }
 
@@ -132,7 +140,7 @@ public class MetaConfig {
         // If it matches any label, it gets looked at, because labels can co-occur.
         boolean match = true;
 
-        for(Label l : labels) {
+        for (Label l : labels) {
             match = match || matches(l);
         }
 
@@ -154,8 +162,12 @@ public class MetaConfig {
     public boolean matches(RelationshipType rt) {
         String name = rt.name();
 
-        if (getExcludeRels().contains(name)) { return false; }
-        if (getIncludeRels().isEmpty()) { return true; }
+        if (getExcludeRels().contains(name)) {
+            return false;
+        }
+        if (getIncludeRels().isEmpty()) {
+            return true;
+        }
         return getIncludeRels().contains(name);
     }
 

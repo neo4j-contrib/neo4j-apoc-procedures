@@ -18,8 +18,13 @@
  */
 package apoc.diff;
 
+import static org.junit.Assert.*;
+
 import apoc.create.Create;
 import apoc.util.TestUtil;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -30,12 +35,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Benjamin Clauss
@@ -74,33 +73,38 @@ public class DiffTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Test
     public void nodesWithList() {
         final List<String> list = List.of("tomatoes", "bread", "cookies");
-        TestUtil.testCall(db, "CREATE (charlie:Person $propCharlie), (hannah:Person $propHanna)\n" +
-                "RETURN apoc.diff.nodes(charlie, hannah) AS result", 
-                Map.of("propCharlie", Map.of("name", "Charlie", "alpha", "one", "born", 1999, "grocery_list", list),
-                        "propHanna", Map.of("name", "Hannah", "beta", "two", "born", 1999, "grocery_list", list)),
+        TestUtil.testCall(
+                db,
+                "CREATE (charlie:Person $propCharlie), (hannah:Person $propHanna)\n"
+                        + "RETURN apoc.diff.nodes(charlie, hannah) AS result",
+                Map.of(
+                        "propCharlie",
+                        Map.of("name", "Charlie", "alpha", "one", "born", 1999, "grocery_list", list),
+                        "propHanna",
+                        Map.of("name", "Hannah", "beta", "two", "born", 1999, "grocery_list", list)),
                 r -> {
-            Map<String, Map<String, Object>> res = (Map<String, Map<String, Object>>) r.get("result");
-            Map<String, Object> inCommon = res.get("inCommon");
-            assertArrayEquals(list.toArray(), (String[]) inCommon.get("grocery_list"));
-            assertEquals(1999, inCommon.get("born"));
-            assertEquals(Map.of("alpha", "one"), res.get("leftOnly"));
-            assertEquals(Map.of("beta", "two"), res.get("rightOnly"));
-            assertEquals(Map.of("name", Map.of("left", "Charlie", "right", "Hannah")), res.get("different"));
-        });
+                    Map<String, Map<String, Object>> res = (Map<String, Map<String, Object>>) r.get("result");
+                    Map<String, Object> inCommon = res.get("inCommon");
+                    assertArrayEquals(list.toArray(), (String[]) inCommon.get("grocery_list"));
+                    assertEquals(1999, inCommon.get("born"));
+                    assertEquals(Map.of("alpha", "one"), res.get("leftOnly"));
+                    assertEquals(Map.of("beta", "two"), res.get("rightOnly"));
+                    assertEquals(Map.of("name", Map.of("left", "Charlie", "right", "Hannah")), res.get("different"));
+                });
     }
 
     @Test
     public void nodesSame() {
-        Map<String, Object> result =
-                db.executeTransactionally(
-                        "MATCH (node:Node1) RETURN apoc.diff.nodes(node, node) as diff", new HashMap<>(),
-                        r -> Iterators.single(r.columnAs("diff")));
+        Map<String, Object> result = db.executeTransactionally(
+                "MATCH (node:Node1) RETURN apoc.diff.nodes(node, node) as diff",
+                new HashMap<>(),
+                r -> Iterators.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
@@ -120,10 +124,10 @@ public class DiffTest {
 
     @Test
     public void nodesDiffering() {
-        Map<String, Object> result =
-                db.executeTransactionally(
-                        "MATCH (leftNode:Node2), (rightNode:Node3) RETURN apoc.diff.nodes(leftNode, rightNode) as diff", new HashMap<>(),
-                        r -> Iterators.single(r.columnAs("diff")));
+        Map<String, Object> result = db.executeTransactionally(
+                "MATCH (leftNode:Node2), (rightNode:Node3) RETURN apoc.diff.nodes(leftNode, rightNode) as diff",
+                new HashMap<>(),
+                r -> Iterators.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
@@ -134,7 +138,8 @@ public class DiffTest {
         assertEquals(1, rightOnly.size());
         assertEquals("3", rightOnly.get("prop3"));
 
-        HashMap<String, HashMap<String, Object>> different = (HashMap<String, HashMap<String, Object>>) result.get("different");
+        HashMap<String, HashMap<String, Object>> different =
+                (HashMap<String, HashMap<String, Object>>) result.get("different");
         assertEquals(1, different.size());
         HashMap<String, Object> pairs = different.get("prop4");
         assertEquals("four", pairs.get("left"));
@@ -147,12 +152,11 @@ public class DiffTest {
 
     @Test
     public void shouldBeDiffWithVirtualNodes() {
-        String query = "WITH apoc.create.vNode(['Node2'], {prop1: 'val1', prop2: 2, prop4: 'four'}) AS nodeA, " +
-                "apoc.create.vNode(['Node3'], {prop1: 'val1', prop3: '3', prop4: 'for'}) AS nodeB " +
-                "RETURN apoc.diff.nodes(nodeA, nodeB) as diff";
+        String query = "WITH apoc.create.vNode(['Node2'], {prop1: 'val1', prop2: 2, prop4: 'four'}) AS nodeA, "
+                + "apoc.create.vNode(['Node3'], {prop1: 'val1', prop3: '3', prop4: 'for'}) AS nodeB "
+                + "RETURN apoc.diff.nodes(nodeA, nodeB) as diff";
         Map<String, Object> result =
-                db.executeTransactionally(query, Map.of(),
-                        r -> Iterators.single(r.columnAs("diff")));
+                db.executeTransactionally(query, Map.of(), r -> Iterators.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
@@ -163,7 +167,8 @@ public class DiffTest {
         assertEquals(1, rightOnly.size());
         assertEquals("3", rightOnly.get("prop3"));
 
-        HashMap<String, HashMap<String, Object>> different = (HashMap<String, HashMap<String, Object>>) result.get("different");
+        HashMap<String, HashMap<String, Object>> different =
+                (HashMap<String, HashMap<String, Object>>) result.get("different");
         assertEquals(1, different.size());
         HashMap<String, Object> pairs = different.get("prop4");
         assertEquals("four", pairs.get("left"));
@@ -176,11 +181,10 @@ public class DiffTest {
 
     @Test
     public void shouldBeSameWithVirtualNodes() {
-        String query = "WITH apoc.create.vNode(['Node1'], {prop1: 'val1', prop2: 2}) AS node " +
-                "RETURN apoc.diff.nodes(node, node) as diff";
+        String query = "WITH apoc.create.vNode(['Node1'], {prop1: 'val1', prop2: 2}) AS node "
+                + "RETURN apoc.diff.nodes(node, node) as diff";
         Map<String, Object> result =
-                db.executeTransactionally(query, Map.of(),
-                        r -> Iterators.single(r.columnAs("diff")));
+                db.executeTransactionally(query, Map.of(), r -> Iterators.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
@@ -197,5 +201,4 @@ public class DiffTest {
         assertEquals("val1", inCommon.get("prop1"));
         assertEquals(2L, inCommon.get("prop2"));
     }
-
 }

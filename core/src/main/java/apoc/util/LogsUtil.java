@@ -20,24 +20,25 @@ package apoc.util;
 
 import org.neo4j.cypher.internal.ast.Statement;
 import org.neo4j.cypher.internal.ast.factory.neo4j.JavaCCParser;
-import org.neo4j.cypher.internal.util.AnonymousVariableNameGenerator;
 import org.neo4j.cypher.internal.ast.prettifier.ExpressionStringifier;
-import org.neo4j.cypher.internal.ast.prettifier.ExpressionStringifier.Extension;
 import org.neo4j.cypher.internal.ast.prettifier.ExpressionStringifier$;
+import org.neo4j.cypher.internal.ast.prettifier.ExpressionStringifier.Extension;
 import org.neo4j.cypher.internal.ast.prettifier.Prettifier;
 import org.neo4j.cypher.internal.rewriting.rewriters.sensitiveLiteralReplacement;
+import org.neo4j.cypher.internal.util.AnonymousVariableNameGenerator;
 import org.neo4j.cypher.internal.util.OpenCypherExceptionFactory;
 
 public class LogsUtil {
     private static OpenCypherExceptionFactory exceptionFactory = new OpenCypherExceptionFactory(scala.Option.empty());
     private static AnonymousVariableNameGenerator nameGenerator = new AnonymousVariableNameGenerator();
-    private static Extension extension = ExpressionStringifier.Extension$.MODULE$.simple((ExpressionStringifier$.MODULE$.failingExtender()));
+    private static Extension extension =
+            ExpressionStringifier.Extension$.MODULE$.simple((ExpressionStringifier$.MODULE$.failingExtender()));
     private static ExpressionStringifier stringifier = new ExpressionStringifier(extension, false, false, false, false);
     private static Prettifier prettifier = new Prettifier(stringifier, Prettifier.EmptyExtension$.MODULE$, true);
 
     public static String sanitizeQuery(String query) {
         try {
-            var statement = JavaCCParser.parse(query, exceptionFactory, nameGenerator );
+            var statement = JavaCCParser.parse(query, exceptionFactory, nameGenerator);
             var rewriter = sensitiveLiteralReplacement.apply(statement)._1;
             var res = (Statement) rewriter.apply(statement);
 

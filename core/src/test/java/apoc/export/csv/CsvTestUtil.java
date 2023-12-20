@@ -21,7 +21,6 @@ package apoc.export.csv;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,13 +42,13 @@ public class CsvTestUtil {
     public static List<String[]> toCollection(String csv) {
 
         try {
-            MappingIterator<String[]> it = CSV_MAPPER.readerFor(String[].class)
-//                    .with(CsvSchema.emptySchema().withHeader())
+            MappingIterator<String[]> it = CSV_MAPPER
+                    .readerFor(String[].class)
+                    //                    .with(CsvSchema.emptySchema().withHeader())
                     .<String[]>readValues(csv.getBytes());
             return it.readAll();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
 }

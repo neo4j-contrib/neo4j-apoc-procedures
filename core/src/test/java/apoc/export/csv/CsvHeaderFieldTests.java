@@ -18,15 +18,14 @@
  */
 package apoc.export.csv;
 
-import apoc.meta.Meta;
-import org.junit.Test;
-
-import java.util.regex.Matcher;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import apoc.meta.Meta;
+import java.util.regex.Matcher;
+import org.junit.Test;
 
 public class CsvHeaderFieldTests {
 
@@ -45,8 +44,8 @@ public class CsvHeaderFieldTests {
     @Test
     public void testCsvField1() {
         CsvHeaderField field = CsvHeaderField.parse(0, TEST_FIELD_1, '"');
-        assertEquals(TEST_NAME,    field.getName());
-        assertEquals(TEST_TYPE,    field.getType());
+        assertEquals(TEST_NAME, field.getName());
+        assertEquals(TEST_TYPE, field.getType());
         assertEquals(TEST_IDSPACE, field.getIdSpace());
         assertTrue(field.isArray());
     }
@@ -54,8 +53,8 @@ public class CsvHeaderFieldTests {
     @Test
     public void testCsvField2() {
         CsvHeaderField field = CsvHeaderField.parse(0, TEST_FIELD_2, '"');
-        assertEquals(TEST_NAME,    field.getName());
-        assertEquals(TEST_TYPE,    field.getType());
+        assertEquals(TEST_NAME, field.getName());
+        assertEquals(TEST_TYPE, field.getType());
         assertEquals(TEST_IDSPACE, field.getIdSpace());
         assertFalse(field.isArray());
     }
@@ -103,5 +102,4 @@ public class CsvHeaderFieldTests {
         assertEquals(TEST_IDSPACE, matcher.group("idspace"));
         assertEquals(TEST_ARRAY, matcher.group("array"));
     }
-
 }

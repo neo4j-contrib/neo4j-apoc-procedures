@@ -18,13 +18,12 @@
  */
 package apoc.periodic;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.Test;
 
 public class BatchModeTest {
     @Test
@@ -69,6 +68,8 @@ public class BatchModeTest {
             BatchMode.fromConfig(config);
         });
 
-        assertEquals("Invalid batch mode: `random`. Valid values are: [BATCH, BATCH_SINGLE, SINGLE]", exception.getMessage());
+        assertEquals(
+                "Invalid batch mode: `random`. Valid values are: [BATCH, BATCH_SINGLE, SINGLE]",
+                exception.getMessage());
     }
 }

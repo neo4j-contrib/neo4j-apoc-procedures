@@ -18,8 +18,16 @@
  */
 package apoc.trigger;
 
+import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
+import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
+import static apoc.util.TestUtil.waitDbsAvailable;
+import static org.junit.Assert.assertEquals;
+
 import apoc.ApocConfig;
 import apoc.util.TestUtil;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -31,15 +39,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
-
-import static apoc.trigger.TriggerTestUtil.TRIGGER_DEFAULT_REFRESH;
-import static apoc.trigger.TriggerTestUtil.awaitTriggerDiscovered;
-import static apoc.util.TestUtil.waitDbsAvailable;
-import static org.junit.Assert.assertEquals;
 
 public class TriggerRestartTest {
 
@@ -57,7 +56,8 @@ public class TriggerRestartTest {
 
     @Before
     public void setUp() throws IOException {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
+        databaseManagementService =
+                new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
         waitDbsAvailable(db, sysDb);
@@ -72,7 +72,8 @@ public class TriggerRestartTest {
 
     private void restartDb() {
         databaseManagementService.shutdown();
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
+        databaseManagementService =
+                new TestDatabaseManagementServiceBuilder(store_dir.getRoot().toPath()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
         waitDbsAvailable(db, sysDb);
@@ -80,7 +81,8 @@ public class TriggerRestartTest {
 
     @Test
     public void testTriggerRunsAfterRestart() throws Exception {
-        final String query = "CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger = n.trigger + 1', {phase:'before'})";
+        final String query =
+                "CALL apoc.trigger.add('myTrigger', 'unwind $createdNodes as n set n.trigger = n.trigger + 1', {phase:'before'})";
         testTriggerWorksBeforeAndAfterRestart(db, query, Collections.emptyMap(), () -> {});
     }
 
@@ -89,8 +91,10 @@ public class TriggerRestartTest {
         final String name = "myTrigger";
         final String innerQuery = "unwind $createdNodes as n set n.trigger = n.trigger + 1";
         final Map<String, Object> params = Map.of("name", name, "query", innerQuery);
-        final String triggerQuery = "CALL apoc.trigger.install('neo4j', 'myTrigger', 'unwind $createdNodes as n set n.trigger = n.trigger + 1', {phase:'before'})";
-        testTriggerWorksBeforeAndAfterRestart(sysDb, triggerQuery, params, () -> awaitTriggerDiscovered(db, name, innerQuery));
+        final String triggerQuery =
+                "CALL apoc.trigger.install('neo4j', 'myTrigger', 'unwind $createdNodes as n set n.trigger = n.trigger + 1', {phase:'before'})";
+        testTriggerWorksBeforeAndAfterRestart(
+                sysDb, triggerQuery, params, () -> awaitTriggerDiscovered(db, name, innerQuery));
     }
 
     @Test
@@ -98,33 +102,33 @@ public class TriggerRestartTest {
         // executing both trigger add and install with the same name will not duplicate the eventListeners
         final String name = "myTrigger";
         final String innerQuery = "unwind $createdNodes as n set n.trigger = n.trigger + 1";
-        
+
         final String triggerQuery = "CALL apoc.trigger.add($name, $query, {phase:'before'})";
 
         final Map<String, Object> params = Map.of("name", name, "query", innerQuery);
-        
+
         final Runnable runnable = () -> {
-            sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'before'})",
-                    params);
+            sysDb.executeTransactionally("CALL apoc.trigger.install('neo4j', $name, $query, {phase:'before'})", params);
             awaitTriggerDiscovered(db, name, innerQuery);
         };
         testTriggerWorksBeforeAndAfterRestart(db, triggerQuery, params, runnable);
     }
 
-    private void testTriggerWorksBeforeAndAfterRestart(GraphDatabaseService gbs, String query, Map<String, Object> params, Runnable runnable) {
+    private void testTriggerWorksBeforeAndAfterRestart(
+            GraphDatabaseService gbs, String query, Map<String, Object> params, Runnable runnable) {
         TestUtil.testCall(gbs, query, params, row -> {});
         runnable.run();
-        
+
         db.executeTransactionally("CREATE (p:Person{id:1, trigger: 0})");
-        TestUtil.testCall(db, "match (n:Person{id:1}) return n.trigger as trigger", 
-                r -> assertEquals(1L, r.get("trigger")));
+        TestUtil.testCall(
+                db, "match (n:Person{id:1}) return n.trigger as trigger", r -> assertEquals(1L, r.get("trigger")));
 
         restartDb();
 
         db.executeTransactionally("CREATE (p:Person{id:2, trigger: 0})");
-        TestUtil.testCall(db, "match (n:Person{id:1}) return n.trigger as trigger",
-                r -> assertEquals(1L, r.get("trigger")));
-        TestUtil.testCall(db, "match (n:Person{id:2}) return n.trigger as trigger",
-                r -> assertEquals(1L, r.get("trigger")));
+        TestUtil.testCall(
+                db, "match (n:Person{id:1}) return n.trigger as trigger", r -> assertEquals(1L, r.get("trigger")));
+        TestUtil.testCall(
+                db, "match (n:Person{id:2}) return n.trigger as trigger", r -> assertEquals(1L, r.get("trigger")));
     }
 }

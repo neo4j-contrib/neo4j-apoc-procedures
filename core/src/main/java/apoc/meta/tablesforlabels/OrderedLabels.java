@@ -18,12 +18,11 @@
  */
 package apoc.meta.tablesforlabels;
 
-import org.neo4j.graphdb.Label;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.neo4j.graphdb.Label;
 
 /**
  * Abstraction on an ordered label set, used as a key for tables for labels profiles
@@ -47,14 +46,14 @@ public class OrderedLabels {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof OrderedLabels && nodeLabels().equals(((OrderedLabels)o).nodeLabels());
+        return o instanceof OrderedLabels && nodeLabels().equals(((OrderedLabels) o).nodeLabels());
     }
 
     public String asNodeType() {
-        return ":" + labels.stream()
-                .map(s -> "`" + s + "`")
-                .collect(Collectors.joining( ":" ));
+        return ":" + labels.stream().map(s -> "`" + s + "`").collect(Collectors.joining(":"));
     }
 
-    public List<String> nodeLabels() { return labels; }
+    public List<String> nodeLabels() {
+        return labels;
+    }
 }

@@ -61,6 +61,8 @@ public class ErdosRenyiConfig extends NumberOfNodesBasedConfig {
         maxNumberOfEdges = maxNumberOfEdges.multiply(maxNumberOfEdges.subtract(BigInteger.ONE));
         maxNumberOfEdges = maxNumberOfEdges.divide(BigInteger.valueOf(2));
 
-        return super.isValid() && numberOfEdges > 0 && BigInteger.valueOf(numberOfEdges).compareTo(maxNumberOfEdges) < 1;
+        return super.isValid()
+                && numberOfEdges > 0
+                && BigInteger.valueOf(numberOfEdges).compareTo(maxNumberOfEdges) < 1;
     }
 }

@@ -18,10 +18,22 @@
  */
 package apoc.export;
 
+import static apoc.ApocConfig.apocConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import apoc.ApocConfig;
 import apoc.export.xls.ExportXls;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.AfterClass;
@@ -37,19 +49,6 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static apoc.ApocConfig.apocConfig;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -75,7 +74,9 @@ public class ExportFullSecurityTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+            .withSetting(
+                    GraphDatabaseSettings.load_csv_file_url_root,
+                    directory.toPath().toAbsolutePath());
 
     @BeforeClass
     public static void setUp() {
@@ -93,14 +94,9 @@ public class ExportFullSecurityTest {
     }
 
     private static Collection<String[]> data(Map<String, List<String>> apocProcedureArguments) {
-        return APOC_EXPORT_PROCEDURE_NAME
-                .stream()
-                .flatMap(method -> apocProcedureArguments
-                        .entrySet()
-                        .stream()
-                        .flatMap(e -> e.getValue()
-                                .stream()
-                                .map(a -> new String[]{method, e.getKey(), a})))
+        return APOC_EXPORT_PROCEDURE_NAME.stream()
+                .flatMap(method -> apocProcedureArguments.entrySet().stream()
+                        .flatMap(e -> e.getValue().stream().map(a -> new String[] {method, e.getKey(), a})))
                 .collect(Collectors.toList());
     }
 
@@ -109,31 +105,23 @@ public class ExportFullSecurityTest {
         private final String apocProcedure;
 
         public TestIllegalFSAccess(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final Map<String, List<String>> APOC_PROCEDURE_ARGUMENTS = Map.of(
-                "query", List.of(
-                        "\"RETURN 'hello' as key\", './hello', {}",
-                        "\"RETURN 'hello' as key\", './hello', {stream:true}",
-                        "\"RETURN 'hello' as key\", '  ', {}"
-                ),
-                "all", List.of(
-                        "'./hello', {}",
-                        "'./hello', {stream:true}",
-                        "'  ', {}"
-                ),
-                "data", List.of(
-                        "[], [], './hello', {}",
-                        "[], [], './hello', {stream:true}",
-                        "[], [], '  ', {}"
-                ),
-                "graph", List.of(
-                        "{nodes: [], relationships: []}, './hello', {}",
-                        "{nodes: [], relationships: []}, './hello', {stream:true}",
-                        "{nodes: [], relationships: []}, '  ', {}"
-                )
-        );
+                "query",
+                        List.of(
+                                "\"RETURN 'hello' as key\", './hello', {}",
+                                "\"RETURN 'hello' as key\", './hello', {stream:true}",
+                                "\"RETURN 'hello' as key\", '  ', {}"),
+                "all", List.of("'./hello', {}", "'./hello', {stream:true}", "'  ', {}"),
+                "data", List.of("[], [], './hello', {}", "[], [], './hello', {stream:true}", "[], [], '  ', {}"),
+                "graph",
+                        List.of(
+                                "{nodes: [], relationships: []}, './hello', {}",
+                                "{nodes: [], relationships: []}, './hello', {stream:true}",
+                                "{nodes: [], relationships: []}, '  ', {}"));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -142,13 +130,11 @@ public class ExportFullSecurityTest {
 
         @Test
         public void testIllegalFSAccessExport() {
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                    () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
-            );
+            QueryExecutionException e = Assert.assertThrows(
+                    QueryExecutionException.class, () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {}));
 
             assertError(e, ApocConfig.EXPORT_TO_FILE_ERROR, RuntimeException.class, apocProcedure);
         }
-
     }
 
     @RunWith(Parameterized.class)
@@ -156,27 +142,21 @@ public class ExportFullSecurityTest {
         private final String apocProcedure;
 
         public TestIllegalExternalFSAccess(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query", List.of(
-                        "\"RETURN 'hello' as key\", '../hello', {}",
-                        "\"RETURN 'hello' as key\", 'file:../hello', {}"
-                ),
-                "all", List.of(
-                        "'../hello', {}",
-                        "'file:../hello', {}"
-                ),
-                "data", List.of(
-                        "[], [], '../hello', {}",
-                        "[], [], 'file:../hello', {}"
-                ),
-                "graph", List.of(
-                        "{nodes: [], relationships: []}, '../hello', {}",
-                        "{nodes: [], relationships: []}, 'file:../hello', {}"
-                )
-        );
+                "query",
+                        List.of(
+                                "\"RETURN 'hello' as key\", '../hello', {}",
+                                "\"RETURN 'hello' as key\", 'file:../hello', {}"),
+                "all", List.of("'../hello', {}", "'file:../hello', {}"),
+                "data", List.of("[], [], '../hello', {}", "[], [], 'file:../hello', {}"),
+                "graph",
+                        List.of(
+                                "{nodes: [], relationships: []}, '../hello', {}",
+                                "{nodes: [], relationships: []}, 'file:../hello', {}"));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -188,8 +168,7 @@ public class ExportFullSecurityTest {
             final String message = apocProcedure + " should throw an exception";
             try {
                 setFileExport(true);
-                db.executeTransactionally("CALL " + apocProcedure, Map.of(),
-                        Result::resultAsString);
+                db.executeTransactionally("CALL " + apocProcedure, Map.of(), Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
                 assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
@@ -199,13 +178,13 @@ public class ExportFullSecurityTest {
         }
     }
 
-
     @RunWith(Parameterized.class)
     public static class TestPathTraversalAccess {
         private final String apocProcedure;
 
         public TestPathTraversalAccess(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final String case1 = "'../test.txt'";
@@ -215,19 +194,19 @@ public class ExportFullSecurityTest {
         private static final List<String> cases = Arrays.asList(case1, case2, case3);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query",  cases.stream().map(
-                        filePath -> "\"RETURN 1\", " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "all", cases.stream().map(
-                        filePath -> filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "data", cases.stream().map(
-                        filePath -> "[], [], " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "graph", cases.stream().map(
-                        filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}"
-                ).collect(Collectors.toList())
-        );
+                "query",
+                        cases.stream()
+                                .map(filePath -> "\"RETURN 1\", " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "all", cases.stream().map(filePath -> filePath + ", {}").collect(Collectors.toList()),
+                "data",
+                        cases.stream()
+                                .map(filePath -> "[], [], " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "graph",
+                        cases.stream()
+                                .map(filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}")
+                                .collect(Collectors.toList()));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -238,9 +217,8 @@ public class ExportFullSecurityTest {
         public void testPathTraversal() {
             setFileExport(true);
 
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                    () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
-            );
+            QueryExecutionException e = Assert.assertThrows(
+                    QueryExecutionException.class, () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {}));
 
             assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             setFileExport(false);
@@ -257,34 +235,38 @@ public class ExportFullSecurityTest {
     public static class TestPathTraversalIsNormalised {
         private final String apocProcedure;
 
-        public TestPathTraversalIsNormalised(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+        public TestPathTraversalIsNormalised(
+                String exportMethod, String exportMethodType, String exportMethodArguments) {
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final String case1 = "'file://%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f/apoc/test.txt'";
         private static final String case2 = "'file://../../../../apoc/test.txt'";
         private static final String case3 = "'file:///..//..//..//..//apoc//core//..//test.txt'";
         private static final String case4 = "'file:///..//..//..//..//apoc/test.txt'";
-        private static final String case5 = "'file://" + directory.getAbsolutePath() + "//..//..//..//..//apoc/test.txt'";
-        private static final String case6 = "'file:///%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f/apoc/test.txt'";
+        private static final String case5 =
+                "'file://" + directory.getAbsolutePath() + "//..//..//..//..//apoc/test.txt'";
+        private static final String case6 =
+                "'file:///%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f/apoc/test.txt'";
         private static final String case7 = "'file:///%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2f%2e%2e%2f%2fapoc/test.txt'";
 
         private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query", cases.stream().map(
-                        filePath -> "\"RETURN 1\", " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "all", cases.stream().map(
-                        filePath -> filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "data", cases.stream().map(
-                        filePath -> "[], [], " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "graph", cases.stream().map(
-                        filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}"
-                ).collect(Collectors.toList())
-        );
+                "query",
+                        cases.stream()
+                                .map(filePath -> "\"RETURN 1\", " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "all", cases.stream().map(filePath -> filePath + ", {}").collect(Collectors.toList()),
+                "data",
+                        cases.stream()
+                                .map(filePath -> "[], [], " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "graph",
+                        cases.stream()
+                                .map(filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}")
+                                .collect(Collectors.toList()));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -295,9 +277,8 @@ public class ExportFullSecurityTest {
         public void testPathTraversal() {
             setFileExport(true);
 
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                    () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
-            );
+            QueryExecutionException e = Assert.assertThrows(
+                    QueryExecutionException.class, () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {}));
 
             TestCase.assertTrue(e.getMessage().contains("apoc/test.txt (No such file or directory)"));
             setFileExport(false);
@@ -313,8 +294,10 @@ public class ExportFullSecurityTest {
     public static class TestPathTraversalIsNormalisedWithinDirectory {
         private final String apocProcedure;
 
-        public TestPathTraversalIsNormalisedWithinDirectory(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+        public TestPathTraversalIsNormalisedWithinDirectory(
+                String exportMethod, String exportMethodType, String exportMethodArguments) {
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final String case1 = "'file:///..//..//..//..//apoc//..//..//..//..//test.txt'";
@@ -327,22 +310,23 @@ public class ExportFullSecurityTest {
         private static final String case8 = "'file:///..//..//..//..//test.txt'";
         private static final String case9 = "'file:///%2e%2e%2f%2ftest.txt'";
 
-        private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8, case9);
+        private static final List<String> cases =
+                Arrays.asList(case1, case2, case3, case4, case5, case6, case7, case8, case9);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query", cases.stream().map(
-                        filePath -> "\"RETURN 1\", " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "all", cases.stream().map(
-                        filePath -> filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "data", cases.stream().map(
-                        filePath -> "[], [], " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "graph", cases.stream().map(
-                        filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}"
-                ).collect(Collectors.toList())
-        );
+                "query",
+                        cases.stream()
+                                .map(filePath -> "\"RETURN 1\", " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "all", cases.stream().map(filePath -> filePath + ", {}").collect(Collectors.toList()),
+                "data",
+                        cases.stream()
+                                .map(filePath -> "[], [], " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "graph",
+                        cases.stream()
+                                .map(filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}")
+                                .collect(Collectors.toList()));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -353,9 +337,8 @@ public class ExportFullSecurityTest {
         public void testPathTraversal() {
             setFileExport(true);
 
-            TestUtil.testCall(db, "CALL " + apocProcedure,
-                    (r) -> assertTrue(((String) r.get("file")).contains("test.txt"))
-            );
+            TestUtil.testCall(
+                    db, "CALL " + apocProcedure, (r) -> assertTrue(((String) r.get("file")).contains("test.txt")));
 
             File f = new File(directory.getAbsolutePath() + "/test.txt");
             TestCase.assertTrue(f.exists());
@@ -373,8 +356,10 @@ public class ExportFullSecurityTest {
     public static class TestPathTraversalIsWithSimilarDirectoryName {
         private final String apocProcedure;
 
-        public TestPathTraversalIsWithSimilarDirectoryName(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+        public TestPathTraversalIsWithSimilarDirectoryName(
+                String exportMethod, String exportMethodType, String exportMethodArguments) {
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final String case1 = "'../imported/test.txt'";
@@ -383,19 +368,19 @@ public class ExportFullSecurityTest {
         private static final List<String> cases = Arrays.asList(case1, case2);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query", cases.stream().map(
-                        filePath -> "\"RETURN 1\", " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "all", cases.stream().map(
-                        filePath -> filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "data", cases.stream().map(
-                        filePath -> "[], [], " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "graph", cases.stream().map(
-                        filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}"
-                ).collect(Collectors.toList())
-        );
+                "query",
+                        cases.stream()
+                                .map(filePath -> "\"RETURN 1\", " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "all", cases.stream().map(filePath -> filePath + ", {}").collect(Collectors.toList()),
+                "data",
+                        cases.stream()
+                                .map(filePath -> "[], [], " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "graph",
+                        cases.stream()
+                                .map(filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}")
+                                .collect(Collectors.toList()));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -406,16 +391,14 @@ public class ExportFullSecurityTest {
         public void testPathTraversal() {
             setFileExport(true);
 
-            QueryExecutionException e = Assert.assertThrows(QueryExecutionException.class,
-                    () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
-            );
+            QueryExecutionException e = Assert.assertThrows(
+                    QueryExecutionException.class, () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {}));
 
             assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
 
             setFileExport(false);
         }
     }
-
 
     /**
      * These tests normalize the path to be within the import directory and step into a subdirectory
@@ -427,8 +410,10 @@ public class ExportFullSecurityTest {
     public static class TestPathTraversAllowedWithinDirectory {
         private final String apocProcedure;
 
-        public TestPathTraversAllowedWithinDirectory(String exportMethod, String exportMethodType, String exportMethodArguments) {
-            this.apocProcedure = "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
+        public TestPathTraversAllowedWithinDirectory(
+                String exportMethod, String exportMethodType, String exportMethodArguments) {
+            this.apocProcedure =
+                    "apoc.export." + exportMethod + "." + exportMethodType + "(" + exportMethodArguments + ")";
         }
 
         private static final String case1 = "'file:///../import/../import//..//tests/test.txt'";
@@ -440,19 +425,19 @@ public class ExportFullSecurityTest {
         private static final List<String> cases = Arrays.asList(case1, case2, case3, case4, case5);
 
         private static final Map<String, List<String>> METHOD_ARGUMENTS = Map.of(
-                "query", cases.stream().map(
-                        filePath -> "\"RETURN 1\", " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "all", cases.stream().map(
-                        filePath -> filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "data", cases.stream().map(
-                        filePath -> "[], [], " + filePath + ", {}"
-                ).collect(Collectors.toList()),
-                "graph", cases.stream().map(
-                        filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}"
-                ).collect(Collectors.toList())
-        );
+                "query",
+                        cases.stream()
+                                .map(filePath -> "\"RETURN 1\", " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "all", cases.stream().map(filePath -> filePath + ", {}").collect(Collectors.toList()),
+                "data",
+                        cases.stream()
+                                .map(filePath -> "[], [], " + filePath + ", {}")
+                                .collect(Collectors.toList()),
+                "graph",
+                        cases.stream()
+                                .map(filePath -> "{nodes: [], relationships: []}, " + filePath + ", {}")
+                                .collect(Collectors.toList()));
 
         @Parameterized.Parameters
         public static Collection<String[]> data() {
@@ -463,9 +448,10 @@ public class ExportFullSecurityTest {
         public void testPathTraversal() {
             setFileExport(true);
 
-            TestUtil.testCall(db, "CALL " + apocProcedure,
-                    (r) -> assertTrue(((String) r.get("file")).contains("tests/test.txt"))
-            );
+            TestUtil.testCall(
+                    db,
+                    "CALL " + apocProcedure,
+                    (r) -> assertTrue(((String) r.get("file")).contains("tests/test.txt")));
 
             File f = new File(subDirectory.getAbsolutePath() + "/test.txt");
             TestCase.assertTrue(f.exists());
@@ -473,10 +459,12 @@ public class ExportFullSecurityTest {
         }
     }
 
-    private static void assertError(Exception e, String errorMessage, Class<? extends Exception> exceptionType, String apocProcedure) {
+    private static void assertError(
+            Exception e, String errorMessage, Class<? extends Exception> exceptionType, String apocProcedure) {
         final Throwable rootCause = ExceptionUtils.getRootCause(e);
-        assertTrue(apocProcedure + " should throw an instance of " + exceptionType.getSimpleName(), exceptionType.isInstance(rootCause));
+        assertTrue(
+                apocProcedure + " should throw an instance of " + exceptionType.getSimpleName(),
+                exceptionType.isInstance(rootCause));
         assertEquals(apocProcedure + " should throw the following message", errorMessage, rootCause.getMessage());
     }
-
 }

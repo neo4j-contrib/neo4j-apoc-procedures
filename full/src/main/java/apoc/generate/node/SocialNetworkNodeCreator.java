@@ -18,11 +18,11 @@
  */
 package apoc.generate.node;
 
+import static apoc.util.Faker.getRandomFullName;
+
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-
-import static apoc.util.Faker.getRandomFullName;
 
 /**
  * A {@link NodeCreator} that assigns every {@link Node} a "Person" {@link Label}, and a randomly generated English

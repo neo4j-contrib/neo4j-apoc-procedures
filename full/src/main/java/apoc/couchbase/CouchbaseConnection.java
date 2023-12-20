@@ -18,6 +18,14 @@
  */
 package apoc.couchbase;
 
+import static apoc.couchbase.CouchbaseManager.PORT_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseManager.URI_CONFIG_KEY;
+import static apoc.couchbase.CouchbaseManager.checkAndGetURI;
+import static apoc.couchbase.CouchbaseManager.getKeyMap;
+import static com.couchbase.client.java.ClusterOptions.clusterOptions;
+import static com.couchbase.client.java.kv.GetOptions.getOptions;
+import static com.couchbase.client.java.query.QueryOptions.queryOptions;
+
 import com.couchbase.client.core.env.PasswordAuthenticator;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.error.DocumentNotFoundException;
@@ -33,8 +41,6 @@ import com.couchbase.client.java.kv.GetResult;
 import com.couchbase.client.java.kv.MutationResult;
 import com.couchbase.client.java.query.QueryOptions;
 import com.couchbase.client.java.query.QueryResult;
-import org.apache.commons.configuration2.Configuration;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
@@ -42,14 +48,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static apoc.couchbase.CouchbaseManager.PORT_CONFIG_KEY;
-import static apoc.couchbase.CouchbaseManager.URI_CONFIG_KEY;
-import static apoc.couchbase.CouchbaseManager.checkAndGetURI;
-import static apoc.couchbase.CouchbaseManager.getKeyMap;
-import static com.couchbase.client.java.ClusterOptions.clusterOptions;
-import static com.couchbase.client.java.kv.GetOptions.getOptions;
-import static com.couchbase.client.java.query.QueryOptions.queryOptions;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * A Couchbase Server connection.
@@ -81,7 +80,8 @@ public class CouchbaseConnection implements AutoCloseable {
      * @param authenticator
      * @param bucketName
      */
-    protected CouchbaseConnection(String hostOrKey, PasswordAuthenticator authenticator, String bucketName, CouchbaseConfig config) {
+    protected CouchbaseConnection(
+            String hostOrKey, PasswordAuthenticator authenticator, String bucketName, CouchbaseConfig config) {
 
         // get Set<SeedNode> by hostOrKey
         Set<SeedNode> seedNodes;
@@ -93,24 +93,22 @@ public class CouchbaseConnection implements AutoCloseable {
             int port = couchbaseConfig.getInt(PORT_CONFIG_KEY, -1);
             url = couchbaseConfig.getString(URI_CONFIG_KEY, null);
             if (url == null) {
-                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
+                throw new RuntimeException(
+                        "Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
             }
 
             // I can type apoc.couchbase.mykey.uri=host1,host2,host3
             List<String> splitUrl = Arrays.asList(url.split(SPLIT_URI_KEY));
 
-            seedNodes = splitUrl.stream().map(singleUri ->
-                    SeedNode.create(singleUri,
-                            Optional.empty(),
-                            port != -1 ? Optional.of(port) : Optional.empty()))
+            seedNodes = splitUrl.stream()
+                    .map(singleUri -> SeedNode.create(
+                            singleUri, Optional.empty(), port != -1 ? Optional.of(port) : Optional.empty()))
                     .collect(Collectors.toSet());
         } else {
             url = singleHostURI.getHost();
             final int port = singleHostURI.getPort();
-            seedNodes = Set.of(SeedNode.create(url,
-                    Optional.empty(),
-                    port != -1 ? Optional.of(port) : Optional.empty()
-            ));
+            seedNodes =
+                    Set.of(SeedNode.create(url, Optional.empty(), port != -1 ? Optional.of(port) : Optional.empty()));
         }
 
         this.env = config.getEnv();
@@ -137,10 +135,12 @@ public class CouchbaseConnection implements AutoCloseable {
     public void close() {
         try {
             this.cluster.disconnect();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             this.env.shutdown();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public Collection getCollection() {
@@ -164,7 +164,9 @@ public class CouchbaseConnection implements AutoCloseable {
 
     public GetResult getBinary(String documentId) {
         try {
-            return collection.get(documentId, getOptions().transcoder(RawBinaryTranscoder.INSTANCE).withExpiry(true));
+            return collection.get(
+                    documentId,
+                    getOptions().transcoder(RawBinaryTranscoder.INSTANCE).withExpiry(true));
         } catch (DocumentNotFoundException e) {
             return null;
         }
@@ -274,7 +276,8 @@ public class CouchbaseConnection implements AutoCloseable {
      */
     public List<JsonObject> executeParameterizedStatement(String statement, List<Object> parameters) {
         JsonArray positionalParams = JsonArray.from(parameters);
-        final QueryResult queryResult = this.cluster.query(statement, queryOptions().parameters(positionalParams));
+        final QueryResult queryResult =
+                this.cluster.query(statement, queryOptions().parameters(positionalParams));
         return queryResult.rowsAsObject();
     }
 
@@ -288,8 +291,8 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return the list of {@link JsonObject}s retrieved by this query
      * @see Cluster#query(String, QueryOptions)
      */
-    public List<JsonObject> executeParameterizedStatement(String statement, List<String> parameterNames,
-                                                          List<Object> parameterValues) {
+    public List<JsonObject> executeParameterizedStatement(
+            String statement, List<String> parameterNames, List<Object> parameterValues) {
         JsonObject namedParams = JsonObject.create();
         for (int param = 0; param < parameterNames.size(); param++) {
             namedParams.put(parameterNames.get(param), parameterValues.get(param));

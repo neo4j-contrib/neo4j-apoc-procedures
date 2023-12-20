@@ -14,12 +14,11 @@ public class StatusCodeMatcher extends BaseMatcher<QueryExecutionException> {
 
     @Override
     public boolean matches(Object item) {
-        return statusCode.equals(((QueryExecutionException)item).getStatusCode());
+        return statusCode.equals(((QueryExecutionException) item).getStatusCode());
     }
 
     @Override
     public void describeTo(Description description) {
         description.appendText("statuscode does not match: ").appendValue(statusCode);
     }
-
 }

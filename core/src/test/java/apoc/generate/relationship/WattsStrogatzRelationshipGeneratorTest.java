@@ -18,10 +18,10 @@
  */
 package apoc.generate.relationship;
 
+import static org.junit.Assert.assertEquals;
+
 import apoc.generate.config.WattsStrogatzConfig;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class WattsStrogatzRelationshipGeneratorTest {
 
@@ -31,9 +31,12 @@ public class WattsStrogatzRelationshipGeneratorTest {
         int numberOfNodes = 10;
         double betaCoefficient = 0.5;
 
-        WattsStrogatzRelationshipGenerator generator = new WattsStrogatzRelationshipGenerator(new WattsStrogatzConfig(numberOfNodes, meanDegree, betaCoefficient));
+        WattsStrogatzRelationshipGenerator generator = new WattsStrogatzRelationshipGenerator(
+                new WattsStrogatzConfig(numberOfNodes, meanDegree, betaCoefficient));
 
-        assertEquals((int) (meanDegree * numberOfNodes * .5), generator.doGenerateEdges().size());
+        assertEquals(
+                (int) (meanDegree * numberOfNodes * .5),
+                generator.doGenerateEdges().size());
     }
 
     @Test
@@ -42,7 +45,10 @@ public class WattsStrogatzRelationshipGeneratorTest {
         int numberOfNodes = 2_000;
         double betaCoefficient = 0.5;
 
-        WattsStrogatzRelationshipGenerator generator = new WattsStrogatzRelationshipGenerator(new WattsStrogatzConfig(numberOfNodes, meanDegree, betaCoefficient));
-        assertEquals((int) (meanDegree * numberOfNodes * .5), generator.doGenerateEdges().size());
+        WattsStrogatzRelationshipGenerator generator = new WattsStrogatzRelationshipGenerator(
+                new WattsStrogatzConfig(numberOfNodes, meanDegree, betaCoefficient));
+        assertEquals(
+                (int) (meanDegree * numberOfNodes * .5),
+                generator.doGenerateEdges().size());
     }
 }

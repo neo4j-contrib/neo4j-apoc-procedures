@@ -18,7 +18,13 @@
  */
 package org.neo4j.cypher.export;
 
+import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
+import static org.neo4j.internal.helpers.collection.Iterators.loop;
+
 import apoc.util.Util;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -26,15 +32,7 @@ import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.graphdb.security.AuthorizationViolationException;
 import org.neo4j.internal.helpers.collection.Iterables;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static apoc.util.Util.INVALID_QUERY_MODE_ERROR;
-import static org.neo4j.internal.helpers.collection.Iterators.loop;
-
-public class CypherResultSubGraph implements SubGraph
-{
+public class CypherResultSubGraph implements SubGraph {
 
     private final SortedMap<Long, Node> nodes = new TreeMap<>();
     private final SortedMap<Long, Relationship> relationships = new TreeMap<>();
@@ -43,23 +41,19 @@ public class CypherResultSubGraph implements SubGraph
     private final Collection<IndexDefinition> indexes = new HashSet<>();
     private final Collection<ConstraintDefinition> constraints = new HashSet<>();
 
-    public void add( Node node )
-    {
+    public void add(Node node) {
         final long id = node.getId();
-        if ( !nodes.containsKey( id ) )
-        {
-            addNode( id, node );
+        if (!nodes.containsKey(id)) {
+            addNode(id, node);
         }
     }
 
-    void addNode( long id, Node data )
-    {
-        nodes.put( id, data );
-        labels.addAll( Iterables.asCollection( data.getLabels() ) );
+    void addNode(long id, Node data) {
+        nodes.put(id, data);
+        labels.addAll(Iterables.asCollection(data.getLabels()));
     }
 
-    public void add( Relationship rel, boolean addNodes )
-    {
+    public void add(Relationship rel, boolean addNodes) {
         final long id = rel.getId();
         if (!relationships.containsKey(id)) {
             addRel(id, rel);
@@ -72,14 +66,11 @@ public class CypherResultSubGraph implements SubGraph
         }
     }
 
-
-
     public static SubGraph from(Transaction tx, Result result, boolean addBetween) {
         return from(tx, result, addBetween, true);
     }
 
-    public static SubGraph from(Transaction tx, Result result, boolean addBetween, boolean addRelNodes)
-    {
+    public static SubGraph from(Transaction tx, Result result, boolean addBetween, boolean addRelNodes) {
         final CypherResultSubGraph graph = new CypherResultSubGraph();
         final List<String> columns = result.columns();
         try {
@@ -92,28 +83,19 @@ public class CypherResultSubGraph implements SubGraph
         } catch (AuthorizationViolationException e) {
             throw new RuntimeException(INVALID_QUERY_MODE_ERROR);
         }
-        for ( IndexDefinition def : tx.schema().getIndexes() )
-        {
-            if ( def.getIndexType() != IndexType.LOOKUP )
-            {
-                if ( def.isNodeIndex() )
-                {
-                    for ( Label label : def.getLabels() )
-                    {
-                        if ( graph.getLabels().contains( label ) )
-                        {
-                            graph.addIndex( def );
+        for (IndexDefinition def : tx.schema().getIndexes()) {
+            if (def.getIndexType() != IndexType.LOOKUP) {
+                if (def.isNodeIndex()) {
+                    for (Label label : def.getLabels()) {
+                        if (graph.getLabels().contains(label)) {
+                            graph.addIndex(def);
                             break;
                         }
                     }
-                }
-                else
-                {
-                    for ( RelationshipType type : def.getRelationshipTypes() )
-                    {
-                        if ( graph.getTypes().contains( type ) )
-                        {
-                            graph.addIndex( def );
+                } else {
+                    for (RelationshipType type : def.getRelationshipTypes()) {
+                        if (graph.getTypes().contains(type)) {
+                            graph.addIndex(def);
                             break;
                         }
                     }
@@ -121,126 +103,103 @@ public class CypherResultSubGraph implements SubGraph
             }
         }
         for (ConstraintDefinition def : tx.schema().getConstraints()) {
-            if (Util.isNodeCategory( def.getConstraintType() ) && graph.getLabels().contains(def.getLabel())) {
+            if (Util.isNodeCategory(def.getConstraintType())
+                    && graph.getLabels().contains(def.getLabel())) {
+                graph.addConstraint(def);
+            } else if (Util.isRelationshipCategory(def.getConstraintType())
+                    && graph.getTypes().contains(def.getRelationshipType())) {
                 graph.addConstraint(def);
             }
-            else if ( Util.isRelationshipCategory( def.getConstraintType() ) &&  graph.getTypes().contains(def.getRelationshipType())) {
-                graph.addConstraint( def );
-            }
         }
-        if ( addBetween )
-        {
+        if (addBetween) {
             graph.addRelationshipsBetweenNodes();
         }
         return graph;
     }
 
-    private void addIndex( IndexDefinition def )
-    {
-        indexes.add( def );
+    private void addIndex(IndexDefinition def) {
+        indexes.add(def);
     }
 
-    private void addConstraint( ConstraintDefinition def )
-    {
-        constraints.add( def );
+    private void addConstraint(ConstraintDefinition def) {
+        constraints.add(def);
     }
 
-    private void addRelationshipsBetweenNodes()
-    {
+    private void addRelationshipsBetweenNodes() {
         Set<Node> newNodes = new HashSet<>();
-        for ( Node node : nodes.values() )
-        {
-            for ( Relationship relationship : node.getRelationships() )
-            {
-                if ( !relationships.containsKey( relationship.getId() ) )
-                {
+        for (Node node : nodes.values()) {
+            for (Relationship relationship : node.getRelationships()) {
+                if (!relationships.containsKey(relationship.getId())) {
                     continue;
                 }
 
-                final Node other = relationship.getOtherNode( node );
-                if ( nodes.containsKey( other.getId() ) || newNodes.contains( other ) )
-                {
+                final Node other = relationship.getOtherNode(node);
+                if (nodes.containsKey(other.getId()) || newNodes.contains(other)) {
                     continue;
                 }
-                newNodes.add( other );
+                newNodes.add(other);
             }
         }
-        for ( Node node : newNodes )
-        {
-            add( node );
+        for (Node node : newNodes) {
+            add(node);
         }
     }
 
-    private void addToGraph( Object value, boolean addRelNodes )
-    {
-        if ( value instanceof Node )
-        {
-            add( (Node) value );
+    private void addToGraph(Object value, boolean addRelNodes) {
+        if (value instanceof Node) {
+            add((Node) value);
         }
-        if ( value instanceof Relationship )
-        {
-            add( (Relationship) value, addRelNodes );
+        if (value instanceof Relationship) {
+            add((Relationship) value, addRelNodes);
         }
-        if ( value instanceof Iterable )
-        {
-            for ( Object inner : (Iterable) value )
-            {
-                addToGraph( inner, addRelNodes );
+        if (value instanceof Iterable) {
+            for (Object inner : (Iterable) value) {
+                addToGraph(inner, addRelNodes);
             }
         }
     }
 
     @Override
-    public Iterable<Node> getNodes()
-    {
+    public Iterable<Node> getNodes() {
         return nodes.values();
     }
 
     @Override
-    public Iterable<Relationship> getRelationships()
-    {
+    public Iterable<Relationship> getRelationships() {
         return relationships.values();
     }
 
-    public Collection<Label> getLabels()
-    {
+    public Collection<Label> getLabels() {
         return labels;
     }
 
-    public Collection<RelationshipType> getTypes()
-    {
+    public Collection<RelationshipType> getTypes() {
         return types;
     }
 
-    void addRel( Long id, Relationship rel )
-    {
-        relationships.put( id, rel );
+    void addRel(Long id, Relationship rel) {
+        relationships.put(id, rel);
         types.add(rel.getType());
     }
 
     @Override
-    public boolean contains( Relationship relationship )
-    {
-        return relationships.containsKey( relationship.getId() );
+    public boolean contains(Relationship relationship) {
+        return relationships.containsKey(relationship.getId());
     }
 
     @Override
-    public Iterable<IndexDefinition> getIndexes()
-    {
+    public Iterable<IndexDefinition> getIndexes() {
         return indexes;
     }
 
     @Override
-    public Iterable<ConstraintDefinition> getConstraints()
-    {
+    public Iterable<ConstraintDefinition> getConstraints() {
         return constraints;
     }
 
     @Override
     public Iterable<ConstraintDefinition> getConstraints(Label label) {
-        return constraints.stream()
-                .filter(c -> c.getLabel().equals(label))
-                .collect(Collectors.toSet());
+        return constraints.stream().filter(c -> c.getLabel().equals(label)).collect(Collectors.toSet());
     }
 
     @Override
@@ -253,7 +212,8 @@ public class CypherResultSubGraph implements SubGraph
     @Override
     public Iterable<IndexDefinition> getIndexes(Label label) {
         return indexes.stream()
-                .filter(idx -> StreamSupport.stream(idx.getLabels().spliterator(), false).anyMatch(lb -> lb.equals(label)))
+                .filter(idx -> StreamSupport.stream(idx.getLabels().spliterator(), false)
+                        .anyMatch(lb -> lb.equals(label)))
                 .collect(Collectors.toSet());
     }
 
@@ -289,15 +249,11 @@ public class CypherResultSubGraph implements SubGraph
 
     @Override
     public long countsForNode(Label label) {
-        return nodes.values().stream()
-                .filter(n -> n.hasLabel(label))
-                .count();
+        return nodes.values().stream().filter(n -> n.hasLabel(label)).count();
     }
 
     @Override
     public Iterator<Node> findNodes(Label label) {
-        return nodes.values().stream()
-                .filter(n -> n.hasLabel(label))
-                .iterator();
+        return nodes.values().stream().filter(n -> n.hasLabel(label)).iterator();
     }
 }

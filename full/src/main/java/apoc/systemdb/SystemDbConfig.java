@@ -19,7 +19,6 @@
 package apoc.systemdb;
 
 import apoc.systemdb.metadata.ExportMetadata;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +36,8 @@ public class SystemDbConfig {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        List<String> DEFAULT_FEATURES = Stream.of(ExportMetadata.Type.values())
-                .map(Enum::name)
-                .collect(Collectors.toList());
+        List<String> DEFAULT_FEATURES =
+                Stream.of(ExportMetadata.Type.values()).map(Enum::name).collect(Collectors.toList());
         this.features = (List<String>) config.getOrDefault(FEATURES_KEY, DEFAULT_FEATURES);
         this.fileName = (String) config.getOrDefault(FILENAME_KEY, "metadata");
     }

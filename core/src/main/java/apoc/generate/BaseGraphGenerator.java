@@ -19,7 +19,6 @@
 package apoc.generate;
 
 import apoc.generate.config.GeneratorConfiguration;
-
 import java.util.List;
 
 /**

@@ -18,6 +18,9 @@
  */
 package apoc.generate;
 
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.internal.helpers.collection.Iterables.count;
+
 import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.config.DistributionBasedConfig;
 import apoc.generate.config.GeneratorConfiguration;
@@ -28,6 +31,7 @@ import apoc.generate.relationship.RelationshipCreator;
 import apoc.generate.relationship.SimpleGraphRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import apoc.util.TestUtil;
+import java.util.Arrays;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,11 +40,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.neo4j.internal.helpers.collection.Iterables.count;
 
 /**
  * Smoke test for {@link Neo4jGraphGenerator}.
@@ -67,7 +66,8 @@ public class Neo4jGraphGeneratorTest {
         DistributionBasedConfig distribution = new DistributionBasedConfig(Arrays.asList(2, 2, 2, 2));
         SimpleGraphRelationshipGenerator relationshipGenerator = new SimpleGraphRelationshipGenerator(distribution);
 
-        GeneratorConfiguration config = new BasicGeneratorConfig(relationshipGenerator, nodeCreator, relationshipCreator);
+        GeneratorConfiguration config =
+                new BasicGeneratorConfig(relationshipGenerator, nodeCreator, relationshipCreator);
 
         new Neo4jGraphGenerator(db).generateGraph(config);
 
@@ -90,7 +90,8 @@ public class Neo4jGraphGeneratorTest {
         DistributionBasedConfig distribution = new DistributionBasedConfig(Arrays.asList(3, 2, 2, 2));
         SimpleGraphRelationshipGenerator relationshipGenerator = new SimpleGraphRelationshipGenerator(distribution);
 
-        GeneratorConfiguration config = new BasicGeneratorConfig(relationshipGenerator, nodeCreator, relationshipCreator);
+        GeneratorConfiguration config =
+                new BasicGeneratorConfig(relationshipGenerator, nodeCreator, relationshipCreator);
 
         new Neo4jGraphGenerator(db).generateGraph(config);
     }

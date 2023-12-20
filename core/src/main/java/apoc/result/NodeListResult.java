@@ -18,9 +18,8 @@
  */
 package apoc.result;
 
-import org.neo4j.graphdb.Node;
-
 import java.util.List;
+import org.neo4j.graphdb.Node;
 
 /**
  * @author mh

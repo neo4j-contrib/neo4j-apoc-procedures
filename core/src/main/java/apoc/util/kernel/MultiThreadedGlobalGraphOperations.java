@@ -18,6 +18,13 @@
  */
 package apoc.util.kernel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.CursorFactory;
@@ -31,27 +38,35 @@ import org.neo4j.kernel.impl.store.CommonAbstractStore;
 import org.neo4j.kernel.impl.store.NeoStores;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-
 public class MultiThreadedGlobalGraphOperations {
 
-    public enum GlobalOperationsTypes { NODES, RELATIONSHIPS }
+    public enum GlobalOperationsTypes {
+        NODES,
+        RELATIONSHIPS
+    }
 
-    public static BatchJobResult forAllNodes(GraphDatabaseAPI db, ExecutorService executorService, int batchSize, BiConsumer<KernelTransaction, NodeCursor> consumer) {
+    public static BatchJobResult forAllNodes(
+            GraphDatabaseAPI db,
+            ExecutorService executorService,
+            int batchSize,
+            BiConsumer<KernelTransaction, NodeCursor> consumer) {
         return forAll(db, executorService, batchSize, GlobalOperationsTypes.NODES, consumer);
     }
 
-    public static BatchJobResult forAllRelationships(GraphDatabaseAPI db, ExecutorService executorService, int batchSize, BiConsumer<KernelTransaction, RelationshipScanCursor> consumer) {
+    public static BatchJobResult forAllRelationships(
+            GraphDatabaseAPI db,
+            ExecutorService executorService,
+            int batchSize,
+            BiConsumer<KernelTransaction, RelationshipScanCursor> consumer) {
         return forAll(db, executorService, batchSize, GlobalOperationsTypes.RELATIONSHIPS, consumer);
     }
 
-    private static BatchJobResult forAll(GraphDatabaseAPI db, ExecutorService executorService, int batchSize, GlobalOperationsTypes type, BiConsumer consumer) {
+    private static BatchJobResult forAll(
+            GraphDatabaseAPI db,
+            ExecutorService executorService,
+            int batchSize,
+            GlobalOperationsTypes type,
+            BiConsumer consumer) {
         try {
             DependencyResolver dependencyResolver = db.getDependencyResolver();
             long maxId = getHighestIdInUseForStore(dependencyResolver, type);
@@ -74,7 +89,8 @@ public class MultiThreadedGlobalGraphOperations {
     }
 
     public static long getHighestIdInUseForStore(DependencyResolver dependencyResolver, GlobalOperationsTypes type) {
-        NeoStores neoStores = dependencyResolver.resolveDependency(RecordStorageEngine.class).testAccessNeoStores();
+        NeoStores neoStores =
+                dependencyResolver.resolveDependency(RecordStorageEngine.class).testAccessNeoStores();
         CommonAbstractStore store;
         switch (type) {
             case NODES:
@@ -91,7 +107,7 @@ public class MultiThreadedGlobalGraphOperations {
 
     public static class BatchJobResult {
         final AtomicLong succeeded = new AtomicLong(0);
-        final AtomicLong missing = new AtomicLong( 0);
+        final AtomicLong missing = new AtomicLong(0);
         final AtomicLong failures = new AtomicLong(0);
         private long started;
         private long duration;
@@ -150,7 +166,13 @@ public class MultiThreadedGlobalGraphOperations {
         private final BiConsumer consumer;
         private final BatchJobResult result;
 
-        public BatchJob(GlobalOperationsTypes type, long batchStart, int batchSize, GraphDatabaseAPI db, BiConsumer consumer, BatchJobResult result) {
+        public BatchJob(
+                GlobalOperationsTypes type,
+                long batchStart,
+                int batchSize,
+                GraphDatabaseAPI db,
+                BiConsumer consumer,
+                BatchJobResult result) {
             this.type = type;
             this.batchStart = batchStart;
             this.batchSize = batchSize;
@@ -162,7 +184,7 @@ public class MultiThreadedGlobalGraphOperations {
         @Override
         public Void call() {
             try (Transaction tx = db.beginTx()) {
-                KernelTransaction ktx = ((InternalTransaction)tx).kernelTransaction();
+                KernelTransaction ktx = ((InternalTransaction) tx).kernelTransaction();
                 CursorFactory cursors = ktx.cursors();
                 Read read = ktx.dataRead();
 
@@ -175,7 +197,6 @@ public class MultiThreadedGlobalGraphOperations {
                         break;
                     default:
                         throw new IllegalArgumentException("dunno how to deal with type " + type);
-
                 }
                 tx.commit();
                 return null;
@@ -191,7 +212,8 @@ public class MultiThreadedGlobalGraphOperations {
             }
         }
 
-        private void iterateForRelationships(KernelTransaction ktx, Read read, CursorFactory cursors, BatchJobResult result) {
+        private void iterateForRelationships(
+                KernelTransaction ktx, Read read, CursorFactory cursors, BatchJobResult result) {
             try (RelationshipScanCursor cursor = cursors.allocateRelationshipScanCursor(ktx.cursorContext())) {
                 for (long id = batchStart; id < batchStart + batchSize; id++) {
                     read.singleRelationship(id, cursor);
@@ -200,7 +222,12 @@ public class MultiThreadedGlobalGraphOperations {
             }
         }
 
-        private void processAndReport(KernelTransaction ktx, Supplier<Boolean> nextMethod, BiConsumer consumer, Object parameter, BatchJobResult result) {
+        private void processAndReport(
+                KernelTransaction ktx,
+                Supplier<Boolean> nextMethod,
+                BiConsumer consumer,
+                Object parameter,
+                BatchJobResult result) {
             if (nextMethod.get()) {
                 try {
                     consumer.accept(ktx, parameter);
@@ -212,6 +239,5 @@ public class MultiThreadedGlobalGraphOperations {
                 result.incrementMissing();
             }
         }
-
     }
 }

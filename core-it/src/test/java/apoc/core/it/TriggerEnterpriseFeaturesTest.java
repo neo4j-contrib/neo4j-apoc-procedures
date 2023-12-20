@@ -17,26 +17,6 @@
  * limitations under the License.
  */
 package apoc.core.it;
-import apoc.SystemLabels;
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_CONFIG_INITIALIZER;
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
@@ -58,6 +38,26 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 import static org.neo4j.driver.SessionConfig.forDatabase;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+import apoc.SystemLabels;
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+
 public class TriggerEnterpriseFeaturesTest {
     private static final String FOO_DB = "foo";
     private static final String INIT_DB = "initdb";
@@ -70,8 +70,7 @@ public class TriggerEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        final String cypherInitializer = String.format("%s.%s.0",
-                APOC_CONFIG_INITIALIZER, SYSTEM_DATABASE_NAME);
+        final String cypherInitializer = String.format("%s.%s.0", APOC_CONFIG_INITIALIZER, SYSTEM_DATABASE_NAME);
         final String createInitDb = String.format("CREATE DATABASE %s IF NOT EXISTS", INIT_DB);
 
         // We build the project, the artifact will be placed into ./build/libs
@@ -87,8 +86,8 @@ public class TriggerEnterpriseFeaturesTest {
         try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             sysSession.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", FOO_DB)));
 
-            sysSession.run(String.format("CREATE USER %s SET PASSWORD '%s' SET PASSWORD CHANGE NOT REQUIRED",
-                    NO_ADMIN_USER, NO_ADMIN_PWD));
+            sysSession.run(String.format(
+                    "CREATE USER %s SET PASSWORD '%s' SET PASSWORD CHANGE NOT REQUIRED", NO_ADMIN_USER, NO_ADMIN_PWD));
         }
     }
 
@@ -103,12 +102,9 @@ public class TriggerEnterpriseFeaturesTest {
         // drop all triggers
         try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             Stream.of(DEFAULT_DATABASE_NAME, FOO_DB)
-                    .forEach(dbName -> sysSession.run( "call apoc.trigger.dropAll($dbName)",
-                            Map.of("dbName", dbName) )
-                    );
+                    .forEach(dbName -> sysSession.run("call apoc.trigger.dropAll($dbName)", Map.of("dbName", dbName)));
         }
     }
-
 
     @Test
     public void testTriggerShowInCorrectDatabase() {
@@ -117,26 +113,30 @@ public class TriggerEnterpriseFeaturesTest {
 
         try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             // install and show in default db
-            testCall(sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
+            testCall(
+                    sysSession,
+                    "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
                     Map.of("dbName", DEFAULT_DATABASE_NAME, "name", defaultTriggerName),
-                    r -> assertEquals(defaultTriggerName, r.get("name"))
-            );
+                    r -> assertEquals(defaultTriggerName, r.get("name")));
 
-            testCall(sysSession, "CALL apoc.trigger.show($dbName)",
+            testCall(
+                    sysSession,
+                    "CALL apoc.trigger.show($dbName)",
                     Map.of("dbName", DEFAULT_DATABASE_NAME),
-                    r -> assertEquals(defaultTriggerName, r.get("name"))
-            );
+                    r -> assertEquals(defaultTriggerName, r.get("name")));
 
             // install and show in foo db
-            testCall(sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
+            testCall(
+                    sysSession,
+                    "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
                     Map.of("dbName", FOO_DB, "name", fooTriggerName),
-                    r -> assertEquals(fooTriggerName, r.get("name"))
-            );
+                    r -> assertEquals(fooTriggerName, r.get("name")));
 
-            testCall(sysSession, "CALL apoc.trigger.show($dbName)",
+            testCall(
+                    sysSession,
+                    "CALL apoc.trigger.show($dbName)",
                     Map.of("dbName", FOO_DB),
-                    r -> assertEquals(fooTriggerName, r.get("name"))
-            );
+                    r -> assertEquals(fooTriggerName, r.get("name")));
         }
     }
 
@@ -145,39 +145,43 @@ public class TriggerEnterpriseFeaturesTest {
         final String fooTriggerName = UUID.randomUUID().toString();
 
         try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
-            testCall(sysSession, "call apoc.trigger.install($dbName, $name, 'UNWIND $createdNodes AS n SET n.created = true', {})",
+            testCall(
+                    sysSession,
+                    "call apoc.trigger.install($dbName, $name, 'UNWIND $createdNodes AS n SET n.created = true', {})",
                     Map.of("dbName", FOO_DB, "name", fooTriggerName),
                     r -> assertEquals(fooTriggerName, r.get("name")));
         }
 
         final String queryTriggerList = "CALL apoc.trigger.list() YIELD name WHERE name = $name RETURN name";
         try (Session fooDbSession = neo4jContainer.getDriver().session(forDatabase(FOO_DB))) {
-            assertEventually(() -> {
-                final Result res = fooDbSession.run(queryTriggerList,
-                        Map.of("name", fooTriggerName));
-                assertTrue("Should have an element", res.hasNext());
-                final Record next = res.next();
-                assertEquals(fooTriggerName, next.get("name").asString());
-                return !res.hasNext();
-            }, value -> value, TIMEOUT, TimeUnit.SECONDS);
+            assertEventually(
+                    () -> {
+                        final Result res = fooDbSession.run(queryTriggerList, Map.of("name", fooTriggerName));
+                        assertTrue("Should have an element", res.hasNext());
+                        final Record next = res.next();
+                        assertEquals(fooTriggerName, next.get("name").asString());
+                        return !res.hasNext();
+                    },
+                    value -> value,
+                    TIMEOUT,
+                    TimeUnit.SECONDS);
 
             fooDbSession.run("CREATE (:Something)");
 
-            testCall(fooDbSession, "MATCH (n:Something) RETURN n.created AS created",
+            testCall(
+                    fooDbSession,
+                    "MATCH (n:Something) RETURN n.created AS created",
                     r -> assertEquals(true, r.get("created")));
         }
 
         // check that the trigger is correctly installed in 'foo' db only
         try (Session defaultDbSession = neo4jContainer.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
-            testResult(defaultDbSession, queryTriggerList,
-                    Map.of("name", fooTriggerName),
-                    r -> assertFalse(r.hasNext())
-            );
+            testResult(
+                    defaultDbSession, queryTriggerList, Map.of("name", fooTriggerName), r -> assertFalse(r.hasNext()));
 
             defaultDbSession.run("CREATE (:Something)");
 
-            testCall(defaultDbSession, "MATCH (n:Something) RETURN n.created",
-                    r -> assertNull(r.get("created")));
+            testCall(defaultDbSession, "MATCH (n:Something) RETURN n.created", r -> assertNull(r.get("created")));
         }
     }
 
@@ -205,32 +209,36 @@ public class TriggerEnterpriseFeaturesTest {
         final String defaultTriggerName = UUID.randomUUID().toString();
 
         // install and show a trigger in the database and check existence
-        testCall(sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
+        testCall(
+                sysSession,
+                "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
                 Map.of("dbName", dbToDelete, "name", defaultTriggerName),
-                r -> assertEquals(defaultTriggerName, r.get("name"))
-        );
+                r -> assertEquals(defaultTriggerName, r.get("name")));
 
-        testCall(sysSession, "CALL apoc.trigger.show($dbName)",
+        testCall(
+                sysSession,
+                "CALL apoc.trigger.show($dbName)",
                 Map.of("dbName", dbToDelete),
-                r -> assertEquals(defaultTriggerName, r.get("name"))
-        );
+                r -> assertEquals(defaultTriggerName, r.get("name")));
 
         // drop database
         sysSession.writeTransaction(tx -> tx.run(String.format("DROP DATABASE %s WAIT;", dbToDelete)));
 
         // check that the trigger has been removed
-        testCallEmpty(sysSession, "CALL apoc.trigger.show($dbName)",
-                Map.of("dbName", dbToDelete)
-        );
+        testCallEmpty(sysSession, "CALL apoc.trigger.show($dbName)", Map.of("dbName", dbToDelete));
     }
 
     @Test
     public void testTriggersAllowedOnlyWithAdmin() {
 
-        try (Driver userDriver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic(NO_ADMIN_USER, NO_ADMIN_PWD))) {
+        try (Driver userDriver =
+                GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.basic(NO_ADMIN_USER, NO_ADMIN_PWD))) {
 
             try (Session sysUserSession = userDriver.session(forDatabase(SYSTEM_DATABASE_NAME))) {
-                failsWithNonAdminUser(sysUserSession, "apoc.trigger.install", "call apoc.trigger.install('neo4j', 'qwe', 'return 1', {})");
+                failsWithNonAdminUser(
+                        sysUserSession,
+                        "apoc.trigger.install",
+                        "call apoc.trigger.install('neo4j', 'qwe', 'return 1', {})");
                 failsWithNonAdminUser(sysUserSession, "apoc.trigger.drop", "call apoc.trigger.drop('neo4j', 'qwe')");
                 failsWithNonAdminUser(sysUserSession, "apoc.trigger.dropAll", "call apoc.trigger.dropAll('neo4j')");
                 failsWithNonAdminUser(sysUserSession, "apoc.trigger.stop", "call apoc.trigger.stop('neo4j', 'qwe')");
@@ -239,7 +247,8 @@ public class TriggerEnterpriseFeaturesTest {
             }
 
             try (Session neo4jUserSession = userDriver.session(forDatabase(DEFAULT_DATABASE_NAME))) {
-                failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.add", "call apoc.trigger.add('abc', 'return 1', {})");
+                failsWithNonAdminUser(
+                        neo4jUserSession, "apoc.trigger.add", "call apoc.trigger.add('abc', 'return 1', {})");
                 failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.remove", "call apoc.trigger.remove('abc')");
                 failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.removeAll", "call apoc.trigger.removeAll");
                 failsWithNonAdminUser(neo4jUserSession, "apoc.trigger.pause", "call apoc.trigger.pause('abc')");
@@ -255,40 +264,43 @@ public class TriggerEnterpriseFeaturesTest {
 
         // create a node in the Neo4j db that looks like a trigger
         try (Session defaultSession = neo4jContainer.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
-            defaultSession.writeTransaction(tx -> tx.run(String.format("CREATE (:%s {%s:'%s'})", SystemLabels.ApocTrigger, database.name(), dbToDelete)));
+            defaultSession.writeTransaction(tx -> tx.run(
+                    String.format("CREATE (:%s {%s:'%s'})", SystemLabels.ApocTrigger, database.name(), dbToDelete)));
         }
 
-        try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME)))
-        {
+        try (Session sysSession = neo4jContainer.getDriver().session(forDatabase(SYSTEM_DATABASE_NAME))) {
             // create database with name `todelete`
-            sysSession.writeTransaction( tx -> tx.run( String.format( "CREATE DATABASE %s WAIT;", dbToDelete ) ) );
+            sysSession.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", dbToDelete)));
 
             // install a trigger for the database
             final String defaultTriggerName = UUID.randomUUID().toString();
-            testCall( sysSession, "CALL apoc.trigger.install($dbName, $name, 'return 1', {})", Map.of( "dbName", dbToDelete, "name", defaultTriggerName ),
-                    r -> assertEquals( defaultTriggerName, r.get( "name" ) ) );
+            testCall(
+                    sysSession,
+                    "CALL apoc.trigger.install($dbName, $name, 'return 1', {})",
+                    Map.of("dbName", dbToDelete, "name", defaultTriggerName),
+                    r -> assertEquals(defaultTriggerName, r.get("name")));
 
             // drop database
-            sysSession.writeTransaction( tx -> tx.run( String.format( "DROP DATABASE %s WAIT;", dbToDelete ) ) );
+            sysSession.writeTransaction(tx -> tx.run(String.format("DROP DATABASE %s WAIT;", dbToDelete)));
         }
 
         // check that the node in Neo4j database is still there
         try (Session defaultSession = neo4jContainer.getDriver().session(forDatabase(DEFAULT_DATABASE_NAME))) {
-            testCall(defaultSession, String.format("MATCH (n:%s) RETURN n.%s AS result", SystemLabels.ApocTrigger, database.name()),
+            testCall(
+                    defaultSession,
+                    String.format("MATCH (n:%s) RETURN n.%s AS result", SystemLabels.ApocTrigger, database.name()),
                     Map.of(),
-                    r -> assertEquals(dbToDelete, r.get("result"))
-            );
+                    r -> assertEquals(dbToDelete, r.get("result")));
         }
     }
 
     private void failsWithNonAdminUser(Session session, String procName, String query) {
         try {
-            testCall(session, query,
-                    row -> fail("Should fail because of non admin user") );
+            testCall(session, query, row -> fail("Should fail because of non admin user"));
         } catch (Exception e) {
             String actual = e.getMessage();
-            final String expected = String.format("Executing admin procedure '%s' permission has not been granted for user 'nonadmin'",
-                    procName);
+            final String expected = String.format(
+                    "Executing admin procedure '%s' permission has not been granted for user 'nonadmin'", procName);
             assertTrue("Actual error message is: " + actual, actual.contains(expected));
         }
     }
