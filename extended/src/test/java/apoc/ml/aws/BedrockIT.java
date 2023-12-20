@@ -1,4 +1,4 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
@@ -17,14 +17,14 @@ import java.util.Map;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
-import static apoc.ml.bedrock.BedrockConfig.KEY_ID;
-import static apoc.ml.bedrock.BedrockConfig.METHOD_KEY;
-import static apoc.ml.bedrock.BedrockConfig.SECRET_KEY;
-import static apoc.ml.bedrock.BedrockGetModelsConfig.*;
-import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
-import static apoc.ml.bedrock.BedrockInvokeConfig.OPEN_AI_COMPATIBLE;
-import static apoc.ml.bedrock.BedrockTestUtil.*;
-import static apoc.ml.bedrock.BedrockUtil.*;
+import static apoc.ml.aws.AWSConfig.KEY_ID;
+import static apoc.ml.aws.AWSConfig.METHOD_KEY;
+import static apoc.ml.aws.AWSConfig.SECRET_KEY;
+import static apoc.ml.aws.BedrockGetModelsConfig.*;
+import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
+import static apoc.ml.aws.BedrockInvokeConfig.OPEN_AI_COMPATIBLE;
+import static apoc.ml.aws.BedrockTestUtil.*;
+import static apoc.ml.aws.BedrockUtil.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
