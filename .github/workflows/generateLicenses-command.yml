@@ -13,7 +13,7 @@ jobs:
         uses: ./.github/actions/gradle-command-on-pr
         with:
           gradle-command: generateLicenses
-          TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
+          TEAMCITY_FOUR_FOUR_URL: ${{ secrets.TEAMCITY_FOUR_FOUR_URL }}
           TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
           TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
           SERVICE_ACCOUNT_PAT: ${{ secrets.SERVICE_ACCOUNT_PAT }}
