@@ -4,6 +4,11 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.temporal.TemporalAccessor;
 import java.util.Map;
@@ -42,5 +47,19 @@ public class ExtendedUtil
     public static String toCypherMap( Map<String, Object> map) {
         final StringBuilder builder = formatProperties(map);
         return "{" + formatToString(builder) + "}";
+    }
+
+    public static boolean isLocalAddress(String url) {
+        try {
+            String host = URI.create(url).getHost();
+                    
+            InetAddress address = InetAddress.getByName(host);
+            return address.isAnyLocalAddress()
+                   || address.isLoopbackAddress()
+                   || NetworkInterface.getByInetAddress(address) != null;
+        } catch (UnknownHostException | SocketException e) {
+            // ignored
+        }
+        return false;
     }
 }
