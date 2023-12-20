@@ -22,9 +22,9 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 
 /**
-* @author mh
-* @since 16.01.14
-*/
+ * @author mh
+ * @since 16.01.14
+ */
 public class BatchTransaction implements AutoCloseable {
     private final GraphDatabaseService gdb;
     private final int batchSize;
@@ -41,7 +41,8 @@ public class BatchTransaction implements AutoCloseable {
     }
 
     public void increment() {
-        count++;batchCount++;
+        count++;
+        batchCount++;
         if (batchCount >= batchSize) {
             doCommit(true);
         }
@@ -62,11 +63,11 @@ public class BatchTransaction implements AutoCloseable {
     public void rollback() {
         tx.rollback();
     }
-    
+
     private void doCommit(boolean log) {
         tx.commit();
         tx.close();
-        if (log && reporter!=null) reporter.progress("commit after " + count + " row(s) ");
+        if (log && reporter != null) reporter.progress("commit after " + count + " row(s) ");
         tx = beginTx();
         batchCount = 0;
     }
@@ -77,9 +78,9 @@ public class BatchTransaction implements AutoCloseable {
 
     @Override
     public void close() {
-        if (tx!=null) {
+        if (tx != null) {
             tx.close();
-            if (reporter!=null) reporter.progress("finish after " + count + " row(s) ");
+            if (reporter != null) reporter.progress("finish after " + count + " row(s) ");
         }
     }
 

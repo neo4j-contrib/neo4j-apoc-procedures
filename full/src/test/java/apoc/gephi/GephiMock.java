@@ -18,20 +18,19 @@
  */
 package apoc.gephi;
 
-import org.mockserver.client.MockServerClient;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.RegexBody;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static org.mockserver.model.Header.header;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.Parameter.param;
 import static org.mockserver.model.RegexBody.regex;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.mockserver.client.MockServerClient;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.RegexBody;
 
 /**
  * Mocks the API of a Gephi Server with the GraphStreaming plugin added. This could not be mocked in Docker directly,
@@ -64,10 +63,8 @@ public class GephiMock {
                         .withPath("/" + workspace)
                         .withQueryStringParameter(param("operation", "updateGraph"))
                         .withHeader(header("Content-Type", "application/json; charset=utf-8"))
-                        .withBody(bodyMatcher(entities))
-                ).respond(response()
-                        .withStatusCode(201)
-                );
+                        .withBody(bodyMatcher(entities)))
+                .respond(response().withStatusCode(201));
     }
 
     /**
@@ -77,10 +74,7 @@ public class GephiMock {
      * - the JSON that we send to Gephi contains random values which change from run to run (String doesn't work)
      */
     private RegexBody bodyMatcher(GephiEntity... entities) {
-        return regex(
-                Arrays.stream(entities)
-                        .map(GephiEntity::toRegexPattern)
-                        .collect(Collectors.joining("\r\n")));
+        return regex(Arrays.stream(entities).map(GephiEntity::toRegexPattern).collect(Collectors.joining("\r\n")));
     }
 
     public interface GephiEntity {
@@ -105,7 +99,14 @@ public class GephiMock {
         public String toRegexPattern() {
             return String.format(
                     "\\{\"an\":\\{\"%d\":\\{\"label\":\"%s\",\"TYPE\":\"%s\",\"size\":10,\"x\":%s,\"y\":%s,\"r\":%s,\"g\":%s,\"b\":%s\\}\\}\\}",
-                    id, label, label, numberPattern(), numberPattern(), numberPattern(), numberPattern(), numberPattern());
+                    id,
+                    label,
+                    label,
+                    numberPattern(),
+                    numberPattern(),
+                    numberPattern(),
+                    numberPattern(),
+                    numberPattern());
         }
 
         public static Node node(int id, String label) {
@@ -143,10 +144,20 @@ public class GephiMock {
         public String toRegexPattern() {
             return String.format(
                     "\\{\"ae\":\\{\"%d\":\\{\"label\":\"%s\",\"TYPE\":\"%s\",\"source\":\"%d\",\"target\":\"%d\",\"directed\":true,\"weight\":%s,\"r\":%s,\"g\":%s,\"b\":%s%s\\}\\}\\}",
-                    id, label, label, source, target, weight, numberPattern(), numberPattern(), numberPattern(), propertiesPattern());
+                    id,
+                    label,
+                    label,
+                    source,
+                    target,
+                    weight,
+                    numberPattern(),
+                    numberPattern(),
+                    numberPattern(),
+                    propertiesPattern());
         }
 
-        public static Relationship relationship(int id, String label, int source, int target, String weight, Set<String> properties) {
+        public static Relationship relationship(
+                int id, String label, int source, int target, String weight, Set<String> properties) {
             return new Relationship(id, label, source, target, weight, properties);
         }
 

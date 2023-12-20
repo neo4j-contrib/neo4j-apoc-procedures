@@ -18,6 +18,11 @@
  */
 package apoc.refactor;
 
+import static apoc.refactor.util.PropertiesManager.mergeProperties;
+import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
+import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.util.Util.withTransactionAndRebind;
+
 import apoc.Pools;
 import apoc.algo.Cover;
 import apoc.refactor.util.PropertiesManager;
@@ -26,13 +31,6 @@ import apoc.result.GraphResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.apache.commons.collections4.IterableUtils;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.schema.ConstraintType;
-import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
-
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -40,11 +38,12 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static apoc.refactor.util.PropertiesManager.mergeProperties;
-import static apoc.refactor.util.RefactorConfig.RelationshipSelectionStrategy.MERGE;
-import static apoc.refactor.util.RefactorUtil.*;
-import static apoc.util.Util.withTransactionAndRebind;
+import org.apache.commons.collections4.IterableUtils;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintType;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 public class GraphRefactoring {
     @Context
@@ -62,7 +61,10 @@ public class GraphRefactoring {
     @Context
     public TerminationGuard terminationGuard;
 
-    private Stream<NodeRefactorResult> doCloneNodes(@Name("nodes") List<Node> nodes, @Name("withRelationships") boolean withRelationships, List<String> skipProperties) {
+    private Stream<NodeRefactorResult> doCloneNodes(
+            @Name("nodes") List<Node> nodes,
+            @Name("withRelationships") boolean withRelationships,
+            List<String> skipProperties) {
         if (nodes == null) return Stream.empty();
         return nodes.stream().map(node -> Util.rebind(tx, node)).map(node -> {
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
@@ -90,7 +92,11 @@ public class GraphRefactoring {
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships")
-    public Stream<NodeRefactorResult> extractNode(@Name("relationships") Object rels, @Name("labels") List<String> labels, @Name("outType") String outType, @Name("inType") String inType) {
+    public Stream<NodeRefactorResult> extractNode(
+            @Name("relationships") Object rels,
+            @Name("labels") List<String> labels,
+            @Name("outType") String outType,
+            @Name("inType") String inType) {
         return Util.relsStream(tx, rels).map((rel) -> {
             NodeRefactorResult result = new NodeRefactorResult(rel.getId());
             try {
@@ -109,7 +115,8 @@ public class GraphRefactoring {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship")
+    @Description(
+            "apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship")
     public Stream<RelationshipRefactorResult> collapseNode(@Name("nodes") Object nodes, @Name("type") String type) {
         return Util.nodeStream(tx, nodes).map((node) -> {
             RelationshipRefactorResult result = new RelationshipRefactorResult(node.getId());
@@ -119,7 +126,8 @@ public class GraphRefactoring {
                 if (node.getDegree(Direction.OUTGOING) == 1 && node.getDegree(Direction.INCOMING) == 1) {
                     Relationship outRel = outRels.iterator().next();
                     Relationship inRel = inRels.iterator().next();
-                    Relationship newRel = inRel.getStartNode().createRelationshipTo(outRel.getEndNode(), RelationshipType.withName(type));
+                    Relationship newRel = inRel.getStartNode()
+                            .createRelationshipTo(outRel.getEndNode(), RelationshipType.withName(type));
                     newRel = copyProperties(node, copyProperties(inRel, copyProperties(outRel, newRel)));
 
                     for (Relationship r : inRels) r.delete();
@@ -128,7 +136,9 @@ public class GraphRefactoring {
 
                     return result.withOther(newRel);
                 } else {
-                    return result.withError(String.format("Node %d has more that 1 outgoing %d or incoming %d relationships", node.getId(), node.getDegree(Direction.OUTGOING), node.getDegree(Direction.INCOMING)));
+                    return result.withError(String.format(
+                            "Node %d has more that 1 outgoing %d or incoming %d relationships",
+                            node.getId(), node.getDegree(Direction.OUTGOING), node.getDegree(Direction.INCOMING)));
                 }
             } catch (Exception e) {
                 return result.withError(e);
@@ -141,9 +151,10 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties")
-    public Stream<NodeRefactorResult> cloneNodes(@Name("nodes") List<Node> nodes,
-                                                 @Name(value = "withRelationships", defaultValue = "false") boolean withRelationships,
-                                                 @Name(value = "skipProperties", defaultValue = "[]") List<String> skipProperties) {
+    public Stream<NodeRefactorResult> cloneNodes(
+            @Name("nodes") List<Node> nodes,
+            @Name(value = "withRelationships", defaultValue = "false") boolean withRelationships,
+            @Name(value = "skipProperties", defaultValue = "[]") List<String> skipProperties) {
         return doCloneNodes(nodes, withRelationships, skipProperties);
     }
 
@@ -152,7 +163,8 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Deprecated
-    @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
+    @Description(
+            "apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes, true, Collections.emptyList());
     }
@@ -169,12 +181,13 @@ public class GraphRefactoring {
      *
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
-            "from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). " +
-            "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
-            "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
-    public Stream<NodeRefactorResult> cloneSubgraphFromPaths(@Name("paths") List<Path> paths,
-                                                             @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | "
+                    + "from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). "
+                    + "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), "
+                    + "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
+    public Stream<NodeRefactorResult> cloneSubgraphFromPaths(
+            @Name("paths") List<Path> paths, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
@@ -209,14 +222,16 @@ public class GraphRefactoring {
      *
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
-            "clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). " +
-            "If no relationships are provided, all relationships between the given nodes will be cloned. " +
-            "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
-            "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
-    public Stream<NodeRefactorResult> cloneSubgraph(@Name("nodes") List<Node> nodes,
-                                                    @Name(value="rels", defaultValue = "[]") List<Relationship> rels,
-                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | "
+                    + "clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). "
+                    + "If no relationships are provided, all relationships between the given nodes will be cloned. "
+                    + "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), "
+                    + "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
+    public Stream<NodeRefactorResult> cloneSubgraph(
+            @Name("nodes") List<Node> nodes,
+            @Name(value = "rels", defaultValue = "[]") List<Relationship> rels,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
 
@@ -228,7 +243,8 @@ public class GraphRefactoring {
         Map<Node, Node> copyMap = new HashMap<>(nodes.size());
         List<NodeRefactorResult> resultStream = new ArrayList<>();
 
-        Map<Node, Node> standinMap = generateStandinMap((List<List<Node>>) config.getOrDefault("standinNodes", Collections.emptyList()));
+        Map<Node, Node> standinMap =
+                generateStandinMap((List<List<Node>>) config.getOrDefault("standinNodes", Collections.emptyList()));
         List<String> skipProperties = (List<String>) config.getOrDefault("skipProperties", Collections.emptyList());
 
         // clone nodes and populate copy map
@@ -274,7 +290,8 @@ public class GraphRefactoring {
                 if (skipProperties != null && !skipProperties.isEmpty()) {
                     for (String skip : skipProperties) properties.remove(skip);
                 }
-                copyProperties(properties, newrel);            }
+                copyProperties(properties, newrel);
+            }
         }
 
         return resultStream.stream();
@@ -307,9 +324,11 @@ public class GraphRefactoring {
      * Merges the nodes onto the first node.
      * The other nodes are deleted and their relationships moved onto that first node.
      */
-    @Procedure(mode = Mode.WRITE,eager = true)
-    @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list")
-    public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    @Procedure(mode = Mode.WRITE, eager = true)
+    @Description(
+            "apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list")
+    public Stream<NodeResult> mergeNodes(
+            @Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
         Set<Node> nodesSet = new LinkedHashSet<>(nodes);
@@ -318,9 +337,10 @@ public class GraphRefactoring {
 
         final Node first = nodes.get(0);
         final List<Long> existingSelfRelIds = conf.isPreservingExistingSelfRels()
-                ? StreamSupport.stream(first.getRelationships().spliterator(), false).filter(Util::isSelfRel)
-                    .map(Entity::getId)
-                    .collect(Collectors.toList())
+                ? StreamSupport.stream(first.getRelationships().spliterator(), false)
+                        .filter(Util::isSelfRel)
+                        .map(Entity::getId)
+                        .collect(Collectors.toList())
                 : Collections.emptyList();
 
         nodesSet.stream().skip(1).forEach(node -> mergeNodes(node, first, conf, existingSelfRelIds));
@@ -333,7 +353,9 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
-    public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<RelationshipResult> mergeRelationships(
+            @Name("rels") List<Relationship> relationships,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (relationships == null || relationships.isEmpty()) return Stream.empty();
         Set<Relationship> relationshipsSet = new LinkedHashSet<>(relationships);
         RefactorConfig conf = new RefactorConfig(config);
@@ -341,10 +363,9 @@ public class GraphRefactoring {
         Relationship first = it.next();
         while (it.hasNext()) {
             Relationship other = it.next();
-            if (first.getStartNode().equals(other.getStartNode()) && first.getEndNode().equals(other.getEndNode()))
-                mergeRels(other, first, true, conf);
-            else
-                throw new RuntimeException("All Relationships must have the same start and end nodes.");
+            if (first.getStartNode().equals(other.getStartNode())
+                    && first.getEndNode().equals(other.getEndNode())) mergeRels(other, first, true, conf);
+            else throw new RuntimeException("All Relationships must have the same start and end nodes.");
         }
         return Stream.of(new RelationshipResult(first));
     }
@@ -355,11 +376,13 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type")
-    public Stream<RelationshipRefactorResult> setType(@Name("relationship") Relationship rel, @Name("newType") String newType) {
+    public Stream<RelationshipRefactorResult> setType(
+            @Name("relationship") Relationship rel, @Name("newType") String newType) {
         if (rel == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
-            Relationship newRel = rel.getStartNode().createRelationshipTo(rel.getEndNode(), RelationshipType.withName(newType));
+            Relationship newRel =
+                    rel.getStartNode().createRelationshipTo(rel.getEndNode(), RelationshipType.withName(newType));
             copyProperties(rel, newRel);
             rel.delete();
             return Stream.of(result.withOther(newRel));
@@ -371,9 +394,10 @@ public class GraphRefactoring {
     /**
      * Redirects a relationships to a new target node.
      */
-    @Procedure(mode = Mode.WRITE,eager = true)
+    @Procedure(mode = Mode.WRITE, eager = true)
     @Description("  apoc.refactor.to(rel, endNode) redirect relationship to use new end-node")
-    public Stream<RelationshipRefactorResult> to(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
+    public Stream<RelationshipRefactorResult> to(
+            @Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         if (rel == null || newNode == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
@@ -386,7 +410,7 @@ public class GraphRefactoring {
         }
     }
 
-    @Procedure(mode = Mode.WRITE,eager = true)
+    @Procedure(mode = Mode.WRITE, eager = true)
     @Description("apoc.refactor.invert(rel) inverts relationship direction")
     public Stream<RelationshipRefactorResult> invert(@Name("relationship") Relationship rel) {
         if (rel == null) return Stream.empty();
@@ -406,7 +430,8 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE, eager = true)
     @Description("apoc.refactor.from(rel, startNode) redirect relationship to use new start-node")
-    public Stream<RelationshipRefactorResult> from(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
+    public Stream<RelationshipRefactorResult> from(
+            @Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         if (rel == null || newNode == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
@@ -423,7 +448,8 @@ public class GraphRefactoring {
      * Make properties boolean
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean")
+    @Description(
+            "apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean")
     public void normalizeAsBoolean(
             @Name("entity") Object entity,
             @Name("propertyKey") String propertyKey,
@@ -452,7 +478,8 @@ public class GraphRefactoring {
      * Create category nodes from unique property values
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it")
+    @Description(
+            "apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it")
     public void categorize(
             @Name("sourceKey") String sourceKey,
             @Name("type") String relationshipType,
@@ -460,20 +487,19 @@ public class GraphRefactoring {
             @Name("label") String label,
             @Name("targetKey") String targetKey,
             @Name("copiedKeys") List<String> copiedKeys,
-            @Name("batchSize") long batchSize
-    ) throws ExecutionException {
+            @Name("batchSize") long batchSize)
+            throws ExecutionException {
         // Verify and adjust arguments
-        if (sourceKey == null)
-            throw new IllegalArgumentException("Invalid (null) sourceKey");
+        if (sourceKey == null) throw new IllegalArgumentException("Invalid (null) sourceKey");
 
-        if (targetKey == null)
-            throw new IllegalArgumentException("Invalid (null) targetKey");
+        if (targetKey == null) throw new IllegalArgumentException("Invalid (null) targetKey");
 
         copiedKeys.remove(targetKey); // Just to be sure
 
         if (!isUniqueConstraintDefinedFor(label, targetKey)) {
-            throw new IllegalArgumentException("Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
-                    + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
+            throw new IllegalArgumentException(
+                    "Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
+                            + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
         }
 
         // Create batches of nodes
@@ -485,7 +511,8 @@ public class GraphRefactoring {
             }
             batch.add(node);
             if (batch.size() == batchSize) {
-                futures.add(categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
+                futures.add(
+                        categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
                 batch = null;
             }
         }
@@ -500,8 +527,12 @@ public class GraphRefactoring {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], {config}) - Removes some nodes from a linked list")
-    public Stream<GraphResult> deleteAndReconnect(@Name("path") Path path, @Name("nodes") List<Node> nodesToRemove, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    @Description(
+            "apoc.refactor.deleteAndReconnect([pathLinkedList], [nodesToRemove], {config}) - Removes some nodes from a linked list")
+    public Stream<GraphResult> deleteAndReconnect(
+            @Name("path") Path path,
+            @Name("nodes") List<Node> nodesToRemove,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         RefactorConfig refactorConfig = new RefactorConfig(config);
 
@@ -512,14 +543,13 @@ public class GraphRefactoring {
             return Stream.empty();
         }
 
-        BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport
-                .stream(node.getRelationships(direction).spliterator(), false)
+        BiFunction<Node, Direction, Relationship> filterRel = (node, direction) -> StreamSupport.stream(
+                        node.getRelationships(direction).spliterator(), false)
                 .filter(rels::contains)
                 .findFirst()
                 .orElse(null);
 
         nodesToRemove.forEach(node -> {
-
             Relationship relationshipIn = filterRel.apply(node, Direction.INCOMING);
             Relationship relationshipOut = filterRel.apply(node, Direction.OUTGOING);
 
@@ -534,7 +564,8 @@ public class GraphRefactoring {
                 RelationshipType newRelType;
                 Map<String, Object> newRelProps = new HashMap<>();
 
-                final RefactorConfig.RelationshipSelectionStrategy strategy = refactorConfig.getRelationshipSelectionStrategy();
+                final RefactorConfig.RelationshipSelectionStrategy strategy =
+                        refactorConfig.getRelationshipSelectionStrategy();
                 switch (strategy) {
                     case INCOMING:
                         newRelType = relationshipIn.getType();
@@ -547,7 +578,8 @@ public class GraphRefactoring {
                         break;
 
                     default:
-                        newRelType = RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
+                        newRelType =
+                                RelationshipType.withName(relationshipIn.getType() + "_" + relationshipOut.getType());
                         newRelProps.putAll(relationshipIn.getAllProperties());
                 }
 
@@ -570,8 +602,9 @@ public class GraphRefactoring {
     }
 
     private boolean isUniqueConstraintDefinedFor(String label, String key) {
-        return StreamSupport.stream(tx.schema().getConstraints(Label.label(label)).spliterator(), false)
-                .anyMatch(c ->  {
+        return StreamSupport.stream(
+                        tx.schema().getConstraints(Label.label(label)).spliterator(), false)
+                .anyMatch(c -> {
                     if (!c.isConstraintType(ConstraintType.UNIQUENESS)) {
                         return false;
                     }
@@ -580,7 +613,14 @@ public class GraphRefactoring {
                 });
     }
 
-    private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
+    private Future<Void> categorizeNodes(
+            List<Node> batch,
+            String sourceKey,
+            String relationshipType,
+            Boolean outgoing,
+            String label,
+            String targetKey,
+            List<String> copiedKeys) {
 
         return pools.processBatch(batch, db, (innerTx, node) -> {
             node = Util.rebind(innerTx, node);
@@ -589,12 +629,12 @@ public class GraphRefactoring {
                 String nodeLabel = Util.sanitize(label);
                 String key = Util.sanitize(targetKey);
                 String relType = Util.sanitize(relationshipType);
-                String q =
-                        "WITH $node AS n " +
-                                "MERGE (cat:`" + nodeLabel + "` {`" + key + "`: $value}) " +
-                                (outgoing ? "MERGE (n)-[:`" + relType + "`]->(cat) "
-                                        : "MERGE (n)<-[:`" + relType + "`]-(cat) ") +
-                                "RETURN cat";
+                String q = "WITH $node AS n " + "MERGE (cat:`"
+                        + nodeLabel + "` {`" + key + "`: $value}) "
+                        + (outgoing
+                                ? "MERGE (n)-[:`" + relType + "`]->(cat) "
+                                : "MERGE (n)<-[:`" + relType + "`]-(cat) ")
+                        + "RETURN cat";
                 Map<String, Object> params = new HashMap<>(2);
                 params.put("node", node);
                 params.put("value", value);
@@ -674,5 +714,4 @@ public class GraphRefactoring {
         Relationship newrel = startNode.createRelationshipTo(endNode, rel.getType());
         copyProperties(rel, newrel);
     }
-
 }

@@ -18,9 +18,15 @@
  */
 package apoc.log;
 
+import static apoc.ApocConfig.apocConfig;
+import static java.util.Arrays.asList;
+
 import apoc.ApocConfig;
 import apoc.util.SimpleRateLimiter;
 import apoc.util.TestUtil;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -30,13 +36,6 @@ import org.neo4j.exceptions.KernelException;
 import org.neo4j.logging.AssertableLogProvider;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static apoc.ApocConfig.apocConfig;
-import static java.util.Arrays.asList;
 
 public class LoggingTest {
 
@@ -112,11 +111,10 @@ public class LoggingTest {
         // given
         Logging logging = initLogging(ApocConfig.LoggingType.safe, 10000, 10);
 
-        List<String> all = IntStream.range(0, 10).mapToObj(i -> "test_" + i + "_")
-                .collect(Collectors.toList());
+        List<String> all =
+                IntStream.range(0, 10).mapToObj(i -> "test_" + i + "_").collect(Collectors.toList());
 
-        all.addAll(IntStream.range(50, 60).mapToObj(i -> "test_" + i + "_")
-                .collect(Collectors.toList()));
+        all.addAll(IntStream.range(50, 60).mapToObj(i -> "test_" + i + "_").collect(Collectors.toList()));
 
         // when
         IntStream.range(0, 100).forEach(i -> {
@@ -171,11 +169,10 @@ public class LoggingTest {
         // given
         Logging logging = initLogging(ApocConfig.LoggingType.safe, 1000, 20);
 
-        List<String> all = IntStream.range(0, 20).mapToObj(i -> "test_" + i + "_")
-                .collect(Collectors.toList());
+        List<String> all =
+                IntStream.range(0, 20).mapToObj(i -> "test_" + i + "_").collect(Collectors.toList());
 
-        all.addAll(IntStream.range(50, 70).mapToObj(i -> "test_" + i + "_")
-                .collect(Collectors.toList()));
+        all.addAll(IntStream.range(50, 70).mapToObj(i -> "test_" + i + "_").collect(Collectors.toList()));
 
         // when
         IntStream.range(0, 100).forEach(i -> {
@@ -235,6 +232,7 @@ public class LoggingTest {
 
         // then
         logProvider.print(System.out);
-//        logProvider.assertExactly(new LogMatcherBuilder(Matchers.equalTo("org.neo4j.kernel.api.procedure.GlobalProcedures")).warn("prova_"));
+        //        logProvider.assertExactly(new
+        // LogMatcherBuilder(Matchers.equalTo("org.neo4j.kernel.api.procedure.GlobalProcedures")).warn("prova_"));
     }
 }

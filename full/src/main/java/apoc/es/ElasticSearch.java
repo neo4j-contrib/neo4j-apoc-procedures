@@ -18,23 +18,22 @@
  */
 package apoc.es;
 
+import static apoc.util.MapUtil.map;
+
 import apoc.Extended;
 import apoc.load.LoadJson;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
 import apoc.util.Util;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static apoc.util.MapUtil.map;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 /**
  * @author mh
@@ -43,15 +42,15 @@ import static apoc.util.MapUtil.map;
 @Extended
 public class ElasticSearch {
 
-    private final static String fullQueryTemplate = "/%s/%s/%s?%s";
+    private static final String fullQueryTemplate = "/%s/%s/%s?%s";
 
     // /{index}/{type}/_search?{query}
-    private final static String fullQuerySearchTemplate = "/%s/%s/_search?%s";
+    private static final String fullQuerySearchTemplate = "/%s/%s/_search?%s";
 
     /**
      * With this pattern we can match both key:value params and key=value params
      */
-    private final static Pattern KEY_VALUE = Pattern.compile("(.*)(:|=)(.*)");
+    private static final Pattern KEY_VALUE = Pattern.compile("(.*)(:|=)(.*)");
 
     protected String getElasticSearchUrl(String hostOrKey) {
         return new UrlResolver("http", "localhost", 9200).getUrl("es", hostOrKey);
@@ -89,7 +88,8 @@ public class ElasticSearch {
      * @return
      */
     private String formatSearchQueryUrl(String index, String type, Object query) {
-        String queryUrl = String.format(fullQuerySearchTemplate,
+        String queryUrl = String.format(
+                fullQuerySearchTemplate,
                 index == null ? "_all" : index,
                 type == null ? "_all" : type,
                 toQueryParams(query));
@@ -108,7 +108,8 @@ public class ElasticSearch {
      * @return
      */
     private String formatQueryUrl(String index, String type, String id, Object query) {
-        String queryUrl = String.format(fullQueryTemplate,
+        String queryUrl = String.format(
+                fullQueryTemplate,
                 index == null ? "_all" : index,
                 type == null ? "_all" : type,
                 id == null ? "" : id,
@@ -131,7 +132,6 @@ public class ElasticSearch {
         return "application/json";
     }
 
-
     /**
      * @param query
      * @return
@@ -141,10 +141,14 @@ public class ElasticSearch {
         if (query instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) query;
             if (map.isEmpty()) return "";
-            return map.entrySet().stream().map(e -> e.getKey() + "=" + Util.encodeUrlComponent(e.getValue().toString())).collect(Collectors.joining("&"));
+            return map.entrySet().stream()
+                    .map(e -> e.getKey() + "="
+                            + Util.encodeUrlComponent(e.getValue().toString()))
+                    .collect(Collectors.joining("&"));
         } else {
             // We have to encode only the values not the keys
-            return Pattern.compile("&").splitAsStream(query.toString())
+            return Pattern.compile("&")
+                    .splitAsStream(query.toString())
                     .map(KEY_VALUE::matcher)
                     .filter(Matcher::matches)
                     .map(matcher -> matcher.group(1) + matcher.group(2) + Util.encodeUrlComponent(matcher.group(3)))
@@ -160,48 +164,90 @@ public class ElasticSearch {
     }
 
     @Procedure
-    @Description("apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
-    public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("content-type",contentType(payload)), toPayload(payload));
+    @Description(
+            "apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
+    public Stream<MapResult> get(
+            @Name("host") String hostOrKey,
+            @Name("index") String index,
+            @Name("type") String type,
+            @Name("id") String id,
+            @Name("query") Object query,
+            @Name("payload") Object payload) {
+        return LoadJson.loadJsonStream(
+                getQueryUrl(hostOrKey, index, type, id, query),
+                map("content-type", contentType(payload)),
+                toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
-    public Stream<MapResult> query(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getSearchQueryUrl(hostOrKey, index, type, query), map("content-type",contentType(payload)), toPayload(payload));
+    @Description(
+            "apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
+    public Stream<MapResult> query(
+            @Name("host") String hostOrKey,
+            @Name("index") String index,
+            @Name("type") String type,
+            @Name("query") Object query,
+            @Name("payload") Object payload) {
+        return LoadJson.loadJsonStream(
+                getSearchQueryUrl(hostOrKey, index, type, query),
+                map("content-type", contentType(payload)),
+                toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
-    public Stream<MapResult> getRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
+    @Description(
+            "apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
+    public Stream<MapResult> getRaw(
+            @Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url + "/" + suffix, map("content-type",contentType(payload)), toPayload(payload));
+        return LoadJson.loadJsonStream(
+                url + "/" + suffix, map("content-type", contentType(payload)), toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
-    public Stream<MapResult> postRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
+    @Description(
+            "apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
+    public Stream<MapResult> postRaw(
+            @Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url + "/" + suffix, map("method", "POST","content-type",contentType(payload)), toPayload(payload));
+        return LoadJson.loadJsonStream(
+                url + "/" + suffix, map("method", "POST", "content-type", contentType(payload)), toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
-    public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload) {
-        if (payload == null)
-        {
+    @Description(
+            "apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
+    public Stream<MapResult> post(
+            @Name("host") String hostOrKey,
+            @Name("index") String index,
+            @Name("type") String type,
+            @Name("query") Object query,
+            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload) {
+        if (payload == null) {
             payload = Collections.emptyMap();
         }
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, null, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
+        return LoadJson.loadJsonStream(
+                getQueryUrl(hostOrKey, index, type, null, query),
+                map("method", "POST", "content-type", contentType(payload)),
+                toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
-    public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload) {
-        if (payload == null)
-        {
+    @Description(
+            "apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
+    public Stream<MapResult> put(
+            @Name("host") String hostOrKey,
+            @Name("index") String index,
+            @Name("type") String type,
+            @Name("id") String id,
+            @Name("query") Object query,
+            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload) {
+        if (payload == null) {
             payload = Collections.emptyMap();
         }
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
+        return LoadJson.loadJsonStream(
+                getQueryUrl(hostOrKey, index, type, id, query),
+                map("method", "PUT", "content-type", contentType(payload)),
+                toPayload(payload));
     }
 }

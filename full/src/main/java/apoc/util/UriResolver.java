@@ -18,14 +18,12 @@
  */
 package apoc.util;
 
-
-import org.neo4j.driver.AuthToken;
-import org.neo4j.driver.AuthTokens;
+import static apoc.ApocConfig.apocConfig;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static apoc.ApocConfig.apocConfig;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
 
 /**
  * @author AgileLARUS
@@ -70,11 +68,13 @@ public class UriResolver {
             throw new URISyntaxException(e.getInput(), e.getMessage());
         }
         this.uri = uri;
-        String[] userInfoArray = uri.getUserInfo() == null ?  new String[2] : uri.getUserInfo().split(":");
+        String[] userInfoArray =
+                uri.getUserInfo() == null ? new String[2] : uri.getUserInfo().split(":");
         String user = userInfoArray[0];
         String password = userInfoArray[1];
-        if(user != null && password == null || user == null && password != null)
-            throw new RuntimeException("user and password don't defined check your URL or if you use a key the property in your apoc.conf file");
+        if (user != null && password == null || user == null && password != null)
+            throw new RuntimeException(
+                    "user and password don't defined check your URL or if you use a key the property in your apoc.conf file");
         this.token = (user != null && password != null) ? AuthTokens.basic(user, password) : AuthTokens.none();
     }
 }

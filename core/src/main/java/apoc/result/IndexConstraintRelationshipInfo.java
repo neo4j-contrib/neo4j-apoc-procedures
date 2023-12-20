@@ -32,10 +32,11 @@ public class IndexConstraintRelationshipInfo {
     public final List<String> properties;
 
     public final String status;
-    
+
     public final Object relationshipType;
 
-    public IndexConstraintRelationshipInfo(String name, String schemaType, List<String> properties, String status, Object relationshipType) {
+    public IndexConstraintRelationshipInfo(
+            String name, String schemaType, List<String> properties, String status, Object relationshipType) {
         this.name = name;
         this.type = schemaType;
         this.properties = properties;

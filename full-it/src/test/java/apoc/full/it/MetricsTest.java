@@ -18,24 +18,6 @@
  */
 package apoc.full.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.driver.Session;
-import org.neo4j.internal.helpers.collection.Iterators;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static apoc.metrics.Metrics.OUTSIDE_DIR_ERR_MSG;
 import static apoc.util.FileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -44,6 +26,23 @@ import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.neo4j.driver.Session;
+import org.neo4j.internal.helpers.collection.Iterators;
 
 // TODO Investigate why this test is not working. Possibly increase timeout for container
 @Ignore
@@ -70,14 +69,19 @@ public class MetricsTest {
         }
         neo4jContainer.close();
     }
-    
+
     @Test
     public void shouldNotGetFileOutsideMetricsDir() {
         try {
-            testCall(session, "CALL apoc.metrics.get('../external')",
+            testCall(
+                    session,
+                    "CALL apoc.metrics.get('../external')",
                     (r) -> Assert.fail("Should fail because the path is outside the dir "));
         } catch (RuntimeException e) {
-            assertEquals("Failed to invoke procedure `apoc.metrics.get`: Caused by: java.lang.RuntimeException: " + OUTSIDE_DIR_ERR_MSG, e.getMessage());
+            assertEquals(
+                    "Failed to invoke procedure `apoc.metrics.get`: Caused by: java.lang.RuntimeException: "
+                            + OUTSIDE_DIR_ERR_MSG,
+                    e.getMessage());
         }
     }
 
@@ -87,36 +91,37 @@ public class MetricsTest {
     public void shouldGetMetrics() {
         session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
         String metricKey = "neo4j.database.system.check_point.total_time";
-        testResult(session, "CALL apoc.metrics.get($metricKey)",
-                map("metricKey", metricKey), (r) -> {
-                    assertTrue("should have at least one element", r.hasNext());
-                    Map<String, Object> map = r.next();
-                    assertEquals(Stream.of("timestamp", "metric", "map").collect(Collectors.toSet()), map.keySet());
-                    assertEquals(metricKey, map.get("metric"));
-                });
+        testResult(session, "CALL apoc.metrics.get($metricKey)", map("metricKey", metricKey), (r) -> {
+            assertTrue("should have at least one element", r.hasNext());
+            Map<String, Object> map = r.next();
+            assertEquals(Stream.of("timestamp", "metric", "map").collect(Collectors.toSet()), map.keySet());
+            assertEquals(metricKey, map.get("metric"));
+        });
     }
 
     @Test
     public void shouldRetrieveStorageMetrics() {
 
-        final Set<String> expectedSet = Stream.of("setting", "freeSpaceBytes", "totalSpaceBytes", "usableSpaceBytes", "percentFree")
+        final Set<String> expectedSet = Stream.of(
+                        "setting", "freeSpaceBytes", "totalSpaceBytes", "usableSpaceBytes", "percentFree")
                 .collect(Collectors.toSet());
 
-        NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.forEach(setting ->
-                testCall(session, "CALL apoc.metrics.storage($setting)", map("setting", setting), (res) -> {
+        NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.forEach(
+                setting -> testCall(session, "CALL apoc.metrics.storage($setting)", map("setting", setting), (res) -> {
                     assertEquals(expectedSet, res.keySet());
                     assertEquals(setting, res.get("setting"));
-                })
-        );
+                }));
 
         // all metrics with null
         testResult(session, "CALL apoc.metrics.storage(null)", (res) -> {
             final List<Map<String, Object>> maps = Iterators.asList(res);
-            final Set<String> setSetting = maps.stream().map(item -> {
-                assertEquals(expectedSet, item.keySet());
+            final Set<String> setSetting = maps.stream()
+                    .map(item -> {
+                        assertEquals(expectedSet, item.keySet());
 
-                return (String) item.get("setting");
-            }).collect(Collectors.toSet());
+                        return (String) item.get("setting");
+                    })
+                    .collect(Collectors.toSet());
 
             assertEquals(new HashSet<>(NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES), setSetting);
         });
@@ -124,8 +129,9 @@ public class MetricsTest {
 
     @Test
     public void shouldListMetrics() {
-        testResult(session, "CALL apoc.metrics.list()",
+        testResult(
+                session,
+                "CALL apoc.metrics.list()",
                 (r) -> assertTrue("should have at least one element", r.hasNext()));
     }
-
 }

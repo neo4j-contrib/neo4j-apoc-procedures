@@ -15,11 +15,15 @@ public class CypherInitializerUtil {
      * @return
      */
     public static <T> T getInitializer(String dbName, DbmsRule dbmsRule, Class<T> clazz) {
-        GraphDatabaseAPI api = ((GraphDatabaseAPI) (dbmsRule.getManagementService().database(dbName)));
-        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class);;
+        GraphDatabaseAPI api =
+                ((GraphDatabaseAPI) (dbmsRule.getManagementService().database(dbName)));
+        DatabaseAvailabilityGuard availabilityGuard =
+                (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class);
+        ;
         try {
-            Listeners<AvailabilityListener> listeners = ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
-            for (AvailabilityListener listener: listeners) {
+            Listeners<AvailabilityListener> listeners =
+                    ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
+            for (AvailabilityListener listener : listeners) {
                 if (listener.getClass().isAssignableFrom(clazz)) {
                     return (T) listener;
                 }
@@ -28,6 +32,5 @@ public class CypherInitializerUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 }

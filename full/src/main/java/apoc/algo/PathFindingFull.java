@@ -18,8 +18,13 @@
  */
 package apoc.algo;
 
+import static apoc.algo.PathFinding.buildPathExpander;
+
 import apoc.Extended;
 import apoc.result.WeightedPathResult;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.CommonEvaluators;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -33,12 +38,6 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static apoc.algo.PathFinding.buildPathExpander;
-
 @Extended
 public class PathFindingFull {
 
@@ -49,8 +48,9 @@ public class PathFindingFull {
     public Transaction tx;
 
     @Procedure
-    @Description("apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - " +
-            "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
+    @Description(
+            "apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - "
+                    + "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
     public Stream<WeightedPathResult> aStarWithPoint(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -67,13 +67,15 @@ public class PathFindingFull {
     }
 
     @Procedure
-    @Description("apoc.algo.travellingSalesman(nodes,  $config) - resolve travelling salesman problem via simulated annealing algo")
-    public Stream<TravellingSalesman.Result> travellingSalesman(@Name("startNode") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.algo.travellingSalesman(nodes,  $config) - resolve travelling salesman problem via simulated annealing algo")
+    public Stream<TravellingSalesman.Result> travellingSalesman(
+            @Name("startNode") List<Node> nodes,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes.isEmpty()) {
             throw new RuntimeException("The nodes parameter must have at least 3 nodes");
         }
         TravellingSalesman.Config conf = new TravellingSalesman.Config(config);
         return Stream.of(TravellingSalesman.Algo.simulateAnnealing(nodes, conf));
     }
-    
 }

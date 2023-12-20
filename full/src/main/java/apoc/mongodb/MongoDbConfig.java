@@ -18,13 +18,12 @@
  */
 package apoc.mongodb;
 
-import apoc.util.Util;
-import org.bson.Document;
+import static apoc.mongodb.MongoDBUtils.getDocument;
 
+import apoc.util.Util;
 import java.util.Collections;
 import java.util.Map;
-
-import static apoc.mongodb.MongoDBUtils.getDocument;
+import org.bson.Document;
 
 public class MongoDbConfig {
 

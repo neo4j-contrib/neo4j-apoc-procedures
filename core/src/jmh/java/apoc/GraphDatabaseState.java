@@ -1,17 +1,15 @@
 package apoc;
 
+import java.util.Collections;
+import java.util.Map;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.openjdk.jmh.annotations.*;
 
-import java.util.Collections;
-import java.util.Map;
-
 @State(Scope.Benchmark)
 public class GraphDatabaseState {
-
 
     private GraphDatabaseService graphDatabaseService;
 
@@ -21,7 +19,8 @@ public class GraphDatabaseState {
 
     @Setup(Level.Invocation)
     public final void setup() {
-        graphDatabaseService = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+        graphDatabaseService = new TestGraphDatabaseFactory()
+                .newImpermanentDatabaseBuilder()
                 .setConfig(getGraphDatabaseConfig())
                 .newGraphDatabase();
         setupGraphDatabase(graphDatabaseService);
@@ -41,7 +40,5 @@ public class GraphDatabaseState {
         return Collections.EMPTY_MAP;
     }
 
-    void setupGraphDatabase(GraphDatabaseService graphDatabaseService) {
-    }
+    void setupGraphDatabase(GraphDatabaseService graphDatabaseService) {}
 }
-

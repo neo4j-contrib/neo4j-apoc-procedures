@@ -23,17 +23,16 @@ import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.logging.Log;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.logging.Log;
 
 public class DataVirtualizationCatalogHandler {
 
@@ -47,7 +46,6 @@ public class DataVirtualizationCatalogHandler {
         this.log = log;
     }
 
-
     private <T> T withSystemDb(Function<Transaction, T> action) {
         try (Transaction tx = systemDb.beginTx()) {
             T result = action.apply(tx);
@@ -58,7 +56,10 @@ public class DataVirtualizationCatalogHandler {
 
     public VirtualizedResource add(VirtualizedResource vr) {
         return withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, SystemLabels.DataVirtualizationCatalog, null,
+            Node node = Util.mergeNode(
+                    tx,
+                    SystemLabels.DataVirtualizationCatalog,
+                    null,
                     Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), vr.name));
             node.setProperty(SystemPropertyKeys.data.name(), JsonUtil.writeValueAsString(vr));
@@ -68,17 +69,22 @@ public class DataVirtualizationCatalogHandler {
 
     public VirtualizedResource get(String name) {
         return withSystemDb(tx -> {
-            final List<Node> nodes = tx.findNodes(SystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
-                .stream()
-                .collect(Collectors.toList());
+            final List<Node> nodes = tx
+                    .findNodes(
+                            SystemLabels.DataVirtualizationCatalog,
+                            SystemPropertyKeys.database.name(),
+                            db.databaseName(),
+                            SystemPropertyKeys.name.name(),
+                            name)
+                    .stream()
+                    .collect(Collectors.toList());
             if (nodes.size() > 1) {
                 throw new RuntimeException("More than 1 result");
             }
             try {
                 Node node = nodes.get(0);
-                Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
+                Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(
+                        node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
                 return VirtualizedResource.from(name, map);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -88,25 +94,31 @@ public class DataVirtualizationCatalogHandler {
 
     public Stream<VirtualizedResource> remove(String name) {
         withSystemDb(tx -> {
-            tx.findNodes(SystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
-                .stream()
-                .forEach(Node::delete);
+            tx
+                    .findNodes(
+                            SystemLabels.DataVirtualizationCatalog,
+                            SystemPropertyKeys.database.name(),
+                            db.databaseName(),
+                            SystemPropertyKeys.name.name(),
+                            name)
+                    .stream()
+                    .forEach(Node::delete);
             return null;
         });
         return list();
     }
 
     public Stream<VirtualizedResource> list() {
-        return withSystemDb(tx ->
-                tx.findNodes(SystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName())
+        return withSystemDb(tx -> tx
+                .findNodes(
+                        SystemLabels.DataVirtualizationCatalog, SystemPropertyKeys.database.name(), db.databaseName())
                 .stream()
                 .map(node -> {
                     try {
-                        Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
-                        String name = node.getProperty(SystemPropertyKeys.name.name()).toString();
+                        Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(
+                                node.getProperty(SystemPropertyKeys.data.name()).toString(), Map.class);
+                        String name =
+                                node.getProperty(SystemPropertyKeys.name.name()).toString();
                         return VirtualizedResource.from(name, map);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);

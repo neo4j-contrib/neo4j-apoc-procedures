@@ -22,9 +22,6 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.util.VisibleForTesting;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,12 +34,19 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.util.VisibleForTesting;
 
 public class GCStorageURLConnection extends URLConnection {
 
-    enum AuthType { NONE, PRIVATE_KEY, GCP_ENVIRONMENT }
+    enum AuthType {
+        NONE,
+        PRIVATE_KEY,
+        GCP_ENVIRONMENT
+    }
 
     private Blob blob;
+
     public GCStorageURLConnection(URL url) {
         super(url);
     }
@@ -51,12 +55,14 @@ public class GCStorageURLConnection extends URLConnection {
     public Storage getStorage(URI uri) {
         Storage storage;
         Map<String, String> queryParams = getQueryParams(uri);
-        AuthType authenticationType = AuthType.valueOf(queryParams.getOrDefault("authenticationType", AuthType.NONE.toString()));
+        AuthType authenticationType =
+                AuthType.valueOf(queryParams.getOrDefault("authenticationType", AuthType.NONE.toString()));
         switch (authenticationType) {
             case PRIVATE_KEY:
                 String googleAppCredentialsEnv = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
                 if (StringUtils.isBlank(googleAppCredentialsEnv)) {
-                    throw new RuntimeException("You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
+                    throw new RuntimeException(
+                            "You must set the env variable GOOGLE_APPLICATION_CREDENTIALS as described here: https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java");
                 }
                 // fall through
             case GCP_ENVIRONMENT:
@@ -87,7 +93,8 @@ public class GCStorageURLConnection extends URLConnection {
             if (StringUtils.isBlank(uri.getPath())) {
                 throw new RuntimeException("Please provide the file name");
             }
-            blob = getStorage(uri).get(BlobId.of(uri.getAuthority(), uri.getPath().substring(1)));
+            blob = getStorage(uri)
+                    .get(BlobId.of(uri.getAuthority(), uri.getPath().substring(1)));
             connected = true;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -112,5 +119,4 @@ public class GCStorageURLConnection extends URLConnection {
         }
         return in;
     }
-
 }

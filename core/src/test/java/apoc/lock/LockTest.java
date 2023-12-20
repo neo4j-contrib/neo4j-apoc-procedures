@@ -18,7 +18,13 @@
  */
 package apoc.lock;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import apoc.util.TestUtil;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -30,13 +36,6 @@ import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.impl.locking.LockAcquisitionTimeoutException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class LockTest {
 
@@ -64,18 +63,19 @@ public class LockTest {
         }
 
         try (Transaction tx = db.beginTx()) {
-            final Node n = Iterators.single(tx.execute("match (n) CALL apoc.lock.read.nodes([n]) return n").columnAs("n"));
+            final Node n = Iterators.single(tx.execute("match (n) CALL apoc.lock.read.nodes([n]) return n")
+                    .columnAs("n"));
             assertEquals(n, node);
 
             final Thread thread = new Thread(() -> {
                 System.out.println(Instant.now().toString() + " pre-delete");
                 try {
-                    db.executeTransactionally("match (n) delete n", Collections.emptyMap(), result -> result.resultAsString());
+                    db.executeTransactionally(
+                            "match (n) delete n", Collections.emptyMap(), result -> result.resultAsString());
                     fail("expecting lock timeout");
                 } catch (LockAcquisitionTimeoutException e) {
                 }
                 System.out.println(Instant.now().toString() + " delete");
-
             });
             thread.start();
             thread.join(5000L);
@@ -86,6 +86,5 @@ public class LockTest {
 
             tx.commit();
         }
-
     }
 }

@@ -41,5 +41,4 @@ public class CSVResource extends VirtualizedResource {
         return "CALL apoc.load.csv($url, $config) YIELD map WHERE " + query
                 + " RETURN apoc.create.vNode($labels, map) AS node";
     }
-
 }

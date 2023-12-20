@@ -20,6 +20,10 @@ package apoc.export.arrow;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
@@ -29,11 +33,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>, ExportResultStrategy {
 
@@ -47,7 +46,8 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
 
     private Schema schema;
 
-    public ExportResultFileStrategy(String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+    public ExportResultFileStrategy(
+            String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
         this.fileName = fileName;
         this.db = db;
         this.pools = pools;
@@ -62,7 +62,8 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
                 .map(row -> {
                     row.forEach((key, val) -> {
                         final boolean notNodeNorRelationship = !(val instanceof Node) && !(val instanceof Relationship);
-                        reporter.update(val instanceof Node ? 1 : 0,
+                        reporter.update(
+                                val instanceof Node ? 1 : 0,
                                 val instanceof Relationship ? 1 : 0,
                                 notNodeNorRelationship ? 1 : 0);
                         if (notNodeNorRelationship) {
@@ -116,6 +117,4 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
         }
         return schema;
     }
-
-
 }

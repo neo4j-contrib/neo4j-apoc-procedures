@@ -18,14 +18,13 @@
  */
 package apoc.math;
 
+import java.util.stream.Stream;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
-
-import java.util.stream.Stream;
 
 /**
  * @author <a href="mailto:ali.arslan@rwth-aachen.de">AliArslan</a>
@@ -50,11 +49,10 @@ public class Regression {
     }
 
     @Procedure(name = "apoc.math.regr", mode = Mode.READ)
-    @Description("apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient " +
-            "of determination (R-squared) for the values of propertyY and propertyX in the " +
-            "provided label")
-    public Stream<Output> regr(@Name("label") String label,
-                               @Name("propertyY") String y, @Name("propertyX") String x) {
+    @Description("apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient "
+            + "of determination (R-squared) for the values of propertyY and propertyX in the "
+            + "provided label")
+    public Stream<Output> regr(@Name("label") String label, @Name("propertyY") String y, @Name("propertyX") String x) {
 
         SimpleRegression regr = new SimpleRegression(false);
         double regrAvgX = 0;

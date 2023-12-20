@@ -18,18 +18,12 @@
  */
 package apoc.load;
 
+import static apoc.load.util.JdbcUtil.*;
+
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
 import apoc.util.MapUtil;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.*;
@@ -38,8 +32,13 @@ import java.time.OffsetTime;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static apoc.load.util.JdbcUtil.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 /**
  * @author mh
@@ -48,13 +47,13 @@ import static apoc.load.util.JdbcUtil.*;
 @Extended
 public class Jdbc {
 
-/*
-    static {
-        ApocConfiguration.get("jdbc").forEach((k, v) -> {
-            if (k.endsWith("driver")) loadDriver(v.toString());
-        });
-    }
-*/
+    /*
+        static {
+            ApocConfiguration.get("jdbc").forEach((k, v) -> {
+                if (k.endsWith("driver")) loadDriver(v.toString());
+            });
+        }
+    */
 
     @Context
     public Log log;
@@ -72,42 +71,54 @@ public class Jdbc {
         try {
             Class.forName(driverClass);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load driver class "+driverClass+" "+e.getMessage());
+            throw new RuntimeException("Could not load driver class " + driverClass + " " + e.getMessage());
         }
     }
 
     @Procedure(mode = Mode.READ)
-    @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
-    public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
-            (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
+    public Stream<RowResult> jdbc(
+            @Name("jdbc") String urlOrKey,
+            @Name("tableOrSql") String tableOrSelect,
+            @Name(value = "params", defaultValue = "[]") List<Object> params,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
     }
 
     @Procedure
     @Deprecated
-    @Description("deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters")
-    public Stream<RowResult> jdbcParams(@Name("jdbc") String urlOrKey, @Name("sql") String select, @Name("params") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    @Description(
+            "deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters")
+    public Stream<RowResult> jdbcParams(
+            @Name("jdbc") String urlOrKey,
+            @Name("sql") String select,
+            @Name("params") List<Object> params,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, select, config, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
+    private Stream<RowResult> executeQuery(
+            String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
         String url = getUrlOrKey(urlOrKey);
         String query = getSqlOrKey(tableOrSelect);
         try {
-            Connection connection = getConnection(url,loadJdbcConfig);
+            Connection connection = getConnection(url, loadJdbcConfig);
             // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
             connection.setAutoCommit(loadJdbcConfig.isAutoCommit());
             try {
-                PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                PreparedStatement stmt =
+                        connection.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 stmt.setFetchSize(loadJdbcConfig.getFetchSize().intValue());
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     ResultSet rs = stmt.executeQuery();
                     Iterator<Map<String, Object>> supplier = new ResultSetIterator(log, rs, true, loadJdbcConfig);
-                    Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
+                    Spliterator<Map<String, Object>> spliterator =
+                            Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                     return StreamSupport.stream(spliterator, false)
                             .map(RowResult::new)
                             .onClose(() -> closeIt(log, stmt, connection));
@@ -115,64 +126,84 @@ public class Jdbc {
                     closeIt(log, stmt);
                     throw sqle;
                 }
-            } catch(Exception sqle) {
+            } catch (Exception sqle) {
                 closeIt(log, connection);
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
+            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()), e);
             String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
-            throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
+            if (e.getMessage().contains("No suitable driver"))
+                errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            throw new RuntimeException(
+                    String.format(
+                            errorMessage,
+                            query,
+                            e.getMessage(),
+                            "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"),
+                    e);
         }
     }
 
     @Procedure(mode = Mode.DBMS)
-    @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
-    public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        log.info( String.format( "Executing SQL update: %s", query ) );
+    @Description(
+            "apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
+    public Stream<RowResult> jdbcUpdate(
+            @Name("jdbc") String urlOrKey,
+            @Name("query") String query,
+            @Name(value = "params", defaultValue = "[]") List<Object> params,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        log.info(String.format("Executing SQL update: %s", query));
         return executeUpdate(urlOrKey, query, config, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
+    private Stream<RowResult> executeUpdate(
+            String urlOrKey, String query, Map<String, Object> config, Object... params) {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
-            Connection connection = getConnection(url,jdbcConfig);
+            Connection connection = getConnection(url, jdbcConfig);
             try {
-                PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                PreparedStatement stmt =
+                        connection.prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 stmt.setFetchSize(5000);
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     int updateCount = stmt.executeUpdate();
                     closeIt(log, stmt, connection);
                     Map<String, Object> result = MapUtil.map("count", updateCount);
-                    return Stream.of(result)
-                            .map(RowResult::new);
-                } catch(Exception sqle) {
-                    closeIt(log,stmt);
+                    return Stream.of(result).map(RowResult::new);
+                } catch (Exception sqle) {
+                    closeIt(log, stmt);
                     throw sqle;
                 }
-            } catch(Exception sqle) {
-                closeIt(log,connection);
+            } catch (Exception sqle) {
+                closeIt(log, connection);
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
+            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()), e);
             String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
-            throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
+            if (e.getMessage().contains("No suitable driver"))
+                errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            throw new RuntimeException(
+                    String.format(
+                            errorMessage,
+                            query,
+                            e.getMessage(),
+                            "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"),
+                    e);
         }
     }
 
-    static void closeIt(Log log, AutoCloseable...closeables) {
+    static void closeIt(Log log, AutoCloseable... closeables) {
         for (AutoCloseable c : closeables) {
             try {
-                if (c!=null) {
+                if (c != null) {
                     c.close();
                 }
             } catch (Exception e) {
-                log.warn(String.format("Error closing %s: %s", c.getClass().getSimpleName(), c),e);
+                log.warn(String.format("Error closing %s: %s", c.getClass().getSimpleName(), c), e);
                 // ignore
             }
         }
@@ -186,8 +217,8 @@ public class Jdbc {
         private Map<String, Object> map;
         private LoadJdbcConfig config;
 
-
-        public ResultSetIterator(Log log, ResultSet rs, boolean closeConnection, LoadJdbcConfig config) throws SQLException {
+        public ResultSetIterator(Log log, ResultSet rs, boolean closeConnection, LoadJdbcConfig config)
+                throws SQLException {
             this.config = config;
             this.log = log;
             this.rs = rs;
@@ -223,11 +254,13 @@ public class Jdbc {
                 if (handleEndOfResults()) return null;
                 Map<String, Object> row = new LinkedHashMap<>(columns.length);
                 for (int col = 1; col < columns.length; col++) {
-                    row.put(columns[col], convert(rs.getObject(col), rs.getMetaData().getColumnType(col)));
+                    row.put(
+                            columns[col],
+                            convert(rs.getObject(col), rs.getMetaData().getColumnType(col)));
                 }
                 return row;
             } catch (Exception e) {
-                log.error(String.format("Cannot execute read result-set.%nError:%n%s", e.getMessage()),e);
+                log.error(String.format("Cannot execute read result-set.%nError:%n%s", e.getMessage()), e);
                 closeRs();
                 throw new RuntimeException("Cannot execute read result-set.", e);
             }
@@ -239,23 +272,25 @@ public class Jdbc {
                 return value.toString();
             }
             if (Types.TIME == sqlType) {
-                return ((java.sql.Time)value).toLocalTime();
+                return ((java.sql.Time) value).toLocalTime();
             }
             if (Types.TIME_WITH_TIMEZONE == sqlType) {
                 return OffsetTime.parse(value.toString());
             }
             if (Types.TIMESTAMP == sqlType) {
                 if (config.getZoneId() != null) {
-                    return ((java.sql.Timestamp)value).toInstant()
+                    return ((java.sql.Timestamp) value)
+                            .toInstant()
                             .atZone(config.getZoneId())
                             .toOffsetDateTime();
                 } else {
-                    return ((java.sql.Timestamp)value).toLocalDateTime();
+                    return ((java.sql.Timestamp) value).toLocalDateTime();
                 }
             }
             if (Types.TIMESTAMP_WITH_TIMEZONE == sqlType) {
                 if (config.getZoneId() != null) {
-                    return ((java.sql.Timestamp)value).toInstant()
+                    return ((java.sql.Timestamp) value)
+                            .toInstant()
                             .atZone(config.getZoneId())
                             .toOffsetDateTime();
                 } else {
@@ -263,12 +298,12 @@ public class Jdbc {
                 }
             }
             if (Types.DATE == sqlType) {
-                return ((java.sql.Date)value).toLocalDate();
+                return ((java.sql.Date) value).toLocalDate();
             }
 
             if (Types.ARRAY == sqlType) {
                 try {
-                    return ((java.sql.Array)value).getArray();
+                    return ((java.sql.Array) value).getArray();
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -278,7 +313,7 @@ public class Jdbc {
 
         private boolean handleEndOfResults() throws SQLException {
             Boolean closed = isRsClosed();
-            if (closed!=null && closed) {
+            if (closed != null && closed) {
                 return true;
             }
             if (!rs.next()) {
@@ -290,27 +325,31 @@ public class Jdbc {
 
         private void closeRs() {
             Boolean closed = isRsClosed();
-            if (closed==null || !closed) {
-                closeIt(log, ignore(rs::getStatement), closeConnection ? ignore(()->rs.getStatement().getConnection()) : null);
+            if (closed == null || !closed) {
+                closeIt(
+                        log,
+                        ignore(rs::getStatement),
+                        closeConnection ? ignore(() -> rs.getStatement().getConnection()) : null);
             }
         }
 
         private Boolean isRsClosed() {
             try {
                 return ignore(rs::isClosed);
-            } catch(AbstractMethodError ame) {
+            } catch (AbstractMethodError ame) {
                 return null;
             }
         }
-
     }
+
     interface FailingSupplier<T> {
         T get() throws Exception;
     }
+
     public static <T> T ignore(FailingSupplier<T> fun) {
         try {
             return fun.get();
-        } catch(Exception e) {
+        } catch (Exception e) {
             /*ignore*/
         }
         return null;

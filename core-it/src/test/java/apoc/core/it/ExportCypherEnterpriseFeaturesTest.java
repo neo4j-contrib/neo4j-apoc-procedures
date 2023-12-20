@@ -18,27 +18,26 @@
  */
 package apoc.core.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.Session;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestUtil;
+import apoc.util.Util;
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Session;
 
 /**
  * @author as
@@ -51,7 +50,8 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), !TestUtil.isRunningInCI()).withInitScript("init_neo4j_export_csv.cypher");
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE), !TestUtil.isRunningInCI())
+                .withInitScript("init_neo4j_export_csv.cypher");
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }
@@ -69,9 +69,9 @@ public class ExportCypherEnterpriseFeaturesTest {
             return null;
         });
         session.writeTransaction(tx -> {
-            tx.run("CREATE (a:Person:Base {name: 'Phil', surname: 'Meyer', tenantId: 'neo4j', id: 'waBfk3z'}) " +
-                    "CREATE (b:Person:Base {name: 'Silvia', surname: 'Jones', tenantId: 'random', id: 'waBfk3z'}) " +
-                    "CREATE (a)-[:KNOWS]->(b)");
+            tx.run("CREATE (a:Person:Base {name: 'Phil', surname: 'Meyer', tenantId: 'neo4j', id: 'waBfk3z'}) "
+                    + "CREATE (b:Person:Base {name: 'Silvia', surname: 'Jones', tenantId: 'random', id: 'waBfk3z'}) "
+                    + "CREATE (a)-[:KNOWS]->(b)");
             tx.commit();
             return null;
         });
@@ -93,8 +93,11 @@ public class ExportCypherEnterpriseFeaturesTest {
     @Test
     public void testExportWithCompoundConstraintCypherShell() {
         String fileName = "testCypherShellWithCompoundConstraint.cypher";
-        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
-                map("file", fileName, "config", Util.map("format", "cypher-shell")), (r) -> {
+        testCall(
+                session,
+                "CALL apoc.export.cypher.all($file, $config)",
+                map("file", fileName, "config", Util.map("format", "cypher-shell")),
+                (r) -> {
                     assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName);
                 });
     }
@@ -102,7 +105,9 @@ public class ExportCypherEnterpriseFeaturesTest {
     @Test
     public void testExportWithCompoundConstraintPlain() {
         String fileName = "testPlainFormatWithCompoundConstraint.cypher";
-        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
+        testCall(
+                session,
+                "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "plain")),
                 (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, r, fileName));
     }
@@ -110,7 +115,9 @@ public class ExportCypherEnterpriseFeaturesTest {
     @Test
     public void testExportWithCompoundConstraintNeo4jShell() {
         String fileName = "testNeo4jShellWithCompoundConstraint.cypher";
-        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
+        testCall(
+                session,
+                "CALL apoc.export.cypher.all($file, $config)",
                 map("file", fileName, "config", Util.map("format", "neo4j-shell")),
                 (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName));
     }
@@ -119,21 +126,24 @@ public class ExportCypherEnterpriseFeaturesTest {
     public void shouldHandleTwoLabelsWithOneCompoundConstraintEach() {
         final String query = "MATCH (a:Person:Base)-[r:KNOWS]-(b:Person) RETURN a, b, r";
         /* The bug was:
-            UNWIND [{start: {name:"Phil", surname:"Meyer"}, end: {name:"Silvia", surname:"Jones"}, properties:{}}] AS row
-            MATCH (start:Person{tenantId: row.start.tenantId, id: row.start.id, surname: row.start.surname, name: row.start.name})
-            MATCH (end:Person{surname: row.end.surname, name: row.end.name})
-            CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
-         */
-        final String expected = "UNWIND [{start: {name:\"Phil\", surname:\"Meyer\"}, " +
-                "end: {name:\"Silvia\", surname:\"Jones\"}, properties:{}}] AS row\n" +
-                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})\n" +
-                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})\n" +
-                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties";
+           UNWIND [{start: {name:"Phil", surname:"Meyer"}, end: {name:"Silvia", surname:"Jones"}, properties:{}}] AS row
+           MATCH (start:Person{tenantId: row.start.tenantId, id: row.start.id, surname: row.start.surname, name: row.start.name})
+           MATCH (end:Person{surname: row.end.surname, name: row.end.name})
+           CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
+        */
+        final String expected = "UNWIND [{start: {name:\"Phil\", surname:\"Meyer\"}, "
+                + "end: {name:\"Silvia\", surname:\"Jones\"}, properties:{}}] AS row\n"
+                + "MATCH (start:Person{surname: row.start.surname, name: row.start.name})\n"
+                + "MATCH (end:Person{surname: row.end.surname, name: row.end.name})\n"
+                + "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties";
 
         try {
             beforeTwoLabelsWithOneCompoundConstraintEach();
-            testCallInReadTransaction(session, "CALL apoc.export.cypher.query($query, $file, $config)",
-                    Util.map("file", null, "query", query, "config", Util.map("format", "plain", "stream", true)), (r) -> {
+            testCallInReadTransaction(
+                    session,
+                    "CALL apoc.export.cypher.query($query, $file, $config)",
+                    Util.map("file", null, "query", query, "config", Util.map("format", "plain", "stream", true)),
+                    (r) -> {
                         final String cypherStatements = (String) r.get("cypherStatements");
                         String unwind = Stream.of(cypherStatements.split(";"))
                                 .map(String::trim)
@@ -150,11 +160,10 @@ public class ExportCypherEnterpriseFeaturesTest {
     }
 
     private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
-                // The constraints are exported in arbitrary order, so we cannot assert on the entire file
+        // The constraints are exported in arbitrary order, so we cannot assert on the entire file
         String actual = readFileToString(new File(importFolder, fileName));
         MatcherAssert.assertThat(actual, Matchers.containsString(expectedStatement));
-        EXPECTED_CONSTRAINTS.forEach(
-                constraint -> assertTrue(String.format("Constraint '%s' not in result", constraint), actual.contains(constraint))
-        );
+        EXPECTED_CONSTRAINTS.forEach(constraint ->
+                assertTrue(String.format("Constraint '%s' not in result", constraint), actual.contains(constraint)));
     }
 }

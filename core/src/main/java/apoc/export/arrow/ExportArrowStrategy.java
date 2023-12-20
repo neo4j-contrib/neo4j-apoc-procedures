@@ -20,6 +20,18 @@ package apoc.export.arrow;
 
 import apoc.meta.Meta;
 import apoc.util.JsonUtil;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.BaseVariableWidthVector;
@@ -41,19 +53,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.values.storable.DurationValue;
-
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 public interface ExportArrowStrategy<IN, OUT> {
 
@@ -136,10 +135,12 @@ public interface ExportArrowStrategy<IN, OUT> {
                 case "Duration":
                 case "Node":
                 case "Relationship":
-//                    return new Field(fieldName, FieldType.nullable(Types.MinorType.STRUCT.getType()), null);
+                    //                    return new Field(fieldName,
+                    // FieldType.nullable(Types.MinorType.STRUCT.getType()), null);
                 case "Point":
                 case "Map":
-//                    return new Field(fieldName, FieldType.nullable(Types.MinorType.MAP.getType()), null);
+                    //                    return new Field(fieldName, FieldType.nullable(Types.MinorType.MAP.getType()),
+                    // null);
                 case "DateTimeArray":
                 case "DateArray":
                 case "BooleanArray":
@@ -148,8 +149,11 @@ public interface ExportArrowStrategy<IN, OUT> {
                 case "StringArray":
                 case "PointArray":
                 default:
-                    return (type.endsWith("Array")) ? new Field(fieldName, FieldType.nullable(Types.MinorType.LIST.getType()),
-                            List.of(toField("$data$", Set.of(type.replace("Array", "")))))
+                    return (type.endsWith("Array"))
+                            ? new Field(
+                                    fieldName,
+                                    FieldType.nullable(Types.MinorType.LIST.getType()),
+                                    List.of(toField("$data$", Set.of(type.replace("Array", "")))))
                             : new Field(fieldName, FieldType.nullable(Types.MinorType.VARCHAR.getType()), null);
             }
         }
@@ -245,17 +249,11 @@ public interface ExportArrowStrategy<IN, OUT> {
         } else if (value instanceof Date) {
             dateInMillis = ((Date) value).getTime();
         } else if (value instanceof LocalDateTime) {
-            dateInMillis = ((LocalDateTime) value)
-                    .toInstant(ZoneOffset.UTC)
-                    .toEpochMilli();
+            dateInMillis = ((LocalDateTime) value).toInstant(ZoneOffset.UTC).toEpochMilli();
         } else if (value instanceof ZonedDateTime) {
-            dateInMillis = ((ZonedDateTime) value)
-                    .toInstant()
-                    .toEpochMilli();
+            dateInMillis = ((ZonedDateTime) value).toInstant().toEpochMilli();
         } else if (value instanceof OffsetDateTime) {
-            dateInMillis = ((OffsetDateTime) value)
-                    .toInstant()
-                    .toEpochMilli();
+            dateInMillis = ((OffsetDateTime) value).toInstant().toEpochMilli();
         } else {
             dateInMillis = null;
         }

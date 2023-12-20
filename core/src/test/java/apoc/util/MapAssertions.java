@@ -18,15 +18,15 @@
  */
 package apoc.util;
 
+import java.util.*;
 import org.assertj.core.api.AbstractAssert;
 
-import java.util.*;
-
-public class MapAssertions extends AbstractAssert<MapAssertions, Map<String,Object>> {
+public class MapAssertions extends AbstractAssert<MapAssertions, Map<String, Object>> {
     private final Collection<String> blackListedKeys;
     private final List<String> propertyPath;
 
-    private MapAssertions(Map<String, Object> stringObjectMap, Collection<String> blackListedKeys, List<String> propertyPath) {
+    private MapAssertions(
+            Map<String, Object> stringObjectMap, Collection<String> blackListedKeys, List<String> propertyPath) {
         super(stringObjectMap, MapAssertions.class);
         this.blackListedKeys = blackListedKeys;
         this.propertyPath = propertyPath;
@@ -37,18 +37,19 @@ public class MapAssertions extends AbstractAssert<MapAssertions, Map<String,Obje
     }
 
     public static MapAssertions assertThat(Map<String, Object> actual, List<String> blackListedKeys) {
-            return new MapAssertions(actual, blackListedKeys);
+        return new MapAssertions(actual, blackListedKeys);
     }
 
     public MapAssertions isEqualsTo(Map<String, Object> expected) {
         isNotNull();
 
-        if (actual.size() != expected.size() ) {
-            failWithMessage("not same number of elements: %s actual has %d elements, expected %s has %d elements", actual, actual.size(), expected, expected.size());
+        if (actual.size() != expected.size()) {
+            failWithMessage(
+                    "not same number of elements: %s actual has %d elements, expected %s has %d elements",
+                    actual, actual.size(), expected, expected.size());
         } else {
 
             actual.keySet().stream().filter(k -> !blackListedKeys.contains(k)).forEach(k -> {
-
                 Object actualValue = actual.get(k);
                 Object expectedValue = expected.get(k);
 
@@ -59,9 +60,10 @@ public class MapAssertions extends AbstractAssert<MapAssertions, Map<String,Obje
                 } else {
 
                     if (!Objects.equals(actualValue, expectedValue)) {
-                        failWithMessage("property %s differs: actual %s, expected %s", String.join(".", propertyPath) + "." + k, actualValue, expectedValue);
+                        failWithMessage(
+                                "property %s differs: actual %s, expected %s",
+                                String.join(".", propertyPath) + "." + k, actualValue, expectedValue);
                     }
-
                 }
             });
         }

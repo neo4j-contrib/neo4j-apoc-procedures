@@ -20,13 +20,12 @@ package apoc.generate;
 
 import apoc.generate.config.GeneratorConfiguration;
 import apoc.generate.relationship.RelationshipGenerator;
+import java.util.ArrayList;
+import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * {@link GraphGenerator} for Neo4j.

@@ -18,7 +18,15 @@
  */
 package apoc.util;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+
 import apoc.export.util.CountingInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
@@ -31,17 +39,7 @@ import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInpu
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
-
 public enum CompressionAlgo {
-
     NONE(null, null),
     GZIP(GzipCompressorOutputStream.class, GzipCompressorInputStream.class),
     BZIP2(BZip2CompressorOutputStream.class, BZip2CompressorInputStream.class),
@@ -67,18 +65,22 @@ public enum CompressionAlgo {
     }
 
     public OutputStream getOutputStream(OutputStream stream) throws Exception {
-        return isNone() ? stream : (OutputStream) compressor.getConstructor(OutputStream.class).newInstance(stream);
+        return isNone()
+                ? stream
+                : (OutputStream) compressor.getConstructor(OutputStream.class).newInstance(stream);
     }
 
     public String decompress(byte[] byteArray, Charset charset) throws Exception {
         try (ByteArrayInputStream stream = new ByteArrayInputStream(byteArray);
-             InputStream inputStream = toLimitedIStream( getInputStream(stream), byteArray.length )) {
+                InputStream inputStream = toLimitedIStream(getInputStream(stream), byteArray.length)) {
             return IOUtils.toString(inputStream, charset);
         }
     }
 
     public InputStream getInputStream(InputStream stream) throws Exception {
-        return isNone() ? stream : (InputStream) decompressor.getConstructor(InputStream.class).newInstance(stream);
+        return isNone()
+                ? stream
+                : (InputStream) decompressor.getConstructor(InputStream.class).newInstance(stream);
     }
 
     public boolean isNone() {
@@ -90,7 +92,7 @@ public enum CompressionAlgo {
 
         try {
             ByteArrayInputStream stream = new ByteArrayInputStream(data);
-            InputStream inputStream = toLimitedIStream( getInputStream(stream), data.length );
+            InputStream inputStream = toLimitedIStream(getInputStream(stream), data.length);
             return new CountingInputStream(inputStream, stream.available());
         } catch (Exception e) {
             throw new RuntimeException(e);

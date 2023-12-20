@@ -1,18 +1,17 @@
 package apoc.processor;
 
-import com.google.testing.compile.CompilationRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.neo4j.procedure.UserAggregationFunction;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+import com.google.testing.compile.CompilationRule;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.TypeElement;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.neo4j.procedure.UserAggregationFunction;
 
 public class UserAggregationFunctionSignatureVisitorTest {
 
@@ -26,7 +25,9 @@ public class UserAggregationFunctionSignatureVisitorTest {
     @Before
     public void prepare() {
         visitor = new SignatureVisitor(compilationRule.getElements(), mock(Messager.class));
-        typeElement = compilationRule.getElements().getTypeElement(UserAggregationFunctionSignatureVisitorTest.class.getName());
+        typeElement = compilationRule
+                .getElements()
+                .getTypeElement(UserAggregationFunctionSignatureVisitorTest.class.getName());
     }
 
     @Test
@@ -66,26 +67,21 @@ public class UserAggregationFunctionSignatureVisitorTest {
     }
 
     @UserAggregationFunction(name = "my.func")
-    public static void myFunction() {
-
-    }
+    public static void myFunction() {}
 
     @UserAggregationFunction(value = "my.func2")
-    public static void myFunction2() {
-
-    }
+    public static void myFunction2() {}
 
     @UserAggregationFunction(name = "my.func3", value = "ignored")
-    public static void myFunction3() {
-
-    }
+    public static void myFunction3() {}
 
     @UserAggregationFunction
-    public static void myDefaultNamedFunction() {
-
-    }
+    public static void myDefaultNamedFunction() {}
 
     private Element findMemberByName(TypeElement typeElement, String name) {
-        return compilationRule.getElements().getAllMembers(typeElement).stream().filter(e -> e.getSimpleName().contentEquals(name)).findFirst().get();
+        return compilationRule.getElements().getAllMembers(typeElement).stream()
+                .filter(e -> e.getSimpleName().contentEquals(name))
+                .findFirst()
+                .get();
     }
 }

@@ -18,11 +18,11 @@
  */
 package apoc.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CompressionConfig {
     public static final String COMPRESSION = "compression";

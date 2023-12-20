@@ -18,8 +18,6 @@
  */
 package apoc.dv;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,13 +25,15 @@ import java.util.regex.MatchResult;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 
 public class JDBCResource extends VirtualizedResource {
 
     private final String queryParsed;
 
     public JDBCResource(String name, Map<String, Object> config) {
-        super(name,
+        super(
+                name,
                 (String) config.get("url"),
                 (String) config.get("desc"),
                 (List<String>) config.get("labels"),
@@ -47,11 +47,11 @@ public class JDBCResource extends VirtualizedResource {
         final String query = (String) config.get("query");
         final long questionMarks = countForQuestionMarks(query);
         if (questionMarks > 0) {
-            return LongStream.range(0, questionMarks)
-                    .mapToObj(i -> "?")
-                    .collect(Collectors.toList());
+            return LongStream.range(0, questionMarks).mapToObj(i -> "?").collect(Collectors.toList());
         }
-        return PLACEHOLDER_PATTERN.matcher(query).results()
+        return PLACEHOLDER_PATTERN
+                .matcher(query)
+                .results()
                 .map(MatchResult::group)
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)
@@ -72,7 +72,8 @@ public class JDBCResource extends VirtualizedResource {
         final int countForQuestionMarks = countForQuestionMarks(query);
         final int countForMapParameters = countForMapParameters(query);
         if (countForQuestionMarks > 0 && countForMapParameters > 0) {
-            throw new IllegalArgumentException("The query is mixing parameters with `$` and `?` please use just one notation");
+            throw new IllegalArgumentException(
+                    "The query is mixing parameters with `$` and `?` please use just one notation");
         }
         return countForQuestionMarks > 0 ? countForQuestionMarks : countForMapParameters;
     }
@@ -114,8 +115,7 @@ public class JDBCResource extends VirtualizedResource {
 
     @Override
     protected String getProcedureCall(Map<String, Object> config) {
-        return "CALL apoc.load.jdbc($url, $query, $params, $config) YIELD row " +
-                "RETURN apoc.create.vNode($labels, row) AS node";
+        return "CALL apoc.load.jdbc($url, $query, $params, $config) YIELD row "
+                + "RETURN apoc.create.vNode($labels, row) AS node";
     }
-
 }

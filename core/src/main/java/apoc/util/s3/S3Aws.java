@@ -18,6 +18,8 @@
  */
 package apoc.util.s3;
 
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+
 import apoc.util.StreamConnection;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -30,11 +32,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
-
 import java.io.InputStream;
 import java.util.Objects;
-
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
 
 public class S3Aws {
 
@@ -42,8 +41,8 @@ public class S3Aws {
 
     public S3Aws(S3Params s3Params, String region) {
 
-        AWSCredentialsProvider credentialsProvider = getCredentialsProvider(
-                s3Params.getAccessKey(), s3Params.getSecretKey(), s3Params.getSessionToken());
+        AWSCredentialsProvider credentialsProvider =
+                getCredentialsProvider(s3Params.getAccessKey(), s3Params.getSecretKey(), s3Params.getSessionToken());
 
         AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
         builder.withCredentials(credentialsProvider)
@@ -53,7 +52,8 @@ public class S3Aws {
         region = Objects.nonNull(region) ? region : s3Params.getRegion();
         String endpoint = s3Params.getEndpoint();
         if (Objects.nonNull(endpoint)) {
-            builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Params.getEndpoint(), region));
+            builder.withEndpointConfiguration(
+                    new AwsClientBuilder.EndpointConfiguration(s3Params.getEndpoint(), region));
         } else if (Objects.nonNull(region)) {
             builder.withRegion(region);
         }
@@ -72,7 +72,7 @@ public class S3Aws {
         return new StreamConnection() {
             @Override
             public InputStream getInputStream() {
-                return toLimitedIStream( s3Object.getObjectContent(), getLength() );
+                return toLimitedIStream(s3Object.getObjectContent(), getLength());
             }
 
             @Override
@@ -95,8 +95,7 @@ public class S3Aws {
     private static AWSCredentialsProvider getCredentialsProvider(
             final String accessKey, final String secretKey, final String sessionToken) {
 
-        if (Objects.nonNull(accessKey) && !accessKey.isEmpty()
-                && Objects.nonNull(secretKey) && !secretKey.isEmpty()) {
+        if (Objects.nonNull(accessKey) && !accessKey.isEmpty() && Objects.nonNull(secretKey) && !secretKey.isEmpty()) {
             final AWSCredentials credentials;
             if (Objects.isNull(sessionToken) || sessionToken.isEmpty()) {
                 credentials = new BasicAWSCredentials(accessKey, secretKey);

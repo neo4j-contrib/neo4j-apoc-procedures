@@ -18,23 +18,21 @@
  */
 package apoc.ttl;
 
+import static org.junit.Assert.assertTrue;
+
 import apoc.ApocSettings;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static org.junit.Assert.assertTrue;
 
 public class TTLTest {
 
@@ -53,10 +51,13 @@ public class TTLTest {
         int fooCount = 200;
         int barCount = 300;
         restartAndRegister(db);
-        db.executeTransactionally("UNWIND range(1," + fooCount + ") as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
-        db.executeTransactionally("UNWIND range(1," + barCount + ") as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
+        db.executeTransactionally("UNWIND range(1," + fooCount
+                + ") as range CREATE (:Baz)-[:REL_TEST]->(n:Foo:TTL {id: range, ttl: timestamp() + 100});");
+        db.executeTransactionally(
+                "UNWIND range(1," + barCount + ") as range CREATE (n:Bar:TTL {id: range, ttl: timestamp() + 100});");
         assertTrue(isNodeCountConsistent(fooCount, barCount));
-        org.neo4j.test.assertion.Assert.assertEventually(() -> isNodeCountConsistent(0, 0), (value) -> value, 30L, TimeUnit.SECONDS);
+        org.neo4j.test.assertion.Assert.assertEventually(
+                () -> isNodeCountConsistent(0, 0), (value) -> value, 30L, TimeUnit.SECONDS);
     }
 
     // test extracted from apoc.date
@@ -65,8 +66,9 @@ public class TTLTest {
         restartAndRegister(db);
         db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
         db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.ttl.expireIn(n,500,'ms') RETURN count(*)");
-        assertTrue(isNodeCountConsistent(1,1));
-        org.neo4j.test.assertion.Assert.assertEventually(() -> isNodeCountConsistent(0, 0), (value) -> value, 10L, TimeUnit.SECONDS);
+        assertTrue(isNodeCountConsistent(1, 1));
+        org.neo4j.test.assertion.Assert.assertEventually(
+                () -> isNodeCountConsistent(0, 0), (value) -> value, 10L, TimeUnit.SECONDS);
     }
 
     private static boolean isNodeCountConsistent(int foo, int bar) {

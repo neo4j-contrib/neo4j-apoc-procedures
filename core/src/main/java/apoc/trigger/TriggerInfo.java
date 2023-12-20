@@ -20,11 +20,10 @@ package apoc.trigger;
 
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
-import org.neo4j.graphdb.Node;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.neo4j.graphdb.Node;
 
 public class TriggerInfo {
     public String name;
@@ -50,14 +49,20 @@ public class TriggerInfo {
         this.paused = paused;
     }
 
-
-    public TriggerInfo(String name, String query, Map<String, Object> selector, Map<String, Object> params, boolean installed, boolean paused) {
+    public TriggerInfo(
+            String name,
+            String query,
+            Map<String, Object> selector,
+            Map<String, Object> params,
+            boolean installed,
+            boolean paused) {
         this(name, query, selector, installed, paused);
         this.params = params;
     }
 
     public static TriggerInfo from(Map<String, Object> mapInfo, boolean installed, String name) {
-        return new TriggerInfo(name,
+        return new TriggerInfo(
+                name,
                 (String) mapInfo.get(SystemPropertyKeys.statement.name()),
                 (Map<String, Object>) mapInfo.get(SystemPropertyKeys.selector.name()),
                 (Map<String, Object>) mapInfo.get(SystemPropertyKeys.params.name()),
@@ -78,16 +83,18 @@ public class TriggerInfo {
     }
 
     private static Map<String, Object> toTriggerMap(Node node) {
-        return node.getAllProperties()
-                .entrySet().stream()
+        return node.getAllProperties().entrySet().stream()
                 .filter(e -> !SystemPropertyKeys.database.name().equals(e.getKey()))
-                .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
+                .collect(
+                        HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
                         (mapAccumulator, e) -> {
-                            Object value = List.of(SystemPropertyKeys.selector.name(), SystemPropertyKeys.params.name()).contains(e.getKey())
+                            Object value = List.of(SystemPropertyKeys.selector.name(), SystemPropertyKeys.params.name())
+                                            .contains(e.getKey())
                                     ? Util.fromJson((String) e.getValue(), Map.class)
                                     : e.getValue();
 
                             mapAccumulator.put(e.getKey(), value);
-                        }, HashMap::putAll);
+                        },
+                        HashMap::putAll);
     }
 }

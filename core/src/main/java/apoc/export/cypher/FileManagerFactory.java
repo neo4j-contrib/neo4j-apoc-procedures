@@ -18,31 +18,30 @@
  */
 package apoc.export.cypher;
 
-import java.io.OutputStream;
+import static apoc.util.FileUtils.getOutputStream;
+
 import apoc.export.util.ExportConfig;
 import apoc.util.Util;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static apoc.util.FileUtils.getOutputStream;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author mh
  * @since 06.12.17
  */
 public class FileManagerFactory {
-    private final static String DOT = ".";
-    
+    private static final String DOT = ".";
+
     public static ExportFileManager createFileManager(String fileName, boolean separatedFiles) {
         return createFileManager(fileName, separatedFiles, ExportConfig.EMPTY);
     }
-    
+
     public static ExportFileManager createFileManager(String fileName, boolean separatedFiles, ExportConfig config) {
         if (fileName == null || "".equals(fileName)) {
             return new StringExportCypherFileManager(separatedFiles, config);
@@ -61,7 +60,8 @@ public class FileManagerFactory {
         private final Map<String, PrintWriter> writerCache;
         private ExportConfig config;
 
-        public PhysicalExportFileManager(String fileType, String fileName, boolean separatedFiles, ExportConfig config) {
+        public PhysicalExportFileManager(
+                String fileType, String fileName, boolean separatedFiles, ExportConfig config) {
             this.fileType = StringUtils.isBlank(fileType) ? "" : fileType;
             this.fileName = fileName;
             this.separatedFiles = separatedFiles;
@@ -71,7 +71,8 @@ public class FileManagerFactory {
 
         @Override
         public PrintWriter getPrintWriter(String type) {
-            String newFileName = this.separatedFiles ? normalizeFileName(fileName, type) : normalizeFileName(fileName, null);
+            String newFileName =
+                    this.separatedFiles ? normalizeFileName(fileName, type) : normalizeFileName(fileName, null);
             return writerCache.computeIfAbsent(newFileName, (key) -> {
                 OutputStream outputStream = getOutputStream(newFileName, config);
                 return outputStream == null ? null : new PrintWriter(outputStream);
@@ -87,7 +88,7 @@ public class FileManagerFactory {
             if (StringUtils.isBlank(suffix)) {
                 return fileName;
             }
-            // in case of file without dot extension, we just add the suffix 
+            // in case of file without dot extension, we just add the suffix
             if (StringUtils.isEmpty(fileType)) {
                 return fileName + DOT + suffix;
             }
@@ -147,8 +148,7 @@ public class FileManagerFactory {
             StringWriter writer = writers.get(type);
             if (writer != null) {
                 return Util.getStringOrCompressedData(writer, config);
-            }
-            else return null;
+            } else return null;
         }
 
         @Override
@@ -161,5 +161,4 @@ public class FileManagerFactory {
             return this.separatedFiles;
         }
     }
-
 }

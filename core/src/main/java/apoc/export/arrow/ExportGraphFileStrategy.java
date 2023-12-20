@@ -21,6 +21,11 @@ package apoc.export.arrow;
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
@@ -31,12 +36,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Stream;
 
 public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph>, ExportGraphStrategy {
 
@@ -50,7 +49,8 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
 
     private Schema schema;
 
-    public ExportGraphFileStrategy(String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+    public ExportGraphFileStrategy(
+            String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
         this.fileName = fileName;
         this.db = db;
         this.pools = pools;
@@ -63,8 +63,7 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
     public Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, SubGraph subGraph) {
         return Stream.concat(Iterables.stream(subGraph.getNodes()), Iterables.stream(subGraph.getRelationships()))
                 .map(entity -> {
-                    reporter.update(entity instanceof Node ? 1 : 0,
-                            entity instanceof Relationship ? 1 : 0, 0);
+                    reporter.update(entity instanceof Node ? 1 : 0, entity instanceof Relationship ? 1 : 0, 0);
                     return this.entityToMap(entity);
                 })
                 .iterator();
@@ -72,7 +71,9 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
 
     @Override
     public String getSource(SubGraph subGraph) {
-        return String.format("graph: nodes(%d), rels(%d)", Iterables.count(subGraph.getNodes()), Iterables.count(subGraph.getRelationships()));
+        return String.format(
+                "graph: nodes(%d), rels(%d)",
+                Iterables.count(subGraph.getNodes()), Iterables.count(subGraph.getRelationships()));
     }
 
     @Override
@@ -118,7 +119,4 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
         }
         return schema;
     }
-
-
-
 }

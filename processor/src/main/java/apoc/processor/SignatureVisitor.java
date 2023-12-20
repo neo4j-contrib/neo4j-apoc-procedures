@@ -1,16 +1,15 @@
 package apoc.processor;
 
-import org.neo4j.procedure.Procedure;
-import org.neo4j.procedure.UserAggregationFunction;
-import org.neo4j.procedure.UserFunction;
-
+import java.util.Optional;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleElementVisitor9;
 import javax.tools.Diagnostic;
-import java.util.Optional;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserAggregationFunction;
+import org.neo4j.procedure.UserFunction;
 
 public class SignatureVisitor extends SimpleElementVisitor9<String, Void> {
 
@@ -18,8 +17,7 @@ public class SignatureVisitor extends SimpleElementVisitor9<String, Void> {
 
     private final Messager messager;
 
-    public SignatureVisitor(Elements elementUtils,
-                            Messager messager) {
+    public SignatureVisitor(Elements elementUtils, Messager messager) {
 
         this.elementUtils = elementUtils;
         this.messager = messager;

@@ -18,14 +18,16 @@
  */
 package apoc.util;
 
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class LogsUtilTest {
 
     @Test
     public void shouldRedactPasswords() {
-        String sanitized = LogsUtil.sanitizeQuery("CREATE USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED");
+        String sanitized =
+                LogsUtil.sanitizeQuery("CREATE USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED");
         assertEquals(sanitized, "CREATE USER dummy IF NOT EXISTS SET PASSWORD '******' CHANGE NOT REQUIRED");
     }
 

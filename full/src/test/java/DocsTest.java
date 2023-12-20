@@ -16,7 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import static apoc.ApocConfig.APOC_UUID_ENABLED;
+import static apoc.ApocConfig.apocConfig;
+import static org.junit.Assert.assertFalse;
+
 import apoc.util.TestUtil;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -31,23 +38,18 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.io.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static apoc.ApocConfig.APOC_UUID_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static org.junit.Assert.assertFalse;
-
 /**
  * @author ab-larus
  * @since 05.09.18
  */
 public class DocsTest {
 
-    public static final String GENERATED_DOCUMENTATION_DIR = "../docs/asciidoc/modules/ROOT/examples/generated-documentation";
-    public static final String GENERATED_PARTIALS_DOCUMENTATION_DIR = "../docs/asciidoc/modules/ROOT/partials/generated-documentation";
+    public static final String GENERATED_DOCUMENTATION_DIR =
+            "../docs/asciidoc/modules/ROOT/examples/generated-documentation";
+    public static final String GENERATED_PARTIALS_DOCUMENTATION_DIR =
+            "../docs/asciidoc/modules/ROOT/partials/generated-documentation";
     public static final String GENERATED_OVERVIEW_DIR = "../docs/asciidoc/modules/ROOT/pages/overview";
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.auth_enabled, true)
@@ -61,7 +63,7 @@ public class DocsTest {
         assertFalse(allClasses.isEmpty());
 
         for (Class<?> klass : allClasses) {
-            if(!klass.getName().endsWith("Test")) {
+            if (!klass.getName().endsWith("Test")) {
                 TestUtil.registerProcedure(db, klass);
             }
         }
@@ -87,18 +89,26 @@ public class DocsTest {
 
         List<DocumentationGenerator.Row> allRows = documentationGenerator.getRows();
 
-        long done = allRows.stream().filter(row -> new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists()).count();
+        long done = allRows.stream()
+                .filter(row ->
+                        new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists())
+                .count();
 
         List<DocumentationGenerator.Row> missingRows = allRows.stream()
                 .sorted(Comparator.comparing(DocumentationGenerator.Row::getName))
-                .filter(row -> !new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists())
+                .filter(row ->
+                        !new File("../docs/asciidoc/modules/ROOT/partials/usage", row.getName() + ".adoc").exists())
                 .collect(Collectors.toList());
 
         System.out.println("done = " + done);
-        System.out.println("missing = " + missingRows.size()  + " (" + missingRows.stream().filter(row1 -> !deprecated.contains(row1.getName())).count() + ")");
+        System.out.println("missing = " + missingRows.size() + " ("
+                + missingRows.stream()
+                        .filter(row1 -> !deprecated.contains(row1.getName()))
+                        .count() + ")");
         System.out.println("deprecated = " + deprecated.size());
         for (DocumentationGenerator.Row row : missingRows) {
-            System.out.println("procedure/function = " + row.getName() + (deprecated.contains(row.getName()) ? " (deprecated)" : ""));
+            System.out.println("procedure/function = " + row.getName()
+                    + (deprecated.contains(row.getName()) ? " (deprecated)" : ""));
         }
     }
 
@@ -152,7 +162,9 @@ public class DocsTest {
         docs.put("apoc.load.csv", "import/load-csv.adoc");
         docs.put("apoc.create.v.*|apoc.create.virtual.*", "virtual/virtual-nodes-rels.adoc");
         docs.put("apoc.math.*|apoc.number.romanToArabic|apoc.number.arabicToRoman", "mathematical/math-functions.adoc");
-        docs.put("apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists", "graph-querying/node-querying.adoc");
+        docs.put(
+                "apoc.nodes.*|apoc.node.*|apoc.any.properties|apoc.any.property|apoc.label.exists",
+                "graph-querying/node-querying.adoc");
         docs.put("apoc.diff.graphs", "comparing-graphs/graph-difference.adoc");
         docs.put("apoc.path.*", "graph-querying/path-querying.adoc");
         docs.put("apoc.util.md5|apoc.util.sha1", "misc/text-functions.adoc#text-functions-hashing");
@@ -186,7 +198,9 @@ public class DocsTest {
         docs.put("apoc.refactor.rename.*", "graph-updates/graph-refactoring/rename-label-type-property.adoc");
         docs.put("apoc.couchbase.*", "database-integration/couchbase.adoc");
         docs.put("apoc.redis.*", "database-integration/redis.adoc");
-        docs.put("apoc.create.node.*|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*", "graph-updates/data-creation.adoc");
+        docs.put(
+                "apoc.create.node.*|apoc.create.setP.*|apoc.create.setRel.*|apoc.create.relationship|apoc.nodes.link|apoc.merge.*|apoc.create.remove.*",
+                "graph-updates/data-creation.adoc");
         docs.put("apoc.custom.*", "cypher-execution/cypher-based-procedures-functions.adoc");
         docs.put("apoc.generate.*", "graph-updates/graph-generators.adoc");
         docs.put("apoc.config.*", "database-introspection/config.adoc");
@@ -200,10 +214,9 @@ public class DocsTest {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .forPackages("apoc")
                 .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
-                .filterInputsBy(input -> !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$"))
-        );
+                .filterInputsBy(input ->
+                        !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$")));
 
         return reflections.getSubTypesOf(Object.class);
     }
-
 }

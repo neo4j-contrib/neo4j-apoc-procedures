@@ -18,19 +18,17 @@
  */
 package apoc.core.it;
 
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
-
-import java.util.List;
-
 import org.neo4j.driver.Session;
-
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static org.junit.Assert.assertEquals;
 
 public class CollEnterpriseTest {
 
@@ -53,15 +51,41 @@ public class CollEnterpriseTest {
 
     @RepeatedTest(50)
     public void testMin() {
-        assertEquals(1L, session.run("RETURN apoc.coll.min([1,2]) as value").next().get("value").asLong());
-        assertEquals(1L, session.run("RETURN apoc.coll.min([1,2,3]) as value").next().get("value").asLong());
-        assertEquals(0.5D, session.run("RETURN apoc.coll.min([0.5,1,2.3]) as value").next().get("value").asDouble(), 0.1);
+        assertEquals(
+                1L,
+                session.run("RETURN apoc.coll.min([1,2]) as value")
+                        .next()
+                        .get("value")
+                        .asLong());
+        assertEquals(
+                1L,
+                session.run("RETURN apoc.coll.min([1,2,3]) as value")
+                        .next()
+                        .get("value")
+                        .asLong());
+        assertEquals(
+                0.5D,
+                session.run("RETURN apoc.coll.min([0.5,1,2.3]) as value")
+                        .next()
+                        .get("value")
+                        .asDouble(),
+                0.1);
     }
 
     @RepeatedTest(50)
     public void testMax() {
-        assertEquals(3L, session.run("RETURN apoc.coll.max([1,2,3]) as value").next().get("value").asLong());
-        assertEquals(2.3D, session.run("RETURN apoc.coll.max([0.5,1,2.3]) as value").next().get("value").asDouble(), 0.1);
+        assertEquals(
+                3L,
+                session.run("RETURN apoc.coll.max([1,2,3]) as value")
+                        .next()
+                        .get("value")
+                        .asLong());
+        assertEquals(
+                2.3D,
+                session.run("RETURN apoc.coll.max([0.5,1,2.3]) as value")
+                        .next()
+                        .get("value")
+                        .asDouble(),
+                0.1);
     }
-
 }

@@ -18,24 +18,23 @@
  */
 package apoc.convert;
 
+import static apoc.util.Util.labelStrings;
+import static apoc.util.Util.map;
+
 import apoc.meta.Meta;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.procedure.*;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static apoc.util.Util.labelStrings;
-import static apoc.util.Util.map;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.procedure.*;
 
 public class Json {
 
@@ -51,23 +50,27 @@ public class Json {
             case RELATIONSHIP:
                 return relToMap((Relationship) value);
             case PATH:
-                return writeJsonResult(StreamSupport.stream(((Path)value).spliterator(),false)
-                        .map(i-> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
+                return writeJsonResult(StreamSupport.stream(((Path) value).spliterator(), false)
+                        .map(i -> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
                         .collect(Collectors.toList()));
             case LIST:
-                return Convert.convertToList(value).stream().map(Json::writeJsonResult).collect(Collectors.toList());
+                return Convert.convertToList(value).stream()
+                        .map(Json::writeJsonResult)
+                        .collect(Collectors.toList());
             case MAP:
-                return ((Map<String, Object>) value).entrySet()
-                        .stream()
-                        .collect(HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
-                                (mapAccumulator, entry) -> mapAccumulator.put(entry.getKey(), writeJsonResult(entry.getValue())), 
-                                HashMap::putAll);  
+                return ((Map<String, Object>) value)
+                        .entrySet().stream()
+                                .collect(
+                                        HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
+                                        (mapAccumulator, entry) ->
+                                                mapAccumulator.put(entry.getKey(), writeJsonResult(entry.getValue())),
+                                        HashMap::putAll);
             default:
                 return value;
         }
     }
 
-    private static Map<String,Object> relToMap(Relationship rel) {
+    private static Map<String, Object> relToMap(Relationship rel) {
         Map<String, Object> mapRel = map(
                 "id", String.valueOf(rel.getId()),
                 "type", RELATIONSHIP,
@@ -78,7 +81,7 @@ public class Json {
         return mapWithOptionalProps(mapRel, rel.getAllProperties());
     }
 
-    private static Map<String,Object> nodeToMap(Node node) {
+    private static Map<String, Object> nodeToMap(Node node) {
         Map<String, Object> mapNode = map("id", String.valueOf(node.getId()));
 
         mapNode.put("type", NODE);
@@ -89,7 +92,7 @@ public class Json {
         return mapWithOptionalProps(mapNode, node.getAllProperties());
     }
 
-    private static Map<String, Object> mapWithOptionalProps(Map<String,Object> mapEntity, Map<String,Object> props) {
+    private static Map<String, Object> mapWithOptionalProps(Map<String, Object> mapEntity, Map<String, Object> props) {
         if (!props.isEmpty()) {
             mapEntity.put("properties", props);
         }
@@ -101,9 +104,13 @@ public class Json {
 
     @UserFunction("apoc.json.path")
     @Description("apoc.json.path('{json}' [,'json-path' , 'path-options'])")
-    public Object path(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    public Object path(
+            @Name("json") String json,
+            @Name(value = "path", defaultValue = "$") String path,
+            @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
         return JsonUtil.parse(json, path, Object.class, pathOptions);
     }
+
     @UserFunction("apoc.convert.toJson")
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]}) or toJson(NODE/REL/PATH)")
     public String toJson(@Name("value") Object value) {
@@ -115,7 +122,8 @@ public class Json {
     }
 
     @Procedure(mode = Mode.WRITE) // ,name = "apoc.json.setProperty")
-    @Description("apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
+    @Description(
+            "apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
     public void setJsonProperty(@Name("node") Node node, @Name("key") String key, @Name("value") Object value) {
         try {
             node.setProperty(key, JsonUtil.OBJECT_MAPPER.writeValueAsString(value));
@@ -124,36 +132,56 @@ public class Json {
         }
     }
 
-    @UserFunction// ("apoc.json.getJsonProperty")
-    @Description("apoc.convert.getJsonProperty(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to original object")
-    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    @UserFunction // ("apoc.json.getJsonProperty")
+    @Description(
+            "apoc.convert.getJsonProperty(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to original object")
+    public Object getJsonProperty(
+            @Name("node") Node node,
+            @Name("key") String key,
+            @Name(value = "path", defaultValue = "") String path,
+            @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
         String value = (String) node.getProperty(key, null);
         return JsonUtil.parse(value, path, Object.class, pathOptions);
     }
 
-    @UserFunction// ("apoc.json.getJsonPropertyMap")
-    @Description("apoc.convert.getJsonPropertyMap(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to map")
-    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    @UserFunction // ("apoc.json.getJsonPropertyMap")
+    @Description(
+            "apoc.convert.getJsonPropertyMap(node,key[,'json-path', 'path-options']) - converts serialized JSON in property back to map")
+    public Map<String, Object> getJsonPropertyMap(
+            @Name("node") Node node,
+            @Name("key") String key,
+            @Name(value = "path", defaultValue = "") String path,
+            @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
         String value = (String) node.getProperty(key, null);
         return JsonUtil.parse(value, path, Map.class, pathOptions);
     }
 
     @UserFunction
     @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}'[,'json-path', 'path-options'])")
-    public Map<String,Object> fromJsonMap(@Name("map") String value,@Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    public Map<String, Object> fromJsonMap(
+            @Name("map") String value,
+            @Name(value = "path", defaultValue = "") String path,
+            @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
         return JsonUtil.parse(value, path, Map.class, pathOptions);
     }
 
     @UserFunction
     @Description("apoc.convert.fromJsonList('[1,2,3]'[,'json-path', 'path-options'])")
-    public List<Object> fromJsonList(@Name("list") String value, @Name(value = "path",defaultValue = "") String path, @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
+    public List<Object> fromJsonList(
+            @Name("list") String value,
+            @Name(value = "path", defaultValue = "") String path,
+            @Name(value = "pathOptions", defaultValue = "null") List<String> pathOptions) {
         return JsonUtil.parse(value, path, List.class, pathOptions);
     }
 
     @Procedure("apoc.convert.toTree")
-    @Description("apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
+    @Description(
+            "apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
     // todo optinally provide root node
-    public Stream<MapResult> toTree(@Name("paths") List<Path> paths, @Name(value = "lowerCaseRels",defaultValue = "true") boolean lowerCaseRels, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> toTree(
+            @Name("paths") List<Path> paths,
+            @Name(value = "lowerCaseRels", defaultValue = "true") boolean lowerCaseRels,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (paths.isEmpty()) return Stream.of(new MapResult(Collections.emptyMap()));
         ConvertConfig conf = new ConvertConfig(config);
         Map<String, List<String>> nodes = conf.getNodes();
@@ -173,7 +201,9 @@ public class Json {
                 if (it.hasNext()) {
                     Relationship r = (Relationship) it.next();
                     Node m = r.getOtherNode(n);
-                    String typeName = lowerCaseRels ? r.getType().name().toLowerCase() : r.getType().name();
+                    String typeName = lowerCaseRels
+                            ? r.getType().name().toLowerCase()
+                            : r.getType().name();
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
                     if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
@@ -195,18 +225,20 @@ public class Json {
                 .map(Path::startNode)
                 .distinct()
                 .map(n -> maps.remove(n.getId()))
-                .map(m -> m == null ? Collections.<String,Object>emptyMap() : m)
+                .map(m -> m == null ? Collections.<String, Object>emptyMap() : m)
                 .map(MapResult::new);
     }
 
     @UserFunction("apoc.convert.toSortedJsonMap")
-    @Description("apoc.convert.toSortedJsonMap(node|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity")
-    public String toSortedJsonMap(@Name("value") Object value, @Name(value="ignoreCase", defaultValue = "true") boolean ignoreCase) {
+    @Description(
+            "apoc.convert.toSortedJsonMap(node|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity")
+    public String toSortedJsonMap(
+            @Name("value") Object value, @Name(value = "ignoreCase", defaultValue = "true") boolean ignoreCase) {
         Map<String, Object> inputMap;
         Map<String, Object> sortedMap;
 
         if (value instanceof Node) {
-            inputMap = ((Node)value).getAllProperties();
+            inputMap = ((Node) value).getAllProperties();
         } else if (value instanceof Map) {
             inputMap = (Map<String, Object>) value;
         } else {
@@ -227,7 +259,8 @@ public class Json {
         }
     }
 
-    private Map<String, Object> addRelProperties(Map<String, Object> mMap, String typeName, Relationship r, Map<String, List<String>> relFilters) {
+    private Map<String, Object> addRelProperties(
+            Map<String, Object> mMap, String typeName, Relationship r, Map<String, List<String>> relFilters) {
         Map<String, Object> rProps = r.getAllProperties();
         if (rProps.isEmpty()) return mMap;
         String prefix = typeName + ".";
@@ -244,7 +277,7 @@ public class Json {
         String type = Util.labelString(n);
         result.put("_id", n.getId());
         result.put("_type", type);
-        if (nodeFilters.containsKey(type)){ //Check if list contains LABEL
+        if (nodeFilters.containsKey(type)) { // Check if list contains LABEL
             props = filterProperties(props, nodeFilters.get(type));
         }
         result.putAll(props);
@@ -254,7 +287,8 @@ public class Json {
     private Map<String, Object> filterProperties(Map<String, Object> props, List<String> filters) {
         boolean isExclude = filters.get(0).startsWith("-");
 
-        return props.entrySet().stream().filter(e -> isExclude ? !filters.contains("-" + e.getKey()) : filters.contains(e.getKey())).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
+        return props.entrySet().stream()
+                .filter(e -> isExclude ? !filters.contains("-" + e.getKey()) : filters.contains(e.getKey()))
+                .collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
     }
-
 }

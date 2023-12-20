@@ -18,11 +18,11 @@
  */
 package apoc.util;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
-
-import static java.net.HttpURLConnection.HTTP_OK;
 
 public class GoogleCloudStorageContainerExtension extends GenericContainer<GoogleCloudStorageContainerExtension> {
 

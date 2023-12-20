@@ -18,11 +18,11 @@
  */
 package apoc.generate.distribution;
 
+import static java.lang.Math.min;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static java.lang.Math.min;
 
 /**
  * Simple {@link DegreeDistribution} where the node degrees can be directly passed into the constructor.
@@ -95,7 +95,7 @@ public class SimpleDegreeDistribution implements DegreeDistribution {
         MutableDegreeDistribution copy = new MutableSimpleDegreeDistribution(getDegrees());
 
         int L = copy.size();
-        int degreeSum = 0;           // Has to be even by the handshaking lemma
+        int degreeSum = 0; // Has to be even by the handshaking lemma
 
         for (int degree : copy.getDegrees()) {
             if (degree < 0) {

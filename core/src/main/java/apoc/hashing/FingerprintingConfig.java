@@ -19,7 +19,6 @@
 package apoc.hashing;
 
 import apoc.util.Util;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +27,10 @@ import java.util.Set;
 
 public class FingerprintingConfig {
 
-    enum FingerprintStrategy {EAGER, LAZY}
+    enum FingerprintStrategy {
+        EAGER,
+        LAZY
+    }
 
     private final String digestAlgorithm;
     private final Map<String, List<String>> nodeAllowMap;
@@ -47,14 +49,14 @@ public class FingerprintingConfig {
     private final Set<String> allLabels;
     private final Set<String> allTypes;
 
-
     public FingerprintingConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         this.digestAlgorithm = (String) config.getOrDefault("digestAlgorithm", "MD5");
 
         this.nodeAllowMap = (Map<String, List<String>>) config.getOrDefault("nodeAllowMap", Collections.emptyMap());
         this.relAllowMap = (Map<String, List<String>>) config.getOrDefault("relAllowMap", Collections.emptyMap());
-        this.nodeDisallowMap = (Map<String, List<String>>) config.getOrDefault("nodeDisallowMap", Collections.emptyMap());
+        this.nodeDisallowMap =
+                (Map<String, List<String>>) config.getOrDefault("nodeDisallowMap", Collections.emptyMap());
         this.relDisallowMap = (Map<String, List<String>>) config.getOrDefault("relDisallowMap", Collections.emptyMap());
         this.mapAllowList = (List<String>) config.getOrDefault("mapAllowList", Collections.emptyList());
         this.mapDisallowList = (List<String>) config.getOrDefault("mapDisallowList", Collections.emptyList());
@@ -62,7 +64,8 @@ public class FingerprintingConfig {
         this.allRelsAllowList = (List<String>) config.getOrDefault("allRelsAllowList", Collections.emptyList());
         this.allNodesDisallowList = (List<String>) config.getOrDefault("allNodesDisallowList", Collections.emptyList());
         this.allRelsDisallowList = (List<String>) config.getOrDefault("allRelsDisallowList", Collections.emptyList());
-        this.strategy = FingerprintStrategy.valueOf((String) config.getOrDefault("strategy", FingerprintStrategy.LAZY.toString()));
+        this.strategy = FingerprintStrategy.valueOf(
+                (String) config.getOrDefault("strategy", FingerprintStrategy.LAZY.toString()));
 
         validateConfig();
 

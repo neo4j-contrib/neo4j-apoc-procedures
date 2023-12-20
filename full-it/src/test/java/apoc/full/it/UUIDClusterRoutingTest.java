@@ -18,32 +18,14 @@
  */
 package apoc.full.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import apoc.util.TestcontainersCausalCluster;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.driver.*;
-import org.neo4j.internal.helpers.collection.Iterators;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
-import static apoc.util.TestContainerUtil.checkLeadershipBalanced;
-import static apoc.util.TestContainerUtil.queryForEachMembers;
 import static apoc.util.SystemDbUtil.PROCEDURE_NOT_ROUTED_ERROR;
 import static apoc.util.SystemDbUtil.SYS_NON_LEADER_ERROR;
 import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestContainerUtil.checkLeadershipBalanced;
+import static apoc.util.TestContainerUtil.queryForEachMembers;
 import static apoc.uuid.UUIDTestUtils.assertIsUUID;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
-
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -51,6 +33,22 @@ import static org.junit.Assert.*;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.test.assertion.Assert.assertEventually;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestcontainersCausalCluster;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.neo4j.driver.*;
+import org.neo4j.internal.helpers.collection.Iterators;
 
 @Ignore
 public class UUIDClusterRoutingTest {
@@ -61,13 +59,12 @@ public class UUIDClusterRoutingTest {
 
     @BeforeClass
     public static void setupCluster() {
-        cluster = TestContainerUtil
-                .createEnterpriseCluster(List.of(TestContainerUtil.ApocPackage.FULL),
-                        NUM_CORES, 0, Collections.emptyMap(),
-                        Map.of("NEO4J_dbms_routing_enabled", "true",
-                                APOC_UUID_ENABLED, "true",
-                                APOC_UUID_REFRESH, "1000"
-                ));
+        cluster = TestContainerUtil.createEnterpriseCluster(
+                List.of(TestContainerUtil.ApocPackage.FULL),
+                NUM_CORES,
+                0,
+                Collections.emptyMap(),
+                Map.of("NEO4J_dbms_routing_enabled", "true", APOC_UUID_ENABLED, "true", APOC_UUID_REFRESH, "1000"));
 
         clusterSession = cluster.getSession();
         members = cluster.getClusterMembers();
@@ -85,28 +82,33 @@ public class UUIDClusterRoutingTest {
         checkLeadershipBalanced(clusterSession);
 
         queryForEachMembers(members, (session, container) -> {
-                String label = container.getContainerName();
+            String label = container.getContainerName();
 
-                // create note to be populated because of `addToExistingNodes` config
-                session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", label)));
+            // create note to be populated because of `addToExistingNodes` config
+            session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", label)));
 
-                final String query = "USE SYSTEM CALL apoc.uuid.setup($label)";
-                Map<String, Object> params = Map.of("label", label);
-                session.writeTransaction(tx -> tx.run(query, params));
+            final String query = "USE SYSTEM CALL apoc.uuid.setup($label)";
+            Map<String, Object> params = Map.of("label", label);
+            session.writeTransaction(tx -> tx.run(query, params));
         });
 
         String countUuids = "CALL apoc.uuid.list() YIELD label RETURN count(*)";
-        assertEventually(() -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
-                (value) -> value == members.size(), 20L, TimeUnit.SECONDS);
+        assertEventually(
+                () -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
+                (value) -> value == members.size(),
+                20L,
+                TimeUnit.SECONDS);
 
         queryForEachMembers(members, (session, container) -> {
-                session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", container.getContainerName())));
+            session.writeTransaction(tx -> tx.run(format("CREATE (n:`%s`)", container.getContainerName())));
         });
 
         for (Neo4jContainerExtension member : members) {
-            assertEventually(() -> {
+            assertEventually(
+                    () -> {
                         String query = format("MATCH (n:`%s`) RETURN n.uuid AS uuid", member.getContainerName());
-                        // 2 nodes with uuid: one created via `addToExistingNodes` and the other one via transaction listener
+                        // 2 nodes with uuid: one created via `addToExistingNodes` and the other one via transaction
+                        // listener
                         Result res = clusterSession.run(query);
                         Record node = res.next();
                         assertIsUUID(node.get("uuid").asString());
@@ -114,7 +116,9 @@ public class UUIDClusterRoutingTest {
                         assertIsUUID(node.get("uuid").asString());
                         return !res.hasNext();
                     },
-                    (val) -> val, 20L, TimeUnit.SECONDS);
+                    (val) -> val,
+                    20L,
+                    TimeUnit.SECONDS);
         }
 
         // drop the previus uuids
@@ -124,9 +128,11 @@ public class UUIDClusterRoutingTest {
             session.writeTransaction(tx -> tx.run(query, params));
         });
 
-        assertEventually(() -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
-                (value) -> value == 0L, 10L, TimeUnit.SECONDS);
-
+        assertEventually(
+                () -> (long) singleResultFirstColumn(cluster.getSession(), countUuids),
+                (value) -> value == 0L,
+                10L,
+                TimeUnit.SECONDS);
     }
 
     @Test
@@ -137,12 +143,11 @@ public class UUIDClusterRoutingTest {
         queryForEachMembers(members, (session, container) -> {
             try {
                 String label = container.getContainerName();
-                session.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
+                session.writeTransaction(tx ->
+                        tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
                 String query = "CALL apoc.uuid.install($label, {})";
 
-                session.writeTransaction(tx -> tx.run(query,
-                        Map.of("label", label) )
-                );
+                session.writeTransaction(tx -> tx.run(query, Map.of("label", label)));
                 fail("Should fail because it's not possible to write via deprecated procedure");
             } catch (Exception e) {
                 assertThat(e.getMessage(), containsString(SYS_NON_LEADER_ERROR));
@@ -153,77 +158,83 @@ public class UUIDClusterRoutingTest {
     @Test
     public void testUuidInstallAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.install($label)";
-        uuidInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR, DEFAULT_DATABASE_NAME,
-            (session, label) -> {
-                clusterSession.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT `%1$s` IF NOT EXISTS FOR (n:`%1$s`) REQUIRE n.uuid IS UNIQUE", label)));
+        uuidInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR, DEFAULT_DATABASE_NAME, (session, label) -> {
+            clusterSession.writeTransaction(tx -> tx.run(
+                    format("CREATE CONSTRAINT `%1$s` IF NOT EXISTS FOR (n:`%1$s`) REQUIRE n.uuid IS UNIQUE", label)));
 
-                // check that the constraint is propagated to the current core
-                assertEventually(() -> session.writeTransaction(
-                            tx -> tx.run("SHOW CONSTRAINT YIELD name WHERE name = $label", Map.of("label", label)).hasNext()
-                        ),
-                        (v) -> v, 10, TimeUnit.SECONDS);
+            // check that the constraint is propagated to the current core
+            assertEventually(
+                    () -> session.writeTransaction(
+                            tx -> tx.run("SHOW CONSTRAINT YIELD name WHERE name = $label", Map.of("label", label))
+                                    .hasNext()),
+                    (v) -> v,
+                    10,
+                    TimeUnit.SECONDS);
 
-                Map<String, Object> params = Map.of("label", label);
-                testCall(session, query, params,
-                        row -> assertEquals(label, row.get("label"))
-                );
-                session.writeTransaction(tx -> tx.run("CALL apoc.uuid.remove($label)", params));
+            Map<String, Object> params = Map.of("label", label);
+            testCall(session, query, params, row -> assertEquals(label, row.get("label")));
+            session.writeTransaction(tx -> tx.run("CALL apoc.uuid.remove($label)", params));
         });
     }
 
     @Test
     public void testUuidRemoveAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.remove($label)";
-        uuidInSysLeaderMemberCommon(query, SYS_NON_LEADER_ERROR, DEFAULT_DATABASE_NAME,
-                (session, label) -> testCall(session, query, Map.of("label", label), row -> assertNull(row.get("label")))
-        );
+        uuidInSysLeaderMemberCommon(
+                query,
+                SYS_NON_LEADER_ERROR,
+                DEFAULT_DATABASE_NAME,
+                (session, label) ->
+                        testCall(session, query, Map.of("label", label), row -> assertNull(row.get("label"))));
     }
 
     @Test
     public void testUuidSetupAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.setup($label)";
-        uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
-            (session, label) -> {
-                Map<String, Object> params = Map.of("label", label);
-                testCall(session, query, params,
-                    row -> assertEquals(label, row.get("label"))
-                );
-                session.writeTransaction(tx -> tx.run("CALL apoc.uuid.drop($label)", params));
-                }
-        );
+        uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, (session, label) -> {
+            Map<String, Object> params = Map.of("label", label);
+            testCall(session, query, params, row -> assertEquals(label, row.get("label")));
+            session.writeTransaction(tx -> tx.run("CALL apoc.uuid.drop($label)", params));
+        });
     }
-
 
     @Test
     public void testUuidDropAllowedOnlyInSysLeaderMember() {
         final String query = "CALL apoc.uuid.drop($label)";
-        uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
-                (session, label) -> testCallEmpty(session, query, Map.of("label", label))
-        );
+        uuidInSysLeaderMemberCommon(
+                query,
+                PROCEDURE_NOT_ROUTED_ERROR,
+                SYSTEM_DATABASE_NAME,
+                (session, label) -> testCallEmpty(session, query, Map.of("label", label)));
     }
 
     @Test
     public void testUuidShowAllowedInAllSysLeaderMembers() {
         final String query = "CALL apoc.uuid.show";
-        final BiConsumer<Session, String> testUuidShow = (session, name) -> testResult(session, query, Iterators::count);
+        final BiConsumer<Session, String> testUuidShow =
+                (session, name) -> testResult(session, query, Iterators::count);
         uuidInSysLeaderMemberCommon(query, PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME, testUuidShow, true);
     }
 
-    private static void uuidInSysLeaderMemberCommon(String query, String uuidNotRoutedError, String dbName, BiConsumer<Session, String> testUuid) {
+    private static void uuidInSysLeaderMemberCommon(
+            String query, String uuidNotRoutedError, String dbName, BiConsumer<Session, String> testUuid) {
         uuidInSysLeaderMemberCommon(query, uuidNotRoutedError, dbName, testUuid, false);
     }
 
-    private static void uuidInSysLeaderMemberCommon(String query, String uuidNotRoutedError, String dbName, BiConsumer<Session, String> testUuid, boolean readOnlyOperation) {
+    private static void uuidInSysLeaderMemberCommon(
+            String query,
+            String uuidNotRoutedError,
+            String dbName,
+            BiConsumer<Session, String> testUuid,
+            boolean readOnlyOperation) {
         final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
         assertEquals(NUM_CORES, members.size());
         final String label = UUID.randomUUID().toString();
 
-        for (Neo4jContainerExtension container: members) {
+        for (Neo4jContainerExtension container : members) {
             // we skip READ_REPLICA members with write operations
             // instead, we consider all members with a read only operations
-            final Driver driver = readOnlyOperation
-                    ? container.getDriver()
-                    : getDriverIfNotReplica(container);
+            final Driver driver = readOnlyOperation ? container.getDriver() : getDriverIfNotReplica(container);
             if (driver == null) {
                 continue;
             }
@@ -232,7 +243,9 @@ public class UUIDClusterRoutingTest {
                 testUuid.accept(session, label);
             } else {
                 try {
-                    testCall(session, query,
+                    testCall(
+                            session,
+                            query,
                             Map.of("label", UUID.randomUUID().toString()),
                             row -> fail("Should fail because of non leader UUID addition"));
                 } catch (Exception e) {
@@ -253,8 +266,8 @@ public class UUIDClusterRoutingTest {
     }
 
     private static boolean sysIsLeader(Session session) {
-        final String systemRole = TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
+        final String systemRole =
+                TestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
         return "LEADER".equals(systemRole);
     }
-
 }

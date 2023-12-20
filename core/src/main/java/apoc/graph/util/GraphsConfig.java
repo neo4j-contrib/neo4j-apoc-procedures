@@ -18,7 +18,7 @@
  */
 package apoc.graph.util;
 
-import org.apache.commons.collections4.MapUtils;
+import static apoc.util.Util.toBoolean;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,12 +26,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static apoc.util.Util.toBoolean;
+import org.apache.commons.collections4.MapUtils;
 
 public class GraphsConfig {
 
-    private static final Pattern MAPPING_PATTERN = Pattern.compile("^(\\w+\\s*(?::\\s*(?:\\w+)\\s*)*)\\s*(?:\\{\\s*(-?[\\*\\w!@\\.]+\\s*(?:,\\s*-?[!@\\w\\*\\.]+\\s*)*)\\})?$");
+    private static final Pattern MAPPING_PATTERN = Pattern.compile(
+            "^(\\w+\\s*(?::\\s*(?:\\w+)\\s*)*)\\s*(?:\\{\\s*(-?[\\*\\w!@\\.]+\\s*(?:,\\s*-?[!@\\w\\*\\.]+\\s*)*)\\})?$");
 
     public static class GraphMapping {
 
@@ -49,7 +49,12 @@ public class GraphsConfig {
 
         static final GraphMapping EMPTY = new GraphMapping();
 
-        GraphMapping(List<String> valueObjects, List<String> ids, List<String> properties, List<String> labels, boolean allProps) {
+        GraphMapping(
+                List<String> valueObjects,
+                List<String> ids,
+                List<String> properties,
+                List<String> labels,
+                boolean allProps) {
             this.allProps = allProps;
             if (valueObjects != null) this.valueObjects.addAll(valueObjects);
             if (ids != null) this.ids.addAll(ids);
@@ -111,8 +116,8 @@ public class GraphsConfig {
                         }
                     })
                     .filter(e -> e != null)
-                    .collect(Collectors.groupingBy(Map.Entry::getKey,
-                            Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+                    .collect(Collectors.groupingBy(
+                            Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
             return new GraphMapping(map.get(VALUE_OBJECTS), map.get(IDS), map.get(PROPERTIES), labels, allProps.get());
         }
     }
@@ -192,14 +197,14 @@ public class GraphsConfig {
             return Collections.emptyList();
         }
         // We also need to consider the properties defined in the mapping fields
-        final List<String> pathProperties = mappings.keySet()
-                .stream()
+        final List<String> pathProperties = mappings.keySet().stream()
                 .filter(key -> key.startsWith(path))
                 .map(key -> path.length() >= key.length() ? "" : key.substring(path.length() + 1))
                 .map(key -> key.split("\\.")[0])
                 .filter(key -> !key.isEmpty())
                 .collect(Collectors.toList());
-        List<String> properties = mappings.getOrDefault(path, GraphMapping.EMPTY).getProperties();
+        List<String> properties =
+                mappings.getOrDefault(path, GraphMapping.EMPTY).getProperties();
         properties.addAll(pathProperties);
         return properties;
     }

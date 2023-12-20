@@ -19,10 +19,9 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.NumberOfNodesBasedConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * {@link RelationshipGenerator} that generates a complete (undirected) graph.

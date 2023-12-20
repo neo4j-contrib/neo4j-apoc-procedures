@@ -1,10 +1,16 @@
 package apoc.ml;
 
+import static apoc.util.TestUtil.testResult;
+
 import apoc.coll.Coll;
 import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -16,13 +22,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static apoc.util.TestUtil.testResult;
 
 public class PromptIT {
 
@@ -53,12 +52,10 @@ public class PromptIT {
 
     @Test
     public void testQuery() {
-        testResult(db, "CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey})",
-                Map.of(
-                        "query", "What movies did Tom Hanks play in?",
-                        "retries", 2L,
-                        "apiKey", OPENAI_KEY
-                ),
+        testResult(
+                db,
+                "CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey})",
+                Map.of("query", "What movies did Tom Hanks play in?", "retries", 2L, "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
                     Assertions.assertThat(list).hasSize(12);
@@ -73,25 +70,22 @@ public class PromptIT {
 
     @Test
     public void testSchema() {
-        testResult(db, "CALL apoc.ml.schema({apiKey: $apiKey})",
-                Map.of(
-                        "apiKey", OPENAI_KEY
-                ),
-                (r) -> {
-                    List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-                    Assertions.assertThat(list).hasSize(1);
-                });
+        testResult(db, "CALL apoc.ml.schema({apiKey: $apiKey})", Map.of("apiKey", OPENAI_KEY), (r) -> {
+            List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
+            Assertions.assertThat(list).hasSize(1);
+        });
     }
 
     @Test
     public void testCypher() {
         long numOfQueries = 4L;
-        testResult(db, "CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})",
+        testResult(
+                db,
+                "CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})",
                 Map.of(
                         "query", "Who are the actors which also directed a movie?",
                         "numOfQueries", numOfQueries,
-                        "apiKey", OPENAI_KEY
-                ),
+                        "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
                     Assertions.assertThat(list).hasSize((int) numOfQueries);
@@ -103,5 +97,4 @@ public class PromptIT {
                             .hasSize((int) numOfQueries);
                 });
     }
-
 }

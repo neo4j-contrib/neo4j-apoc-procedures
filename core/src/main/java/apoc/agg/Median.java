@@ -18,11 +18,10 @@
  */
 package apoc.agg;
 
-import org.neo4j.procedure.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.neo4j.procedure.*;
 
 /**
  * @author mh
@@ -35,14 +34,13 @@ public class Median {
         return new MedianFunction();
     }
 
-
     public static class MedianFunction {
         private List<Double> values = new ArrayList<>();
 
         @UserAggregationUpdate
         public void aggregate(@Name("value") Object value) {
             if (value instanceof Number) {
-                values.add(((Number)value).doubleValue());
+                values.add(((Number) value).doubleValue());
             }
         }
 
@@ -52,9 +50,9 @@ public class Median {
             Collections.sort(values);
             int size = values.size();
             if (size % 2 == 1) {
-                return values.get(size /2);
+                return values.get(size / 2);
             } else {
-                return (values.get(size /2-1) + values.get(size /2)) / 2D;
+                return (values.get(size / 2 - 1) + values.get(size / 2)) / 2D;
             }
         }
     }

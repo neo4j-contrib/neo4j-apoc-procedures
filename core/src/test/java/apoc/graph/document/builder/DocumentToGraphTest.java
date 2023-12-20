@@ -18,23 +18,22 @@
  */
 package apoc.graph.document.builder;
 
+import static org.junit.Assert.assertEquals;
+
 import apoc.graph.util.GraphsConfig;
 import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import java.util.*;
 import org.junit.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.MapUtil;
 
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-
 public class DocumentToGraphTest {
 
     @Test
-    public void testWithNoRoot () {
+    public void testWithNoRoot() {
         Map<String, Object> map = new HashMap<>();
 
         Map<String, String> mappings = new HashMap<>();
@@ -83,7 +82,7 @@ public class DocumentToGraphTest {
     }
 
     @Test
-    public void testWithRoot () {
+    public void testWithRoot() {
         Map<String, Object> map = new HashMap<>();
         map.put("idField", "uri");
 

@@ -23,11 +23,10 @@ import apoc.export.util.ExportConfig;
 import apoc.export.util.Format;
 import apoc.export.util.Reporter;
 import apoc.result.ProgressInfo;
+import java.io.Reader;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-
-import java.io.Reader;
 
 /**
  * @author mh
@@ -46,7 +45,8 @@ public class XmlGraphMLFormat implements Format {
     }
 
     @Override
-    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config)
+            throws Exception {
         try (Transaction tx = db.beginTx()) {
             XmlGraphMLWriter graphMlWriter = new XmlGraphMLWriter();
             graphMlWriter.write(graph, writer.getPrintWriter("graphml"), reporter, config);
@@ -55,4 +55,3 @@ public class XmlGraphMLFormat implements Format {
         return reporter.getTotal();
     }
 }
-

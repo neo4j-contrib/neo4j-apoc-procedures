@@ -18,12 +18,23 @@
  */
 package apoc.load;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import apoc.ApocConfig;
 import apoc.ApocSettings;
 import apoc.util.FileUtils;
 import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonParseException;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -39,18 +50,6 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.xml.sax.SAXParseException;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 @RunWith(Enclosed.class)
 public class LoadCoreSecurityTest {
 
@@ -59,7 +58,8 @@ public class LoadCoreSecurityTest {
     static {
         try {
             import_folder = File.createTempFile(UUID.randomUUID().toString(), "tmp")
-                    .getParentFile().toPath();
+                    .getParentFile()
+                    .toPath();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -97,11 +97,9 @@ public class LoadCoreSecurityTest {
             "jsonParams", JsonParseException.class,
             "xml", SAXParseException.class);
 
-
     private static Collection<String[]> data() {
-        return APOC_PROCEDURE_WITH_ARGUMENTS.entrySet()
-                .stream()
-                .flatMap(e -> e.getValue().stream().map(arg -> new String[]{e.getKey(), arg}))
+        return APOC_PROCEDURE_WITH_ARGUMENTS.entrySet().stream()
+                .flatMap(e -> e.getValue().stream().map(arg -> new String[] {e.getKey(), arg}))
                 .collect(Collectors.toList());
     }
 
@@ -125,9 +123,8 @@ public class LoadCoreSecurityTest {
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, false);
             final String message = apocProcedure + " should throw an exception";
             try {
-                db.executeTransactionally("CALL " + apocProcedure,
-                        Map.of("fileName", "./hello"),
-                        Result::resultAsString);
+                db.executeTransactionally(
+                        "CALL " + apocProcedure, Map.of("fileName", "./hello"), Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
                 assertError(e, ApocConfig.LOAD_FROM_FILE_ERROR, RuntimeException.class, apocProcedure);
@@ -142,12 +139,15 @@ public class LoadCoreSecurityTest {
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, false);
             try {
-                db.executeTransactionally("CALL " + apocProcedure,
-                        Map.of("fileName", fileName),
-                        Result::resultAsString);
+                db.executeTransactionally(
+                        "CALL " + apocProcedure, Map.of("fileName", fileName), Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
-                assertError(e, String.format(FileUtils.ERROR_READ_FROM_FS_NOT_ALLOWED, fileName), RuntimeException.class, apocProcedure);
+                assertError(
+                        e,
+                        String.format(FileUtils.ERROR_READ_FROM_FS_NOT_ALLOWED, fileName),
+                        RuntimeException.class,
+                        apocProcedure);
             }
         }
 
@@ -160,24 +160,28 @@ public class LoadCoreSecurityTest {
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
             ApocConfig.apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, true);
             try {
-                db.executeTransactionally("CALL " + apocProcedure,
-                        Map.of("fileName", fileName),
-                        Result::resultAsString);
+                db.executeTransactionally(
+                        "CALL " + apocProcedure, Map.of("fileName", fileName), Result::resultAsString);
                 if (ALLOWED_EXCEPTIONS.containsKey(exportMethod)) {
-                    fail("Expected to fail by throwing the following exception: " + ALLOWED_EXCEPTIONS.get(exportMethod));
+                    fail("Expected to fail by throwing the following exception: "
+                            + ALLOWED_EXCEPTIONS.get(exportMethod));
                 }
             } catch (Exception e) {
                 if (ALLOWED_EXCEPTIONS.containsKey(exportMethod)) {
-                    assertEquals(ALLOWED_EXCEPTIONS.get(exportMethod), ExceptionUtils.getRootCause(e).getClass());
+                    assertEquals(
+                            ALLOWED_EXCEPTIONS.get(exportMethod),
+                            ExceptionUtils.getRootCause(e).getClass());
                 }
             }
         }
     }
 
-    private static void assertError(Exception e, String errorMessage, Class<? extends Exception> exceptionType, String apocProcedure) {
+    private static void assertError(
+            Exception e, String errorMessage, Class<? extends Exception> exceptionType, String apocProcedure) {
         final Throwable rootCause = ExceptionUtils.getRootCause(e);
-        assertTrue(apocProcedure + " should throw an instance of " + exceptionType.getSimpleName(), exceptionType.isInstance(rootCause));
+        assertTrue(
+                apocProcedure + " should throw an instance of " + exceptionType.getSimpleName(),
+                exceptionType.isInstance(rootCause));
         assertEquals(apocProcedure + " should throw the following message", errorMessage, rootCause.getMessage());
     }
-
 }

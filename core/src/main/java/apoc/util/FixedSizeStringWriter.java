@@ -63,7 +63,7 @@ public class FixedSizeStringWriter extends StringWriter {
     }
 
     @Override
-    public void write(String str, int off, int len)  {
+    public void write(String str, int off, int len) {
         write(str.toCharArray(), off, len);
     }
 

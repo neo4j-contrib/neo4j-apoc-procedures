@@ -6,12 +6,11 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-
-import javax.annotation.processing.Filer;
-import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.processing.Filer;
+import javax.lang.model.element.Modifier;
 
 public class ExtensionClassWriter {
 
@@ -21,8 +20,7 @@ public class ExtensionClassWriter {
         this.filer = filer;
     }
 
-    public void write(List<String> procedureSignatures,
-                      List<String> userFunctionSignatures) {
+    public void write(List<String> procedureSignatures, List<String> userFunctionSignatures) {
 
         try {
             JavaFile.builder("apoc", defineClass(procedureSignatures, userFunctionSignatures))
@@ -42,10 +40,8 @@ public class ExtensionClassWriter {
     }
 
     private FieldSpec signatureListField(String fieldName, List<String> signatures) {
-        ParameterizedTypeName fieldType = ParameterizedTypeName.get(
-                ClassName.get(List.class),
-                ClassName.get(String.class)
-        );
+        ParameterizedTypeName fieldType =
+                ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(String.class));
         return FieldSpec.builder(fieldType, fieldName, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer(CodeBlock.builder()
                         .addStatement(String.format("List.of(%s)", placeholders(signatures)), signatures.toArray())

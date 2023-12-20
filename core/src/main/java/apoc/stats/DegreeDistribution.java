@@ -18,9 +18,16 @@
  */
 package apoc.stats;
 
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
+
 import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.util.kernel.MultiThreadedGlobalGraphOperations;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 import org.HdrHistogram.AtomicHistogram;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
@@ -35,14 +42,6 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.token.api.NamedToken;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
-import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 /**
  * @author mh
@@ -77,11 +76,13 @@ public class DegreeDistribution {
             this.type = type;
             this.direction = direction;
             this.total = total;
-            this.histogram = new AtomicHistogram(total,3);
+            this.histogram = new AtomicHistogram(total, 3);
         }
+
         public void record(long value) {
             histogram.recordValue(value);
         }
+
         public Result done() {
             Result result = new Result();
             result.type = typeName;
@@ -115,9 +116,11 @@ public class DegreeDistribution {
     public Stream<DegreeStats.Result> degrees(@Name(value = "types", defaultValue = "") String types) {
         List<DegreeStats> stats = prepareStats(types);
 
-        MultiThreadedGlobalGraphOperations.forAllNodes(db, pools.getDefaultExecutorService(), BATCHSIZE,
-                (ktx,nodeCursor)-> stats.forEach((s) -> s.computeDegree(nodeCursor, ktx.cursors()))
-        );
+        MultiThreadedGlobalGraphOperations.forAllNodes(
+                db,
+                pools.getDefaultExecutorService(),
+                BATCHSIZE,
+                (ktx, nodeCursor) -> stats.forEach((s) -> s.computeDegree(nodeCursor, ktx.cursors())));
         return stats.stream().map(DegreeStats::done);
     }
 

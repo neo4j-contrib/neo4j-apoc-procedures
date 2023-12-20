@@ -48,8 +48,7 @@ public class QueuePoisoningCollector<E> implements Collector<Void, Void, Void> {
 
     @Override
     public BiConsumer<Void, Void> accumulator() {
-        return (integer, integer2) -> {
-        };
+        return (integer, integer2) -> {};
     }
 
     @Override

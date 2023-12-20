@@ -18,8 +18,16 @@
  */
 package apoc.uuid;
 
+import static apoc.util.TestUtil.waitDbsAvailable;
+import static apoc.uuid.UUIDTestUtils.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
+
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import java.io.IOException;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -30,15 +38,6 @@ import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
-
-import java.io.IOException;
-import java.util.List;
-
-import static apoc.util.TestUtil.waitDbsAvailable;
-import static apoc.uuid.UUIDTestUtils.*;
-import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
-import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
-import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestricted;
 
 public class UUIDRestartTest {
 
@@ -55,7 +54,8 @@ public class UUIDRestartTest {
 
     @Before
     public void setUp() throws IOException {
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(
+                        storeDir.getRoot().toPath())
                 .setConfig(procedure_unrestricted, List.of("apoc*"))
                 .build();
 
@@ -72,7 +72,8 @@ public class UUIDRestartTest {
 
     private void restartDb() {
         databaseManagementService.shutdown();
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath()).build();
+        databaseManagementService =
+                new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath()).build();
         db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
         waitDbsAvailable(db, sysDb);
@@ -85,19 +86,12 @@ public class UUIDRestartTest {
         awaitUuidDiscovered(db, "Person");
 
         db.executeTransactionally("CREATE (p:Person {id: 1})");
-        TestUtil.testCall(db, "MATCH (n:Person) RETURN n.uuid AS uuid",
-                row -> assertIsUUID(row.get("uuid"))
-        );
+        TestUtil.testCall(db, "MATCH (n:Person) RETURN n.uuid AS uuid", row -> assertIsUUID(row.get("uuid")));
 
         restartDb();
 
         db.executeTransactionally("CREATE (p:Person {id:2})");
-        TestUtil.testCall(db, "MATCH (n:Person{id:1}) RETURN n.uuid AS uuid",
-                r -> assertIsUUID(r.get("uuid"))
-        );
-        TestUtil.testCall(db, "MATCH (n:Person{id:2}) RETURN n.uuid AS uuid",
-                r -> assertIsUUID(r.get("uuid"))
-        );
-
+        TestUtil.testCall(db, "MATCH (n:Person{id:1}) RETURN n.uuid AS uuid", r -> assertIsUUID(r.get("uuid")));
+        TestUtil.testCall(db, "MATCH (n:Person{id:2}) RETURN n.uuid AS uuid", r -> assertIsUUID(r.get("uuid")));
     }
 }

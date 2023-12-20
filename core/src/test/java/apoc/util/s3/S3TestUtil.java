@@ -18,19 +18,18 @@
  */
 package apoc.util.s3;
 
+import static org.junit.Assert.assertEquals;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
-import org.neo4j.test.assertion.Assert;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
+import org.neo4j.test.assertion.Assert;
 
 /**
  * Utility class for testing Amazon S3 related functionality.
@@ -56,7 +55,7 @@ public class S3TestUtil {
         S3Params s3Params = S3ParamsExtractor.extract(new URL(s3Url));
         S3Aws s3Aws = new S3Aws(s3Params, s3Params.getRegion());
         AmazonS3 s3Client = s3Aws.getClient();
-        
+
         return s3Client.getObject(s3Params.getBucket(), s3Params.getKey());
     }
 
@@ -68,16 +67,20 @@ public class S3TestUtil {
     }
 
     public static void assertS3KeyEventually(Runnable runnable) {
-        Assert.assertEventually(() -> {
-            try {
-                runnable.run();
-                return true;
-            } catch (AmazonClientException e) {
-                if (e.getMessage().contains("The specified key does not exist")) {
-                    return false;
-                }
-                throw e;
-            }
-        }, v -> v, 30L, TimeUnit.SECONDS);
+        Assert.assertEventually(
+                () -> {
+                    try {
+                        runnable.run();
+                        return true;
+                    } catch (AmazonClientException e) {
+                        if (e.getMessage().contains("The specified key does not exist")) {
+                            return false;
+                        }
+                        throw e;
+                    }
+                },
+                v -> v,
+                30L,
+                TimeUnit.SECONDS);
     }
 }

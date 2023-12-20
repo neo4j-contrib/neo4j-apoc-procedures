@@ -18,10 +18,9 @@
  */
 package apoc.agg;
 
-import org.neo4j.procedure.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.neo4j.procedure.*;
 
 /**
  * @author mh
@@ -47,7 +46,8 @@ public class CollAggregation {
     }
 
     @UserAggregationFunction("apoc.agg.slice")
-    @Description("apoc.agg.slice(value, start, length) - returns subset of non-null values, start is 0 based and length can be -1")
+    @Description(
+            "apoc.agg.slice(value, start, length) - returns subset of non-null values, start is 0 based and length can be -1")
     public SliceFunction slice() {
         return new SliceFunction();
     }
@@ -78,7 +78,10 @@ public class CollAggregation {
         private int index;
 
         @UserAggregationUpdate
-        public void nth(@Name("value") Object value, @Name(value = "from", defaultValue = "0") long from, @Name(value = "to", defaultValue = "-1") long len) {
+        public void nth(
+                @Name("value") Object value,
+                @Name(value = "from", defaultValue = "0") long from,
+                @Name(value = "to", defaultValue = "-1") long len) {
             if (value != null) {
                 if (index >= from && (len == -1 || index < from + len)) {
                     this.values.add(value);

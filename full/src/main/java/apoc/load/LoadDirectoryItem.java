@@ -18,8 +18,6 @@
  */
 package apoc.load;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.lang3.StringUtils;
 
 public class LoadDirectoryItem {
 
@@ -42,7 +41,8 @@ public class LoadDirectoryItem {
         public LoadDirectoryConfig(Map<String, Object> config) {
             if (config == null) config = Collections.emptyMap();
             this.interval = (Long) config.getOrDefault(INTERVAL, 1000L);
-            this.listenEventType = (List<String>) config.getOrDefault(LISTEN_EVENT_TYPE, new ArrayList<>(DEFAULT_EVENT_TYPES));
+            this.listenEventType =
+                    (List<String>) config.getOrDefault(LISTEN_EVENT_TYPE, new ArrayList<>(DEFAULT_EVENT_TYPES));
         }
 
         public List<String> getListenEventType() {
@@ -64,18 +64,30 @@ public class LoadDirectoryItem {
         public final Map<String, Object> config;
         public final String error;
 
-        public LoadDirectoryResult(String name, String status, String pattern, String cypher, String urlDir, LoadDirectoryConfig configClass, String error) {
+        public LoadDirectoryResult(
+                String name,
+                String status,
+                String pattern,
+                String cypher,
+                String urlDir,
+                LoadDirectoryConfig configClass,
+                String error) {
             this.name = name;
             this.status = status;
             this.pattern = pattern;
             this.cypher = cypher;
             this.urlDir = urlDir;
-            this.config = Map.of(LISTEN_EVENT_TYPE, configClass.getListenEventType(), INTERVAL, configClass.getInterval());
+            this.config =
+                    Map.of(LISTEN_EVENT_TYPE, configClass.getListenEventType(), INTERVAL, configClass.getInterval());
             this.error = error;
         }
     }
 
-    enum Status { RUNNING, CREATED, ERROR }
+    enum Status {
+        RUNNING,
+        CREATED,
+        ERROR
+    }
 
     private final String pattern;
     private final String cypher;

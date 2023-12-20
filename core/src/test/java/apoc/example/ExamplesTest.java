@@ -18,6 +18,8 @@
  */
 package apoc.example;
 
+import static org.junit.Assert.assertEquals;
+
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -25,8 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -39,7 +39,7 @@ public class ExamplesTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db,Examples.class);
+        TestUtil.registerProcedure(db, Examples.class);
     }
 
     @After
@@ -49,11 +49,10 @@ public class ExamplesTest {
 
     @Test
     public void testMovies() throws Exception {
-        TestUtil.testCall(db,"CALL apoc.example.movies", r -> {
-            assertEquals("movies.cypher",r.get("file"));
-            assertEquals(169L,r.get("nodes"));
-            assertEquals(250L,r.get("relationships"));
+        TestUtil.testCall(db, "CALL apoc.example.movies", r -> {
+            assertEquals("movies.cypher", r.get("file"));
+            assertEquals(169L, r.get("nodes"));
+            assertEquals(250L, r.get("relationships"));
         });
     }
-
 }

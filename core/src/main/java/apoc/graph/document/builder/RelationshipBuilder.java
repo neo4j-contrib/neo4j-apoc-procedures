@@ -19,16 +19,15 @@
 package apoc.graph.document.builder;
 
 import apoc.graph.util.GraphsConfig;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 
 public class RelationshipBuilder {
 
@@ -39,9 +38,9 @@ public class RelationshipBuilder {
     }
 
     public Collection<Relationship> buildRelation(Node parent, Node child, String relationName) {
-        
-        RelationshipType type = RelationshipType
-                .withName(config.getRelMapping().getOrDefault(relationName, relationName.toUpperCase()));
+
+        RelationshipType type = RelationshipType.withName(
+                config.getRelMapping().getOrDefault(relationName, relationName.toUpperCase()));
 
         // check if already exists
         // find only relation between parent and child node
@@ -59,5 +58,4 @@ public class RelationshipBuilder {
                 .filter(rel -> rel.getOtherNode(child).equals(parent))
                 .collect(Collectors.toList());
     }
-
 }

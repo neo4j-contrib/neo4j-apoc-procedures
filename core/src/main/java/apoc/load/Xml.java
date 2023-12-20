@@ -18,6 +18,11 @@
  */
 package apoc.load;
 
+import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
+import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.FileUtils.getInputStreamFromBinary;
+import static apoc.util.Util.ERROR_BYTES_OR_STRING;
+
 import apoc.ApocConfig;
 import apoc.export.util.CountingInputStream;
 import apoc.generate.config.InvalidConfigException;
@@ -27,6 +32,37 @@ import apoc.util.CompressionAlgo;
 import apoc.util.CompressionConfig;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
@@ -48,46 +84,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import static apoc.export.util.LimitedSizeInputStream.toLimitedIStream;
-import static apoc.util.CompressionConfig.COMPRESSION;
-import static apoc.util.FileUtils.getInputStreamFromBinary;
-import static apoc.util.Util.ERROR_BYTES_OR_STRING;
-
 public class Xml {
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
+
     static {
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
         FACTORY.setProperty(XMLInputFactory.SUPPORT_DTD, false);
@@ -107,36 +107,51 @@ public class Xml {
     public TerminationGuard terminationGuard;
 
     @Procedure
-    @Description("apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
-    public Stream<MapResult> xml(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
-        return xmlXpathToMapResult(urlOrBinary, simpleMode, path ,config);
+    @Description(
+            "apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name - load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
+    public Stream<MapResult> xml(
+            @Name("urlOrBinary") Object urlOrBinary,
+            @Name(value = "path", defaultValue = "/") String path,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config,
+            @Name(value = "simple", defaultValue = "false") boolean simpleMode)
+            throws Exception {
+        return xmlXpathToMapResult(urlOrBinary, simpleMode, path, config);
     }
 
     @UserFunction("apoc.xml.parse")
     @Description("RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value")
-    public Map<String, Object> parse(@Name("data") String data, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
+    public Map<String, Object> parse(
+            @Name("data") String data,
+            @Name(value = "path", defaultValue = "/") String path,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config,
+            @Name(value = "simple", defaultValue = "false") boolean simpleMode)
+            throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         return parse(new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), simpleMode, path, failOnError)
-                .map(mr -> mr.value).findFirst().orElse(null);
+                .map(mr -> mr.value)
+                .findFirst()
+                .orElse(null);
     }
 
-    private Stream<MapResult> xmlXpathToMapResult(@Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
+    private Stream<MapResult> xmlXpathToMapResult(
+            @Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config)
+            throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         try {
             Map<String, Object> headers = (Map) config.getOrDefault("headers", Collections.emptyMap());
-            CountingInputStream is = FileUtils.inputStreamFor(urlOrBinary, headers, null, (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
+            CountingInputStream is = FileUtils.inputStreamFor(
+                    urlOrBinary, headers, null, (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
             return parse(is, simpleMode, path, failOnError);
-        } catch (Exception e){
-            if(!failOnError)
-                return Stream.of(new MapResult(Collections.emptyMap()));
-            else
-                throw e;
+        } catch (Exception e) {
+            if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
+            else throw e;
         }
     }
 
-    private Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError) throws Exception {
+    private Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError)
+            throws Exception {
         List<MapResult> result = new ArrayList<>();
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -163,25 +178,20 @@ public class Xml {
                     result.add(new MapResult(stack.pollFirst()));
                 }
             }
-        }
-        catch (FileNotFoundException e){
-            if(!failOnError)
-                return Stream.of(new MapResult(Collections.emptyMap()));
-            else
-                throw e;
-        }
-        catch (Exception e){
-            if(!failOnError)
-                return Stream.of(new MapResult(Collections.emptyMap()));
+        } catch (FileNotFoundException e) {
+            if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
+            else throw e;
+        } catch (Exception e) {
+            if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
             else if (e instanceof SAXParseException && e.getMessage().contains("DOCTYPE is disallowed"))
                 throw generateXmlDoctypeException();
-            else
-                throw e;
+            else throw e;
         }
         return result.stream();
     }
 
-    private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config) throws IOException, XMLStreamException {
+    private XMLStreamReader getXMLStreamReader(Object urlOrBinary, XmlImportConfig config)
+            throws IOException, XMLStreamException {
         InputStream inputStream;
         if (urlOrBinary instanceof String) {
             String url = (String) urlOrBinary;
@@ -192,8 +202,7 @@ public class Xml {
         } else if (urlOrBinary instanceof byte[]) {
             inputStream = toLimitedIStream(
                     getInputStreamFromBinary((byte[]) urlOrBinary, config.getCompressionAlgo()),
-                    ((byte[]) urlOrBinary).length
-            );
+                    ((byte[]) urlOrBinary).length);
         } else {
             throw new RuntimeException(ERROR_BYTES_OR_STRING);
         }
@@ -202,7 +211,6 @@ public class Xml {
         }
         return FACTORY.createXMLStreamReader(inputStream);
     }
-
 
     private boolean proceedReader(XMLStreamReader reader) throws XMLStreamException {
         if (reader.hasNext()) {
@@ -371,7 +379,7 @@ public class Xml {
 
     public static class ParentAndChildPair {
         private org.neo4j.graphdb.Node parent;
-        private org.neo4j.graphdb.Node previousChild=null;
+        private org.neo4j.graphdb.Node previousChild = null;
 
         public ParentAndChildPair(org.neo4j.graphdb.Node parent) {
             this.parent = parent;
@@ -414,7 +422,7 @@ public class Xml {
         private Label label = Label.label("XmlCharacters");
         private RelationshipType relType = RelationshipType.withName("NE");
         private Map<String, String> charactersForTag = new HashMap<>();
-        final private boolean filterLeadingWhitespace;
+        private final boolean filterLeadingWhitespace;
 
         public XmlImportConfig(Map<String, Object> config) {
             super(config);
@@ -442,13 +450,14 @@ public class Xml {
                 connectCharacters = true;
             }
 
-            Map<String,String> _charactersForTag = (Map<String, String>) config.get("charactersForTag");
-            if (_charactersForTag !=null) {
+            Map<String, String> _charactersForTag = (Map<String, String>) config.get("charactersForTag");
+            if (_charactersForTag != null) {
                 charactersForTag = _charactersForTag;
             }
 
             if (config.containsKey("createNextWordRelationships")) {
-                throw new InvalidConfigException("usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
+                throw new InvalidConfigException(
+                        "usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
             }
         }
 
@@ -475,7 +484,6 @@ public class Xml {
         public boolean isFilterLeadingWhitespace() {
             return filterLeadingWhitespace;
         }
-
     }
 
     private static class ImportState {
@@ -520,7 +528,7 @@ public class Xml {
 
             last.createRelationshipTo(thisNode, RelationshipType.withName("NEXT"));
             thisNode.createRelationshipTo(parent, RelationshipType.withName("IS_CHILD_OF"));
-            if (previousChild ==null) {
+            if (previousChild == null) {
                 thisNode.createRelationshipTo(parent, RelationshipType.withName("FIRST_CHILD_OF"));
             } else {
                 previousChild.createRelationshipTo(thisNode, RelationshipType.withName("NEXT_SIBLING"));
@@ -537,15 +545,20 @@ public class Xml {
     @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
     @Deprecated
     @Description("Deprecated by apoc.import.xml")
-    public Stream<NodeResult> importToGraphDeprecated(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+    public Stream<NodeResult> importToGraphDeprecated(
+            @Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config)
+            throws IOException, XMLStreamException {
         return importToGraph(url, config);
     }
 
     @Procedure(mode = Mode.WRITE, value = "apoc.import.xml")
     @Description("apoc.import.xml(file,config) - imports graph from provided file")
-    public Stream<NodeResult> importToGraph(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+    public Stream<NodeResult> importToGraph(
+            @Name("urlOrBinary") Object urlOrBinary,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config)
+            throws IOException, XMLStreamException {
         XmlImportConfig importConfig = new XmlImportConfig(config);
-        //TODO: make labels, reltypes and magic properties configurable
+        // TODO: make labels, reltypes and magic properties configurable
 
         final XMLStreamReader xml = getXMLStreamReader(urlOrBinary, importConfig);
 
@@ -567,7 +580,8 @@ public class Xml {
                     throw generateXmlDoctypeException();
 
                 case XMLStreamConstants.START_DOCUMENT:
-                    // xmlsteamreader starts off by definition at START_DOCUMENT prior to call next() - so ignore this one
+                    // xmlsteamreader starts off by definition at START_DOCUMENT prior to call next() - so ignore this
+                    // one
                     break;
 
                 case XMLStreamConstants.PROCESSING_INSTRUCTION:
@@ -581,7 +595,7 @@ public class Xml {
                     final QName qName = xml.getName();
                     final org.neo4j.graphdb.Node tag = tx.createNode(Label.label("XmlTag"));
                     tag.setProperty("_name", qName.getLocalPart());
-                    for (int i=0; i<xml.getAttributeCount(); i++) {
+                    for (int i = 0; i < xml.getAttributeCount(); i++) {
                         tag.setProperty(xml.getAttributeLocalName(i), xml.getAttributeValue(i));
                     }
 
@@ -597,14 +611,15 @@ public class Xml {
                     break;
 
                 case XMLStreamConstants.END_ELEMENT:
-
-                    String charactersForTag = importConfig.getCharactersForTag().get(xml.getName().getLocalPart());
-                    if (charactersForTag!=null) {
+                    String charactersForTag =
+                            importConfig.getCharactersForTag().get(xml.getName().getLocalPart());
+                    if (charactersForTag != null) {
                         createCharactersNode(charactersForTag, state, importConfig);
                     }
                     ParentAndChildPair parent = state.pop();
-                    if (parent.getPreviousChild()!=null) {
-                        parent.getPreviousChild().createRelationshipTo(parent.getParent(), RelationshipType.withName("LAST_CHILD_OF"));
+                    if (parent.getPreviousChild() != null) {
+                        parent.getPreviousChild()
+                                .createRelationshipTo(parent.getParent(), RelationshipType.withName("LAST_CHILD_OF"));
                     }
                     break;
 
@@ -619,7 +634,6 @@ public class Xml {
                 default:
                     log.warn("xml file contains a {} type structure - ignoring this.", xml.getEventType());
             }
-
         }
         if (!state.isEmpty()) {
             throw new IllegalStateException("non empty parents, this indicates a bug");
@@ -656,15 +670,14 @@ public class Xml {
             result.add(sourceString.substring(start, end));
             prevEndIndex = end;
         }
-        if (prevEndIndex!=length) {
+        if (prevEndIndex != length) {
             result.add(sourceString.substring(prevEndIndex, length));
-
         }
         return result;
     }
 
     private void setPropertyIfNotNull(org.neo4j.graphdb.Node root, String propertyKey, Object value) {
-        if (value!=null) {
+        if (value != null) {
             root.setProperty(propertyKey, value);
         }
     }

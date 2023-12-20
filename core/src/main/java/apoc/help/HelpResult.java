@@ -34,7 +34,8 @@ public class HelpResult {
     public Boolean writes;
     public Boolean core;
 
-    public HelpResult(String type, String name, String text, String signature, List<String> roles, Boolean writes, Boolean core) {
+    public HelpResult(
+            String type, String name, String text, String signature, List<String> roles, Boolean writes, Boolean core) {
         this.type = type;
         this.name = name;
         this.text = text;
@@ -45,6 +46,13 @@ public class HelpResult {
     }
 
     public HelpResult(Map<String, Object> row, Boolean core) {
-        this((String)row.get("type"),(String)row.get("name"),(String)row.get("description"),(String)row.get("signature"),null,(Boolean)row.get("writes"), core);
+        this(
+                (String) row.get("type"),
+                (String) row.get("name"),
+                (String) row.get("description"),
+                (String) row.get("signature"),
+                null,
+                (Boolean) row.get("writes"),
+                core);
     }
 }

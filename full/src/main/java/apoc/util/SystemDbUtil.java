@@ -18,14 +18,12 @@
  */
 package apoc.util;
 
+import static apoc.ApocConfig.apocConfig;
+import static apoc.SystemPropertyKeys.database;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+
 import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
-import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,19 +31,21 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static apoc.ApocConfig.apocConfig;
-import static apoc.SystemPropertyKeys.database;
-import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
 
 public class SystemDbUtil {
-    public static final String SYS_NON_LEADER_ERROR = "It's not possible to write into a cluster member with a non-LEADER system database.\n";
-    public static final String PROCEDURE_NOT_ROUTED_ERROR = "No write operations are allowed directly on this database. " +
-            "Writes must pass through the leader. The role of this server is: FOLLOWER";
+    public static final String SYS_NON_LEADER_ERROR =
+            "It's not possible to write into a cluster member with a non-LEADER system database.\n";
+    public static final String PROCEDURE_NOT_ROUTED_ERROR =
+            "No write operations are allowed directly on this database. "
+                    + "Writes must pass through the leader. The role of this server is: FOLLOWER";
     public static final String DB_NOT_FOUND_ERROR = "The user database with name '%s' does not exist";
 
     public static final String BAD_TARGET_ERROR = " can only be installed on user databases.";
-
 
     /**
      * Check that the system database can write,
@@ -79,12 +79,11 @@ public class SystemDbUtil {
      * @param type: the procedure type
      */
     public static void checkTargetDatabase(Transaction tx, String databaseName, String type) {
-        final Set<String> databases = tx.execute("SHOW DATABASES", Collections.emptyMap())
-                .<String>columnAs("name")
-                .stream()
-                .collect(Collectors.toSet());
+        final Set<String> databases =
+                tx.execute("SHOW DATABASES", Collections.emptyMap()).<String>columnAs("name").stream()
+                        .collect(Collectors.toSet());
         if (!databases.contains(databaseName)) {
-            throw new RuntimeException( String.format(DB_NOT_FOUND_ERROR, databaseName) );
+            throw new RuntimeException(String.format(DB_NOT_FOUND_ERROR, databaseName));
         }
 
         if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
@@ -127,23 +126,21 @@ public class SystemDbUtil {
      * @param props: required property key-value combinations
      * @return
      */
-    public static ResourceIterator<Node> getSystemNodes(Transaction tx,
-                                                        String databaseName,
-                                                        SystemLabels sysLabel,
-                                                        Map<String, Object> props) {
-            final String dbNameKey = database.name();
+    public static ResourceIterator<Node> getSystemNodes(
+            Transaction tx, String databaseName, SystemLabels sysLabel, Map<String, Object> props) {
+        final String dbNameKey = database.name();
 
-            // search all system nodes
-            if (props == null) {
-                return tx.findNodes(sysLabel, dbNameKey, databaseName);
-            }
+        // search all system nodes
+        if (props == null) {
+            return tx.findNodes(sysLabel, dbNameKey, databaseName);
+        }
 
-            // search system nodes specified by some system prop keys, like name or label
-            Map<String, Object> propsMap = new HashMap<>();
-            propsMap.put(dbNameKey, databaseName);
-            propsMap.putAll(props);
+        // search system nodes specified by some system prop keys, like name or label
+        Map<String, Object> propsMap = new HashMap<>();
+        propsMap.put(dbNameKey, databaseName);
+        propsMap.putAll(props);
 
-            return tx.findNodes(sysLabel, propsMap);
+        return tx.findNodes(sysLabel, propsMap);
     }
 
     /**
@@ -176,9 +173,7 @@ public class SystemDbUtil {
     public static long getLastUpdate(String databaseName, SystemLabels label) {
         return SystemDbUtil.withSystemDb(tx -> {
             Node node = tx.findNode(label, SystemPropertyKeys.database.name(), databaseName);
-            return node == null
-                    ? 0L
-                    : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
         });
     }
 }

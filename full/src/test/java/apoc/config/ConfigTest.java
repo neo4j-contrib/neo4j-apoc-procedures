@@ -18,19 +18,6 @@
  */
 package apoc.config;
 
-import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Map;
-import java.util.Set;
-
 import static apoc.ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
@@ -45,13 +32,26 @@ import static apoc.trigger.TriggerHandler.TRIGGER_REFRESH;
 import static java.util.Map.entry;
 import static org.junit.Assert.assertEquals;
 
+import apoc.util.TestUtil;
+import java.util.Map;
+import java.util.Set;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
 /**
  * @author mh
  * @since 28.10.16
  */
 public class ConfigTest {
     // the following configs are always set by default:
-    // apoc.export.file.enabled, apoc.import.file.enabled, apoc.import.file.use_neo4j_config, apoc.trigger.enabled and apoc.import.file.allow_read_from_filesystem
+    // apoc.export.file.enabled, apoc.import.file.enabled, apoc.import.file.use_neo4j_config, apoc.trigger.enabled and
+    // apoc.import.file.allow_read_from_filesystem
     // apoc.ttl.enabled, apoc.ttl.limit, apoc.ttl.schedule
     private static final Map<String, String> EXPECTED_APOC_CONFS = Map.ofEntries(
             entry(APOC_EXPORT_FILE_ENABLED, "false"),
@@ -64,12 +64,10 @@ public class ConfigTest {
             entry(APOC_TTL_ENABLED, "false"),
             entry(APOC_UUID_ENABLED, "false"),
             entry(APOC_TTL_LIMIT, "1000"),
-            entry(APOC_TTL_SCHEDULE, "PT1M")
-    );
+            entry(APOC_TTL_SCHEDULE, "PT1M"));
 
     @Rule
-    public final ProvideSystemProperty systemPropertyRule
-            = new ProvideSystemProperty("foo", "bar")
+    public final ProvideSystemProperty systemPropertyRule = new ProvideSystemProperty("foo", "bar")
             .and("apoc.import.enabled", "true")
             .and("apoc.trigger.refresh", "2000")
             .and("apoc.jobs.scheduled.num_threads", "4")
@@ -90,18 +88,17 @@ public class ConfigTest {
     }
 
     @Test
-    public void configListTest(){
+    public void configListTest() {
         TestUtil.testResult(db, "CALL apoc.config.list() YIELD key RETURN * ORDER BY key", r -> {
             final Set<String> actualConfs = Iterators.asSet(r.columnAs("key"));
             assertEquals(EXPECTED_APOC_CONFS.keySet(), actualConfs);
         });
     }
-    
+
     @Test
-    public void configMapTest(){
+    public void configMapTest() {
         TestUtil.testCall(db, "CALL apoc.config.map()", r -> {
             assertEquals(EXPECTED_APOC_CONFS, r.get("value"));
         });
     }
-
 }

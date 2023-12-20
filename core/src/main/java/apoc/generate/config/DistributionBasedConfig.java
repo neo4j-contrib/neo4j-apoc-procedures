@@ -19,7 +19,6 @@
 package apoc.generate.config;
 
 import apoc.generate.distribution.SimpleDegreeDistribution;
-
 import java.util.List;
 
 /**

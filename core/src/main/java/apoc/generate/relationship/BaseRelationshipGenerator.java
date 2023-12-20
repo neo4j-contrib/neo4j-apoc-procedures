@@ -20,16 +20,16 @@ package apoc.generate.relationship;
 
 import apoc.generate.config.InvalidConfigException;
 import apoc.generate.config.RelationshipGeneratorConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.List;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * Abstract base-class for {@link RelationshipGenerator} implementations.
  *
  * @param <T> type of accepted configuration.
  */
-public abstract class BaseRelationshipGenerator<T extends RelationshipGeneratorConfig> implements RelationshipGenerator {
+public abstract class BaseRelationshipGenerator<T extends RelationshipGeneratorConfig>
+        implements RelationshipGenerator {
 
     private final T configuration;
 

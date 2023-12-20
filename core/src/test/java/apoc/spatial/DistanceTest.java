@@ -18,8 +18,15 @@
  */
 package apoc.spatial;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import apoc.result.DistancePathResult;
 import apoc.util.TestUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -27,14 +34,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class DistanceTest {
 
@@ -75,7 +74,7 @@ public class DistanceTest {
 
     @AfterClass
     public static void teardown() {
-       db.shutdown();
+        db.shutdown();
     }
 
     @Test
@@ -86,8 +85,8 @@ public class DistanceTest {
         int i = 0;
         try (Transaction tx = db.beginTx()) {
             List<Path> paths = new ArrayList<>();
-            Result result = tx.execute("MATCH (a:Point {name:'bruges'}), (b:Point {name:'dresden'}) " +
-            "MATCH p=(a)-[*]->(b) RETURN p");
+            Result result = tx.execute(
+                    "MATCH (a:Point {name:'bruges'}), (b:Point {name:'dresden'}) " + "MATCH p=(a)-[*]->(b) RETURN p");
             while (result.hasNext()) {
                 Map<String, Object> record = result.next();
                 ++i;
@@ -138,6 +137,4 @@ public class DistanceTest {
             tx.commit();
         }
     }
-
-
 }

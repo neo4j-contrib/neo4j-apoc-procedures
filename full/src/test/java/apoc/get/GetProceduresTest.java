@@ -18,7 +18,13 @@
  */
 package apoc.get;
 
+import static apoc.util.MapUtil.map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import apoc.util.TestUtil;
+import java.util.Collections;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,13 +34,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.Collections;
-import java.util.List;
-
-import static apoc.util.MapUtil.map;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 /**
  * @author mh
@@ -58,7 +57,7 @@ public class GetProceduresTest {
     @Test
     public void testNodes() throws Exception {
         List<Long> ids = TestUtil.firstColumn(db, "UNWIND range(0,2) as id CREATE (n:Node {id:id}) return id(n) as id");
-        TestUtil.testResult(db, "CALL apoc.get.nodes($ids)", map("ids",ids), r -> {
+        TestUtil.testResult(db, "CALL apoc.get.nodes($ids)", map("ids", ids), r -> {
             assertEquals(true, ids.contains(((Node) r.next().get("node")).getId()));
             assertEquals(true, ids.contains(((Node) r.next().get("node")).getId()));
             assertEquals(true, ids.contains(((Node) r.next().get("node")).getId()));
@@ -67,8 +66,9 @@ public class GetProceduresTest {
 
     @Test
     public void testRels() throws Exception {
-        List<Long> ids = TestUtil.firstColumn(db, "CREATE (n) WITH n UNWIND range(0,2) as id CREATE (n)-[r:KNOWS]->(n) return id(r) as id");
-        TestUtil.testResult(db, "CALL apoc.get.rels($ids)", map("ids",ids), r -> {
+        List<Long> ids = TestUtil.firstColumn(
+                db, "CREATE (n) WITH n UNWIND range(0,2) as id CREATE (n)-[r:KNOWS]->(n) return id(r) as id");
+        TestUtil.testResult(db, "CALL apoc.get.rels($ids)", map("ids", ids), r -> {
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
             assertEquals(true, ids.contains(((Relationship) r.next().get("rel")).getId()));
@@ -77,14 +77,13 @@ public class GetProceduresTest {
 
     @Test
     public void testArrayOfIds() {
-        String query = "MERGE (g:Foo {id: 1})\n" +
-                "MERGE (h:Foo {id: 2})\n" +
-                "MERGE (g)-[r:BAR]->(h)\n" +
-                "MERGE (t:Temp)\n" +
-                "SET t.ids = [] + ID(r)\n" +
-                "WITH t\n" +
-                "CALL apoc.get.rels(t.ids) YIELD rel\n" +
-                "RETURN rel";
+        String query = "MERGE (g:Foo {id: 1})\n" + "MERGE (h:Foo {id: 2})\n"
+                + "MERGE (g)-[r:BAR]->(h)\n"
+                + "MERGE (t:Temp)\n"
+                + "SET t.ids = [] + ID(r)\n"
+                + "WITH t\n"
+                + "CALL apoc.get.rels(t.ids) YIELD rel\n"
+                + "RETURN rel";
         TestUtil.testResult(db, query, Collections.emptyMap(), r -> {
             final ResourceIterator<Relationship> relIT = r.columnAs("rel");
             final Relationship rel = relIT.next();

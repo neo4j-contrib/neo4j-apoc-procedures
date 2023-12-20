@@ -20,16 +20,15 @@ package apoc.diff;
 
 import apoc.Description;
 import apoc.util.Util;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Benjamin Clauss
@@ -65,13 +64,15 @@ public class Diff {
     }
 
     private Map<String, Object> getPropertiesInCommon(Map<String, Object> left, Map<String, Object> right) {
-        // we use filter(entry -> Objects.deepEquals...) instead of retainAll because retainAll use `.equals()`, so it doesn't compare arrays 
+        // we use filter(entry -> Objects.deepEquals...) instead of retainAll because retainAll use `.equals()`, so it
+        // doesn't compare arrays
         return left.entrySet().stream()
                 .filter(entry -> Objects.deepEquals(entry.getValue(), right.get(entry.getKey())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public static Map<String, Map<String, Object>> getPropertiesDiffering(Map<String, Object> left, Map<String, Object> right) {
+    public static Map<String, Map<String, Object>> getPropertiesDiffering(
+            Map<String, Object> left, Map<String, Object> right) {
         Map<String, Map<String, Object>> different = new HashMap<>();
         Map<String, Object> keyPairs = new HashMap<>();
         keyPairs.putAll(left);

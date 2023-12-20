@@ -1,18 +1,17 @@
 package apoc.processor;
 
-import com.google.testing.compile.CompilationRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.neo4j.procedure.Procedure;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+import com.google.testing.compile.CompilationRule;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.TypeElement;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.neo4j.procedure.Procedure;
 
 public class ProcedureSignatureVisitorTest {
 
@@ -66,26 +65,21 @@ public class ProcedureSignatureVisitorTest {
     }
 
     @Procedure(name = "my.proc")
-    public static void myProcedure() {
-
-    }
+    public static void myProcedure() {}
 
     @Procedure(value = "my.proc2")
-    public static void myProcedure2() {
-
-    }
+    public static void myProcedure2() {}
 
     @Procedure(name = "my.proc3", value = "ignored")
-    public static void myProcedure3() {
-
-    }
+    public static void myProcedure3() {}
 
     @Procedure
-    public static void myDefaultNamedProcedure() {
-
-    }
+    public static void myDefaultNamedProcedure() {}
 
     private Element findMemberByName(TypeElement typeElement, String name) {
-        return compilationRule.getElements().getAllMembers(typeElement).stream().filter(e -> e.getSimpleName().contentEquals(name)).findFirst().get();
+        return compilationRule.getElements().getAllMembers(typeElement).stream()
+                .filter(e -> e.getSimpleName().contentEquals(name))
+                .findFirst()
+                .get();
     }
 }

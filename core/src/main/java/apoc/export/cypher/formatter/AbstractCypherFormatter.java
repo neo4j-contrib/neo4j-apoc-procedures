@@ -18,10 +18,22 @@
  */
 package apoc.export.cypher.formatter;
 
+import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_REL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
+
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ExportFormat;
 import apoc.export.util.Reporter;
 import apoc.util.Util;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -32,19 +44,6 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintType;
 
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_LABEL;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_REL;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
-
 /**
  * @author AgileLARUS
  *
@@ -52,542 +51,604 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.simpleKeyValue;
  */
 abstract class AbstractCypherFormatter implements CypherFormatter {
 
-	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s ON (node:%s) ASSERT (%s) %s;";
-	private static final String STATEMENT_CONSTRAINTS_REL = "CREATE CONSTRAINT%s%s ON ()-[rel:%s]-() ASSERT (%s) %s;";
+    private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT%s%s ON (node:%s) ASSERT (%s) %s;";
+    private static final String STATEMENT_CONSTRAINTS_REL = "CREATE CONSTRAINT%s%s ON ()-[rel:%s]-() ASSERT (%s) %s;";
 
-	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
-	private static final String STATEMENT_REL_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";
-	private static final String ID_REL_KEY = "id";
+    private static final String STATEMENT_NODE_FULLTEXT_IDX = "CREATE FULLTEXT INDEX %s FOR (n:%s) ON EACH [%s];";
+    private static final String STATEMENT_REL_FULLTEXT_IDX =
+            "CREATE FULLTEXT INDEX %s FOR ()-[rel:%s]-() ON EACH [%s];";
+    private static final String ID_REL_KEY = "id";
 
-	@Override
-	public String statementForCleanUp(int batchSize) {
-		return "MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
-				" WITH n LIMIT " + batchSize +
-				" REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";";
-	}
+    @Override
+    public String statementForCleanUp(int batchSize) {
+        return "MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " + " WITH n LIMIT "
+                + batchSize + " REMOVE n:"
+                + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";";
+    }
 
-	@Override
-	public String statementForNodeIndex(String indexType, String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
-		return String.format("CREATE %s INDEX%s%s FOR (node:%s) ON (%s);",
-				indexType,
-				idxName,
-				getIfNotExists(ifNotExists),
-				Util.quote(label),
-				getPropertiesQuoted(keys, "node."));
-	}
-	
-	@Override
-	public String statementForIndexRelationship(String indexType, String type, Iterable<String> keys, boolean ifNotExists, String idxName) {
-		return String.format("CREATE %s INDEX%s%s FOR ()-[rel:%s]-() ON (%s);",
-				indexType,
-				idxName,
-				getIfNotExists(ifNotExists), 
-				Util.quote(type), 
-				getPropertiesQuoted(keys, "rel."));
-	}
+    @Override
+    public String statementForNodeIndex(
+            String indexType, String label, Iterable<String> keys, boolean ifNotExists, String idxName) {
+        return String.format(
+                "CREATE %s INDEX%s%s FOR (node:%s) ON (%s);",
+                indexType, idxName, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted(keys, "node."));
+    }
 
-	@Override
-	public String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys) {
-		String label = StreamSupport.stream(labels.spliterator(), false)
-				.map(Label::name)
-				.map(Util::quote)
-				.collect(Collectors.joining("|"));
-		String key = getPropertiesQuoted(keys, "n.");
+    @Override
+    public String statementForIndexRelationship(
+            String indexType, String type, Iterable<String> keys, boolean ifNotExists, String idxName) {
+        return String.format(
+                "CREATE %s INDEX%s%s FOR ()-[rel:%s]-() ON (%s);",
+                indexType, idxName, getIfNotExists(ifNotExists), Util.quote(type), getPropertiesQuoted(keys, "rel."));
+    }
 
-		return String.format(STATEMENT_NODE_FULLTEXT_IDX, name, label, key);
-	}
+    @Override
+    public String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys) {
+        String label = StreamSupport.stream(labels.spliterator(), false)
+                .map(Label::name)
+                .map(Util::quote)
+                .collect(Collectors.joining("|"));
+        String key = getPropertiesQuoted(keys, "n.");
 
-	@Override
-	public String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys) {
-		String type = StreamSupport.stream(types.spliterator(), false)
-				.map(RelationshipType::name)
-				.map(Util::quote)
-				.collect(Collectors.joining("|"));
-		String key = getPropertiesQuoted(keys, "rel.");
-		
-		return String.format(STATEMENT_REL_FULLTEXT_IDX, name, type, key);
-	}
+        return String.format(STATEMENT_NODE_FULLTEXT_IDX, name, label, key);
+    }
 
-	@Override
-	public String statementForConstraint( String label, Iterable<String> keys, ConstraintType type, boolean ifNotExists, String name )
-	{
-		String keysString = "";
-		String typeString = "";
-		String statement = "";
-		switch ( type )
-		{
-		case UNIQUENESS:
-			keysString = "node.";
-			typeString = "IS UNIQUE";
-			statement = STATEMENT_CONSTRAINTS;
-			break;
-		case NODE_KEY:
-			keysString = "node.";
-			typeString = "IS NODE KEY";
-			statement = STATEMENT_CONSTRAINTS;
-			break;
-		case NODE_PROPERTY_EXISTENCE:
-			keysString = "node.";
-			typeString = "IS NOT NULL";
-			statement = STATEMENT_CONSTRAINTS;
-			break;
-		case RELATIONSHIP_PROPERTY_EXISTENCE:
-			keysString = "rel.";
-			typeString = "IS NOT NULL";
-			statement = STATEMENT_CONSTRAINTS_REL;
-		}
+    @Override
+    public String statementForRelationshipFullTextIndex(
+            String name, Iterable<RelationshipType> types, Iterable<String> keys) {
+        String type = StreamSupport.stream(types.spliterator(), false)
+                .map(RelationshipType::name)
+                .map(Util::quote)
+                .collect(Collectors.joining("|"));
+        String key = getPropertiesQuoted(keys, "rel.");
 
-		return String.format( statement, name, getIfNotExists(ifNotExists), Util.quote(label), getPropertiesQuoted( keys, keysString ), typeString );
-	}
+        return String.format(STATEMENT_REL_FULLTEXT_IDX, name, type, key);
+    }
 
-	private String getIfNotExists(boolean ifNotExists) {
-		return ifNotExists ? " IF NOT EXISTS" : "";
-	}
+    @Override
+    public String statementForConstraint(
+            String label, Iterable<String> keys, ConstraintType type, boolean ifNotExists, String name) {
+        String keysString = "";
+        String typeString = "";
+        String statement = "";
+        switch (type) {
+            case UNIQUENESS:
+                keysString = "node.";
+                typeString = "IS UNIQUE";
+                statement = STATEMENT_CONSTRAINTS;
+                break;
+            case NODE_KEY:
+                keysString = "node.";
+                typeString = "IS NODE KEY";
+                statement = STATEMENT_CONSTRAINTS;
+                break;
+            case NODE_PROPERTY_EXISTENCE:
+                keysString = "node.";
+                typeString = "IS NOT NULL";
+                statement = STATEMENT_CONSTRAINTS;
+                break;
+            case RELATIONSHIP_PROPERTY_EXISTENCE:
+                keysString = "rel.";
+                typeString = "IS NOT NULL";
+                statement = STATEMENT_CONSTRAINTS_REL;
+        }
 
-	private String getPropertiesQuoted(Iterable<String> keys, String prefix) {
-		String keysString = StreamSupport.stream(keys.spliterator(), false)
-				.map(key -> prefix + CypherFormatterUtils.quote(key))
-				.collect(Collectors.joining(", "));
-		return keysString;
-	}
+        return String.format(
+                statement,
+                name,
+                getIfNotExists(ifNotExists),
+                Util.quote(label),
+                getPropertiesQuoted(keys, keysString),
+                typeString);
+    }
 
-	protected String mergeStatementForNode(CypherFormat cypherFormat, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
-		StringBuilder result = new StringBuilder(1000);
-		result.append("MERGE ");
-		result.append(CypherFormatterUtils.formatNodeLookup("n", node, uniqueConstraints, indexNames));
-		String notUniqueProperties = CypherFormatterUtils.formatNotUniqueProperties("n", node, uniqueConstraints, indexedProperties, false);
-		String notUniqueLabels = CypherFormatterUtils.formatNotUniqueLabels("n", node, uniqueConstraints);
-		if (!notUniqueProperties.isEmpty() || !notUniqueLabels.isEmpty()) {
-			result.append(cypherFormat.equals(CypherFormat.ADD_STRUCTURE) ? " ON CREATE SET " : " SET ");
-			result.append(notUniqueProperties);
-			result.append(!"".equals(notUniqueProperties) && !"".equals(notUniqueLabels) ? ", " : "");
-			result.append(notUniqueLabels);
-		}
-		result.append(";");
-		return result.toString();
-	}
+    private String getIfNotExists(boolean ifNotExists) {
+        return ifNotExists ? " IF NOT EXISTS" : "";
+    }
 
-	public String mergeStatementForRelationship(CypherFormat cypherFormat, Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, ExportConfig exportConfig) {
-		StringBuilder result = new StringBuilder(1000);
-		result.append("MATCH ");
-		final Node startNode = relationship.getStartNode();
-		result.append(CypherFormatterUtils.formatNodeLookup("n1", startNode, uniqueConstraints, indexedProperties));
-		result.append(", ");
-		final Node endNode = relationship.getEndNode();
-		result.append(CypherFormatterUtils.formatNodeLookup("n2", endNode, uniqueConstraints, indexedProperties));
-		final RelationshipType type = relationship.getType();
-		final boolean withMultiRels = exportConfig.isMultipleRelationshipsWithType() &&
-				StreamSupport.stream(startNode.getRelationships(Direction.OUTGOING, type).spliterator(), false)
-						.anyMatch(r -> !r.equals(relationship) && r.getEndNode().equals(endNode));
+    private String getPropertiesQuoted(Iterable<String> keys, String prefix) {
+        String keysString = StreamSupport.stream(keys.spliterator(), false)
+                .map(key -> prefix + CypherFormatterUtils.quote(key))
+                .collect(Collectors.joining(", "));
+        return keysString;
+    }
 
-		String mergeUniqueKey = withMultiRels
-				? simpleKeyValue(Q_UNIQUE_ID_REL, relationship.getId())
-				: "";
-		result.append(" MERGE (n1)-[r:" + Util.quote(type.name()) + mergeUniqueKey + "]->(n2)");
-		if (relationship.getPropertyKeys().iterator().hasNext()) {
-			result.append(cypherFormat.equals(CypherFormat.UPDATE_STRUCTURE) ? " ON CREATE SET " : " SET ");
-			result.append(CypherFormatterUtils.formatRelationshipProperties("r", relationship, false));
-		}
-		result.append(";");
-		return result.toString();
-	}
+    protected String mergeStatementForNode(
+            CypherFormat cypherFormat,
+            Node node,
+            Map<String, Set<String>> uniqueConstraints,
+            Set<String> indexedProperties,
+            Set<String> indexNames) {
+        StringBuilder result = new StringBuilder(1000);
+        result.append("MERGE ");
+        result.append(CypherFormatterUtils.formatNodeLookup("n", node, uniqueConstraints, indexNames));
+        String notUniqueProperties =
+                CypherFormatterUtils.formatNotUniqueProperties("n", node, uniqueConstraints, indexedProperties, false);
+        String notUniqueLabels = CypherFormatterUtils.formatNotUniqueLabels("n", node, uniqueConstraints);
+        if (!notUniqueProperties.isEmpty() || !notUniqueLabels.isEmpty()) {
+            result.append(cypherFormat.equals(CypherFormat.ADD_STRUCTURE) ? " ON CREATE SET " : " SET ");
+            result.append(notUniqueProperties);
+            result.append(!"".equals(notUniqueProperties) && !"".equals(notUniqueLabels) ? ", " : "");
+            result.append(notUniqueLabels);
+        }
+        result.append(";");
+        return result.toString();
+    }
 
-	public void buildStatementForNodes(String nodeClause,
-									   String setClause,
-									   Iterable<Node> nodes,
-									   Map<String, Set<String>> uniqueConstraints,
-									   ExportConfig exportConfig,
-									   PrintWriter out,
-									   Reporter reporter,
-									   GraphDatabaseService db) {
-		// Batch stream results, process BATCH_COUNT nodes at a time
-		boolean shouldContinue = true;
-		AtomicInteger totalNodeCount = new AtomicInteger(0);
-		while (shouldContinue) {
-			AtomicInteger nodesInBatch = new AtomicInteger(0);
-			Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
-				try (Transaction tx = db.beginTx()) {
-					totalNodeCount.incrementAndGet();
-					nodesInBatch.incrementAndGet();
-					node = tx.getNodeById(node.getId());
-					Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints).keySet();
-					Set<String> labels = getLabels(node);
-					tx.commit();
-					return new AbstractMap.SimpleImmutableEntry<>(labels, idProperties);
-				}
-			};
-			Map<Map.Entry<Set<String>, Set<String>>, List<Node>> groupedData =
-					StreamSupport.stream(
-									com.google.common.collect.Iterables.limit(
-											com.google.common.collect.Iterables.skip(nodes, totalNodeCount.get()),
-											exportConfig.getBatchSize()).spliterator(),
-									true)
-							.collect(Collectors.groupingByConcurrent(keyMapper));
+    public String mergeStatementForRelationship(
+            CypherFormat cypherFormat,
+            Relationship relationship,
+            Map<String, Set<String>> uniqueConstraints,
+            Set<String> indexedProperties,
+            ExportConfig exportConfig) {
+        StringBuilder result = new StringBuilder(1000);
+        result.append("MATCH ");
+        final Node startNode = relationship.getStartNode();
+        result.append(CypherFormatterUtils.formatNodeLookup("n1", startNode, uniqueConstraints, indexedProperties));
+        result.append(", ");
+        final Node endNode = relationship.getEndNode();
+        result.append(CypherFormatterUtils.formatNodeLookup("n2", endNode, uniqueConstraints, indexedProperties));
+        final RelationshipType type = relationship.getType();
+        final boolean withMultiRels = exportConfig.isMultipleRelationshipsWithType()
+                && StreamSupport.stream(
+                                startNode
+                                        .getRelationships(Direction.OUTGOING, type)
+                                        .spliterator(),
+                                false)
+                        .anyMatch(r -> !r.equals(relationship) && r.getEndNode().equals(endNode));
 
-			// Each loop will collect at most the batch size in nodes to process
-			// This is done using a limit on the stream. If the limit returns less than
-			// the batch size, this means we have no more nodes to process after this round and
-			// can stop.
-			if (nodesInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
+        String mergeUniqueKey = withMultiRels ? simpleKeyValue(Q_UNIQUE_ID_REL, relationship.getId()) : "";
+        result.append(" MERGE (n1)-[r:" + Util.quote(type.name()) + mergeUniqueKey + "]->(n2)");
+        if (relationship.getPropertyKeys().iterator().hasNext()) {
+            result.append(cypherFormat.equals(CypherFormat.UPDATE_STRUCTURE) ? " ON CREATE SET " : " SET ");
+            result.append(CypherFormatterUtils.formatRelationshipProperties("r", relationship, false));
+        }
+        result.append(";");
+        return result.toString();
+    }
 
-			AtomicInteger propertiesCount = new AtomicInteger(0);
+    public void buildStatementForNodes(
+            String nodeClause,
+            String setClause,
+            Iterable<Node> nodes,
+            Map<String, Set<String>> uniqueConstraints,
+            ExportConfig exportConfig,
+            PrintWriter out,
+            Reporter reporter,
+            GraphDatabaseService db) {
+        // Batch stream results, process BATCH_COUNT nodes at a time
+        boolean shouldContinue = true;
+        AtomicInteger totalNodeCount = new AtomicInteger(0);
+        while (shouldContinue) {
+            AtomicInteger nodesInBatch = new AtomicInteger(0);
+            Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
+                try (Transaction tx = db.beginTx()) {
+                    totalNodeCount.incrementAndGet();
+                    nodesInBatch.incrementAndGet();
+                    node = tx.getNodeById(node.getId());
+                    Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints)
+                            .keySet();
+                    Set<String> labels = getLabels(node);
+                    tx.commit();
+                    return new AbstractMap.SimpleImmutableEntry<>(labels, idProperties);
+                }
+            };
+            Map<Map.Entry<Set<String>, Set<String>>, List<Node>> groupedData = StreamSupport.stream(
+                            com.google.common.collect.Iterables.limit(
+                                            com.google.common.collect.Iterables.skip(nodes, totalNodeCount.get()),
+                                            exportConfig.getBatchSize())
+                                    .spliterator(),
+                            true)
+                    .collect(Collectors.groupingByConcurrent(keyMapper));
 
-			AtomicInteger batchCount = new AtomicInteger(0);
-			AtomicInteger nodeCount = new AtomicInteger(0);
-			groupedData.forEach((key, nodeList) -> {
-				AtomicInteger unwindCount = new AtomicInteger(0);
-				final int nodeListSize = nodeList.size();
-				final Node last = nodeList.get(nodeListSize - 1);
-				nodeCount.addAndGet(nodeListSize);
-				for (Node node : nodeList) {
-					writeBatchBegin(exportConfig, out, batchCount);
-					writeUnwindStart(exportConfig, out, unwindCount);
-					batchCount.incrementAndGet();
-					unwindCount.incrementAndGet();
-					Map<String, Object> props = node.getAllProperties();
-					// start element
-					out.append("{");
+            // Each loop will collect at most the batch size in nodes to process
+            // This is done using a limit on the stream. If the limit returns less than
+            // the batch size, this means we have no more nodes to process after this round and
+            // can stop.
+            if (nodesInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
 
-					// id
-					Map<String, Object> idMap = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints);
-					writeNodeIds(out, idMap);
+            AtomicInteger propertiesCount = new AtomicInteger(0);
 
-					// properties
-					out.append(", ");
-					out.append("properties:");
+            AtomicInteger batchCount = new AtomicInteger(0);
+            AtomicInteger nodeCount = new AtomicInteger(0);
+            groupedData.forEach((key, nodeList) -> {
+                AtomicInteger unwindCount = new AtomicInteger(0);
+                final int nodeListSize = nodeList.size();
+                final Node last = nodeList.get(nodeListSize - 1);
+                nodeCount.addAndGet(nodeListSize);
+                for (Node node : nodeList) {
+                    writeBatchBegin(exportConfig, out, batchCount);
+                    writeUnwindStart(exportConfig, out, unwindCount);
+                    batchCount.incrementAndGet();
+                    unwindCount.incrementAndGet();
+                    Map<String, Object> props = node.getAllProperties();
+                    // start element
+                    out.append("{");
 
-					propertiesCount.addAndGet(props.size());
-					props.keySet().removeAll(idMap.keySet());
-					writeProperties(out, props);
+                    // id
+                    Map<String, Object> idMap = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints);
+                    writeNodeIds(out, idMap);
 
-					// end element
-					out.append("}");
-					if (last.equals(node) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
-						closeUnwindNodes(nodeClause, setClause, uniqueConstraints, exportConfig, out, key, last);
-						writeBatchEnd(exportConfig, out, batchCount);
-						unwindCount.set(0);
-					} else {
-						out.append(", ");
-					}
-				}
-			});
-			addCommitToEnd(exportConfig, out, batchCount);
+                    // properties
+                    out.append(", ");
+                    out.append("properties:");
 
-			reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
-		}
-	}
+                    propertiesCount.addAndGet(props.size());
+                    props.keySet().removeAll(idMap.keySet());
+                    writeProperties(out, props);
 
-	private void closeUnwindNodes(String nodeClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Map.Entry<Set<String>, Set<String>> key, Node last) {
-		writeUnwindEnd(exportConfig, out);
-		out.append(StringUtils.LF);
-		out.append(nodeClause);
+                    // end element
+                    out.append("}");
+                    if (last.equals(node)
+                            || isBatchMatch(exportConfig, batchCount)
+                            || isUnwindBatchMatch(exportConfig, unwindCount)) {
+                        closeUnwindNodes(nodeClause, setClause, uniqueConstraints, exportConfig, out, key, last);
+                        writeBatchEnd(exportConfig, out, batchCount);
+                        unwindCount.set(0);
+                    } else {
+                        out.append(", ");
+                    }
+                }
+            });
+            addCommitToEnd(exportConfig, out, batchCount);
 
-		String label = getUniqueConstrainedLabel(last, uniqueConstraints);
-		out.append("(n:");
-		out.append(Util.quote(label));
-		out.append("{");
-		writeSetProperties(out, key.getValue());
-		out.append("}) ");
-		out.append(setClause);
-		out.append("n += row.properties");
-		String addLabels = key.getKey().stream()
-				.filter(l -> !l.equals(label))
-				.map(Util::quote)
-				.collect(Collectors.joining(":"));
-		if (!addLabels.isEmpty()) {
-			out.append(" SET n:");
-			out.append(addLabels);
-		}
-		out.append(";");
-		out.append(StringUtils.LF);
-	}
+            reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
+        }
+    }
 
-	private void writeSetProperties(PrintWriter out, Set<String> value) {
-		writeSetProperties(out, value, null);
-	}
+    private void closeUnwindNodes(
+            String nodeClause,
+            String setClause,
+            Map<String, Set<String>> uniqueConstraints,
+            ExportConfig exportConfig,
+            PrintWriter out,
+            Map.Entry<Set<String>, Set<String>> key,
+            Node last) {
+        writeUnwindEnd(exportConfig, out);
+        out.append(StringUtils.LF);
+        out.append(nodeClause);
 
-	private void writeSetProperties(PrintWriter out, Set<String> value, String prefix) {
-		if (prefix == null) prefix = "";
-		int size = value.size();
-		for (String s: value) {
-			--size;
-			out.append(Util.quote(s) + ": row." + prefix + formatNodeId(s));
-			if (size > 0) {
-				out.append(", ");
-			}
-		}
-	}
+        String label = getUniqueConstrainedLabel(last, uniqueConstraints);
+        out.append("(n:");
+        out.append(Util.quote(label));
+        out.append("{");
+        writeSetProperties(out, key.getValue());
+        out.append("}) ");
+        out.append(setClause);
+        out.append("n += row.properties");
+        String addLabels = key.getKey().stream()
+                .filter(l -> !l.equals(label))
+                .map(Util::quote)
+                .collect(Collectors.joining(":"));
+        if (!addLabels.isEmpty()) {
+            out.append(" SET n:");
+            out.append(addLabels);
+        }
+        out.append(";");
+        out.append(StringUtils.LF);
+    }
 
-	private boolean isBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
-		return batchCount.get() % exportConfig.getBatchSize() == 0;
-	}
+    private void writeSetProperties(PrintWriter out, Set<String> value) {
+        writeSetProperties(out, value, null);
+    }
 
-	public void buildStatementForRelationships(String relationshipClause,
-											   String setClause,
-											   Iterable<Relationship> relationship,
-											   Map<String, Set<String>> uniqueConstraints,
-											   ExportConfig exportConfig,
-											   PrintWriter out,
-											   Reporter reporter,
-											   GraphDatabaseService db) {
-		boolean shouldContinue = true;
-		AtomicInteger totalRelCount = new AtomicInteger(0);
-		while (shouldContinue) {
-			AtomicInteger relsInBatch = new AtomicInteger(0);
+    private void writeSetProperties(PrintWriter out, Set<String> value, String prefix) {
+        if (prefix == null) prefix = "";
+        int size = value.size();
+        for (String s : value) {
+            --size;
+            out.append(Util.quote(s) + ": row." + prefix + formatNodeId(s));
+            if (size > 0) {
+                out.append(", ");
+            }
+        }
+    }
 
-			Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
-				totalRelCount.incrementAndGet();
-				relsInBatch.incrementAndGet();
-				try (Transaction tx = db.beginTx()) {
-					rel = tx.getRelationshipById(rel.getId());
-					Node start = rel.getStartNode();
-					Set<String> startLabels = getLabels(start);
+    private boolean isBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
+        return batchCount.get() % exportConfig.getBatchSize() == 0;
+    }
 
-					// define the end labels
-					Node end = rel.getEndNode();
-					Set<String> endLabels = getLabels(end);
+    public void buildStatementForRelationships(
+            String relationshipClause,
+            String setClause,
+            Iterable<Relationship> relationship,
+            Map<String, Set<String>> uniqueConstraints,
+            ExportConfig exportConfig,
+            PrintWriter out,
+            Reporter reporter,
+            GraphDatabaseService db) {
+        boolean shouldContinue = true;
+        AtomicInteger totalRelCount = new AtomicInteger(0);
+        while (shouldContinue) {
+            AtomicInteger relsInBatch = new AtomicInteger(0);
 
-					// define the type
-					String type = rel.getType().name();
+            Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
+                totalRelCount.incrementAndGet();
+                relsInBatch.incrementAndGet();
+                try (Transaction tx = db.beginTx()) {
+                    rel = tx.getRelationshipById(rel.getId());
+                    Node start = rel.getStartNode();
+                    Set<String> startLabels = getLabels(start);
 
-					// create the path
-					Map<String, Object> key = Util.map("type", type,
-							"start", new AbstractMap.SimpleImmutableEntry<>(startLabels, CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints).keySet()),
-							"end", new AbstractMap.SimpleImmutableEntry<>(endLabels, CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints).keySet()));
+                    // define the end labels
+                    Node end = rel.getEndNode();
+                    Set<String> endLabels = getLabels(end);
 
-					tx.commit();
-					return key;
-				}
-			};
-			Map<Map<String, Object>, List<Relationship>> groupedData =
-					StreamSupport.stream(
-									com.google.common.collect.Iterables.limit(
-											com.google.common.collect.Iterables.skip(relationship, totalRelCount.get()),
-											exportConfig.getBatchSize()).spliterator(),
-									true)
-							.collect(Collectors.groupingByConcurrent(keyMapper));
+                    // define the type
+                    String type = rel.getType().name();
 
-			// Each loop will collect at most the batch size in rels to process
-			// This is done using a limit on the stream. If the limit returns less than
-			// the batch size, this means we have no more rels to process after this round and
-			// can stop.
-			if (relsInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
+                    // create the path
+                    Map<String, Object> key = Util.map(
+                            "type",
+                            type,
+                            "start",
+                            new AbstractMap.SimpleImmutableEntry<>(
+                                    startLabels,
+                                    CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints)
+                                            .keySet()),
+                            "end",
+                            new AbstractMap.SimpleImmutableEntry<>(
+                                    endLabels,
+                                    CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints)
+                                            .keySet()));
 
-			AtomicInteger propertiesCount = new AtomicInteger(0);
-			AtomicInteger batchCount = new AtomicInteger(0);
+                    tx.commit();
+                    return key;
+                }
+            };
+            Map<Map<String, Object>, List<Relationship>> groupedData = StreamSupport.stream(
+                            com.google.common.collect.Iterables.limit(
+                                            com.google.common.collect.Iterables.skip(relationship, totalRelCount.get()),
+                                            exportConfig.getBatchSize())
+                                    .spliterator(),
+                            true)
+                    .collect(Collectors.groupingByConcurrent(keyMapper));
 
-			String start = "start";
-			String end = "end";
-			AtomicInteger relCount = new AtomicInteger(0);
-			groupedData.forEach((path, relationshipList) -> {
-				AtomicInteger unwindCount = new AtomicInteger(0);
-				final int relSize = relationshipList.size();
-				relCount.addAndGet(relSize);
-				final Relationship last = relationshipList.get(relSize - 1);
-				for (Relationship rel : relationshipList) {
-					writeBatchBegin(exportConfig, out, batchCount);
-					writeUnwindStart(exportConfig, out, unwindCount);
-					batchCount.incrementAndGet();
-					unwindCount.incrementAndGet();
-					Map<String, Object> props = rel.getAllProperties();
-					// start element
-					out.append("{");
+            // Each loop will collect at most the batch size in rels to process
+            // This is done using a limit on the stream. If the limit returns less than
+            // the batch size, this means we have no more rels to process after this round and
+            // can stop.
+            if (relsInBatch.get() < exportConfig.getBatchSize()) shouldContinue = false;
 
-					// start node
-					Node startNode = rel.getStartNode();
-					writeRelationshipNodeIds(uniqueConstraints, out, start, startNode);
+            AtomicInteger propertiesCount = new AtomicInteger(0);
+            AtomicInteger batchCount = new AtomicInteger(0);
 
-					Node endNode = rel.getEndNode();
-					final boolean withMultipleRels = exportConfig.isMultipleRelationshipsWithType();
-					out.append(", ");
-					if (withMultipleRels) {
-						String uniqueId = String.format("%s: %s, ", ID_REL_KEY, rel.getId());
-						out.append(uniqueId);
-					}
+            String start = "start";
+            String end = "end";
+            AtomicInteger relCount = new AtomicInteger(0);
+            groupedData.forEach((path, relationshipList) -> {
+                AtomicInteger unwindCount = new AtomicInteger(0);
+                final int relSize = relationshipList.size();
+                relCount.addAndGet(relSize);
+                final Relationship last = relationshipList.get(relSize - 1);
+                for (Relationship rel : relationshipList) {
+                    writeBatchBegin(exportConfig, out, batchCount);
+                    writeUnwindStart(exportConfig, out, unwindCount);
+                    batchCount.incrementAndGet();
+                    unwindCount.incrementAndGet();
+                    Map<String, Object> props = rel.getAllProperties();
+                    // start element
+                    out.append("{");
 
-					// end node
-					writeRelationshipNodeIds(uniqueConstraints, out, end, endNode);
+                    // start node
+                    Node startNode = rel.getStartNode();
+                    writeRelationshipNodeIds(uniqueConstraints, out, start, startNode);
 
-					// properties
-					out.append(", ");
-					out.append("properties:");
-					writeProperties(out, props);
-					propertiesCount.addAndGet(props.size());
+                    Node endNode = rel.getEndNode();
+                    final boolean withMultipleRels = exportConfig.isMultipleRelationshipsWithType();
+                    out.append(", ");
+                    if (withMultipleRels) {
+                        String uniqueId = String.format("%s: %s, ", ID_REL_KEY, rel.getId());
+                        out.append(uniqueId);
+                    }
 
-					// end element
-					out.append("}");
+                    // end node
+                    writeRelationshipNodeIds(uniqueConstraints, out, end, endNode);
 
-					if (last.equals(rel) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
-						closeUnwindRelationships(relationshipClause, setClause, uniqueConstraints, exportConfig, out, start, end, path, last, withMultipleRels);
-						writeBatchEnd(exportConfig, out, batchCount);
-						unwindCount.set(0);
-					} else {
-						out.append(", ");
-					}
-				}
-			});
-			addCommitToEnd(exportConfig, out, batchCount);
+                    // properties
+                    out.append(", ");
+                    out.append("properties:");
+                    writeProperties(out, props);
+                    propertiesCount.addAndGet(props.size());
 
-			reporter.update(0, relCount.get(), propertiesCount.longValue());
-		}
-	}
+                    // end element
+                    out.append("}");
 
-	private void closeUnwindRelationships(String relationshipClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, String start, String end, Map<String, Object> path, Relationship last, boolean withMultipleRels) {
-		writeUnwindEnd(exportConfig, out);
-		// match start node
-		writeRelationshipMatchAsciiNode(last.getStartNode(), out, start, uniqueConstraints);
+                    if (last.equals(rel)
+                            || isBatchMatch(exportConfig, batchCount)
+                            || isUnwindBatchMatch(exportConfig, unwindCount)) {
+                        closeUnwindRelationships(
+                                relationshipClause,
+                                setClause,
+                                uniqueConstraints,
+                                exportConfig,
+                                out,
+                                start,
+                                end,
+                                path,
+                                last,
+                                withMultipleRels);
+                        writeBatchEnd(exportConfig, out, batchCount);
+                        unwindCount.set(0);
+                    } else {
+                        out.append(", ");
+                    }
+                }
+            });
+            addCommitToEnd(exportConfig, out, batchCount);
 
-		// match end node
-		writeRelationshipMatchAsciiNode(last.getEndNode(), out, end, uniqueConstraints);
+            reporter.update(0, relCount.get(), propertiesCount.longValue());
+        }
+    }
 
-		out.append(StringUtils.LF);
+    private void closeUnwindRelationships(
+            String relationshipClause,
+            String setClause,
+            Map<String, Set<String>> uniqueConstraints,
+            ExportConfig exportConfig,
+            PrintWriter out,
+            String start,
+            String end,
+            Map<String, Object> path,
+            Relationship last,
+            boolean withMultipleRels) {
+        writeUnwindEnd(exportConfig, out);
+        // match start node
+        writeRelationshipMatchAsciiNode(last.getStartNode(), out, start, uniqueConstraints);
 
-		// create the relationship (depends on the strategy)
-		out.append(relationshipClause);
-		String mergeUniqueKey = withMultipleRels
-				? simpleKeyValue(Q_UNIQUE_ID_REL, "row." + ID_REL_KEY)
-				: "";
-		out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + mergeUniqueKey + "]->(end) ");
-		out.append(setClause);
-		out.append("r += row.properties;");
-		out.append(StringUtils.LF);
-	}
+        // match end node
+        writeRelationshipMatchAsciiNode(last.getEndNode(), out, end, uniqueConstraints);
 
-	private boolean isUnwindBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
-		return batchCount.get() % exportConfig.getUnwindBatchSize() == 0;
-	}
+        out.append(StringUtils.LF);
 
-	private void writeBatchEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (isBatchMatch(exportConfig, batchCount)) {
-			out.append(exportConfig.getFormat().commit());
-		}
-	}
+        // create the relationship (depends on the strategy)
+        out.append(relationshipClause);
+        String mergeUniqueKey = withMultipleRels ? simpleKeyValue(Q_UNIQUE_ID_REL, "row." + ID_REL_KEY) : "";
+        out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + mergeUniqueKey + "]->(end) ");
+        out.append(setClause);
+        out.append("r += row.properties;");
+        out.append(StringUtils.LF);
+    }
 
-	public void writeProperties(PrintWriter out, Map<String, Object> props) {
-		out.append("{");
-		if (!props.isEmpty()) {
-			int size = props.size();
-			for (Map.Entry<String, Object> es : props.entrySet()) {
-				--size;
-				out.append(Util.quote(es.getKey()));
-				out.append(":");
-				out.append(CypherFormatterUtils.toString(es.getValue()));
-				if (size > 0) {
-					out.append(", ");
-				}
-			}
-		}
-		out.append("}");
-	}
+    private boolean isUnwindBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
+        return batchCount.get() % exportConfig.getUnwindBatchSize() == 0;
+    }
 
-	private String formatNodeId(String key) {
-		if (CypherFormatterUtils.UNIQUE_ID_PROP.equals(key)) {
-			key = "_id";
-		}
-		return Util.quote(key);
-	}
+    private void writeBatchEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+        if (isBatchMatch(exportConfig, batchCount)) {
+            out.append(exportConfig.getFormat().commit());
+        }
+    }
 
-	private void addCommitToEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (batchCount.get() % exportConfig.getBatchSize() != 0) {
-			out.append(exportConfig.getFormat().commit());
-		}
-	}
+    public void writeProperties(PrintWriter out, Map<String, Object> props) {
+        out.append("{");
+        if (!props.isEmpty()) {
+            int size = props.size();
+            for (Map.Entry<String, Object> es : props.entrySet()) {
+                --size;
+                out.append(Util.quote(es.getKey()));
+                out.append(":");
+                out.append(CypherFormatterUtils.toString(es.getValue()));
+                if (size > 0) {
+                    out.append(", ");
+                }
+            }
+        }
+        out.append("}");
+    }
 
-	private void writeBatchBegin(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (isBatchMatch(exportConfig, batchCount)) {
-			out.append(exportConfig.getFormat().begin());
-		}
-	}
+    private String formatNodeId(String key) {
+        if (CypherFormatterUtils.UNIQUE_ID_PROP.equals(key)) {
+            key = "_id";
+        }
+        return Util.quote(key);
+    }
 
-	private void writeUnwindStart(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (isUnwindBatchMatch(exportConfig, batchCount)) {
-			String start = (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
-					&& exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) ?
-					":param rows => [" : "UNWIND [";
-			out.append(start);
-		}
-	}
+    private void addCommitToEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+        if (batchCount.get() % exportConfig.getBatchSize() != 0) {
+            out.append(exportConfig.getFormat().commit());
+        }
+    }
 
-	private void writeUnwindEnd(ExportConfig exportConfig, PrintWriter out) {
-		out.append("]");
-		if (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
-				&& exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
-			out.append(StringUtils.LF);
-			out.append("UNWIND $rows");
-		}
-		out.append(" AS row");
-	}
+    private void writeBatchBegin(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+        if (isBatchMatch(exportConfig, batchCount)) {
+            out.append(exportConfig.getFormat().begin());
+        }
+    }
 
-	private String getUniqueConstrainedLabel(Node node, Map<String, Set<String>> uniqueConstraints) {
-		return uniqueConstraints.entrySet().stream()
-				.filter(e -> node.hasLabel(Label.label(e.getKey())) && e.getValue().stream().anyMatch(k -> node.hasProperty(k)))
-				.map(e -> e.getKey())
-				.findFirst()
-				.orElse(CypherFormatterUtils.UNIQUE_ID_LABEL);
-	}
+    private void writeUnwindStart(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+        if (isUnwindBatchMatch(exportConfig, batchCount)) {
+            String start = (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
+                            && exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS)
+                    ? ":param rows => ["
+                    : "UNWIND [";
+            out.append(start);
+        }
+    }
 
-	private Set<String> getUniqueConstrainedProperties(Map<String, Set<String>> uniqueConstraints, String uniqueConstrainedLabel) {
-		Set<String> props = uniqueConstraints.get(uniqueConstrainedLabel);
-		if (props == null || props.isEmpty()) {
-			props = Collections.singleton(UNIQUE_ID_PROP);
-		}
-		return props;
-	}
+    private void writeUnwindEnd(ExportConfig exportConfig, PrintWriter out) {
+        out.append("]");
+        if (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
+                && exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
+            out.append(StringUtils.LF);
+            out.append("UNWIND $rows");
+        }
+        out.append(" AS row");
+    }
 
-	private Set<String> getLabels(Node node) {
-		Set<String> labels = StreamSupport.stream(node.getLabels().spliterator(), false)
-				.map(Label::name)
-				.collect(Collectors.toSet());
-		if (labels.isEmpty()) {
-			labels.add(CypherFormatterUtils.UNIQUE_ID_LABEL);
-		}
-		return labels;
-	}
+    private String getUniqueConstrainedLabel(Node node, Map<String, Set<String>> uniqueConstraints) {
+        return uniqueConstraints.entrySet().stream()
+                .filter(e -> node.hasLabel(Label.label(e.getKey()))
+                        && e.getValue().stream().anyMatch(k -> node.hasProperty(k)))
+                .map(e -> e.getKey())
+                .findFirst()
+                .orElse(CypherFormatterUtils.UNIQUE_ID_LABEL);
+    }
 
-	private void writeRelationshipMatchAsciiNode(Node node, PrintWriter out, String key, Map<String, Set<String>> uniqueConstraints) {
-		String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
-		Set<String> uniqueConstrainedProps = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
+    private Set<String> getUniqueConstrainedProperties(
+            Map<String, Set<String>> uniqueConstraints, String uniqueConstrainedLabel) {
+        Set<String> props = uniqueConstraints.get(uniqueConstrainedLabel);
+        if (props == null || props.isEmpty()) {
+            props = Collections.singleton(UNIQUE_ID_PROP);
+        }
+        return props;
+    }
 
-		out.append(StringUtils.LF);
-		out.append("MATCH ");
-		out.append("(");
-		out.append(key);
-		out.append(":");
-		out.append(Util.quote(uniqueConstrainedLabel));
-		out.append("{");
-		writeSetProperties(out, uniqueConstrainedProps, key + ".");
-		out.append("})");
-	}
+    private Set<String> getLabels(Node node) {
+        Set<String> labels = StreamSupport.stream(node.getLabels().spliterator(), false)
+                .map(Label::name)
+                .collect(Collectors.toSet());
+        if (labels.isEmpty()) {
+            labels.add(CypherFormatterUtils.UNIQUE_ID_LABEL);
+        }
+        return labels;
+    }
 
-	private void writeRelationshipNodeIds(Map<String, Set<String>> uniqueConstraints, PrintWriter out, String key, Node node) {
-		String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
-		Set<String> props = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
-		Map<String, Object> properties;
-		if (!props.contains(UNIQUE_ID_PROP)) {
-			String[] propsArray = props.toArray(new String[props.size()]);
-			properties = node.getProperties(propsArray);
-		} else {
-			// UNIQUE_ID_PROP is always the only member of the Set
-			properties = Util.map(UNIQUE_ID_PROP, node.getId());
-		}
+    private void writeRelationshipMatchAsciiNode(
+            Node node, PrintWriter out, String key, Map<String, Set<String>> uniqueConstraints) {
+        String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
+        Set<String> uniqueConstrainedProps = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
 
-		out.append(key + ": ");
-		out.append("{");
-		writeNodeIds(out, properties);
-		out.append("}");
-	}
+        out.append(StringUtils.LF);
+        out.append("MATCH ");
+        out.append("(");
+        out.append(key);
+        out.append(":");
+        out.append(Util.quote(uniqueConstrainedLabel));
+        out.append("{");
+        writeSetProperties(out, uniqueConstrainedProps, key + ".");
+        out.append("})");
+    }
 
-	private void writeNodeIds(PrintWriter out, Map<String, Object> properties) {
-		int size = properties.size();
-		for (Map.Entry<String, Object> es : properties.entrySet()) {
-			--size;
-			out.append(formatNodeId(es.getKey()));
-			out.append(":");
-			out.append(CypherFormatterUtils.toString(es.getValue()));
-			if (size > 0) {
-				out.append(", ");
-			}
-		}
-	}
+    private void writeRelationshipNodeIds(
+            Map<String, Set<String>> uniqueConstraints, PrintWriter out, String key, Node node) {
+        String uniqueConstrainedLabel = getUniqueConstrainedLabel(node, uniqueConstraints);
+        Set<String> props = getUniqueConstrainedProperties(uniqueConstraints, uniqueConstrainedLabel);
+        Map<String, Object> properties;
+        if (!props.contains(UNIQUE_ID_PROP)) {
+            String[] propsArray = props.toArray(new String[props.size()]);
+            properties = node.getProperties(propsArray);
+        } else {
+            // UNIQUE_ID_PROP is always the only member of the Set
+            properties = Util.map(UNIQUE_ID_PROP, node.getId());
+        }
+
+        out.append(key + ": ");
+        out.append("{");
+        writeNodeIds(out, properties);
+        out.append("}");
+    }
+
+    private void writeNodeIds(PrintWriter out, Map<String, Object> properties) {
+        int size = properties.size();
+        for (Map.Entry<String, Object> es : properties.entrySet()) {
+            --size;
+            out.append(formatNodeId(es.getKey()));
+            out.append(":");
+            out.append(CypherFormatterUtils.toString(es.getValue()));
+            if (size > 0) {
+                out.append(", ");
+            }
+        }
+    }
 }
-

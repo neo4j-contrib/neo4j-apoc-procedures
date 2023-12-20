@@ -26,9 +26,9 @@ import java.util.Map;
  * @since 26.02.16
  */
 public class ListMapResult {
-    public final List<Map<String,Object>> maps;
+    public final List<Map<String, Object>> maps;
 
-    public ListMapResult(List<Map<String,Object>> maps) {
+    public ListMapResult(List<Map<String, Object>> maps) {
         this.maps = maps;
     }
 }

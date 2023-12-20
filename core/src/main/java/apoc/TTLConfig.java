@@ -51,7 +51,6 @@ public class TTLConfig extends LifecycleAdapter {
         return new Values(false, -1, -1);
     }
 
-
     public static class Values {
         public final boolean enabled;
         public final long schedule;
@@ -65,11 +64,7 @@ public class TTLConfig extends LifecycleAdapter {
 
         @Override
         public String toString() {
-            return "Values{" +
-                    "enabled=" + enabled +
-                    ", schedule=" + schedule +
-                    ", limit=" + limit +
-                    '}';
+            return "Values{" + "enabled=" + enabled + ", schedule=" + schedule + ", limit=" + limit + '}';
         }
     }
 }

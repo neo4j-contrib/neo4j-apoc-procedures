@@ -42,6 +42,7 @@ public class SetBackedList<T> extends AbstractSequentialList<T> implements Set<T
             Iterator<T> it = set.iterator();
             T current = null;
             int idx = 0;
+
             {
                 moveTo(index);
             }
@@ -66,14 +67,18 @@ public class SetBackedList<T> extends AbstractSequentialList<T> implements Set<T
             public T previous() {
                 if (!hasPrevious()) throw new NoSuchElementException();
                 T tmp = current;
-                moveTo(idx-1);
+                moveTo(idx - 1);
                 return tmp;
             }
 
             private void moveTo(int pos) {
                 Iterator<T> it2 = set.iterator();
                 T value = null;
-                int i=0; while (i++<pos) { value = it2.next(); };
+                int i = 0;
+                while (i++ < pos) {
+                    value = it2.next();
+                }
+                ;
                 this.it = it2;
                 this.idx = pos;
                 this.current = value;

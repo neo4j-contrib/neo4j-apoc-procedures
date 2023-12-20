@@ -18,26 +18,6 @@
  */
 package apoc.full.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.SystemDbTestUtil;
-import apoc.util.TestContainerUtil.ApocPackage;
-import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.*;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_ENABLED_DB;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
@@ -49,6 +29,25 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.test.assertion.Assert.assertEventually;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.SystemDbTestUtil;
+import apoc.util.TestContainerUtil.ApocPackage;
+import apoc.util.TestUtil;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.*;
 
 public class UUIDMultiDbTest {
 
@@ -84,10 +83,7 @@ public class UUIDMultiDbTest {
     @After
     public void after() {
         try (Session session = driver.session(SYS_CONF)) {
-            Stream.of("neo4j", DB_ENABLED).forEach(
-                    db -> session.run("CALL apoc.uuid.dropAll($db)",
-                            Map.of("db", db))
-            );
+            Stream.of("neo4j", DB_ENABLED).forEach(db -> session.run("CALL apoc.uuid.dropAll($db)", Map.of("db", db)));
         }
     }
 
@@ -100,8 +96,8 @@ public class UUIDMultiDbTest {
                 return tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label");
             });
         } catch (RuntimeException e) {
-            String expectedMessage = "Failed to invoke procedure `apoc.uuid.install`: " +
-                    "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, DB_TEST);
+            String expectedMessage = "Failed to invoke procedure `apoc.uuid.install`: "
+                    + "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, DB_TEST);
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }
@@ -126,10 +122,10 @@ public class UUIDMultiDbTest {
         while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
             neo4jSession.writeTransaction(tx -> {
                 Map<String, Object> p = Collections.emptyMap();
-                resultConsumer.accept(tx.run(call, p).list()
-                        .stream()
+                resultConsumer.accept(tx.run(call, p).list().stream()
                         .map(org.neo4j.driver.Record::asMap)
-                        .collect(Collectors.toList()).iterator());
+                        .collect(Collectors.toList())
+                        .iterator());
                 tx.commit();
                 return null;
             });
@@ -137,22 +133,19 @@ public class UUIDMultiDbTest {
         assertTrue("UUID not set on node after 5 seconds", nodeHasUUID.get());
     }
 
-
     //
     // New procedures tests
     //
 
     @Test(expected = RuntimeException.class)
     public void createUUIDWithSpecificDbWithUUIDDisabled() {
-        try(Session session = driver.session(SYS_CONF)) {
-            session.writeTransaction(tx -> tx.run(
-                    "CALL apoc.uuid.setup('Disabled', $db) YIELD label RETURN label",
-                    Map.of("db", DB_TEST)
-            ));
+        try (Session session = driver.session(SYS_CONF)) {
+            session.writeTransaction(tx ->
+                    tx.run("CALL apoc.uuid.setup('Disabled', $db) YIELD label RETURN label", Map.of("db", DB_TEST)));
             fail("Should fail due to uuid disabled");
         } catch (RuntimeException e) {
-            String expectedMessage = "Failed to invoke procedure `apoc.uuid.setup`: " +
-                    "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, DB_TEST);
+            String expectedMessage = "Failed to invoke procedure `apoc.uuid.setup`: "
+                    + "Caused by: java.lang.RuntimeException: " + String.format(NOT_ENABLED_ERROR, DB_TEST);
             assertEquals(expectedMessage, e.getMessage());
             throw e;
         }
@@ -168,23 +161,27 @@ public class UUIDMultiDbTest {
 
         neo4jSession.writeTransaction(tx -> tx.run("CREATE (:Baz)"));
 
-        assertEventually(() -> {
-            Result res = neo4jSession.run("MATCH (n:Baz) RETURN n.uuid AS uuid");
-            assertTrue(res.hasNext());
-            String uuid = res.single().get("uuid").asString();
-            assertIsUUID(uuid);
-            return true;
-        }, (val) -> val, 10L, TimeUnit.SECONDS);
+        assertEventually(
+                () -> {
+                    Result res = neo4jSession.run("MATCH (n:Baz) RETURN n.uuid AS uuid");
+                    assertTrue(res.hasNext());
+                    String uuid = res.single().get("uuid").asString();
+                    assertIsUUID(uuid);
+                    return true;
+                },
+                (val) -> val,
+                10L,
+                TimeUnit.SECONDS);
     }
 
     @Test
     public void setupUUIDInNotDefaultDbWithUUIDEnabled() throws InterruptedException {
         driver.session(SYS_CONF)
-                .writeTransaction(tx -> tx.run("CALL apoc.uuid.setup('Another', $db, {addToExistingNodes: false })",
-                        Map.of("db", DB_ENABLED))
-                );
+                .writeTransaction(tx -> tx.run(
+                        "CALL apoc.uuid.setup('Another', $db, {addToExistingNodes: false })",
+                        Map.of("db", DB_ENABLED)));
 
-        try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
+        try (Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
             // check uuid set
             awaitUuidSet(session, "Another");
 
@@ -195,7 +192,7 @@ public class UUIDMultiDbTest {
             assertIsUUID(uuid);
         }
 
-        try(Session session = driver.session()) {
+        try (Session session = driver.session()) {
             session.run("CREATE (:Another)");
             // we cannot use assertEventually because the before and after conditions should be the same
             Thread.sleep(2000);
@@ -208,20 +205,23 @@ public class UUIDMultiDbTest {
     }
 
     private static void awaitUuidSet(Session session, String expected) {
-        assertEventually(() -> {
-            Result res = session.run("CALL apoc.uuid.list");
-            assertTrue(res.hasNext());
-            String label = res.single().get("label").asString();
-            return expected.equals(label);
-        }, (val) -> val, SystemDbTestUtil.TIMEOUT, TimeUnit.SECONDS);
+        assertEventually(
+                () -> {
+                    Result res = session.run("CALL apoc.uuid.list");
+                    assertTrue(res.hasNext());
+                    String label = res.single().get("label").asString();
+                    return expected.equals(label);
+                },
+                (val) -> val,
+                SystemDbTestUtil.TIMEOUT,
+                TimeUnit.SECONDS);
     }
 
     private static void createDatabases() {
         try (Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
-            Stream.of(DB_TEST, DB_ENABLED).forEach(
-                    db -> systemSession.writeTransaction(
-                            tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", db))
-                    ));
+            Stream.of(DB_TEST, DB_ENABLED)
+                    .forEach(db -> systemSession.writeTransaction(
+                            tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", db))));
         }
     }
 

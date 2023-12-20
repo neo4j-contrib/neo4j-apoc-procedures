@@ -19,9 +19,8 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.WattsStrogatzConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.*;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * Watts-Strogatz model implementation.
@@ -64,18 +63,18 @@ public class WattsStrogatzRelationshipGenerator extends BaseRelationshipGenerato
         }
 
         /** Rewire edges with probability beta.
-
-         The false rewirings change the desired probability distribution a little bit, but for
-         large enough networks do not matter.
-
-         At the moment, I am hacking my way around a bit here, due to constraints
-         enforced by the class structure. There is a room for improvement as this
-         implementation is not the most effective one.
-
-         Also, the wiring stops when the algorithm rewires to a non-graphical set of
-         edges. Unconnected components may appear in the graph due to rewiring.
-
-         Works, but could be faster.
+         *
+         * The false rewirings change the desired probability distribution a little bit, but for
+         * large enough networks do not matter.
+         *
+         * At the moment, I am hacking my way around a bit here, due to constraints
+         * enforced by the class structure. There is a room for improvement as this
+         * implementation is not the most effective one.
+         *
+         * Also, the wiring stops when the algorithm rewires to a non-graphical set of
+         * edges. Unconnected components may appear in the graph due to rewiring.
+         *
+         * Works, but could be faster.
          */
         HashSet<Pair<Integer, Integer>> newEdges = new HashSet<>();
         Iterator<Pair<Integer, Integer>> iterator = ring.iterator();
@@ -87,17 +86,16 @@ public class WattsStrogatzRelationshipGenerator extends BaseRelationshipGenerato
 
                 while (true) {
                     int trial = random.nextInt(numberOfNodes - 1);
-                    int partner = trial < choice ? trial : trial + 1;  // avoid self loops
+                    int partner = trial < choice ? trial : trial + 1; // avoid self loops
 
                     Pair<Integer, Integer> trialPair = Pair.of(choice, partner);
 
                     // Allows for self-rewiring to avoid parasitic cases?
                     // check with original definition of the model
-                    if (trialPair.equals(edge))
-                        break;
+                    if (trialPair.equals(edge)) break;
 
                     if (!ring.contains(trialPair) && !newEdges.contains(trialPair)) {
-                        iterator.remove();//ring.remove(edge);
+                        iterator.remove(); // ring.remove(edge);
                         newEdges.add(trialPair);
                         break;
                     }

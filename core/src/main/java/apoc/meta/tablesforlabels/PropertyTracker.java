@@ -37,7 +37,9 @@ public class PropertyTracker {
 
     public void addObservation(Object value) {
         observations++;
-        if (value == null) { nulls++; }
+        if (value == null) {
+            nulls++;
+        }
         types.add(assignTypeName(value));
     }
 
@@ -56,7 +58,8 @@ public class PropertyTracker {
         return ret;
     }
 
-    public static final Map<String,String> typeMappings = new HashMap<String,String>();
+    public static final Map<String, String> typeMappings = new HashMap<String, String>();
+
     static {
         typeMappings.put("java.lang.String", "String");
         typeMappings.put("java.lang.String[]", "StringArray");

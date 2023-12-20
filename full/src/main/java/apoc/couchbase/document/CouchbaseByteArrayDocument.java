@@ -21,7 +21,6 @@ package apoc.couchbase.document;
 import com.couchbase.client.core.msg.kv.MutationToken;
 import com.couchbase.client.java.kv.GetResult;
 import com.couchbase.client.java.kv.MutationResult;
-
 import java.util.Arrays;
 
 /**
@@ -49,12 +48,11 @@ public class CouchbaseByteArrayDocument extends CouchbaseObjectDocument<byte[]> 
 
     @Override
     public String toString() {
-        return "CouchbaseByteArrayDocument {" +
-                "content=" + Arrays.toString(content) +
-                ", id='" + id + '\'' +
-                ", expiry=" + expiry +
-                ", cas=" + cas +
-                ", mutationToken=" + mutationToken +
-                '}';
+        return "CouchbaseByteArrayDocument {" + "content="
+                + Arrays.toString(content) + ", id='"
+                + id + '\'' + ", expiry="
+                + expiry + ", cas="
+                + cas + ", mutationToken="
+                + mutationToken + '}';
     }
 }

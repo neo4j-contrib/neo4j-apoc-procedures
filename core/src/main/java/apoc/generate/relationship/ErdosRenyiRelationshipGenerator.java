@@ -19,9 +19,8 @@
 package apoc.generate.relationship;
 
 import apoc.generate.config.ErdosRenyiConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.*;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * {@link RelationshipGenerator} implementation according to Erdos-Renyi random graphs. These are a basic class of
@@ -55,7 +54,8 @@ public class ErdosRenyiRelationshipGenerator extends BaseRelationshipGenerator<E
     @Override
     protected List<Pair<Integer, Integer>> doGenerateEdges() {
         long threshold = getConfiguration().getNumberOfEdges() * 4;
-        long potentialEdges = Long.valueOf(getConfiguration().getNumberOfNodes()) * (Long.valueOf(getConfiguration().getNumberOfNodes()) - 1);
+        long potentialEdges = Long.valueOf(getConfiguration().getNumberOfNodes())
+                * (Long.valueOf(getConfiguration().getNumberOfNodes()) - 1);
 
         if (threshold > potentialEdges) {
             return doGenerateEdgesWithOmitList(); // Make sure to avoid edges

@@ -19,17 +19,16 @@
 package apoc.load.util;
 
 import apoc.util.Util;
-
-import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.login.LoginContext;
 import java.net.URI;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.login.LoginContext;
 
 public class JdbcUtil {
 
@@ -39,13 +38,17 @@ public class JdbcUtil {
     private JdbcUtil() {}
 
     public static Connection getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
-        if(config.hasCredentials()) {
-            return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
+        if (config.hasCredentials()) {
+            return createConnection(
+                    jdbcUrl,
+                    config.getCredentials().getUser(),
+                    config.getCredentials().getPassword());
         } else {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
             String userInfo = uri.getUserInfo();
             if (userInfo != null) {
-                String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
+                String cleanUrl =
+                        jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
                 String[] user = userInfo.split(":");
                 return createConnection(cleanUrl, user[0], user[1]);
             }
@@ -65,7 +68,8 @@ public class JdbcUtil {
             lc.login();
             Subject subject = lc.getSubject();
             try {
-                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>) () -> DriverManager.getConnection(jdbcUrl, userName, password));
+                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>)
+                        () -> DriverManager.getConnection(jdbcUrl, userName, password));
             } catch (PrivilegedActionException pae) {
                 throw pae.getException();
             }
@@ -75,10 +79,15 @@ public class JdbcUtil {
     }
 
     public static String getUrlOrKey(String urlOrKey) {
-        return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
+        return urlOrKey.contains(":")
+                ? urlOrKey
+                : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url")
+                        .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
     }
 
     public static String getSqlOrKey(String sqlOrKey) {
-        return sqlOrKey.contains(" ") ? sqlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
+        return sqlOrKey.contains(" ")
+                ? sqlOrKey
+                : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
     }
 }

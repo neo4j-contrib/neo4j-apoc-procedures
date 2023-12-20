@@ -40,7 +40,6 @@ public class WeightedReservoirSampler {
         random = new Random();
     }
 
-
     /**
      * Returns an integer at random, weighted according to its index
      * @param weights weights to sample from
@@ -56,7 +55,7 @@ public class WeightedReservoirSampler {
             index = it.nextIndex();
             weight = it.next();
             u = random.nextDouble();
-            key = Math.pow(u, (1.0/weight)); // Protect from zero division?
+            key = Math.pow(u, (1.0 / weight)); // Protect from zero division?
 
             if (key > maxKey) {
                 maxKey = key;
@@ -84,8 +83,7 @@ public class WeightedReservoirSampler {
             index = it.nextIndex();
             weight = it.next();
 
-            if (omitIndices.contains(index))
-                continue;
+            if (omitIndices.contains(index)) continue;
 
             u = random.nextDouble();
             key = Math.pow(u, (1.0 / weight));
@@ -98,7 +96,6 @@ public class WeightedReservoirSampler {
 
         return result;
     }
-
 
     /**
      * Returns an integer at random, weighted according to its index,
@@ -119,11 +116,10 @@ public class WeightedReservoirSampler {
             index = it.nextIndex();
             weight = it.next();
 
-            if (index == omit)
-                continue;
+            if (index == omit) continue;
 
             u = random.nextDouble();
-            key = Math.pow(u, (1.0/weight));
+            key = Math.pow(u, (1.0 / weight));
 
             if (key > maxKey) {
                 maxKey = key;

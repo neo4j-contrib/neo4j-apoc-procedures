@@ -18,24 +18,25 @@
  */
 package apoc.refactor.util;
 
-import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Pair;
+import static apoc.util.Util.isSelfRel;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static apoc.util.Util.isSelfRel;
+import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.Pair;
 
 public class RefactorUtil {
 
-    public static void mergeRelsWithSameTypeAndDirectionInMergeNodes(Node node, RefactorConfig config, Direction dir, List<Long> excludeRelIds) {
+    public static void mergeRelsWithSameTypeAndDirectionInMergeNodes(
+            Node node, RefactorConfig config, Direction dir, List<Long> excludeRelIds) {
         for (RelationshipType type : node.getRelationshipTypes()) {
-            StreamSupport.stream(node.getRelationships(dir,type).spliterator(), false)
+            StreamSupport.stream(node.getRelationships(dir, type).spliterator(), false)
                     .filter(rel -> !excludeRelIds.contains(rel.getId()))
                     .collect(Collectors.groupingBy(rel -> Pair.of(rel.getStartNode(), rel.getEndNode())))
-                    .values().stream()
+                    .values()
+                    .stream()
                     .filter(list -> !list.isEmpty())
                     .forEach(list -> {
                         Relationship first = list.get(0);
@@ -44,7 +45,7 @@ public class RefactorUtil {
                         } else {
                             for (int i = 1; i < list.size(); i++) {
                                 Relationship relationship = list.get(i);
-                                mergeRels(relationship, first, true,  config);
+                                mergeRels(relationship, first, true, config);
                             }
                         }
                     });
@@ -69,5 +70,4 @@ public class RefactorUtil {
         }
         return target;
     }
-
 }

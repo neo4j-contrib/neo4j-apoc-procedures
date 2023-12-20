@@ -21,6 +21,8 @@ package apoc.ttl;
 import apoc.ApocConfig;
 import apoc.TTLConfig;
 import apoc.util.Util;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -28,9 +30,6 @@ import org.neo4j.logging.Log;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author mh
@@ -49,7 +48,8 @@ public class TTLLifeCycle extends LifecycleAdapter {
     private TTLConfig ttlConfig;
     private Log log;
 
-    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
+    public TTLLifeCycle(
+            JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
         this.apocConfig = apocConfig;
@@ -60,11 +60,13 @@ public class TTLLifeCycle extends LifecycleAdapter {
     @Override
     public void start() {
         TTLConfig.Values configValues = ttlConfig.configFor(db);
-        if(configValues.enabled) {
+        if (configValues.enabled) {
             long ttlScheduleDb = configValues.schedule;
-            ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlScheduleDb*0.8), TimeUnit.SECONDS);
+            ttlIndexJobHandle =
+                    scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int) (ttlScheduleDb * 0.8), TimeUnit.SECONDS);
             long limitDb = configValues.limit;
-            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
+            ttlJobHandle = scheduler.scheduleRecurring(
+                    TTL_GROUP, () -> expireNodes(limitDb), ttlScheduleDb, ttlScheduleDb, TimeUnit.SECONDS);
         }
     }
 
@@ -73,19 +75,17 @@ public class TTLLifeCycle extends LifecycleAdapter {
             if (!Util.isWriteableInstance(db)) return;
             String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
             String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() RETURN id(r) as id";
-            String queryNodes = matchTTL +  "RETURN id(t) as id";
-            Map<String,Object> params = Util.map("batchSize", limit, "queryRels", queryRels, "queryNodes", queryNodes);
+            String queryNodes = matchTTL + "RETURN id(t) as id";
+            Map<String, Object> params = Util.map("batchSize", limit, "queryRels", queryRels, "queryNodes", queryNodes);
             long relationshipsDeleted = db.executeTransactionally(
                     "CALL apoc.periodic.iterate($queryRels, 'MATCH ()-[r]->() WHERE id(r) = id DELETE r', {batchSize: $batchSize})",
                     params,
-                    result -> Iterators.single(result.columnAs("total"))
-            );
+                    result -> Iterators.single(result.columnAs("total")));
 
             long nodesDeleted = db.executeTransactionally(
                     "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DETACH DELETE n', {batchSize: $batchSize})",
                     params,
-                    result -> Iterators.single(result.columnAs("total"))
-            );
+                    result -> Iterators.single(result.columnAs("total")));
 
             if (nodesDeleted > 0) {
                 log.info("TTL: Expired %d nodes %d relationships", nodesDeleted, relationshipsDeleted);

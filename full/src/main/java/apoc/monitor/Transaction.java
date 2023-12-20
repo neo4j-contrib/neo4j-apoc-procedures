@@ -20,14 +20,13 @@ package apoc.monitor;
 
 import apoc.Extended;
 import apoc.result.TransactionInfoResult;
+import java.util.stream.Stream;
 import org.neo4j.kernel.impl.transaction.stats.DatabaseTransactionStats;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.TransactionIdStore;
-
-import java.util.stream.Stream;
 
 @Extended
 public class Transaction {
@@ -46,8 +45,6 @@ public class Transaction {
                 transactionIdStore.getLastCommittedTransactionId(),
                 stats.getNumberOfActiveTransactions(),
                 stats.getNumberOfStartedTransactions(),
-                stats.getNumberOfCommittedTransactions()
-        ));
+                stats.getNumberOfCommittedTransactions()));
     }
-
 }

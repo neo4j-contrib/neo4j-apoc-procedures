@@ -19,9 +19,6 @@
 package apoc.periodic;
 
 import apoc.util.Util;
-import org.neo4j.graphdb.QueryStatistics;
-import org.neo4j.procedure.TerminationGuard;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.neo4j.graphdb.QueryStatistics;
+import org.neo4j.procedure.TerminationGuard;
 
 public class BatchAndTotalCollector {
     private final int failedParams;
@@ -69,9 +68,19 @@ public class BatchAndTotalCollector {
         updateStatistics.put("labelsAdded", labelsAdded.get());
         updateStatistics.put("labelsRemoved", labelsRemoved.get());
 
-        return new BatchAndTotalResult(batches.get(), count.get(), timeTaken, successes, failedOps.get(),
-                failedBatches.get(), retried.get(), operationErrors, batchErrors, wasTerminated,
-                failedParamsMap, updateStatistics);
+        return new BatchAndTotalResult(
+                batches.get(),
+                count.get(),
+                timeTaken,
+                successes,
+                failedOps.get(),
+                failedBatches.get(),
+                retried.get(),
+                operationErrors,
+                batchErrors,
+                wasTerminated,
+                failedParamsMap,
+                updateStatistics);
     }
 
     public long getBatches() {
@@ -114,8 +123,7 @@ public class BatchAndTotalCollector {
         if (failedParams >= 0) {
             failedParamsMap.put(
                     Long.toString(batches.get()),
-                    new ArrayList<>(batch.subList(0, Math.min(failedParams + 1, batch.size())))
-            );
+                    new ArrayList<>(batch.subList(0, Math.min(failedParams + 1, batch.size()))));
         }
     }
 

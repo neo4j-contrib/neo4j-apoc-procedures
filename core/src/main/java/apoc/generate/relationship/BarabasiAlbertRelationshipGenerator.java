@@ -20,12 +20,11 @@ package apoc.generate.relationship;
 
 import apoc.generate.config.BarabasiAlbertConfig;
 import apoc.generate.config.NumberOfNodesBasedConfig;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * {@link RelationshipGenerator} implemented according to the Barabasi-Albert preferential attachment model, which is
@@ -57,8 +56,9 @@ public class BarabasiAlbertRelationshipGenerator extends BaseRelationshipGenerat
         final long numberOfNodes = getConfiguration().getNumberOfNodes();
 
         // Create a completely connected network
-        final List<Pair<Integer, Integer>> edges
-                = new CompleteGraphRelationshipGenerator(new NumberOfNodesBasedConfig(edgesPerNewNode + 1)).doGenerateEdges();
+        final List<Pair<Integer, Integer>> edges = new CompleteGraphRelationshipGenerator(
+                        new NumberOfNodesBasedConfig(edgesPerNewNode + 1))
+                .doGenerateEdges();
 
         // Preferentially attach other nodes
         final Set<Integer> omit = new HashSet<>(edgesPerNewNode);

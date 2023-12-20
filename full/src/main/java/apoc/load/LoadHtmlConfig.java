@@ -19,7 +19,6 @@
 package apoc.load;
 
 import apoc.util.Util;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -53,20 +52,29 @@ public class LoadHtmlConfig {
     private final boolean avoidBrowserDetection;
     private final boolean avoidTmpFolder;
 
-    enum Browser { NONE, CHROME, FIREFOX }
-    enum FailSilently { FALSE, WITH_LOG, WITH_LIST }
+    enum Browser {
+        NONE,
+        CHROME,
+        FIREFOX
+    }
+
+    enum FailSilently {
+        FALSE,
+        WITH_LOG,
+        WITH_LIST
+    }
 
     private final boolean headless;
     private final boolean acceptInsecureCerts;
     private final boolean children;
     private final boolean htmlString;
-    
+
     private final String charset;
     private final String baseUri;
-    
+
     private final Browser browser;
     private final FailSilently failSilently;
-    
+
     private final long wait;
     private final int textSize;
 
@@ -75,10 +83,11 @@ public class LoadHtmlConfig {
         this.headless = Util.toBoolean(config.getOrDefault("headless", true));
         this.acceptInsecureCerts = Util.toBoolean(config.getOrDefault("acceptInsecureCerts", true));
         this.children = Util.toBoolean(config.get("children"));
-        this.charset = (String) config.getOrDefault("charset", "UTF-8"); 
-        this.baseUri = (String) config.getOrDefault("baseUri", ""); 
+        this.charset = (String) config.getOrDefault("charset", "UTF-8");
+        this.baseUri = (String) config.getOrDefault("baseUri", "");
         this.browser = Browser.valueOf((String) config.getOrDefault("browser", Browser.NONE.toString()));
-        this.failSilently = FailSilently.valueOf((String) config.getOrDefault("failSilently", FailSilently.FALSE.toString()));
+        this.failSilently =
+                FailSilently.valueOf((String) config.getOrDefault("failSilently", FailSilently.FALSE.toString()));
         this.wait = Util.toLong(config.getOrDefault("wait", 0));
         this.textSize = Util.toInteger(config.getOrDefault("textSize", 80));
         this.htmlString = Util.toBoolean(config.get("htmlString"));
@@ -113,7 +122,6 @@ public class LoadHtmlConfig {
         this.timeout = Util.toInteger(config.get("timeout"));
         this.ttl = Util.toInteger(config.get("ttl"));
         this.ttlBrowsers = Util.toInteger(config.get("ttlBrowsers"));
-        
     }
 
     public boolean isHeadless() {
@@ -147,7 +155,7 @@ public class LoadHtmlConfig {
     public FailSilently getFailSilently() {
         return failSilently;
     }
-    
+
     public int getTextSize() {
         return textSize;
     }

@@ -18,10 +18,9 @@
  */
 package apoc.load;
 
+import java.util.List;
 import org.jsoup.nodes.Document;
 import org.neo4j.logging.Log;
-
-import java.util.List;
 
 public interface HtmlResultInterface {
 
@@ -30,6 +29,7 @@ public interface HtmlResultInterface {
         PLAIN_TEXT(new PlainText());
 
         private final HtmlResultInterface resultInterface;
+
         Type(HtmlResultInterface resultInterface) {
             this.resultInterface = resultInterface;
         }

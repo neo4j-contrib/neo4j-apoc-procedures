@@ -26,8 +26,6 @@ import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import javax.annotation.Nonnull;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 
 public class S3OutputStream extends OutputStream {
     private volatile boolean isDone = false;
@@ -57,7 +56,9 @@ public class S3OutputStream extends OutputStream {
     private int maxWaitTimeMinutes = S3UploadConstants.MAX_WAIT_TIME_MINUTES;
 
     // Extra constructor to allow user to overwrite maxWaitTimeMinutes.
-    S3OutputStream(@Nonnull AmazonS3 s3Client, @Nonnull String bucketName, @Nonnull String keyName, int maxWaitTimeMinutes) throws IOException {
+    S3OutputStream(
+            @Nonnull AmazonS3 s3Client, @Nonnull String bucketName, @Nonnull String keyName, int maxWaitTimeMinutes)
+            throws IOException {
         this(s3Client, bucketName, keyName);
         this.maxWaitTimeMinutes = maxWaitTimeMinutes;
     }
@@ -69,8 +70,10 @@ public class S3OutputStream extends OutputStream {
         this.bucketName = bucketName;
         this.keyName = keyName;
         allocateMemory(AllocationSize.MB_5);
-        ExecutorService executorService = Executors.newSingleThreadExecutor(
-                new ThreadFactoryBuilder().setNameFormat("S3-Upload-Manager-Thread-%d").setDaemon(true).build());
+        ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+                .setNameFormat("S3-Upload-Manager-Thread-%d")
+                .setDaemon(true)
+                .build());
         managerFuture = executorService.submit(new S3UploadManager(s3Client, queue));
     }
 
@@ -78,7 +81,8 @@ public class S3OutputStream extends OutputStream {
         long incomingSize = allocationSize.getAllocationSize();
         synchronized (totalMemoryLock) {
             if (incomingSize > S3UploadConstants.TOTAL_MEMORY_ALLOWED) {
-                throw new IOException(String.format("A total of %d bytes of memory were provided for all buffers, but a buffer of %d bytes was requested.",
+                throw new IOException(String.format(
+                        "A total of %d bytes of memory were provided for all buffers, but a buffer of %d bytes was requested.",
                         S3UploadConstants.TOTAL_MEMORY_ALLOWED, incomingSize));
             }
             // Only allow defined amount of memory to be used at one time.
@@ -96,7 +100,7 @@ public class S3OutputStream extends OutputStream {
         synchronized (totalMemoryLock) {
             totalMemory += incomingSize;
         }
-        buffer = new byte[(int)incomingSize];
+        buffer = new byte[(int) incomingSize];
     }
 
     private void transmitBuffer() throws IOException {
@@ -105,12 +109,12 @@ public class S3OutputStream extends OutputStream {
         buffSize = 0;
 
         /*
-            Memory allocation here scales with the amount of memory transferred. From the documentation, S3 multipart
-            upload has a 5 MB minimum part size (with the exception of the last part), with a maximum of 10,000 parts
-            and a maximum file size of 5 TB. To allow up to 5 TB to be transferred and allow multipart streaming of
-            smaller files, the amount of memory allocated scales with the amount of data transferred.
-            See https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
-         */
+           Memory allocation here scales with the amount of memory transferred. From the documentation, S3 multipart
+           upload has a 5 MB minimum part size (with the exception of the last part), with a maximum of 10,000 parts
+           and a maximum file size of 5 TB. To allow up to 5 TB to be transferred and allow multipart streaming of
+           smaller files, the amount of memory allocated scales with the amount of data transferred.
+           See https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
+        */
         if (transferred < S3UploadConstants.TRANSFERRED_2p5GB) {
             allocateMemory(AllocationSize.MB_5);
         } else if (transferred < S3UploadConstants.TRANSFERRED_25GB) {
@@ -124,7 +128,7 @@ public class S3OutputStream extends OutputStream {
 
     @Override
     public void write(final int i) throws IOException {
-        write(new byte[] { (byte)i }, 0, 1);
+        write(new byte[] {(byte) i}, 0, 1);
     }
 
     @Override
@@ -205,7 +209,10 @@ public class S3OutputStream extends OutputStream {
         private final InitiateMultipartUploadResult initResponse;
         private final ExecutorService executorService = Executors.newFixedThreadPool(
                 S3UploadConstants.MAX_THREAD_COUNT,
-                new ThreadFactoryBuilder().setNameFormat("S3-Upload-Thread-%d").setDaemon(true).build());
+                new ThreadFactoryBuilder()
+                        .setNameFormat("S3-Upload-Thread-%d")
+                        .setDaemon(true)
+                        .build());
 
         S3UploadManager(@Nonnull final AmazonS3 s3Client, @Nonnull final BlockingQueue<S3UploadData> queue) {
             this.s3Client = s3Client;
@@ -273,10 +280,10 @@ public class S3OutputStream extends OutputStream {
     }
 
     public enum AllocationSize {
-        MB_5 (5 * S3UploadConstants.MB),
-        MB_50 (50 * S3UploadConstants.MB),
-        MB_500 (500 * S3UploadConstants.MB),
-        MB_750 (750 * S3UploadConstants.MB);
+        MB_5(5 * S3UploadConstants.MB),
+        MB_50(50 * S3UploadConstants.MB),
+        MB_500(500 * S3UploadConstants.MB),
+        MB_750(750 * S3UploadConstants.MB);
 
         private final int allocationSize;
 
@@ -290,7 +297,7 @@ public class S3OutputStream extends OutputStream {
     }
 
     private static class S3UploadConstants {
-        private final static int MB = 1024 * 1024;
+        private static final int MB = 1024 * 1024;
         private static final long TRANSFERRED_2p5GB = AllocationSize.MB_5.getAllocationSize() * 500L;
         private static final long TRANSFERRED_25GB = AllocationSize.MB_50.getAllocationSize() * 500L;
         private static final long TRANSFERRED_2TB = AllocationSize.MB_500.getAllocationSize() * 4000L;

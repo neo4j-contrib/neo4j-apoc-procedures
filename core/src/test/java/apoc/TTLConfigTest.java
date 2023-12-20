@@ -18,14 +18,14 @@
  */
 package apoc;
 
-import org.junit.Test;
-import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-
 import static apoc.TTLConfig.DEFAULT_SCHEDULE;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.junit.Test;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 public class TTLConfigTest {
     @Test
@@ -77,5 +77,4 @@ public class TTLConfigTest {
         assertEquals(500, values.schedule);
         assertEquals(1000, values.limit);
     }
-
 }

@@ -21,16 +21,6 @@ package apoc.convert;
 import apoc.coll.SetBackedList;
 import apoc.meta.Meta.Types;
 import apoc.util.Util;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.UserFunction;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +31,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 /**
  * @author mh
@@ -57,7 +55,7 @@ public class Convert {
     public Map<String, Object> toMap(@Name("map") Object map) {
 
         if (map instanceof Entity) {
-            return ((Entity)map).getAllProperties();
+            return ((Entity) map).getAllProperties();
         } else if (map instanceof Map) {
             return (Map<String, Object>) map;
         } else {
@@ -65,11 +63,13 @@ public class Convert {
         }
     }
 
-    @UserFunction(deprecatedBy = "Neo4j toString(value) / toStringOrNull(value) functions. This function will be removed in 5.0")
+    @UserFunction(
+            deprecatedBy =
+                    "Neo4j toString(value) / toStringOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toString(value) | tries it's best to convert the value to a string")
     @Deprecated
     public String toString(@Name("string") Object string) {
-        return string  == null ? null : string.toString();
+        return string == null ? null : string.toString();
     }
 
     @UserFunction
@@ -78,7 +78,9 @@ public class Convert {
         return convertToList(list);
     }
 
-    @UserFunction(deprecatedBy = "Neo4j toBoolean(value) / toBooleanOrNull(value) functions. This function will be removed in 5.0")
+    @UserFunction(
+            deprecatedBy =
+                    "Neo4j toBoolean(value) / toBooleanOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean")
     @Deprecated
     public Boolean toBoolean(@Name("bool") Object bool) {
@@ -88,22 +90,24 @@ public class Convert {
     @UserFunction
     @Description("apoc.convert.toNode(value) | tries it's best to convert the value to a node")
     public Node toNode(@Name("node") Object node) {
-        return node instanceof Node ? (Node) node :  null;
+        return node instanceof Node ? (Node) node : null;
     }
 
     @UserFunction
     @Description("apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship")
     public Relationship toRelationship(@Name("relationship") Object relationship) {
-        return relationship instanceof Relationship ? (Relationship) relationship :  null;
+        return relationship instanceof Relationship ? (Relationship) relationship : null;
     }
 
     @SuppressWarnings("unchecked")
     public static List convertToList(Object list) {
         if (list == null) return null;
         else if (list instanceof List) return (List) list;
-        else if (list instanceof Collection) return new ArrayList((Collection)list);
-        else if (list instanceof Iterable) return Iterators.addToCollection(((Iterable)list).iterator(),(List)new ArrayList<>(100));
-        else if (list instanceof Iterator) return Iterators.addToCollection((Iterator)list,(List)new ArrayList<>(100));
+        else if (list instanceof Collection) return new ArrayList((Collection) list);
+        else if (list instanceof Iterable)
+            return Iterators.addToCollection(((Iterable) list).iterator(), (List) new ArrayList<>(100));
+        else if (list instanceof Iterator)
+            return Iterators.addToCollection((Iterator) list, (List) new ArrayList<>(100));
         else if (list.getClass().isArray()) {
             return convertArrayToList(list);
         }
@@ -125,87 +129,85 @@ public class Convert {
         Collections.addAll(result, objectArray);
         return result;
     }
-    
+
     @SuppressWarnings("unchecked")
     private <T> List<T> convertToList(Object list, Class<T> type) {
         List<Object> convertedList = convertToList(list);
         if (convertedList == null) {
-        	return null;
+            return null;
         }
         Stream<T> stream = null;
         Types varType = Types.of(type);
-    	switch (varType) {
-    	case INTEGER:
-    		stream = (Stream<T>) convertedList.stream().map(Util::toLong);
-    		break;
-    	case FLOAT:
-    		stream = (Stream<T>) convertedList.stream().map(Util::toDouble);
-    		break;
-    	case STRING:
-    		stream = (Stream<T>) convertedList.stream().map(this::toString);
-    		break;
-    	case BOOLEAN:
-    		stream = (Stream<T>) convertedList.stream().map(this::toBoolean);
-    		break;
-    	case NODE:
-    		stream = (Stream<T>) convertedList.stream().map(this::toNode);
-    		break;
-    	case RELATIONSHIP:
-    		stream = (Stream<T>) convertedList.stream().map(this::toRelationship);
-    		break;
-		default:
-			throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, Node, Relationship");
-    	}
-    	return stream.collect(Collectors.toList());
+        switch (varType) {
+            case INTEGER:
+                stream = (Stream<T>) convertedList.stream().map(Util::toLong);
+                break;
+            case FLOAT:
+                stream = (Stream<T>) convertedList.stream().map(Util::toDouble);
+                break;
+            case STRING:
+                stream = (Stream<T>) convertedList.stream().map(this::toString);
+                break;
+            case BOOLEAN:
+                stream = (Stream<T>) convertedList.stream().map(this::toBoolean);
+                break;
+            case NODE:
+                stream = (Stream<T>) convertedList.stream().map(this::toNode);
+                break;
+            case RELATIONSHIP:
+                stream = (Stream<T>) convertedList.stream().map(this::toRelationship);
+                break;
+            default:
+                throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, Node, Relationship");
+        }
+        return stream.collect(Collectors.toList());
     }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     @UserFunction
     @Description("apoc.convert.toSet(value) | tries it's best to convert the value to a set")
     public List<Object> toSet(@Name("list") Object value) {
         List list = convertToList(value);
         return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
     }
-    
-	@UserFunction(deprecatedBy = "Neo4j toIntegerList(value) function. This function will be removed in 5.0")
-    @Description("apoc.convert.toIntList(value) | tries it's best to convert "
-    		+ "the value to a list of integers")
+
+    @UserFunction(deprecatedBy = "Neo4j toIntegerList(value) function. This function will be removed in 5.0")
+    @Description("apoc.convert.toIntList(value) | tries it's best to convert " + "the value to a list of integers")
     @Deprecated
     public List<Long> toIntList(@Name("list") Object list) {
         return convertToList(list, Long.class);
     }
 
-	@UserFunction(deprecatedBy = "Neo4j toStringList(value) function. This function will be removed in 5.0")
-	@Description("apoc.convert.toStringList(value) | tries it's best to convert "
-			+ "the value to a list of strings")
+    @UserFunction(deprecatedBy = "Neo4j toStringList(value) function. This function will be removed in 5.0")
+    @Description("apoc.convert.toStringList(value) | tries it's best to convert " + "the value to a list of strings")
     @Deprecated
-	public List<String> toStringList(@Name("list") Object list) {
+    public List<String> toStringList(@Name("list") Object list) {
         return convertToList(list, String.class);
-	}
+    }
 
-	@UserFunction(deprecatedBy = "Neo4j toBooleanList(value) function. This function will be removed in 5.0")
-	@Description("apoc.convert.toBooleanList(value) | tries it's best to convert "
-			+ "the value to a list of booleans")
+    @UserFunction(deprecatedBy = "Neo4j toBooleanList(value) function. This function will be removed in 5.0")
+    @Description("apoc.convert.toBooleanList(value) | tries it's best to convert " + "the value to a list of booleans")
     @Deprecated
-	public List<Boolean> toBooleanList(@Name("list") Object list) {
+    public List<Boolean> toBooleanList(@Name("list") Object list) {
         return convertToList(list, Boolean.class);
-	}
+    }
 
-	@UserFunction
-	@Description("apoc.convert.toNodeList(value) | tries it's best to convert "
-			+ "the value to a list of nodes")
-	public List<Node> toNodeList(@Name("list") Object list) {
+    @UserFunction
+    @Description("apoc.convert.toNodeList(value) | tries it's best to convert " + "the value to a list of nodes")
+    public List<Node> toNodeList(@Name("list") Object list) {
         return convertToList(list, Node.class);
-	}
+    }
 
-	@UserFunction
-	@Description("apoc.convert.toRelationshipList(value) | tries it's best to convert "
-			+ "the value to a list of relationships")
-	public List<Relationship> toRelationshipList(@Name("list") Object list) {
+    @UserFunction
+    @Description("apoc.convert.toRelationshipList(value) | tries it's best to convert "
+            + "the value to a list of relationships")
+    public List<Relationship> toRelationshipList(@Name("list") Object list) {
         return convertToList(list, Relationship.class);
-	}
+    }
 
-    @UserFunction(deprecatedBy = "Neo4j toInteger(value) / toIntegerOrNull(value) functions. This function will be removed in 5.0")
+    @UserFunction(
+            deprecatedBy =
+                    "Neo4j toInteger(value) / toIntegerOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toInteger(value) | tries it's best to convert the value to an integer")
     @Deprecated
     public Long toInteger(@Name("object") Object obj) {
@@ -219,7 +221,7 @@ public class Convert {
             case FLOAT:
                 return ((Number) obj).longValue();
             case STRING:
-                return parseLongString((String)obj);
+                return parseLongString((String) obj);
             case BOOLEAN:
                 return ((boolean) obj) ? 1L : 0L;
             default:
@@ -241,15 +243,17 @@ public class Convert {
             return Long.parseLong(input);
         } catch (NumberFormatException nfe) {
             try {
-                return (long)Double.parseDouble(input);
-            } catch(NumberFormatException nfe2) {
+                return (long) Double.parseDouble(input);
+            } catch (NumberFormatException nfe2) {
                 // String was not able to be parsed, return null
                 return null;
             }
         }
     }
 
-    @UserFunction(deprecatedBy = "Neo4j toFloat(value) / toFloatOrNull(value) functions. This function will be removed in 5.0")
+    @UserFunction(
+            deprecatedBy =
+                    "Neo4j toFloat(value) / toFloatOrNull(value) functions. This function will be removed in 5.0")
     @Description("apoc.convert.toFloat(value) | tries it's best to convert the value to a float")
     @Deprecated
     public Double toFloat(@Name("object") Object obj) {
@@ -263,14 +267,13 @@ public class Convert {
             case INTEGER:
                 return ((Number) obj).doubleValue();
             case STRING:
-                return parseDoubleString((String)obj);
+                return parseDoubleString((String) obj);
             case BOOLEAN:
                 return ((boolean) obj) ? 1D : 0D;
             default:
                 return null;
         }
     }
-
 
     private Double parseDoubleString(String input) {
         if (input.equalsIgnoreCase("true")) {
@@ -281,7 +284,7 @@ public class Convert {
         }
         try {
             if (input.startsWith("0x")) {
-                return (double)Long.parseLong(input.substring(2), 16);
+                return (double) Long.parseLong(input.substring(2), 16);
             }
             return Double.parseDouble(input);
         } catch (NumberFormatException ex) {

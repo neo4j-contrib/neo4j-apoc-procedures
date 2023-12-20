@@ -18,17 +18,16 @@
  */
 package apoc.couchbase;
 
+import static apoc.ApocConfig.apocConfig;
+
 import com.couchbase.client.core.env.PasswordAuthenticator;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.internal.helpers.collection.Pair;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Arrays;
-
-import static apoc.ApocConfig.apocConfig;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -49,10 +48,7 @@ public class CouchbaseManager {
 
     protected static final String PORT_CONFIG_KEY = "port";
 
-
-    protected CouchbaseManager() {
-    }
-
+    protected CouchbaseManager() {}
 
     protected static URI checkAndGetURI(String hostOrKey) {
         URI uri = URI.create(hostOrKey);
@@ -60,7 +56,8 @@ public class CouchbaseManager {
         if (!StringUtils.isEmpty(uri.getScheme())) {
             String userInfo = uri.getUserInfo();
             if (StringUtils.isEmpty(userInfo)) {
-                throw new RuntimeException("URI must include credentials otherwise use apoc.couchbase.<key>.* configuration");
+                throw new RuntimeException(
+                        "URI must include credentials otherwise use apoc.couchbase.<key>.* configuration");
             }
             String[] infoTokens = userInfo.split(":");
             if (infoTokens.length != 2) {
@@ -79,23 +76,26 @@ public class CouchbaseManager {
      * @param configurationKey the configuration key in apoc.conf that should be defined as apoc.couchbase.[configurationKey]
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
-    protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
+    protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(
+            String configurationKey) {
         Configuration couchbaseConfig = getKeyMap(configurationKey);
 
         Object username, password;
-        if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
-            throw new RuntimeException("Please check your 'apoc.couchbase." + configurationKey + "' configuration, username and/or password is missing");
+        if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null
+                || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
+            throw new RuntimeException("Please check your 'apoc.couchbase." + configurationKey
+                    + "' configuration, username and/or password is missing");
         }
 
         Object url;
         if ((url = couchbaseConfig.getString(URI_CONFIG_KEY)) == null) {
-            throw new RuntimeException("Please check your 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
+            throw new RuntimeException(
+                    "Please check your 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
         }
 
         return Pair.of(
                 PasswordAuthenticator.create(username.toString(), password.toString()),
-                Arrays.asList(url.toString().split(","))
-        );
+                Arrays.asList(url.toString().split(",")));
     }
 
     /**
@@ -107,18 +107,15 @@ public class CouchbaseManager {
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromHost(URI host) {
         List<String> nodes;
         try {
-            nodes = Arrays.asList(new URI(host.getScheme(),
-                    null, host.getHost(), host.getPort(),
-                    null, null, null).toString());
+            nodes = Arrays.asList(
+                    new URI(host.getScheme(), null, host.getHost(), host.getPort(), null, null, null).toString());
         } catch (URISyntaxException e) {
-            throw new RuntimeException("The supplied URL was not able to be parsed, failed with error: " + e.getMessage());
+            throw new RuntimeException(
+                    "The supplied URL was not able to be parsed, failed with error: " + e.getMessage());
         }
         String[] credentials = host.getUserInfo().split(":");
 
-        return Pair.of(
-                PasswordAuthenticator.create(credentials[0], credentials[1]),
-                nodes
-        );
+        return Pair.of(PasswordAuthenticator.create(credentials[0], credentials[1]), nodes);
     }
 
     /**
@@ -149,7 +146,8 @@ public class CouchbaseManager {
     public static CouchbaseConnection getConnection(String hostOrKey, String bucketName, CouchbaseConfig config) {
         PasswordAuthenticator passwordAuthenticator = getPasswordAuthenticator(hostOrKey);
 
-        // The minimum cluster version supported by SDK 3 is Server 5.0, so bucket-level passwords are not supported anymore
+        // The minimum cluster version supported by SDK 3 is Server 5.0, so bucket-level passwords are not supported
+        // anymore
         return new CouchbaseConnection(hostOrKey, passwordAuthenticator, bucketName, config);
     }
 
@@ -160,8 +158,10 @@ public class CouchbaseManager {
             Configuration couchbaseConfig = getKeyMap(hostOrKey);
 
             Object username, password;
-            if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
-                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, username and password are missing");
+            if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null
+                    || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey
+                        + "' configuration, username and password are missing");
             }
 
             return PasswordAuthenticator.create(username.toString(), password.toString());
@@ -180,5 +180,4 @@ public class CouchbaseManager {
 
         return couchbaseConfig;
     }
-
 }

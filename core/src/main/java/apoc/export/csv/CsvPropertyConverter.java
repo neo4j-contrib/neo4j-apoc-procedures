@@ -18,11 +18,6 @@
  */
 package apoc.export.csv;
 
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.values.storable.DurationValue;
-import org.neo4j.values.storable.PointValue;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,10 +26,15 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.PointValue;
 
 public class CsvPropertyConverter {
 
-    public static boolean addPropertyToGraphEntity(Entity entity, CsvHeaderField field, Object value, CsvLoaderConfig config) {
+    public static boolean addPropertyToGraphEntity(
+            Entity entity, CsvHeaderField field, Object value, CsvLoaderConfig config) {
         if (field.isIgnore() || value == null) {
             return false;
         }
@@ -43,7 +43,8 @@ public class CsvPropertyConverter {
             final boolean listContainingNull = list.stream().anyMatch(Objects::isNull);
             // todo - to maintain compatibility with neo4j-admin import, we skip ONLY empty cells
             //  while array cell like "...., ,....", will be imported as propKey: [" "]
-            //  might be worth add another config to ignore blank item as well, and/or array elements, e.g "...,a;b;;;c,..."
+            //  might be worth add another config to ignore blank item as well, and/or array elements, e.g
+            // "...,a;b;;;c,..."
             final boolean isEmptyCell = config.isIgnoreEmptyCellArray() && list.equals(Collections.singletonList(""));
             if (listContainingNull || isEmptyCell) {
                 return false;
@@ -95,5 +96,4 @@ public class CsvPropertyConverter {
         }
         throw new IllegalStateException("Type " + type + " not supported.");
     }
-
 }

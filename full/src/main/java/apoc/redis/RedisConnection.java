@@ -24,7 +24,7 @@ import io.lettuce.core.RedisClient;
 abstract class RedisConnection<T> implements IRedisConnection<T> {
     protected final RedisClient client;
     protected final RedisConfig conf;
-    
+
     public RedisConnection(String uri, RedisConfig config) {
         this.conf = config;
         this.client = RedisClient.create(uri);

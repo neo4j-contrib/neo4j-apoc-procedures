@@ -19,18 +19,17 @@
 package apoc.log;
 
 import apoc.util.FileUtils;
-import org.neo4j.procedure.*;
-import org.neo4j.logging.Log;
-
-import java.nio.file.NoSuchFileException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 /**
  * @author moxious
@@ -52,22 +51,22 @@ public class Neo4jLogStream {
         }
 
         public int compareTo(FileEntry o) {
-            return Long.compare(this.lineNo,o.lineNo);
+            return Long.compare(this.lineNo, o.lineNo);
         }
     }
 
     @Admin
-    @Procedure(mode=Mode.DBMS)
-    @Description( "apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines" )
+    @Procedure(mode = Mode.DBMS)
+    @Description(
+            "apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines")
     public Stream<FileEntry> stream(
-            @Name("path") String logName,
-            @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+            @Name("path") String logName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         File logDir = FileUtils.getLogDirectory();
 
         if (logDir == null) {
-            throw new RuntimeException("Neo4j configured dbms.directories.logs points to a directory that " +
-                    "does not exist or is not readable.  Please ensure this configuration is correct.");
+            throw new RuntimeException("Neo4j configured dbms.directories.logs points to a directory that "
+                    + "does not exist or is not readable.  Please ensure this configuration is correct.");
         }
 
         // Prepend neo4jHome if it's a relative path, and use the user's path otherwise.
@@ -75,9 +74,9 @@ public class Neo4jLogStream {
 
         try {
             if (!f.getCanonicalFile().toPath().startsWith(logDir.getAbsolutePath())) {
-                throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs " +
-                        "directory, and this procedure is only permitted to access files in the log directory.  This may " +
-                        "occur if the path in question is a symlink or other link.");
+                throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs "
+                        + "directory, and this procedure is only permitted to access files in the log directory.  This may "
+                        + "occur if the path in question is a symlink or other link.");
             }
         } catch (IOException ioe) {
             throw new RuntimeException("Unable to resolve basic log file canonical path", ioe);
@@ -91,12 +90,13 @@ public class Neo4jLogStream {
             Stream<FileEntry> entries = stream.map(line -> new FileEntry(lineNumber.getAndIncrement(), line, p));
 
             // Useful for tailing logfiles.
-            if(config.containsKey("last")) {
-                return entries.sorted(Collections.reverseOrder()).limit(new Double(config.get("last").toString()).longValue());
+            if (config.containsKey("last")) {
+                return entries.sorted(Collections.reverseOrder())
+                        .limit(new Double(config.get("last").toString()).longValue());
             }
 
             return entries;
-        } catch(NoSuchFileException nsf) {
+        } catch (NoSuchFileException nsf) {
             // This special case we want to throw a custom message and not let this error propagate, because the
             // trace exposes the full path we were checking.
             throw new RuntimeException("No log file exists by that name");

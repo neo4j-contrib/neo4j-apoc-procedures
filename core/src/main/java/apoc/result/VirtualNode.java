@@ -18,16 +18,15 @@
  */
 package apoc.result;
 
-import apoc.util.Util;
-import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.FilteringIterable;
-import org.neo4j.internal.helpers.collection.Iterables;
+import static java.util.Arrays.asList;
 
+import apoc.util.Util;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
+import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.FilteringIterable;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 /**
  * @author mh
@@ -115,7 +114,9 @@ public class VirtualNode implements Node {
     }
 
     private boolean isDirection(Relationship r, Direction direction) {
-        return direction == Direction.BOTH || direction == Direction.OUTGOING && r.getStartNode().equals(this) || direction == Direction.INCOMING && r.getEndNode().equals(this);
+        return direction == Direction.BOTH
+                || direction == Direction.OUTGOING && r.getStartNode().equals(this)
+                || direction == Direction.INCOMING && r.getEndNode().equals(this);
     }
 
     @Override
@@ -147,7 +148,10 @@ public class VirtualNode implements Node {
     public VirtualRelationship createRelationshipTo(Node node, RelationshipType relationshipType) {
         VirtualRelationship rel = new VirtualRelationship(this, node, relationshipType);
         rels.add(rel);
-        if (node instanceof VirtualNode) { // register the inverse relationship into the target virtual node only if it is not a self relationship
+        if (node
+                instanceof
+                VirtualNode) { // register the inverse relationship into the target virtual node only if it is not a
+            // self relationship
             VirtualNode target = (VirtualNode) node;
             if (!target.rels.contains(rel)) {
                 target.rels.add(rel);
@@ -159,7 +163,10 @@ public class VirtualNode implements Node {
     public VirtualRelationship createRelationshipFrom(Node start, RelationshipType relationshipType) {
         VirtualRelationship rel = new VirtualRelationship(start, this, relationshipType);
         rels.add(rel);
-        if (start instanceof VirtualNode) { // register the inverse relationship into the start virtual node only if it is not a self relationship
+        if (start
+                instanceof
+                VirtualNode) { // register the inverse relationship into the start virtual node only if it is not a self
+            // relationship
             VirtualNode startVirtual = (VirtualNode) start;
             if (!startVirtual.rels.contains(rel)) {
                 startVirtual.rels.add(rel);
@@ -269,7 +276,6 @@ public class VirtualNode implements Node {
     @Override
     public boolean equals(Object o) {
         return this == o || o instanceof Node && id == ((Node) o).getId();
-
     }
 
     @Override
@@ -279,6 +285,6 @@ public class VirtualNode implements Node {
 
     @Override
     public String toString() {
-        return "VirtualNode{" + "id=" + id  + ", labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
+        return "VirtualNode{" + "id=" + id + ", labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
     }
 }

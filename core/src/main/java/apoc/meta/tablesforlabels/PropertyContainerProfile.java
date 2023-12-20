@@ -19,9 +19,8 @@
 package apoc.meta.tablesforlabels;
 
 import apoc.meta.Meta.ConstraintTracker;
-import org.neo4j.graphdb.Entity;
-
 import java.util.*;
+import org.neo4j.graphdb.Entity;
 
 /**
  * A profile of a particular ordered label set (or relationship type) has a set of possible properties that can exist, and
@@ -38,8 +37,13 @@ public class PropertyContainerProfile {
         isNode = false;
     }
 
-    public Set<String> propertyNames() { return profile.keySet(); }
-    public PropertyTracker trackerFor(String propName) { return profile.get(propName); }
+    public Set<String> propertyNames() {
+        return profile.keySet();
+    }
+
+    public PropertyTracker trackerFor(String propName) {
+        return profile.get(propName);
+    }
 
     public void observe(Entity n, boolean isNode) {
         observations++;
@@ -69,7 +73,7 @@ public class PropertyContainerProfile {
 
                 // Check for node constraints
 
-                for (Map.Entry<String,List<String>> entry : ConstraintTracker.nodeConstraints.entrySet()) {
+                for (Map.Entry<String, List<String>> entry : ConstraintTracker.nodeConstraints.entrySet()) {
                     for (String pk : entry.getValue()) {
                         if (this.profile.containsKey(pk)) {
                             tracker = this.profile.get(pk);
@@ -81,7 +85,7 @@ public class PropertyContainerProfile {
 
                 // Check for relationship constraints
 
-                for (Map.Entry<String,List<String>> entry : ConstraintTracker.relConstraints.entrySet()) {
+                for (Map.Entry<String, List<String>> entry : ConstraintTracker.relConstraints.entrySet()) {
                     for (String pk : entry.getValue()) {
                         if (this.profile.containsKey(pk)) {
                             tracker = this.profile.get(pk);

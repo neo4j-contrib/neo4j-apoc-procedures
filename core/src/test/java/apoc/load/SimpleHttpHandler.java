@@ -21,7 +21,6 @@ package apoc.load;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,7 +36,8 @@ import java.util.Map;
  */
 public class SimpleHttpHandler implements HttpHandler {
 
-    private static final Map<String,String> MIME_MAP = new HashMap<>();
+    private static final Map<String, String> MIME_MAP = new HashMap<>();
+
     static {
         MIME_MAP.put("html", "text/html");
         MIME_MAP.put("json", "application/json");
@@ -47,13 +47,17 @@ public class SimpleHttpHandler implements HttpHandler {
         MIME_MAP.put("gz", "application/x-gzip");
         MIME_MAP.put("txt", "text/plain");
     }
+
     public void handle(HttpExchange t) throws IOException {
         URI uri = t.getRequestURI();
         String path = uri.getPath().substring(1);
 
         File file;
         try {
-            file = new File(Thread.currentThread().getContextClassLoader().getResource(path).toURI());
+            file = new File(Thread.currentThread()
+                    .getContextClassLoader()
+                    .getResource(path)
+                    .toURI());
         } catch (Exception e) {
             // Object does not exist or is not a file: reject with 404 error.
             String response = "404 (Not Found)\n";
@@ -98,5 +102,4 @@ public class SimpleHttpHandler implements HttpHandler {
         String ext = getExt(path).toLowerCase();
         return MIME_MAP.getOrDefault(ext, "application/octet-stream");
     }
-
 }

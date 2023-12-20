@@ -18,14 +18,8 @@
  */
 package apoc.result;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.traversal.Paths;
+import static org.apache.commons.collections4.IterableUtils.reversedIterable;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -33,9 +27,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.collections4.IterableUtils.reversedIterable;
-
+import javax.annotation.Nonnull;
+import org.apache.commons.collections4.CollectionUtils;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.traversal.Paths;
 
 public class VirtualPath implements Path {
 
@@ -90,11 +88,13 @@ public class VirtualPath implements Path {
         nodes.add(start);
 
         AtomicReference<Node> currNode = new AtomicReference<>(start);
-        final List<Node> otherNodes = relationships.stream().map(rel -> {
-            final Node otherNode = rel.getOtherNode(currNode.get());
-            currNode.set(otherNode);
-            return otherNode;
-        }).collect(Collectors.toList());
+        final List<Node> otherNodes = relationships.stream()
+                .map(rel -> {
+                    final Node otherNode = rel.getOtherNode(currNode.get());
+                    currNode.set(otherNode);
+                    return otherNode;
+                })
+                .collect(Collectors.toList());
 
         nodes.addAll(otherNodes);
         return nodes;
@@ -126,8 +126,7 @@ public class VirtualPath implements Path {
             public Entity next() {
                 try {
                     return current.next();
-                }
-                finally {
+                } finally {
                     Iterator<? extends Entity> temp = current;
                     current = next;
                     next = temp;
@@ -148,7 +147,7 @@ public class VirtualPath implements Path {
 
     private void requireConnected(Relationship relationship) {
         final List<Node> previousNodes = getPreviousNodes();
-        boolean isRelConnectedToPrevious = CollectionUtils.containsAny( previousNodes, relationship.getNodes() );
+        boolean isRelConnectedToPrevious = CollectionUtils.containsAny(previousNodes, relationship.getNodes());
         if (!isRelConnectedToPrevious) {
             throw new IllegalArgumentException("Relationship is not part of current path.");
         }
@@ -178,6 +177,5 @@ public class VirtualPath implements Path {
         public VirtualPath build() {
             return new VirtualPath(start, relationships);
         }
-
     }
 }

@@ -18,20 +18,20 @@
  */
 package apoc.redis;
 
+import static io.lettuce.core.RedisURI.DEFAULT_TIMEOUT;
+
 import apoc.util.MissingDependencyException;
 import apoc.util.Util;
-
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
-import static io.lettuce.core.RedisURI.DEFAULT_TIMEOUT;
-
 public class RedisConfig {
-    public enum Codec { 
-        STRING(StringRedisConnection.class), BYTE_ARRAY(ByteArrayRedisConnection.class);
+    public enum Codec {
+        STRING(StringRedisConnection.class),
+        BYTE_ARRAY(ByteArrayRedisConnection.class);
 
         private Class<? extends RedisConnection> redisConnectionClass;
 
@@ -45,15 +45,15 @@ public class RedisConfig {
                 Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
-                throw new MissingDependencyException("Cannot find the Redis client jar. \n" +
-                        "Please put the lettuce-core-6.2.5.RELEASE.jar into plugin folder. \n" +
-                        "See the documentation: https://neo4j.com/labs/apoc/4.4/database-integration/redis/");
+                throw new MissingDependencyException("Cannot find the Redis client jar. \n"
+                        + "Please put the lettuce-core-6.2.5.RELEASE.jar into plugin folder. \n"
+                        + "See the documentation: https://neo4j.com/labs/apoc/4.4/database-integration/redis/");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
     }
-    
+
     private final Charset charset;
     private final Duration timeout;
 
@@ -70,7 +70,8 @@ public class RedisConfig {
         this.scriptCharset = Charset.forName((String) config.getOrDefault("scriptCharset", "UTF-8"));
         this.autoReconnect = Util.toBoolean(config.getOrDefault("autoReconnect", true));
         this.right = Util.toBoolean(config.getOrDefault("right", true));
-        this.codec = Codec.valueOf((config.getOrDefault("codec", Codec.STRING.name()).toString().toUpperCase()));
+        this.codec = Codec.valueOf(
+                (config.getOrDefault("codec", Codec.STRING.name()).toString().toUpperCase()));
     }
 
     public boolean isRight() {

@@ -18,24 +18,6 @@
  */
 package apoc.core.it;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import apoc.util.TestUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static apoc.schema.SchemasTest.CALL_SCHEMA_NODES_ORDERED;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
@@ -44,6 +26,23 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import apoc.util.TestUtil;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 
 /**
  * @author as
@@ -71,10 +70,12 @@ public class SchemasEnterpriseFeaturesTest {
     @Before
     public void removeAllConstraints() {
         session.writeTransaction(tx -> {
-            final List<String> constraints = tx.run("CALL db.constraints() YIELD name").list(i -> i.get("name").asString());
+            final List<String> constraints = tx.run("CALL db.constraints() YIELD name")
+                    .list(i -> i.get("name").asString());
             constraints.forEach(name -> tx.run(String.format("DROP CONSTRAINT %s", name)));
 
-            final List<String> indexes = tx.run("CALL db.indexes() YIELD name").list(i -> i.get("name").asString());
+            final List<String> indexes = tx.run("CALL db.indexes() YIELD name")
+                    .list(i -> i.get("name").asString());
             indexes.forEach(name -> tx.run(String.format("DROP INDEX %s", name)));
             tx.commit();
             return null;
@@ -83,7 +84,8 @@ public class SchemasEnterpriseFeaturesTest {
 
     @Test
     public void testAddConstraintDoesntAllowCypherInjection() {
-        String query = "CALL apoc.schema.assert(null,{Bar:[[\"foo`) IS UNIQUE MATCH (n) DETACH DELETE n; //\", \"bar\"]]}, false)";
+        String query =
+                "CALL apoc.schema.assert(null,{Bar:[[\"foo`) IS UNIQUE MATCH (n) DETACH DELETE n; //\", \"bar\"]]}, false)";
         testResult(session, query, (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Bar", r.get("label"));
@@ -119,7 +121,8 @@ public class SchemasEnterpriseFeaturesTest {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
-            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY", firstResult.get("description"));
+            assertEquals(
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.foo, foo.bar) IS NODE KEY", firstResult.get("description"));
             tx.commit();
             return null;
         });
@@ -167,19 +170,20 @@ public class SchemasEnterpriseFeaturesTest {
 
     @Test
     public void testCreateUniqueAndIsNodeKeyConstraintInSameLabel() {
-        testResult(session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
-            Map<String, Object> r = result.next();
-            assertEquals("Galileo", r.get("label"));
-            assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
-            r = result.next();
-            assertEquals("Galileo", r.get("label"));
-            assertEquals(expectedKeys("curie"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
-            assertFalse(result.hasNext());
-        });
+        testResult(
+                session, "CALL apoc.schema.assert(null,{Galileo: [['newton', 'tesla'], 'curie']}, false)", (result) -> {
+                    Map<String, Object> r = result.next();
+                    assertEquals("Galileo", r.get("label"));
+                    assertEquals(expectedKeys("newton", "tesla"), r.get("keys"));
+                    assertEquals(true, r.get("unique"));
+                    assertEquals("CREATED", r.get("action"));
+                    r = result.next();
+                    assertEquals("Galileo", r.get("label"));
+                    assertEquals(expectedKeys("curie"), r.get("keys"));
+                    assertEquals(true, r.get("unique"));
+                    assertEquals("CREATED", r.get("action"));
+                    assertFalse(result.hasNext());
+                });
 
         session.readTransaction(tx -> {
             List<Record> result = tx.run("CALL db.constraints").list();
@@ -206,7 +210,7 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
         });
@@ -214,13 +218,13 @@ public class SchemasEnterpriseFeaturesTest {
         testResult(session, "CALL apoc.schema.assert(null,{Foo:[['baa','baz']]})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
+            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("DROPPED", r.get("action"));
 
             r = result.next();
             assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("baa","baz"), r.get("keys"));
+            assertEquals(expectedKeys("baa", "baz"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("CREATED", r.get("action"));
 
@@ -231,7 +235,8 @@ public class SchemasEnterpriseFeaturesTest {
             List<Record> result = tx.run("CALL db.constraints").list();
             assertEquals(1, result.size());
             Map<String, Object> firstResult = result.get(0).asMap();
-            assertEquals("CONSTRAINT ON ( foo:Foo ) ASSERT (foo.baa, foo.baz) IS NODE KEY", firstResult.get("description"));
+            assertEquals(
+                    "CONSTRAINT ON ( foo:Foo ) ASSERT (foo.baa, foo.baz) IS NODE KEY", firstResult.get("description"));
             tx.commit();
             return null;
         });
@@ -313,7 +318,10 @@ public class SchemasEnterpriseFeaturesTest {
         });
 
         String indexName = session.readTransaction(tx -> {
-            String name = tx.run("CALL db.indexes() YIELD name RETURN name").single().get("name").asString();
+            String name = tx.run("CALL db.indexes() YIELD name RETURN name")
+                    .single()
+                    .get("name")
+                    .asString();
             tx.commit();
             return name;
         });
@@ -406,7 +414,7 @@ public class SchemasEnterpriseFeaturesTest {
             return null;
         });
     }
-    
+
     @Test
     public void testSchemaNodeWithRelationshipsConstraintsAndViceVersa() {
         session.writeTransaction(tx -> {
@@ -432,7 +440,7 @@ public class SchemasEnterpriseFeaturesTest {
             assertEquals(asList("foobar"), r.get("properties"));
             assertFalse(result.hasNext());
         });
-        
+
         session.writeTransaction(tx -> {
             tx.run("DROP CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
             tx.run("DROP CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)");
@@ -454,14 +462,16 @@ public class SchemasEnterpriseFeaturesTest {
             schemaNodeKeyAssertions(r);
             assertEquals("ONLINE", r.get("status"));
             assertEquals("BTREE", r.get("type"));
-            final String expectedUserDescIdx = "name='node_key_movie', type='UNIQUE BTREE', schema=(:Movie {first, second}), indexProvider='native-btree-1.0', owningConstraint";
+            final String expectedUserDescIdx =
+                    "name='node_key_movie', type='UNIQUE BTREE', schema=(:Movie {first, second}), indexProvider='native-btree-1.0', owningConstraint";
             Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescIdx);
 
             r = result.next();
             schemaNodeKeyAssertions(r);
             assertEquals("", r.get("status"));
             assertEquals("NODE_KEY", r.get("type"));
-            final String expectedUserDescConstraint = "name='node_key_movie', type='NODE KEY', schema=(:Movie {first, second}), ownedIndex";
+            final String expectedUserDescConstraint =
+                    "name='node_key_movie', type='NODE KEY', schema=(:Movie {first, second}), ownedIndex";
             Assertions.assertThat(r.get("userDescription").toString()).contains(expectedUserDescConstraint);
 
             assertFalse(result.hasNext());
@@ -474,7 +484,7 @@ public class SchemasEnterpriseFeaturesTest {
         assertEquals(":Movie(first,second)", r.get("name"));
     }
 
-    private List<String> expectedKeys(String... keys){
+    private List<String> expectedKeys(String... keys) {
         return asList(keys);
     }
 }

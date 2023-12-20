@@ -18,7 +18,7 @@
  */
 package apoc.util;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,27 +27,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class SimpleRateLimiterTest {
 
-   @Test
-   public void shouldTestTheRateLimiter() throws InterruptedException {
-       // given
-       SimpleRateLimiter srl = new SimpleRateLimiter(1000, 1);
+    @Test
+    public void shouldTestTheRateLimiter() throws InterruptedException {
+        // given
+        SimpleRateLimiter srl = new SimpleRateLimiter(1000, 1);
 
-       // when
-       boolean canExecute = srl.canExecute();
-       boolean cantExecute = srl.canExecute();
-       Thread.sleep(2000);
-       boolean nowCanExecute = srl.canExecute();
+        // when
+        boolean canExecute = srl.canExecute();
+        boolean cantExecute = srl.canExecute();
+        Thread.sleep(2000);
+        boolean nowCanExecute = srl.canExecute();
 
-       // then
-       assertTrue(canExecute);
-       assertFalse(cantExecute);
-       assertTrue(nowCanExecute);
-   }
+        // then
+        assertTrue(canExecute);
+        assertFalse(cantExecute);
+        assertTrue(nowCanExecute);
+    }
 
     @Test
     public void shouldTestTheRateLimiterInExecutors() throws InterruptedException {
@@ -62,18 +61,12 @@ public class SimpleRateLimiterTest {
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
         // then
-        int count = map
-                .values()
-                .stream()
-                .map(AtomicInteger::get)
-                .reduce(0, Integer::sum);
+        int count = map.values().stream().map(AtomicInteger::get).reduce(0, Integer::sum);
         assertEquals(10, count);
     }
 
-    private void execRunnable(SimpleRateLimiter srl,
-                              ExecutorService executor,
-                              Map<String, AtomicInteger> map,
-                              int operations) {
+    private void execRunnable(
+            SimpleRateLimiter srl, ExecutorService executor, Map<String, AtomicInteger> map, int operations) {
         executor.execute(() -> {
             AtomicInteger ai = map.computeIfAbsent(Thread.currentThread().getName(), k -> new AtomicInteger(0));
             IntStream.range(0, operations).forEach(i -> {
@@ -83,5 +76,4 @@ public class SimpleRateLimiterTest {
             });
         });
     }
-
 }

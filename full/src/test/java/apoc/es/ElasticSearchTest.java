@@ -18,12 +18,16 @@
  */
 package apoc.es;
 
+import static org.junit.Assert.*;
+
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import java.io.IOException;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -31,11 +35,6 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-
-import java.io.IOException;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -45,15 +44,16 @@ public class ElasticSearchTest {
 
     public static ElasticsearchContainer elastic;
 
-    private final static String ES_INDEX = "test-index";
+    private static final String ES_INDEX = "test-index";
 
-    private final static String ES_TYPE = "test-type";
+    private static final String ES_TYPE = "test-type";
 
-    private final static String ES_ID = UUID.randomUUID().toString();
+    private static final String ES_ID = UUID.randomUUID().toString();
 
-    private final static String HOST = "localhost";
+    private static final String HOST = "localhost";
 
-    private static final String DOCUMENT = "{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}";
+    private static final String DOCUMENT =
+            "{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}";
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
@@ -62,7 +62,9 @@ public class ElasticSearchTest {
 
     // We need a reference to the class implementing the procedures
     private final ElasticSearch es = new ElasticSearch();
-    private static final Configuration JSON_PATH_CONFIG = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS).build();
+    private static final Configuration JSON_PATH_CONFIG = Configuration.builder()
+            .options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS)
+            .build();
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -87,30 +89,38 @@ public class ElasticSearchTest {
      */
     private static Map<String, Object> createDefaultProcedureParametersWithPayloadAndId(String payload, String id) {
         try {
-            return Util.merge(defaultParams, Util.map("payload", JsonUtil.OBJECT_MAPPER.readValue(payload, Map.class), "id", id));
+            return Util.merge(
+                    defaultParams, Util.map("payload", JsonUtil.OBJECT_MAPPER.readValue(payload, Map.class), "id", id));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private static void insertDocuments() {
-        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"get\",\"procedureDescription\":\"perform a GET operation to ElasticSearch\"}", UUID.randomUUID().toString());
-        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
-            Object created = extractValueFromResponse(r, "$.result");
-            assertEquals("created", created);
-        });
+        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(
+                "{\"procedurePackage\":\"es\",\"procedureName\":\"get\",\"procedureDescription\":\"perform a GET operation to ElasticSearch\"}",
+                UUID.randomUUID().toString());
+        TestUtil.testCall(
+                db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
+                    Object created = extractValueFromResponse(r, "$.result");
+                    assertEquals("created", created);
+                });
 
-        params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"post\",\"procedureDescription\":\"perform a POST operation to ElasticSearch\"}", UUID.randomUUID().toString());
-        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
-            Object created = extractValueFromResponse(r, "$.result");
-            assertEquals("created", created);
-        });
+        params = createDefaultProcedureParametersWithPayloadAndId(
+                "{\"procedurePackage\":\"es\",\"procedureName\":\"post\",\"procedureDescription\":\"perform a POST operation to ElasticSearch\"}",
+                UUID.randomUUID().toString());
+        TestUtil.testCall(
+                db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
+                    Object created = extractValueFromResponse(r, "$.result");
+                    assertEquals("created", created);
+                });
 
         params = createDefaultProcedureParametersWithPayloadAndId(DOCUMENT, ES_ID);
-        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
-            Object created = extractValueFromResponse(r, "$.result");
-            assertEquals("created", created);
-        });
+        TestUtil.testCall(
+                db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
+                    Object created = extractValueFromResponse(r, "$.result");
+                    assertEquals("created", created);
+                });
     }
 
     private static final Object extractValueFromResponse(Map response, String jsonPath) {
@@ -155,10 +165,14 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsMapMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name',_source_excludes:'description'},null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name',_source_excludes:'description'},null) yield value",
+                defaultParams,
+                r -> {
+                    Object name = extractValueFromResponse(r, "$._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -169,10 +183,14 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsMapSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value",
+                defaultParams,
+                r -> {
+                    Object name = extractValueFromResponse(r, "$._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -183,10 +201,14 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsStringMultipleParams() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value",
+                defaultParams,
+                r -> {
+                    Object name = extractValueFromResponse(r, "$._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -197,10 +219,14 @@ public class ElasticSearchTest {
      */
     @Test
     public void testGetWithQueryAsStringSingleParam() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value",
+                defaultParams,
+                r -> {
+                    Object name = extractValueFromResponse(r, "$._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -221,10 +247,11 @@ public class ElasticSearchTest {
      */
     @Test
     public void testSearchWithQueryAsAString() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'q=name:Neo4j',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db, "CALL apoc.es.query($host,$index,$type,'q=name:Neo4j',null) yield value", defaultParams, r -> {
+                    Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -233,10 +260,11 @@ public class ElasticSearchTest {
      */
     @Test
     public void testFullSearchWithQueryAsAString() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'q=name:*',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
-            assertEquals("Neo4j", name);
-        });
+        TestUtil.testCall(
+                db, "CALL apoc.es.query($host,$index,$type,'q=name:*',null) yield value", defaultParams, r -> {
+                    Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
+                    assertEquals("Neo4j", name);
+                });
     }
 
     /**
@@ -245,10 +273,14 @@ public class ElasticSearchTest {
      */
     @Test
     public void testFullSearchWithQueryAsAStringWithEquals() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'q=procedureName:get',null) yield value", defaultParams, r -> {
-            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
-            assertEquals("get", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.query($host,$index,$type,'q=procedureName:get',null) yield value",
+                defaultParams,
+                r -> {
+                    Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+                    assertEquals("get", name);
+                });
     }
 
     /**
@@ -257,12 +289,16 @@ public class ElasticSearchTest {
      */
     @Test
     public void testFullSearchWithOtherParametersAsAString() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'size=1&scroll=1m&_source=true&q=procedureName:get',null) yield value", defaultParams, r -> {
-            Object hits = extractValueFromResponse(r, "$.hits.hits");
-            assertEquals(1, ((List) hits).size());
-            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
-            assertEquals("get", name);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.query($host,$index,$type,'size=1&scroll=1m&_source=true&q=procedureName:get',null) yield value",
+                defaultParams,
+                r -> {
+                    Object hits = extractValueFromResponse(r, "$.hits.hits");
+                    assertEquals(1, ((List) hits).size());
+                    Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+                    assertEquals("get", name);
+                });
     }
 
     /**
@@ -273,14 +309,16 @@ public class ElasticSearchTest {
      * http://localhost:9200/test-index/test-type/f561c1c5-4092-4c5d-98a6-5ea2b3417415/_update
      */
     @Test
-    public void testPostUpdateDocument() throws IOException{
+    public void testPostUpdateDocument() throws IOException {
         Map<String, Object> doc = JsonUtil.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
         doc.put("tags", Arrays.asList("awesome"));
-        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(JsonUtil.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
-        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
-            Object updated = extractValueFromResponse(r, "$.result");
-            assertEquals("updated", updated);
-        });
+        Map<String, Object> params =
+                createDefaultProcedureParametersWithPayloadAndId(JsonUtil.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
+        TestUtil.testCall(
+                db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload) yield value", params, r -> {
+                    Object updated = extractValueFromResponse(r, "$.result");
+                    assertEquals("updated", updated);
+                });
 
         TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,null,null) yield value", params, r -> {
             Object tag = extractValueFromResponse(r, "$._source.tags[0]");
@@ -294,7 +332,9 @@ public class ElasticSearchTest {
      */
     @Test
     public void testSearchWithQueryAsAMap() {
-        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,null,{query: {match: {name: 'Neo4j'}}}) yield value",
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.query($host,$index,$type,null,{query: {match: {name: 'Neo4j'}}}) yield value",
                 defaultParams,
                 r -> {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
@@ -313,10 +353,13 @@ public class ElasticSearchTest {
         String host = HOST;
         String hostUrl = es.getElasticSearchUrl(host);
 
-        String queryUrl = hostUrl + String.format("/%s/%s/%s?%s", index == null ? "_all" : index,
-                type == null ? "_all" : type,
-                id == null ? "" : id,
-                es.toQueryParams(query));
+        String queryUrl = hostUrl
+                + String.format(
+                        "/%s/%s/%s?%s",
+                        index == null ? "_all" : index,
+                        type == null ? "_all" : type,
+                        id == null ? "" : id,
+                        es.toQueryParams(query));
 
         assertEquals(queryUrl, es.getQueryUrl(host, index, type, id, query));
     }
@@ -329,10 +372,13 @@ public class ElasticSearchTest {
 
         String host = HOST;
         String hostUrl = es.getElasticSearchUrl(host);
-        String queryUrl = hostUrl + String.format("/%s/%s/%s?%s", index == null ? "_all" : index,
-                type == null ? "_all" : type,
-                id == null ? "" : id,
-                es.toQueryParams(null));
+        String queryUrl = hostUrl
+                + String.format(
+                        "/%s/%s/%s?%s",
+                        index == null ? "_all" : index,
+                        type == null ? "_all" : type,
+                        id == null ? "" : id,
+                        es.toQueryParams(null));
 
         // First we test the older version against the newest one
         assertNotEquals(queryUrl, es.getQueryUrl(host, index, type, id, null));
@@ -347,13 +393,17 @@ public class ElasticSearchTest {
 
         String host = HOST;
         String hostUrl = es.getElasticSearchUrl(host);
-        String queryUrl = hostUrl + String.format("/%s/%s/%s?%s", index == null ? "_all" : index,
-                type == null ? "_all" : type,
-                id == null ? "" : id,
-                es.toQueryParams(new HashMap<String, String>()));
+        String queryUrl = hostUrl
+                + String.format(
+                        "/%s/%s/%s?%s",
+                        index == null ? "_all" : index,
+                        type == null ? "_all" : type,
+                        id == null ? "" : id,
+                        es.toQueryParams(new HashMap<String, String>()));
 
         // First we test the older version against the newest one
         assertNotEquals(queryUrl, es.getQueryUrl(host, index, type, id, new HashMap<String, String>()));
-        assertTrue(!es.getQueryUrl(host, index, type, id, new HashMap<String, String>()).endsWith("?"));
+        assertTrue(!es.getQueryUrl(host, index, type, id, new HashMap<String, String>())
+                .endsWith("?"));
     }
 }

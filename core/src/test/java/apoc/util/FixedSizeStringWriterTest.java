@@ -18,9 +18,9 @@
  */
 package apoc.util;
 
-import org.junit.Test;
-
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 public class FixedSizeStringWriterTest {
 
@@ -53,5 +53,4 @@ public class FixedSizeStringWriterTest {
         assertEquals("is a str", writer.toString());
         assertFalse("Should not be exceeded", writer.isExceeded());
     }
-
 }

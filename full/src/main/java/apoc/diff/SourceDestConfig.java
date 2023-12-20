@@ -22,7 +22,10 @@ import java.util.Collections;
 import java.util.Map;
 
 public class SourceDestConfig {
-    public enum SourceDestConfigType { URL, DATABASE }
+    public enum SourceDestConfigType {
+        URL,
+        DATABASE
+    }
 
     static class TargetConfig {
         private final SourceDestConfigType type;
@@ -64,11 +67,10 @@ public class SourceDestConfig {
             return null;
         } else {
             Map<String, Object> target = (Map<String, Object>) map.getOrDefault("target", Collections.emptyMap());
-            SourceDestConfigType type = SourceDestConfigType
-                    .valueOf((String) target.getOrDefault("type", SourceDestConfigType.URL.toString()));
-            return new SourceDestConfig(type,
-                    (String) target.get("value"),
-                    (Map<String, Object>) map.getOrDefault("params", Collections.emptyMap()));
+            SourceDestConfigType type = SourceDestConfigType.valueOf(
+                    (String) target.getOrDefault("type", SourceDestConfigType.URL.toString()));
+            return new SourceDestConfig(type, (String) target.get("value"), (Map<String, Object>)
+                    map.getOrDefault("params", Collections.emptyMap()));
         }
     }
 }

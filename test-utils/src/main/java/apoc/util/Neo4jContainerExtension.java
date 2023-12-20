@@ -18,6 +18,12 @@
  */
 package apoc.util;
 
+import static apoc.util.TestContainerUtil.Neo4jVersion;
+import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
+
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.Scanner;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -27,14 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.ext.ScriptUtils;
 import org.testcontainers.containers.wait.strategy.Wait;
-import static apoc.util.TestContainerUtil.Neo4jVersion;
-import static apoc.util.TestContainerUtil.Neo4jVersion.ENTERPRISE;
-
-import java.io.InputStream;
-import java.time.Duration;
-import java.util.Scanner;
+import org.testcontainers.ext.ScriptUtils;
 
 /**
  * Extension for the Neo4jcontainer class of Testcontainers
@@ -86,9 +86,11 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
             try {
                 System.out.println(this.execInContainer("cat", "logs/debug.log").toString());
                 System.out.println(this.execInContainer("cat", "logs/http.log").toString());
-                System.out.println(this.execInContainer("cat", "logs/security.log").toString());
+                System.out.println(
+                        this.execInContainer("cat", "logs/security.log").toString());
             } catch (Exception ex) {
-                // we addSuppressed the exception produced by execInContainer, but we finally throw the original `startException`
+                // we addSuppressed the exception produced by execInContainer, but we finally throw the original
+                // `startException`
                 startException.addSuppressed(new RuntimeException("Exception during fallback execInContainer", ex));
             }
             throw startException;
@@ -99,7 +101,8 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         InputStream resource = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
         if (resource == null) {
             logger().warn("Could not load classpath init script: {}", filePath);
-            throw new ScriptUtils.ScriptLoadException("Could not load classpath init script: " + filePath + ". Resource not found.");
+            throw new ScriptUtils.ScriptLoadException(
+                    "Could not load classpath init script: " + filePath + ". Resource not found.");
         }
 
         try (Scanner scanner = new Scanner(resource).useDelimiter(";")) {
@@ -128,7 +131,8 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     public AuthToken getAuth() {
         return getAdminPassword() != null && !getAdminPassword().isEmpty()
-                ? AuthTokens.basic("neo4j", getAdminPassword()): AuthTokens.none();
+                ? AuthTokens.basic("neo4j", getAdminPassword())
+                : AuthTokens.none();
     }
 
     public Neo4jContainerExtension withLogging() {
@@ -139,12 +143,18 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     @SuppressWarnings("unused") // can be used for debugging from TestContainerUtil
     public Neo4jContainerExtension withDebugger() {
         withExposedPorts(5005);
-        withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005");
+        withEnv(
+                "NEO4J_dbms_jvm_additional",
+                "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005");
         return this;
     }
 
     private Neo4jContainerExtension withWaitForDatabaseReady(
-            String username, String password, String database, Duration timeout, TestContainerUtil.Neo4jVersion version) {
+            String username,
+            String password,
+            String database,
+            Duration timeout,
+            TestContainerUtil.Neo4jVersion version) {
         if (version == ENTERPRISE) {
             this.setWaitStrategy(Wait.forHttp("/db/" + database + "/cluster/available")
                     .withBasicCredentials(username, password)
@@ -185,7 +195,8 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
     private static void closeSafely(AutoCloseable closeable) {
         try {
             if (closeable != null) closeable.close();
-        } catch (Exception ignoed) {}
+        } catch (Exception ignoed) {
+        }
     }
 
     @Override

@@ -18,15 +18,14 @@
  */
 package apoc.load.util;
 
-import apoc.load.Mapping;
-import apoc.util.CompressionConfig;
-import apoc.util.Util;
-
-import java.util.*;
-
 import static apoc.util.Util.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+
+import apoc.load.Mapping;
+import apoc.util.CompressionConfig;
+import apoc.util.Util;
+import java.util.*;
 
 public class LoadCsvConfig extends CompressionConfig {
 
@@ -63,8 +62,8 @@ public class LoadCsvConfig extends CompressionConfig {
         ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
-        quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
-        escapeChar = parseCharFromConfig(config,"escapeChar", DEFAULT_ESCAPE_CHAR);
+        quoteChar = parseCharFromConfig(config, "quoteChar", DEFAULT_QUOTE_CHAR);
+        escapeChar = parseCharFromConfig(config, "escapeChar", DEFAULT_ESCAPE_CHAR);
         long skip = (long) config.getOrDefault("skip", 0L);
         this.skip = skip > -1 ? skip : 0L;
         hasHeader = (boolean) config.getOrDefault("header", true);
@@ -73,7 +72,7 @@ public class LoadCsvConfig extends CompressionConfig {
         ignoreQuotations = (boolean) config.getOrDefault("ignoreQuotations", false);
 
         results = EnumSet.noneOf(Results.class);
-        List<String> resultList = (List<String>) config.getOrDefault("results", asList("map","list"));
+        List<String> resultList = (List<String>) config.getOrDefault("results", asList("map", "list"));
         for (String result : resultList) {
             results.add(Results.valueOf(result));
         }
@@ -84,7 +83,8 @@ public class LoadCsvConfig extends CompressionConfig {
         mappings = createMapping(mapping, arraySep, ignore);
     }
 
-    private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
+    private Map<String, Mapping> createMapping(
+            Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
         HashMap<String, Mapping> result = new HashMap<>(mapping.size());
         for (Map.Entry<String, Map<String, Object>> entry : mapping.entrySet()) {

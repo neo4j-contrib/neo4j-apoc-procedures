@@ -18,9 +18,20 @@
  */
 package apoc.core.it;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import apoc.ApocConfig;
 import apoc.util.Util;
 import inet.ipaddr.IPAddressString;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -31,26 +42,18 @@ import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.testcontainers.containers.GenericContainer;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class UtilIT {
     private GenericContainer httpServer;
 
     private GenericContainer setUpServer(Config neo4jConfig, String redirectURL) {
         new ApocConfig(neo4jConfig);
         GenericContainer httpServer = new GenericContainer("alpine")
-                .withCommand("/bin/sh", "-c", String.format("while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: %s'; echo ; } | nc -l -p 8000; done",
-                        redirectURL))
+                .withCommand(
+                        "/bin/sh",
+                        "-c",
+                        String.format(
+                                "while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: %s'; echo ; } | nc -l -p 8000; done",
+                                redirectURL))
                 .withExposedPorts(8000);
         httpServer.start();
         Assume.assumeNotNull(httpServer);
@@ -60,8 +63,7 @@ public class UtilIT {
 
     @AfterEach
     public void tearDown() {
-        if (httpServer != null)
-        {
+        if (httpServer != null) {
             httpServer.stop();
         }
     }
@@ -73,7 +75,7 @@ public class UtilIT {
         String url = getServerUrl(httpServer);
 
         // when
-        String page = IOUtils.toString( Util.openInputStream( url, null, null, null), Charset.forName( "UTF-8"));
+        String page = IOUtils.toString(Util.openInputStream(url, null, null, null), Charset.forName("UTF-8"));
 
         // then
         assertTrue(page.contains("<title>Google</title>"));
@@ -89,10 +91,11 @@ public class UtilIT {
         httpServer = setUpServer(neo4jConfig, "http://127.168.0.1");
         String url = getServerUrl(httpServer);
 
-        IOException e = Assert.assertThrows(IOException.class,
-                () -> Util.openInputStream(url, null, null, null)
-        );
-        TestCase.assertTrue(e.getMessage().contains("access to /127.168.0.1 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
+        IOException e = Assert.assertThrows(IOException.class, () -> Util.openInputStream(url, null, null, null));
+        TestCase.assertTrue(
+                e.getMessage()
+                        .contains(
+                                "access to /127.168.0.1 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
     }
 
     @Test
@@ -118,9 +121,7 @@ public class UtilIT {
         when(mockCon.getHeaderField("Location")).thenReturn("http://127.168.0.1");
         when(mockCon.getURL()).thenReturn(new URL("https://127.0.0.0"));
 
-        RuntimeException e = Assert.assertThrows(RuntimeException.class,
-                () -> Util.isRedirect(mockCon)
-        );
+        RuntimeException e = Assert.assertThrows(RuntimeException.class, () -> Util.isRedirect(mockCon));
 
         TestCase.assertTrue(e.getMessage().contains("The redirect URI has a different protocol: http://127.168.0.1"));
     }
@@ -140,9 +141,7 @@ public class UtilIT {
         }
 
         String finalUrl = url;
-        IOException e = Assert.assertThrows(IOException.class,
-                () -> Util.openInputStream(finalUrl, null, null, null)
-        );
+        IOException e = Assert.assertThrows(IOException.class, () -> Util.openInputStream(finalUrl, null, null, null));
 
         TestCase.assertTrue(e.getMessage().contains("Redirect limit exceeded"));
 

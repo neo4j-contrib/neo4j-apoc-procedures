@@ -31,7 +31,6 @@ public class Product {
         return new ProductFunction();
     }
 
-
     public static class ProductFunction {
 
         private double doubleProduct = 1.0D;
@@ -42,7 +41,7 @@ public class Product {
         public void aggregate(@Name("number") Number number) {
             if (number != null) {
                 if (number instanceof Long) {
-                    longProduct = Math.multiplyExact(longProduct,number.longValue());
+                    longProduct = Math.multiplyExact(longProduct, number.longValue());
                 } else if (number instanceof Double) {
                     doubleProduct *= number.doubleValue();
                 }
@@ -55,7 +54,7 @@ public class Product {
             if (count == 0) return 0D;
             if (longProduct == 1L) return doubleProduct;
             if (doubleProduct == 1.0) return longProduct;
-            return doubleProduct*longProduct;
+            return doubleProduct * longProduct;
         }
     }
 }

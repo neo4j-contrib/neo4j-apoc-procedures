@@ -18,6 +18,9 @@
  */
 package apoc.load;
 
+import static apoc.load.LoadHtml.withError;
+
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -28,14 +31,11 @@ import org.jsoup.select.NodeTraversor;
 import org.jsoup.select.NodeVisitor;
 import org.neo4j.logging.Log;
 
-import java.util.List;
-
-import static apoc.load.LoadHtml.withError;
-
 public class PlainText implements HtmlResultInterface {
 
     @Override
-    public String getResult(Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log) {
+    public String getResult(
+            Document document, String selector, LoadHtmlConfig config, List<String> errorList, Log log) {
         LoadHtmlConfig.FailSilently failConfig = config.getFailSilently();
         StringBuilder plainText = new StringBuilder();
         Elements elements = document.select(selector);
@@ -46,7 +46,12 @@ public class PlainText implements HtmlResultInterface {
         return plainText.toString();
     }
 
-    private String getResult(LoadHtmlConfig config, List<String> errorList, Log log, LoadHtmlConfig.FailSilently failConfig, Element element) {
+    private String getResult(
+            LoadHtmlConfig config,
+            List<String> errorList,
+            Log log,
+            LoadHtmlConfig.FailSilently failConfig,
+            Element element) {
         return withError(element, errorList, failConfig, log, () -> getPlainText(element, config));
     }
 
@@ -70,7 +75,7 @@ public class PlainText implements HtmlResultInterface {
         public void head(Node node, int depth) {
             String name = node.nodeName();
             if (node instanceof TextNode) {
-                this.append(((TextNode)node).text());
+                this.append(((TextNode) node).text());
             } else if (name.equals("li")) {
                 this.append("\n - ");
             } else if (name.equals("dt")) {
@@ -98,9 +103,9 @@ public class PlainText implements HtmlResultInterface {
             }
 
             if (!StringUtils.isBlank(text)) {
-                for (String word: text.split("\\s+")) {
+                for (String word : text.split("\\s+")) {
                     if (word.length() + this.width > textSize) {
-                        this.builder.append("\n");//.append(word);
+                        this.builder.append("\n"); // .append(word);
                         this.width = word.length();
                     } else {
                         this.width += word.length();

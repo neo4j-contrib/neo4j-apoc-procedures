@@ -22,10 +22,9 @@ import apoc.generate.config.DistributionBasedConfig;
 import apoc.generate.distribution.MutableDegreeDistribution;
 import apoc.generate.distribution.MutableSimpleDegreeDistribution;
 import apoc.generate.utils.WeightedReservoirSampler;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.neo4j.internal.helpers.collection.Pair;
 
 /**
  * A simple minded {@link RelationshipGenerator} based on a {@link apoc.generate.distribution.DegreeDistribution}
@@ -51,7 +50,8 @@ public class SimpleGraphRelationshipGenerator extends BaseRelationshipGenerator<
     @Override
     protected List<Pair<Integer, Integer>> doGenerateEdges() {
         List<Pair<Integer, Integer>> edges = new ArrayList<>();
-        MutableDegreeDistribution distribution = new MutableSimpleDegreeDistribution(getConfiguration().getDegrees());
+        MutableDegreeDistribution distribution =
+                new MutableSimpleDegreeDistribution(getConfiguration().getDegrees());
 
         while (!distribution.isZeroList()) {
             // int length = distribution.size();

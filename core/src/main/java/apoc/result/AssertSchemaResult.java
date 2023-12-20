@@ -39,7 +39,7 @@ public class AssertSchemaResult {
         }
     }
 
-    public AssertSchemaResult(String label, String key){
+    public AssertSchemaResult(String label, String key) {
         this.label = label;
         this.keys = Arrays.asList(key);
         this.key = key;

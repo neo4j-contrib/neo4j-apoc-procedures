@@ -18,6 +18,8 @@
  */
 package apoc.mongodb;
 
+import static java.lang.String.format;
+
 import apoc.util.Util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +32,12 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDouble;
 import org.bson.BsonInt32;
@@ -44,15 +52,6 @@ import org.bson.types.MaxKey;
 import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static java.lang.String.format;
 
 /**
  * @author mh
@@ -87,8 +86,13 @@ class MongoDBColl implements MongoDBUtils.Coll {
      * @param coll
      * @param compatibleValues if true we convert the document to JSON and than back to a Map
      */
-    public MongoDBColl(String url, String db, String coll, boolean compatibleValues,
-                       boolean extractReferences, boolean objectIdAsMap) {
+    public MongoDBColl(
+            String url,
+            String db,
+            String coll,
+            boolean compatibleValues,
+            boolean extractReferences,
+            boolean objectIdAsMap) {
         this(url, db, coll);
         getConfigs(compatibleValues, extractReferences, objectIdAsMap);
     }
@@ -109,7 +113,7 @@ class MongoDBColl implements MongoDBUtils.Coll {
         }
         final String collectionName;
         final String confCollection = conf.getCollection();
-        
+
         if (StringUtils.isNotBlank(confCollection)) {
             collectionName = confCollection;
         } else {
@@ -174,7 +178,8 @@ class MongoDBColl implements MongoDBUtils.Coll {
                                 try {
                                     value = jsonMapper.readValue(jsonMapper.writeValueAsBytes(e.getValue()), Map.class);
                                 } catch (Exception exc) {
-                                    throw new RuntimeException("Cannot convert document to json and back to Map " + exc.getMessage());
+                                    throw new RuntimeException(
+                                            "Cannot convert document to json and back to Map " + exc.getMessage());
                                 }
                             } else {
                                 value = e.getValue().toString();
@@ -184,16 +189,18 @@ class MongoDBColl implements MongoDBUtils.Coll {
                         }
                         return new AbstractMap.SimpleEntry(e.getKey(), value);
                     })
-                    .collect(HashMap::new, (m, e)-> m.put(e.getKey(), e.getValue()), HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
+                    .collect(
+                            HashMap::new,
+                            (m, e) -> m.put(e.getKey(), e.getValue()),
+                            HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
         }
         if (data instanceof Collection) {
             Collection<Object> collection = (Collection<Object>) data;
-            return collection.stream()
-                    .map(elem -> convertAndExtract(elem))
-                    .collect(Collectors.toList());
+            return collection.stream().map(elem -> convertAndExtract(elem)).collect(Collectors.toList());
         }
         if (data.getClass().isArray()
-                && !(data.getClass().getComponentType().isPrimitive() || !data.getClass().getComponentType().equals(String.class))) {
+                && !(data.getClass().getComponentType().isPrimitive()
+                        || !data.getClass().getComponentType().equals(String.class))) {
             return Stream.of((Object[]) data)
                     .map(elem -> convertAndExtract(elem))
                     .collect(Collectors.toList());
@@ -279,7 +286,8 @@ class MongoDBColl implements MongoDBUtils.Coll {
     }
 
     @Override
-    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit) {
+    public Stream<Map<String, Object>> find(
+            Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit) {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
         if (sort != null) documents = documents.sort(new Document(sort));
@@ -290,27 +298,23 @@ class MongoDBColl implements MongoDBUtils.Coll {
 
     @Override
     public Stream<Map<String, Object>> find(Document query, Document project, Document sort, int skip, int limit) {
-        FindIterable<Document> documents = collection.find(query)
-                .projection(project).sort(sort)
-                .skip(skip).limit(limit);
+        FindIterable<Document> documents =
+                collection.find(query).projection(project).sort(sort).skip(skip).limit(limit);
         return asStream(documents);
     }
 
     private FindIterable<Document> getDocuments(Map<String, Object> query) {
-        return query == null
-                ? collection.find()
-                : collection.find(new Document(query));
+        return query == null ? collection.find() : collection.find(new Document(query));
     }
 
     private Stream<Map<String, Object>> asStream(MongoIterable<Document> result) {
         this.doorStop = true;
         Iterable<Document> it = () -> result.iterator();
-        return StreamSupport
-                .stream(it.spliterator(), false)
+        return StreamSupport.stream(it.spliterator(), false)
                 .map(doc -> this.documentToPackableMap(doc))
                 .onClose(() -> {
-                        Util.close(result.iterator());
-                        Util.close(mongoClient);
+                    Util.close(result.iterator());
+                    Util.close(mongoClient);
                 });
     }
 

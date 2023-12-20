@@ -18,20 +18,11 @@
  */
 package apoc.text;
 
-import apoc.util.Util;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.similarity.HammingDistance;
-import org.apache.commons.text.similarity.JaroWinklerDistance;
-import org.apache.commons.text.similarity.LevenshteinDistance;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.UserFunction;
+import static apoc.util.Util.quote;
+import static java.lang.Math.toIntExact;
+import static java.util.Arrays.asList;
 
+import apoc.util.Util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -53,10 +44,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static apoc.util.Util.quote;
-import static java.lang.Math.toIntExact;
-import static java.util.Arrays.asList;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.HammingDistance;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 /**
  * @author mh
@@ -64,26 +63,36 @@ import static java.util.Arrays.asList;
  */
 public class Strings {
 
-    private final static HammingDistance hammingDistance = new HammingDistance();
-    private final static JaroWinklerDistance jaroWinklerDistance = new JaroWinklerDistance();
-    private final static LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
+    private static final HammingDistance hammingDistance = new HammingDistance();
+    private static final JaroWinklerDistance jaroWinklerDistance = new JaroWinklerDistance();
+    private static final LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
 
     @Context
     public Transaction tx;
 
     @UserFunction
-    @Description("apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.")
-    public Long indexOf(final @Name("text") String text, final @Name("lookup") String lookup, final @Name(value = "from",defaultValue="0") long from, @Name(value = "to",defaultValue="-1") long to) {
-        if (text==null) return null;
+    @Description(
+            "apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.")
+    public Long indexOf(
+            final @Name("text") String text,
+            final @Name("lookup") String lookup,
+            final @Name(value = "from", defaultValue = "0") long from,
+            @Name(value = "to", defaultValue = "-1") long to) {
+        if (text == null) return null;
         if (lookup == null) return -1L;
-        if (to == -1L || to > text.length()) return (long)text.indexOf(lookup,(int)from);
+        if (to == -1L || to > text.length()) return (long) text.indexOf(lookup, (int) from);
         if (to <= from) return -1L;
-        return (long)text.substring(0,(int)to).indexOf(lookup,(int)from);
+        return (long) text.substring(0, (int) to).indexOf(lookup, (int) from);
     }
 
     @UserFunction
-    @Description("apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.")
-    public List<Long> indexesOf(final @Name("text") String text, final @Name("lookup") String lookup, final @Name(value = "from", defaultValue = "0") long from, @Name(value = "to", defaultValue = "-1") long to) {
+    @Description(
+            "apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.")
+    public List<Long> indexesOf(
+            final @Name("text") String text,
+            final @Name("lookup") String lookup,
+            final @Name(value = "from", defaultValue = "0") long from,
+            @Name(value = "to", defaultValue = "-1") long to) {
         if (text == null) return null;
         if (lookup == null) return Collections.emptyList();
         if (to == -1L) to = text.length();
@@ -100,30 +109,43 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
-    public String replace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
-        return regreplace(text,regex,replacement);
+    @Description(
+            "apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
+    public String replace(
+            final @Name("text") String text,
+            final @Name("regex") String regex,
+            final @Name("replacement") String replacement) {
+        return regreplace(text, regex, replacement);
     }
 
     @UserFunction
     @Description("apoc.text.byteCount(text,[charset]) - return size of text in bytes")
-    public long byteCount(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
+    public long byteCount(
+            final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset)
+            throws UnsupportedEncodingException {
         return text.getBytes(charset).length;
     }
+
     @UserFunction
     @Description("apoc.text.bytes(text,[charset]) - return bytes of the text")
-    public List<Long> bytes(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
+    public List<Long> bytes(
+            final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset)
+            throws UnsupportedEncodingException {
         byte[] bytes = text.getBytes(charset);
         List<Long> result = new ArrayList<>(bytes.length);
         for (byte b : bytes) {
-            result.add((long)b & 0xFFL);
+            result.add((long) b & 0xFFL);
         }
         return result;
     }
 
     @UserFunction
-    @Description("apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
-    public String regreplace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
+    @Description(
+            "apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
+    public String regreplace(
+            final @Name("text") String text,
+            final @Name("regex") String regex,
+            final @Name("replacement") String replacement) {
         if (text == null || regex == null || replacement == null) {
             return null;
         }
@@ -132,7 +154,10 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.split(text, regex, limit) - splits the given text around matches of the given regex.")
-    public List<String> split(final @Name("text") String text, final @Name("regex") String regex, final @Name(value = "limit", defaultValue = "0") Long limit) {
+    public List<String> split(
+            final @Name("text") String text,
+            final @Name("regex") String regex,
+            final @Name(value = "limit", defaultValue = "0") Long limit) {
         if (text == null || regex == null || limit == null) {
             return null;
         }
@@ -143,7 +168,7 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.")
     public List<List<String>> regexGroups(final @Name("text") String text, final @Name("regex") String regex) {
-        if (text==null || regex==null) {
+        if (text == null || regex == null) {
             return Collections.EMPTY_LIST;
         } else {
             final Pattern pattern = Pattern.compile(regex);
@@ -152,7 +177,7 @@ public class Strings {
             List<List<String>> result = new ArrayList<>();
             while (matcher.find()) {
                 List<String> matchResult = new ArrayList<>();
-                for (int i=0;i<=matcher.groupCount(); i++) {
+                for (int i = 0; i <= matcher.groupCount(); i++) {
                     matchResult.add(matcher.group(i));
                 }
                 result.add(matchResult);
@@ -161,12 +186,9 @@ public class Strings {
         }
     }
 
-
     @UserFunction
     @Description("apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.")
-    public String join(
-            final @Name("texts") List<String> texts,
-            final @Name("delimiter") String delimiter) {
+    public String join(final @Name("texts") List<String> texts, final @Name("delimiter") String delimiter) {
         if (texts == null || delimiter == null) {
             return null;
         }
@@ -174,13 +196,15 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.clean(text) - strip the given string of everything except alpha numeric characters and convert it to lower case.")
+    @Description(
+            "apoc.text.clean(text) - strip the given string of everything except alpha numeric characters and convert it to lower case.")
     public String clean(final @Name("text") String text) {
         return text == null ? null : removeNonWordCharacters(text);
     }
 
     @UserFunction
-    @Description("apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.")
+    @Description(
+            "apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.")
     public boolean compareCleaned(final @Name("text1") String text1, final @Name("text2") String text2) {
         if (text1 == null || text2 == null) {
             return false;
@@ -189,24 +213,27 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.distance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
-    public Long distance(final @Name("text1") String text1, @Name("text2")final String text2) {
+    @Description(
+            "apoc.text.distance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
+    public Long distance(final @Name("text1") String text1, @Name("text2") final String text2) {
         return levenshteinDistance(text1, text2);
     }
 
     @UserFunction
-    @Description("apoc.text.levenshteinDistance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
-    public Long levenshteinDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
+    @Description(
+            "apoc.text.levenshteinDistance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
+    public Long levenshteinDistance(final @Name("text1") String text1, @Name("text2") final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
-        return (long)levenshteinDistance.apply(text1, text2);
+        return (long) levenshteinDistance.apply(text1, text2);
     }
 
     @UserFunction
-    @Description( "apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts." )
-    public Double levenshteinSimilarity(final @Name("text1") String text1, @Name("text2")final String text2) {
-        if ( text1 == null || text2 == null ) {
+    @Description(
+            "apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts.")
+    public Double levenshteinSimilarity(final @Name("text1") String text1, @Name("text2") final String text2) {
+        if (text1 == null || text2 == null) {
             return null;
         }
 
@@ -214,22 +241,24 @@ public class Strings {
         if (longerLength == 0) {
             return 1.0;
         }
-        long editDistance = distance( text1, text2 );
-        return (longerLength - editDistance) / (double)longerLength;
+        long editDistance = distance(text1, text2);
+        return (longerLength - editDistance) / (double) longerLength;
     }
 
     @UserFunction
-    @Description( "apoc.text.hammingDistance(text1, text2) - compare the given strings with the Hamming distance algorithm." )
-    public Long hammingDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
+    @Description(
+            "apoc.text.hammingDistance(text1, text2) - compare the given strings with the Hamming distance algorithm.")
+    public Long hammingDistance(final @Name("text1") String text1, @Name("text2") final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
-        return (long)hammingDistance.apply(text1, text2) ;
+        return (long) hammingDistance.apply(text1, text2);
     }
 
     @UserFunction
-    @Description( "apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm." )
-    public Double jaroWinklerDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
+    @Description(
+            "apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm.")
+    public Double jaroWinklerDistance(final @Name("text1") String text1, @Name("text2") final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
@@ -237,8 +266,12 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag")
-    public Double sorensenDiceSimilarity(final @Name("text1") String text1, final @Name("text2") String text2, final @Name(value = "languageTag", defaultValue = "en") String languageTag) {
+    @Description(
+            "apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag")
+    public Double sorensenDiceSimilarity(
+            final @Name("text1") String text1,
+            final @Name("text2") String text2,
+            final @Name(value = "languageTag", defaultValue = "en") String languageTag) {
         if (text1 == null || text2 == null || languageTag == null) {
             return null;
         }
@@ -246,9 +279,9 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the" +
-                 " length of the String it will allow more characters that needs to be edited to match the second String.")
-    public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text2")final String text2) {
+    @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the"
+            + " length of the String it will allow more characters that needs to be edited to match the second String.")
+    public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text2") final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
@@ -283,20 +316,19 @@ public class Strings {
     private static Pattern cleanPattern = Pattern.compile("[^\\p{L}\\p{N}]+");
     private static Pattern specialCharPattern = Pattern.compile("\\p{IsM}+");
     private static String[][] UMLAUT_REPLACEMENTS = {
-            { new String("Ä"), "Ae" },
-            { new String("Ü"), "Ue" },
-            { new String("Ö"), "Oe" },
-            { new String("ä"), "ae" },
-            { new String("ü"), "ue" },
-            { new String("ö"), "oe" },
-            { new String("ß"), "ss" }
+        {new String("Ä"), "Ae"},
+        {new String("Ü"), "Ue"},
+        {new String("Ö"), "Oe"},
+        {new String("ä"), "ae"},
+        {new String("ü"), "ue"},
+        {new String("ö"), "oe"},
+        {new String("ß"), "ss"}
     };
-
 
     private static String removeNonWordCharacters(String s) {
 
-        String result = s ;
-        for (int i=0; i<UMLAUT_REPLACEMENTS.length; i++) {
+        String result = s;
+        for (int i = 0; i < UMLAUT_REPLACEMENTS.length; i++) {
             result = result.replace(UMLAUT_REPLACEMENTS[i][0], UMLAUT_REPLACEMENTS[i][1]);
         }
         result = Normalizer.normalize(result, Normalizer.Form.NFD);
@@ -304,14 +336,16 @@ public class Strings {
         return cleanPattern.matcher(tmp2).replaceAll("").toLowerCase();
     }
 
-
     @UserFunction
     @Description("apoc.text.lpad(text,count,delim) YIELD value - left pad the string to the given width")
-    public String lpad(@Name("text") String text, @Name("count") long count,@Name(value = "delim",defaultValue = " ") String delim) {
+    public String lpad(
+            @Name("text") String text,
+            @Name("count") long count,
+            @Name(value = "delim", defaultValue = " ") String delim) {
         int len = text.length();
         if (len >= count) return text;
-        StringBuilder sb = new StringBuilder((int)count);
-        char[] chars = new char[(int)count - len];
+        StringBuilder sb = new StringBuilder((int) count);
+        char[] chars = new char[(int) count - len];
         Arrays.fill(chars, delim.charAt(0));
         sb.append(chars);
         sb.append(text);
@@ -320,11 +354,14 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width")
-    public String rpad(@Name("text") String text, @Name("count") long count, @Name(value = "delim",defaultValue = " ") String delim) {
+    public String rpad(
+            @Name("text") String text,
+            @Name("count") long count,
+            @Name(value = "delim", defaultValue = " ") String delim) {
         int len = text.length();
         if (len >= count) return text;
         StringBuilder sb = new StringBuilder(text);
-        char[] chars = new char[(int)count - len];
+        char[] chars = new char[(int) count - len];
         Arrays.fill(chars, delim.charAt(0));
         sb.append(chars);
         return sb.toString();
@@ -332,10 +369,13 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.format(text,[params],language) - sprintf format the string with the params given")
-    public String format(@Name("text") String text, @Name("params") List<Object> params, @Name(value = "language",defaultValue = "en") String lang) {
+    public String format(
+            @Name("text") String text,
+            @Name("params") List<Object> params,
+            @Name(value = "language", defaultValue = "en") String lang) {
         if (text == null) return null;
         if (params == null) return text;
-        return String.format(new Locale(lang),text, params.toArray());
+        return String.format(new Locale(lang), text, params.toArray());
     }
 
     @UserFunction
@@ -346,22 +386,22 @@ public class Strings {
         return text.trim().replaceAll("[^\\p{L}0-9_]+", delim);
     }
 
-
     private static final String lower = "abcdefghijklmnopqrstuvwxyz";
     private static final String upper = lower.toUpperCase();
     private static final String numeric = "0123456789";
 
     @UserFunction
     @Description("apoc.text.random(length, valid) YIELD value - generate a random string")
-    public String random(final @Name("length") long length, @Name(value = "valid", defaultValue = "A-Za-z0-9") String valid) {
+    public String random(
+            final @Name("length") long length, @Name(value = "valid", defaultValue = "A-Za-z0-9") String valid) {
         valid = valid.replaceAll("A-Z", upper).replaceAll("a-z", lower).replaceAll("0-9", numeric);
 
-        StringBuilder output = new StringBuilder( toIntExact(length) );
+        StringBuilder output = new StringBuilder(toIntExact(length));
 
         ThreadLocalRandom rand = ThreadLocalRandom.current();
 
-        while ( output.length() < length ) {
-            output.append( valid.charAt( rand.nextInt(valid.length()) ) );
+        while (output.length() < length) {
+            output.append(valid.charAt(rand.nextInt(valid.length())));
         }
 
         return output.toString();
@@ -381,8 +421,7 @@ public class Strings {
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
-            output.append( StringUtils.capitalize(part) + " " );
-
+            output.append(StringUtils.capitalize(part) + " ");
         }
 
         return output.toString().trim();
@@ -402,8 +441,7 @@ public class Strings {
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
-            output.append( StringUtils.uncapitalize(part) + " " );
-
+            output.append(StringUtils.uncapitalize(part) + " ");
         }
 
         return output.toString().trim();
@@ -426,7 +464,7 @@ public class Strings {
         for (String part : parts) {
             part = part.toLowerCase();
 
-            output.append( StringUtils.capitalize( part ) );
+            output.append(StringUtils.capitalize(part));
         }
 
         return output.substring(0, 1).toLowerCase() + output.substring(1);
@@ -444,7 +482,7 @@ public class Strings {
     @Description("apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case")
     public String snakeCase(@Name("text") String text) {
         // Convert Snake Case
-        if ( text.matches("^([\\p{Lu}0-9_]+)$") ) {
+        if (text.matches("^([\\p{Lu}0-9_]+)$")) {
             text = text.toLowerCase().replace("_", " ");
         }
 
@@ -459,7 +497,7 @@ public class Strings {
                     output.append("-");
                 }
 
-                output.append( part.toLowerCase().trim().replace("(^[\\p{Ll}0-9]+)", "-") );
+                output.append(part.toLowerCase().trim().replace("(^[\\p{Ll}0-9]+)", "-"));
             }
         }
 
@@ -530,7 +568,7 @@ public class Strings {
         if (codepoint == null || codepoint < 0 || codepoint > Character.MAX_VALUE) {
             return null;
         }
-        return String.valueOf((char)codepoint.intValue());
+        return String.valueOf((char) codepoint.intValue());
     }
 
     @UserFunction
@@ -539,7 +577,11 @@ public class Strings {
         if (value == null) {
             return null;
         }
-        return value > 0xFFFFFFFFL ? String.format("%016X", value) : value > 0xFFFFL ?  String.format("%08X", (int)value.intValue()) : String.format("%04X", (int)value.intValue());
+        return value > 0xFFFFFFFFL
+                ? String.format("%016X", value)
+                : value > 0xFFFFL
+                        ? String.format("%08X", (int) value.intValue())
+                        : String.format("%04X", (int) value.intValue());
     }
 
     @UserFunction
@@ -552,52 +594,79 @@ public class Strings {
         return value == null || value instanceof String || value instanceof Number || value instanceof Boolean;
     }
 
-    private String cypherName(Map<String,Object> config, String key, Supplier<String> s, Function<String,String> quoter) {
+    private String cypherName(
+            Map<String, Object> config, String key, Supplier<String> s, Function<String, String> quoter) {
         Object name = config.get(key);
-        if (name!=null) return quoter.apply(name.toString());
+        if (name != null) return quoter.apply(name.toString());
         return s.get();
     }
 
     @UserFunction
-    @Description("apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string")
-    public String toCypher(@Name("value") Object value, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        if (config.containsKey("keepValues") && !((Collection)config.get("keepValues")).stream().noneMatch((v) -> (v.getClass().isInstance(value) || isPrimitive(value) && isPrimitive(v)) && !value.equals(v))) return null;
-        else if (config.containsKey("skipValues") && ((Collection) config.get("skipValues")).contains(value)) return null;
+    @Description(
+            "apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string")
+    public String toCypher(
+            @Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        if (config.containsKey("keepValues")
+                && !((Collection) config.get("keepValues"))
+                        .stream()
+                                .noneMatch(
+                                        (v) -> (v.getClass().isInstance(value) || isPrimitive(value) && isPrimitive(v))
+                                                && !value.equals(v))) return null;
+        else if (config.containsKey("skipValues") && ((Collection) config.get("skipValues")).contains(value))
+            return null;
 
-        if (value==null) return "null";
+        if (value == null) return "null";
         if (value instanceof Number || value instanceof Boolean) return value.toString();
-        if (value instanceof String) return '\''+value.toString()+'\'';
-        if (value instanceof Iterable) return '['+StreamSupport.stream(((Iterable<?>)value).spliterator(),false).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
-        if (value.getClass().isArray()) return '['+Arrays.stream((Object[])value).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
+        if (value instanceof String) return '\'' + value.toString() + '\'';
+        if (value instanceof Iterable)
+            return '['
+                    + StreamSupport.stream(((Iterable<?>) value).spliterator(), false)
+                            .map(v -> toCypher(v, config))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(","))
+                    + ']';
+        if (value.getClass().isArray())
+            return '['
+                    + Arrays.stream((Object[]) value)
+                            .map(v -> toCypher(v, config))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(","))
+                    + ']';
         if (value instanceof Node) {
-            Node node = Util.rebind(tx, (Node)value);
-            String labels = StreamSupport.stream(node.getLabels().spliterator(),false).map(l -> quote(l.name())).collect(Collectors.joining(":"));
-            if (!labels.isEmpty()) labels = ':'+labels;
+            Node node = Util.rebind(tx, (Node) value);
+            String labels = StreamSupport.stream(node.getLabels().spliterator(), false)
+                    .map(l -> quote(l.name()))
+                    .collect(Collectors.joining(":"));
+            if (!labels.isEmpty()) labels = ':' + labels;
             String var = cypherName(config, "node", () -> "", Util::quote);
-            return '('+ var +labels+' '+ toCypher(node.getAllProperties(), config)+')';
+            return '(' + var + labels + ' ' + toCypher(node.getAllProperties(), config) + ')';
         }
         if (value instanceof Relationship) {
             Relationship rel = Util.rebind(tx, (Relationship) value);
-            String type = ':'+quote(rel.getType().name());
-            String start = cypherName(config, "start", () -> toCypher(rel.getStartNode(), config),(s)->'('+quote(s)+')');
+            String type = ':' + quote(rel.getType().name());
+            String start = cypherName(
+                    config, "start", () -> toCypher(rel.getStartNode(), config), (s) -> '(' + quote(s) + ')');
             String relationship = cypherName(config, "relationship", () -> "", Util::quote);
-            String end = cypherName(config,"end", ()->toCypher(rel.getEndNode(),config),(s)->'('+quote(s)+')');
-            return start+"-["+relationship+type+' '+ toCypher(rel.getAllProperties(), config)+"]->"+ end;
+            String end =
+                    cypherName(config, "end", () -> toCypher(rel.getEndNode(), config), (s) -> '(' + quote(s) + ')');
+            return start + "-[" + relationship + type + ' ' + toCypher(rel.getAllProperties(), config) + "]->" + end;
         }
         if (value instanceof Map) {
-            Map<String,Object> values = (Map<String, Object>) value;
+            Map<String, Object> values = (Map<String, Object>) value;
             if (config.containsKey("keepKeys")) {
-                values.keySet().retainAll((List<String>)(config.get("keepKeys")));
+                values.keySet().retainAll((List<String>) (config.get("keepKeys")));
             }
             if (config.containsKey("skipKeys")) {
-                values.keySet().removeAll((List<String>)(config.get("skipKeys")));
+                values.keySet().removeAll((List<String>) (config.get("skipKeys")));
             }
-            return '{'+values.entrySet().stream()
-                    .map((e)-> Pair.of(e.getKey(), toCypher(e.getValue(),config)))
-                    .filter((p)->p.other() != null)
-                    .sorted(Comparator.comparing(Pair::first))
-                    .map((p) -> quote(p.first())+":"+p.other())
-                    .collect(Collectors.joining(","))+'}';
+            return '{'
+                    + values.entrySet().stream()
+                            .map((e) -> Pair.of(e.getKey(), toCypher(e.getValue(), config)))
+                            .filter((p) -> p.other() != null)
+                            .sorted(Comparator.comparing(Pair::first))
+                            .map((p) -> quote(p.first()) + ":" + p.other())
+                            .collect(Collectors.joining(","))
+                    + '}';
         }
         return null;
     }
@@ -606,7 +675,7 @@ public class Strings {
     @Description("apoc.text.repeat(item, count) - string multiplication")
     public String repeat(@Name("item") String item, @Name("count") long count) {
         StringBuilder result = new StringBuilder((int) count * item.length());
-        for (int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             result.append(item);
         }
         return result.toString();

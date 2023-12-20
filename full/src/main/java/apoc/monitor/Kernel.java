@@ -20,7 +20,10 @@ package apoc.monitor;
 
 import apoc.Extended;
 import apoc.result.KernelInfoResult;
-
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.Date;
+import java.util.stream.Stream;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.dbms.database.readonly.DatabaseReadOnlyChecker;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -30,11 +33,6 @@ import org.neo4j.kernel.internal.Version;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.util.Date;
-import java.util.stream.Stream;
 
 @Extended
 public class Kernel {
@@ -48,7 +46,6 @@ public class Kernel {
     private static final String STORE_LOG_VERSION = "StoreLogVersion";
     private static final String STORE_CREATION_DATE = "StoreCreationDate";
 
-
     @Context
     public GraphDatabaseService graphDatabaseService;
 
@@ -58,7 +55,7 @@ public class Kernel {
         GraphDatabaseAPI api = ((GraphDatabaseAPI) graphDatabaseService);
         DependencyResolver resolver = api.getDependencyResolver();
         Database database = resolver.resolveDependency(Database.class);
-        DatabaseReadOnlyChecker readOnlyChecker = resolver.resolveDependency( DatabaseReadOnlyChecker.class );
+        DatabaseReadOnlyChecker readOnlyChecker = resolver.resolveDependency(DatabaseReadOnlyChecker.class);
 
         RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
         Date startDate = new Date(runtimeBean.getStartTime());
@@ -70,8 +67,6 @@ public class Kernel {
                 startDate,
                 graphDatabaseService.databaseName(),
                 database.getStoreId().getStoreVersion(),
-                new Date(database.getStoreId().getCreationTime())
-        ));
+                new Date(database.getStoreId().getCreationTime())));
     }
-
 }

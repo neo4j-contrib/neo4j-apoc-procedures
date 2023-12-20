@@ -18,24 +18,6 @@
  */
 package apoc.config;
 
-import apoc.ApocConfig;
-import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.Util;
-import org.apache.commons.configuration2.Configuration;
-import org.neo4j.common.DependencyResolver;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
-import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Procedure;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static apoc.ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
 import static apoc.ApocConfig.APOC_CONFIG_JOBS_QUEUE_SIZE;
 import static apoc.ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
@@ -51,13 +33,30 @@ import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.APOC_UUID_FORMAT;
 import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 
+import apoc.ApocConfig;
+import apoc.Extended;
+import apoc.result.MapResult;
+import apoc.util.Util;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.configuration2.Configuration;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Procedure;
+
 /**
  * @author mh
  * @since 28.10.16
  */
 @Extended
 public class Config {
-    
+
     // some config keys are hard-coded because belong to `core`, which is no longer accessed from `extended`
     private static final Set<String> WHITELIST_CONFIGS = Set.of(
             // apoc.import.
@@ -67,7 +66,7 @@ public class Config {
 
             // apoc.export.
             APOC_EXPORT_FILE_ENABLED,
-            
+
             // apoc.trigger.
             APOC_TRIGGER_ENABLED,
             "apoc.trigger.refresh",
@@ -75,29 +74,28 @@ public class Config {
             // apoc.uuid.
             APOC_UUID_ENABLED,
             APOC_UUID_FORMAT,
-            
+
             // apoc.ttl.
             APOC_TTL_SCHEDULE,
             APOC_TTL_ENABLED,
             APOC_TTL_LIMIT,
-            
+
             // apoc.jobs.
             APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS,
             APOC_CONFIG_JOBS_POOL_NUM_THREADS,
             APOC_CONFIG_JOBS_QUEUE_SIZE,
-            
+
             // apoc.http.
             "apoc.http.timeout.connect",
             "apoc.http.timeout.read",
-            
+
             // apoc.custom.
             CUSTOM_PROCEDURES_REFRESH,
 
             // apoc.spatial. - other configs can have sensitive credentials
             "apoc.spatial.geocode.osm.throttle",
-            "apoc.spatial.geocode.google.throttle"
-    );
-    
+            "apoc.spatial.geocode.google.throttle");
+
     public static class ConfigResult {
         public final String key;
         public final Object value;
@@ -120,19 +118,20 @@ public class Config {
     @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        Util.checkAdmin(securityContext, callContext,"apoc.config.list");
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
-        return getApocConfigs(config)
-                .map(s -> new ConfigResult(s, config.getString(s)));
+        Util.checkAdmin(securityContext, callContext, "apoc.config.list");
+        Configuration config =
+                dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+        return getApocConfigs(config).map(s -> new ConfigResult(s, config.getString(s)));
     }
 
     @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
-        Util.checkAdmin(securityContext,callContext, "apoc.config.map");
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
-        Map<String, Object> configMap = getApocConfigs(config)
-                .collect(Collectors.toMap(s -> s, s -> config.getString(s)));
+        Util.checkAdmin(securityContext, callContext, "apoc.config.map");
+        Configuration config =
+                dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+        Map<String, Object> configMap =
+                getApocConfigs(config).collect(Collectors.toMap(s -> s, s -> config.getString(s)));
         return Stream.of(new MapResult(configMap));
     }
 

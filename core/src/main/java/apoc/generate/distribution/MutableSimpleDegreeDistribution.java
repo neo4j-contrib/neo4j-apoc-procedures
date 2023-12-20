@@ -28,7 +28,7 @@ import java.util.List;
 public class MutableSimpleDegreeDistribution extends SimpleDegreeDistribution implements MutableDegreeDistribution {
 
     public MutableSimpleDegreeDistribution(List<Integer> degrees) {
-       super(degrees);
+        super(degrees);
     }
 
     /**

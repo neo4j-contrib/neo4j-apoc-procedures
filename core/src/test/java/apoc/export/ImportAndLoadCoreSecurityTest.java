@@ -18,6 +18,18 @@
  */
 package apoc.export;
 
+import static apoc.export.SecurityTestUtil.ALLOWED_EXCEPTIONS;
+import static apoc.export.SecurityTestUtil.IMPORT_PROCEDURES;
+import static apoc.export.SecurityTestUtil.LOAD_PROCEDURES;
+import static apoc.export.SecurityTestUtil.setImportFileApocConfigs;
+import static apoc.util.FileTestUtil.createTempFolder;
+import static apoc.util.FileUtils.ACCESS_OUTSIDE_DIR_ERROR;
+import static apoc.util.FileUtils.ERROR_READ_FROM_FS_NOT_ALLOWED;
+import static apoc.util.TestUtil.testCall;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
+
 import apoc.ApocConfig;
 import apoc.export.csv.ImportCsv;
 import apoc.export.graphml.ExportGraphML;
@@ -29,6 +41,15 @@ import apoc.util.SensitivePathGenerator;
 import apoc.util.TestUtil;
 import com.nimbusds.jose.util.Pair;
 import inet.ipaddr.IPAddressString;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -44,45 +65,24 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static apoc.export.SecurityTestUtil.ALLOWED_EXCEPTIONS;
-import static apoc.export.SecurityTestUtil.IMPORT_PROCEDURES;
-import static apoc.export.SecurityTestUtil.LOAD_PROCEDURES;
-import static apoc.export.SecurityTestUtil.setImportFileApocConfigs;
-import static apoc.util.FileTestUtil.createTempFolder;
-import static apoc.util.FileUtils.ACCESS_OUTSIDE_DIR_ERROR;
-import static apoc.util.FileUtils.ERROR_READ_FROM_FS_NOT_ALLOWED;
-import static apoc.util.TestUtil.testCall;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
-
 @RunWith(Parameterized.class)
 public class ImportAndLoadCoreSecurityTest {
     private static final Path TEMP_FOLDER = createTempFolder();
 
     // base path: "../../../../etc/passwd"
-    private static final String ABSOLUTE_URL = SensitivePathGenerator.etcPasswd().getLeft();
+    private static final String ABSOLUTE_URL =
+            SensitivePathGenerator.etcPasswd().getLeft();
     private static final String ABSOLUTE_URL_WITH_FILE_PREFIX = "file:" + ABSOLUTE_URL;
     private static final String ABSOLUTE_URL_WITH_FILE_SLASH = "file:/" + ABSOLUTE_URL;
     private static final String ABSOLUTE_URL_WITH_FILE_DOUBLE_SLASH = "file://" + ABSOLUTE_URL;
     private static final String ABSOLUTE_URL_WITH_FILE_TRIPLE_SLASH = "file:///" + ABSOLUTE_URL;
 
     // base path: "/etc/passwd"
-    private static final String RELATIVE_URL = SensitivePathGenerator.etcPasswd().getRight();
+    private static final String RELATIVE_URL =
+            SensitivePathGenerator.etcPasswd().getRight();
     private static final String RELATIVE_URL_WITH_FILE_SLASH = "file:" + RELATIVE_URL;
     private static final String RELATIVE_URL_WITH_FILE_DOUBLE_SLASH = "file:/" + RELATIVE_URL;
     private static final String RELATIVE_URL_WITH_FILE_TRIPLE_SLASH = "file://" + RELATIVE_URL;
-
 
     private final String apocProcedure;
     private final String importMethod;
@@ -98,12 +98,12 @@ public class ImportAndLoadCoreSecurityTest {
     public static Collection<String[]> data() {
         // transform `Pair(<KEY>, <VALUE>)` to `Pair(apoc.import.<KEY> , <VALUE>)`
         List<Pair<String, String>> importAndLoadProcedures = IMPORT_PROCEDURES
-                .map(e -> Pair.of( "apoc.import." + e.getLeft() , e.getRight() ))
+                .map(e -> Pair.of("apoc.import." + e.getLeft(), e.getRight()))
                 .collect(Collectors.toList());
 
         // transform `Pair(<KEY>, <VALUE>)` to `Pair(apoc.load.<KEY> , <VALUE>)`
         List<Pair<String, String>> loadProcedures = LOAD_PROCEDURES
-                .map(e -> Pair.of( "apoc.load." + e.getLeft() , e.getRight() ))
+                .map(e -> Pair.of("apoc.load." + e.getLeft(), e.getRight()))
                 .collect(Collectors.toList());
 
         importAndLoadProcedures.addAll(loadProcedures);
@@ -115,7 +115,8 @@ public class ImportAndLoadCoreSecurityTest {
         // from a stream of fileNames and a List of Pair<procName, procArgs>
         // returns a List of String[]{ procName, procArgs, fileName }
 
-        Stream<String> fileNames = Stream.of(ABSOLUTE_URL,
+        Stream<String> fileNames = Stream.of(
+                ABSOLUTE_URL,
                 ABSOLUTE_URL_WITH_FILE_PREFIX,
                 ABSOLUTE_URL_WITH_FILE_SLASH,
                 ABSOLUTE_URL_WITH_FILE_DOUBLE_SLASH,
@@ -125,30 +126,33 @@ public class ImportAndLoadCoreSecurityTest {
                 RELATIVE_URL_WITH_FILE_DOUBLE_SLASH,
                 RELATIVE_URL_WITH_FILE_TRIPLE_SLASH);
 
-        return fileNames.flatMap(fileName -> importAndLoadProcedures
-                        .stream()
-                        .map(
-                            procPair -> new String[] { procPair.getLeft(), procPair.getRight(), fileName }
-                        )
-                ).collect(Collectors.toList());
+        return fileNames
+                .flatMap(fileName -> importAndLoadProcedures.stream()
+                        .map(procPair -> new String[] {procPair.getLeft(), procPair.getRight(), fileName}))
+                .collect(Collectors.toList());
     }
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, TEMP_FOLDER)
-            .withSetting(GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
-
+            .withSetting(
+                    GraphDatabaseInternalSettings.cypher_ip_blocklist, List.of(new IPAddressString("127.168.0.0/8")));
 
     @BeforeClass
     public static void setUp() throws IOException {
         Logger logger = Logger.getLogger(ImportAndLoadCoreSecurityTest.class.getName());
         logger.setLevel(Level.SEVERE);
 
-        TestUtil.registerProcedure(db,
+        TestUtil.registerProcedure(
+                db,
                 // import procedures (ExportGraphML contains the `apoc.import.graphml` too)
-                ImportJson.class, Xml.class, ImportCsv.class, ExportGraphML.class,
+                ImportJson.class,
+                Xml.class,
+                ImportCsv.class,
+                ExportGraphML.class,
                 // load procedures (Xml contains both `apoc.load.xml` and `apoc.import.xml` procedures)
-                LoadJson.class, LoadArrow.class);
+                LoadJson.class,
+                LoadArrow.class);
     }
 
     @AfterClass
@@ -275,18 +279,15 @@ public class ImportAndLoadCoreSecurityTest {
 
     private void assertIpAddressBlocked() {
         Stream.of("https", "http", "ftp").forEach(protocol -> {
-
             String url = String.format("%s://127.168.0.0/test.file", protocol);
-            QueryExecutionException e = assertThrows(QueryExecutionException.class,
-                    () -> testCall(db,
-                            apocProcedure,
-                            Map.of("fileName", url),
-                            (r) -> {}
-                    )
-            );
+            QueryExecutionException e = assertThrows(
+                    QueryExecutionException.class,
+                    () -> testCall(db, apocProcedure, Map.of("fileName", url), (r) -> {}));
             String msg = e.getMessage();
-            assertTrue("Actual error is: " + msg,
-                    msg.contains("access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
+            assertTrue(
+                    "Actual error is: " + msg,
+                    msg.contains(
+                            "access to /127.168.0.0 is blocked via the configuration property unsupported.dbms.cypher_ip_blocklist"));
         });
     }
 
@@ -302,9 +303,7 @@ public class ImportAndLoadCoreSecurityTest {
         final String message = apocProcedure + " should throw an exception";
 
         try {
-            db.executeTransactionally(apocProcedure,
-                    Map.of("fileName", fileName),
-                    Result::resultAsString);
+            db.executeTransactionally(apocProcedure, Map.of("fileName", fileName), Result::resultAsString);
             fail(message);
         } catch (Exception e) {
             TestUtil.assertError(e, expectedError, exceptionClass, apocProcedure);
@@ -319,16 +318,14 @@ public class ImportAndLoadCoreSecurityTest {
             return;
         }
         try {
-            db.executeTransactionally(apocProcedure,
-                    Map.of("fileName", fileName),
-                    Result::resultAsString);
+            db.executeTransactionally(apocProcedure, Map.of("fileName", fileName), Result::resultAsString);
         } catch (Exception e) {
             if (ALLOWED_EXCEPTIONS.containsKey(importMethod)) {
                 Class<?> rootCause = ExceptionUtils.getRootCause(e).getClass();
                 Class<?> classException = ALLOWED_EXCEPTIONS.get(importMethod);
-                assertTrue("The procedure throws an exception with class " + rootCause + " instead of " + classException,
-                        classException.isAssignableFrom(rootCause)
-                );
+                assertTrue(
+                        "The procedure throws an exception with class " + rootCause + " instead of " + classException,
+                        classException.isAssignableFrom(rootCause));
             }
         }
     }
@@ -339,9 +336,7 @@ public class ImportAndLoadCoreSecurityTest {
 
     private void assertFileNotExists() {
         try {
-            db.executeTransactionally(apocProcedure,
-                    Map.of("fileName", fileName),
-                    Result::resultAsString);
+            db.executeTransactionally(apocProcedure, Map.of("fileName", fileName), Result::resultAsString);
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof IOException);
@@ -350,5 +345,4 @@ public class ImportAndLoadCoreSecurityTest {
             Assertions.assertThat(message).contains(" for reading.");
         }
     }
-
 }

@@ -18,17 +18,16 @@
  */
 package apoc.agg;
 
+import static apoc.util.Util.map;
+
 import apoc.coll.SetBackedList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static apoc.util.Util.map;
 
 /**
  * @author mh
@@ -36,11 +35,11 @@ import static apoc.util.Util.map;
  */
 public class Graph {
     @UserAggregationFunction("apoc.agg.graph")
-    @Description("apoc.agg.graph(path) - returns map of graph {nodes, relationships} of all distinct nodes and relationships")
+    @Description(
+            "apoc.agg.graph(path) - returns map of graph {nodes, relationships} of all distinct nodes and relationships")
     public GraphAggregation graph() {
         return new GraphAggregation();
     }
-
 
     public static class GraphAggregation {
 
@@ -55,7 +54,7 @@ public class Graph {
 
         public void consume(@Name("element") Object element) {
             if (element instanceof Node) {
-                nodes.add((Node)element);
+                nodes.add((Node) element);
             }
             if (element instanceof Relationship) {
                 plainRels.add((Relationship) element);
@@ -66,15 +65,15 @@ public class Graph {
                 for (Relationship rel : path.relationships()) rels.add(rel);
             }
             if (element instanceof Map) {
-                ((Map)element).values().forEach(this::consume);
+                ((Map) element).values().forEach(this::consume);
             }
             if (element instanceof Iterable) {
-                ((Iterable)element).forEach(this::consume);
+                ((Iterable) element).forEach(this::consume);
             }
         }
 
         @UserAggregationResult
-        public Map<String,Object> result() {
+        public Map<String, Object> result() {
             if (!plainRels.isEmpty()) {
                 for (Relationship rel : plainRels) {
                     nodes.add(rel.getStartNode());

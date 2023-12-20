@@ -18,11 +18,6 @@
  */
 package apoc.dv;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.internal.helpers.collection.Pair;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +26,10 @@ import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.internal.helpers.collection.Pair;
 
 public abstract class VirtualizedResource {
     public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$([^\\s]+)");
@@ -43,21 +42,25 @@ public abstract class VirtualizedResource {
     public final String type;
 
     public VirtualizedResource(String name, Map<String, Object> config, String type) {
-        this(Objects.requireNonNull(name, "Field `name` should be defined"),
+        this(
+                Objects.requireNonNull(name, "Field `name` should be defined"),
                 (String) Objects.requireNonNull(config.get("url"), "Field `url` in config should be defined"),
                 (String) Objects.requireNonNull(config.get("desc"), "Field `desc` in config should be defined"),
-                (List<String>) Objects.requireNonNull(config.get("labels"), "Field `labels` in config should be defined"),
+                (List<String>)
+                        Objects.requireNonNull(config.get("labels"), "Field `labels` in config should be defined"),
                 (String) Objects.requireNonNull(config.get("query"), "Field `query` in config should be defined"),
-                PLACEHOLDER_PATTERN.matcher((String) config.get("query")).results()
+                PLACEHOLDER_PATTERN
+                        .matcher((String) config.get("query"))
+                        .results()
                         .map(MatchResult::group)
                         .map(String::trim)
                         .filter(StringUtils::isNotBlank)
                         .collect(Collectors.toList()),
-                Objects.requireNonNull(type, "Field `type` should be defined")
-        );
+                Objects.requireNonNull(type, "Field `type` should be defined"));
     }
 
-    public VirtualizedResource(String name, String url, String desc, List<String> labels, String query, List<String> params, String type) {
+    public VirtualizedResource(
+            String name, String url, String desc, List<String> labels, String query, List<String> params, String type) {
         this.name = name;
         this.url = url;
         this.desc = desc;
@@ -78,7 +81,8 @@ public abstract class VirtualizedResource {
 
     protected abstract String getProcedureCall(Map<String, Object> config);
 
-    final public Pair<String, Map<String, Object>> getProcedureCallWithParams(Object queryParams, Map<String, Object> config) {
+    public final Pair<String, Map<String, Object>> getProcedureCallWithParams(
+            Object queryParams, Map<String, Object> config) {
         validateQueryParams(queryParams);
         return Pair.of(getProcedureCall(config), getProcedureParameters(queryParams, config));
     }
@@ -93,24 +97,22 @@ public abstract class VirtualizedResource {
         } else if (queryParams instanceof Map) {
             final Map<String, Object> parameterMap = (Map<String, Object>) queryParams;
             actualSize = MapUtils.size(parameterMap);
-            Set<String> setParams = params.stream()
-                    .collect(Collectors.toSet());
-            final Set<String> actualParams = parameterMap.keySet().stream().map(p -> "$" + p).collect(Collectors.toSet());
+            Set<String> setParams = params.stream().collect(Collectors.toSet());
+            final Set<String> actualParams =
+                    parameterMap.keySet().stream().map(p -> "$" + p).collect(Collectors.toSet());
             if (!actualParams.equals(setParams)) {
-                List<String> sortedExpected = setParams.stream()
-                        .sorted()
-                        .collect(Collectors.toList());
-                List<String> sortedActual = actualParams.stream()
-                        .sorted()
-                        .collect(Collectors.toList());
-                throw new IllegalArgumentException(String.format("Expected query parameters are %s, actual are %s", sortedExpected, sortedActual));
+                List<String> sortedExpected = setParams.stream().sorted().collect(Collectors.toList());
+                List<String> sortedActual = actualParams.stream().sorted().collect(Collectors.toList());
+                throw new IllegalArgumentException(
+                        String.format("Expected query parameters are %s, actual are %s", sortedExpected, sortedActual));
             }
         } else {
             throw new IllegalArgumentException("Input params allowed are Maps and Lists");
         }
         final long expectedSize = numOfQueryParams();
         if (actualSize != expectedSize) {
-            throw new IllegalArgumentException(String.format("Expected size is %d, actual is %d", expectedSize, actualSize));
+            throw new IllegalArgumentException(
+                    String.format("Expected size is %d, actual is %d", expectedSize, actualSize));
         }
     }
 
@@ -139,7 +141,14 @@ public abstract class VirtualizedResource {
         public final String query;
         public final List<String> params;
 
-        public VirtualizedResourceDTO(String name, String type, String url, String desc, List<String> labels, String query, List<String> params) {
+        public VirtualizedResourceDTO(
+                String name,
+                String type,
+                String url,
+                String desc,
+                List<String> labels,
+                String query,
+                List<String> params) {
             this.name = name;
             this.url = url;
             this.desc = desc;
@@ -149,5 +158,4 @@ public abstract class VirtualizedResource {
             this.type = type;
         }
     }
-
 }

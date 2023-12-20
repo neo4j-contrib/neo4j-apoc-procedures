@@ -55,12 +55,12 @@ public class UuidUtil {
 
         // Generate UUID from 16 byte buffer
         long msb = 0L;
-        for (int i=0; i < 8; ++i) {
+        for (int i = 0; i < 8; ++i) {
             msb <<= 8;
             msb |= (buffer[i] & 0xFF);
         }
         var lsb = 0L;
-        for (int i=8; i < 16; ++i) {
+        for (int i = 8; i < 16; ++i) {
             lsb <<= 8;
             lsb |= (buffer[i] & 0xFF);
         }

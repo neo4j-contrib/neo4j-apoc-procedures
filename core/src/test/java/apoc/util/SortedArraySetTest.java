@@ -18,9 +18,9 @@
  */
 package apoc.util;
 
-import org.junit.Test;
-
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * @author mh
@@ -57,8 +57,8 @@ public class SortedArraySetTest {
         assertSame(two, set.add(two));
         assertEquals(3, set.getCapacity());
         assertEquals(2, set.getSize());
-        assertArrayEquals(new Integer[]{zero, two}, set.items());
-        assertArrayEquals(new Integer[]{zero, two, null}, set.data);
+        assertArrayEquals(new Integer[] {zero, two}, set.items());
+        assertArrayEquals(new Integer[] {zero, two, null}, set.data);
 
         assertSame(one, set.add(one));
         assertSame(one, set.find(one));
@@ -69,9 +69,8 @@ public class SortedArraySetTest {
         assertSame(one, set.add(one));
         assertEquals(3, set.getCapacity());
         assertEquals(3, set.getSize());
-        assertArrayEquals(new Integer[]{zero, one, two}, set.items());
-        assertArrayEquals(new Integer[]{zero, one, two}, set.data);
-
+        assertArrayEquals(new Integer[] {zero, one, two}, set.items());
+        assertArrayEquals(new Integer[] {zero, one, two}, set.data);
 
         assertSame(four, set.add(four));
         assertSame(four, set.find(four));
@@ -81,8 +80,9 @@ public class SortedArraySetTest {
         assertSame(four, set.add(four));
         assertEquals(13, set.getCapacity());
         assertEquals(4, set.getSize());
-        assertArrayEquals(new Integer[]{zero, one, two, four}, set.items());
-        assertArrayEquals(new Integer[]{zero, one, two, four, null, null, null, null, null, null, null, null, null}, set.data);
+        assertArrayEquals(new Integer[] {zero, one, two, four}, set.items());
+        assertArrayEquals(
+                new Integer[] {zero, one, two, four, null, null, null, null, null, null, null, null, null}, set.data);
 
         assertSame(three, set.add(three));
         assertSame(three, set.find(three));
@@ -93,7 +93,8 @@ public class SortedArraySetTest {
         assertSame(three, set.add(three));
         assertEquals(13, set.getCapacity());
         assertEquals(5, set.getSize());
-        assertArrayEquals(new Integer[]{zero, one, two, three, four}, set.items());
-        assertArrayEquals(new Integer[]{zero, one, two, three, four, null, null, null, null, null, null, null, null}, set.data);
+        assertArrayEquals(new Integer[] {zero, one, two, three, four}, set.items());
+        assertArrayEquals(
+                new Integer[] {zero, one, two, three, four, null, null, null, null, null, null, null, null}, set.data);
     }
 }

@@ -24,7 +24,10 @@ package apoc.export.util;
  */
 interface SizeCounter {
     long getNewLines();
+
     long getCount();
+
     long getTotal();
+
     long getPercent();
 }

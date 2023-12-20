@@ -33,6 +33,7 @@ public class TTLConfigExtensionFactory extends ExtensionFactory<TTLConfigExtensi
 
     public interface Dependencies {
         ApocConfig config();
+
         GlobalProcedures globalProceduresRegistry();
     }
 
@@ -44,5 +45,4 @@ public class TTLConfigExtensionFactory extends ExtensionFactory<TTLConfigExtensi
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
         return new TTLConfig(dependencies.config(), dependencies.globalProceduresRegistry());
     }
-
 }

@@ -18,21 +18,22 @@
  */
 package apoc.util;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class QueryUtilTest
-{
+import org.junit.Test;
+
+public class QueryUtilTest {
 
     @Test
     public void shouldReturnTrueForValidQueries() {
-        assertTrue(QueryUtil.isValidQuery("CREATE USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED"));
+        assertTrue(
+                QueryUtil.isValidQuery("CREATE USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED"));
     }
 
     @Test
     public void shouldReturnFalseForInvalidQueries() {
-        assertFalse(QueryUtil.isValidQuery("MATCH USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED"));
+        assertFalse(
+                QueryUtil.isValidQuery("MATCH USER dummy IF NOT EXISTS SET PASSWORD 'pass12345' CHANGE NOT REQUIRED"));
     }
 }

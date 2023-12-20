@@ -18,8 +18,13 @@
  */
 package apoc.util;
 
+import static apoc.ApocConfig.apocConfig;
+import static org.junit.Assert.assertEquals;
+
 import apoc.config.Config;
 import apoc.load.relative.LoadRelativePathTest;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,21 +35,13 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
-
-import static apoc.ApocConfig.apocConfig;
-import static org.junit.Assert.assertEquals;
-
 public class FileUtilsTest {
 
     @Rule
     public TestName testName = new TestName();
 
-
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.allow_file_urls, true);
+    public DbmsRule db = new ImpermanentDbmsRule().withSetting(GraphDatabaseSettings.allow_file_urls, true);
 
     @Rule
     public ProvideSystemProperty sysprops = new ProvideSystemProperty("foo", "bar");
@@ -53,13 +50,18 @@ public class FileUtilsTest {
 
     static {
         try {
-            TEST_FILE_ABSOLUTE = "file://" + Paths.get(LoadRelativePathTest.class.getClassLoader().getResource("./test.csv").toURI());
+            TEST_FILE_ABSOLUTE = "file://"
+                    + Paths.get(LoadRelativePathTest.class
+                            .getClassLoader()
+                            .getResource("./test.csv")
+                            .toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String TEST_FILE = LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath();
+    private static String TEST_FILE =
+            LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath();
 
     private static final String TEST_WITH_DIRECTORY_IMPORT = "WithDirectoryImport";
     private String TEST_FILE_RELATIVE;
@@ -120,12 +122,11 @@ public class FileUtilsTest {
         assertEquals(TEST_FILE_RELATIVE, FileUtils.changeFileUrlIfImportDirectoryConstrained("test.csv"));
     }
 
-
     @Test
     public void importDirectoryWithRelativeArchivePathWithDirectoryImport() throws Exception {
         String localPath = "test.zip!sub/test.csv";
         String expected = importFolder + "/" + localPath;
-        assertEquals(Paths.get(expected).toUri().toString(), FileUtils.changeFileUrlIfImportDirectoryConstrained(localPath));
+        assertEquals(
+                Paths.get(expected).toUri().toString(), FileUtils.changeFileUrlIfImportDirectoryConstrained(localPath));
     }
-
 }

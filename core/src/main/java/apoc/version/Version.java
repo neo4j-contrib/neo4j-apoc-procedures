@@ -25,7 +25,6 @@ import org.neo4j.procedure.UserFunction;
  * @author AgileLARUS
  * @since 24-07-17
  */
-
 public class Version {
 
     @UserFunction("apoc.version")

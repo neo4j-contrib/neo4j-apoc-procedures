@@ -18,24 +18,6 @@
  */
 package apoc.load;
 
-import apoc.ApocSettings;
-import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_H2;
 import static apoc.load.LoadHtmlTest.RESULT_QUERY_METADATA;
 import static apoc.load.LoadHtmlTest.skipIfBrowserNotPresentOrCompatible;
@@ -47,6 +29,23 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import apoc.ApocSettings;
+import apoc.util.TestUtil;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
 // TODO: Reintroduce FIREFOX as a browser https://trello.com/c/X8KM7sFU/1803-fix-flaky-selenium-firefox-tests
 @RunWith(Parameterized.class)
 public class LoadHtmlTestParameterized {
@@ -54,8 +53,7 @@ public class LoadHtmlTestParameterized {
     // To check that `browser` configuration preserve the result.
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule().withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     @Before
     public void setup() {
@@ -75,7 +73,6 @@ public class LoadHtmlTestParameterized {
     @Parameter
     public String browser;
 
-
     @Test
     public void testQueryAll() {
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
@@ -83,17 +80,31 @@ public class LoadHtmlTestParameterized {
         Map<String, Object> config = browserSet() ? Map.of("browser", browser) : emptyMap();
 
         skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url,$query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+            testResult(
+                    db,
+                    "CALL apoc.load.html($url,$query, $config)",
+                    map(
+                            "url",
+                            new File("src/test/resources/wikipedia.html")
+                                    .toURI()
+                                    .toString(),
+                            "query",
+                            query,
+                            "config",
+                            config),
                     result -> {
                         Map<String, Object> row = result.next();
                         Map<String, Object> value = (Map<String, Object>) row.get("value");
-    
+
                         List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
                         List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-    
-                        assertEquals(asList(RESULT_QUERY_METADATA).toString().trim(), metadata.toString().trim());
-                        assertEquals(asList(RESULT_QUERY_H2).toString().trim(), h2.toString().trim());
+
+                        assertEquals(
+                                asList(RESULT_QUERY_METADATA).toString().trim(),
+                                metadata.toString().trim());
+                        assertEquals(
+                                asList(RESULT_QUERY_H2).toString().trim(),
+                                h2.toString().trim());
                     });
         });
     }
@@ -106,11 +117,23 @@ public class LoadHtmlTestParameterized {
         Map<String, Object> config = map(confList.toArray());
 
         skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+            testResult(
+                    db,
+                    "CALL apoc.load.html($url, $query, $config)",
+                    map(
+                            "url",
+                            new File("src/test/resources/wikipedia.html")
+                                    .toURI()
+                                    .toString(),
+                            "query",
+                            query,
+                            "config",
+                            config),
                     result -> {
                         Map<String, Object> row = result.next();
-                        assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                        assertEquals(
+                                map("h2", asList(RESULT_QUERY_H2)).toString().trim(),
+                                row.get("value").toString().trim());
                         assertFalse(result.hasNext());
                     });
         });
@@ -124,8 +147,18 @@ public class LoadHtmlTestParameterized {
         Map<String, Object> config = map(confList.toArray());
 
         skipIfBrowserNotPresentOrCompatible(() -> {
-            testResult(db, "CALL apoc.load.html($url, $query, $config)",
-                    map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+            testResult(
+                    db,
+                    "CALL apoc.load.html($url, $query, $config)",
+                    map(
+                            "url",
+                            new File("src/test/resources/wikipedia.html")
+                                    .toURI()
+                                    .toString(),
+                            "query",
+                            query,
+                            "config",
+                            config),
                     result -> {
                         Map<String, Object> row = result.next();
                         Map<String, Object> value = (Map<String, Object>) row.get("value");
@@ -139,7 +172,7 @@ public class LoadHtmlTestParameterized {
                         // Should have four children
                         assertEquals(4, ((List) first.get("children")).size());
 
-                        Map<String, Object> firstChild = (Map)((List) first.get("children")).get(0);
+                        Map<String, Object> firstChild = (Map) ((List) first.get("children")).get(0);
 
                         assertEquals("li", firstChild.get("tagName"));
                         assertEquals(1, ((List) firstChild.get("children")).size());

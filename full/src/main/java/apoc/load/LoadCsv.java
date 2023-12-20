@@ -18,31 +18,30 @@
  */
 package apoc.load;
 
+import static apoc.util.FileUtils.closeReaderSafely;
+import static apoc.util.Util.cleanUrl;
+import static java.util.Collections.emptyList;
+
 import apoc.Extended;
 import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
+import apoc.load.util.Results;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import apoc.load.util.Results;
-import static apoc.util.FileUtils.closeReaderSafely;
-import static apoc.util.Util.cleanUrl;
-import static java.util.Collections.emptyList;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 @Extended
 public class LoadCsv {
@@ -51,14 +50,22 @@ public class LoadCsv {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.load.csv('urlOrBinary',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
-    public Stream<CSVResult> csv(@Name("urlOrBinary") Object urlOrBinary, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
-        return csvParams(urlOrBinary, null, null,configMap);
+    @Description(
+            "apoc.load.csv('urlOrBinary',{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csv(
+            @Name("urlOrBinary") Object urlOrBinary,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
+        return csvParams(urlOrBinary, null, null, configMap);
     }
 
     @Procedure
-    @Description("apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, {config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
-    public Stream<CSVResult> csvParams(@Name("urlOrBinary") Object urlOrBinary, @Name("httpHeaders") Map<String, Object> httpHeaders, @Name("payload") String payload, @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
+    @Description(
+            "apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, {config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    public Stream<CSVResult> csvParams(
+            @Name("urlOrBinary") Object urlOrBinary,
+            @Name("httpHeaders") Map<String, Object> httpHeaders,
+            @Name("payload") String payload,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> configMap) {
         LoadCsvConfig config = new LoadCsvConfig(configMap);
         CountingReader reader = null;
         try {
@@ -72,28 +79,53 @@ public class LoadCsv {
             return streamCsv(url, config, reader);
         } catch (IOException | CsvValidationException e) {
             closeReaderSafely(reader);
-            if(!config.isFailOnError())
-                return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
+            if (!config.isFailOnError())
+                return Stream.of(new CSVResult(
+                        new String[0],
+                        new String[0],
+                        0,
+                        true,
+                        Collections.emptyMap(),
+                        emptyList(),
+                        EnumSet.noneOf(Results.class)));
             else
-                throw new RuntimeException("Can't read CSV " + (urlOrBinary instanceof String ? "from URL " + cleanUrl((String) urlOrBinary) : "from binary"), e);
+                throw new RuntimeException(
+                        "Can't read CSV "
+                                + (urlOrBinary instanceof String
+                                        ? "from URL " + cleanUrl((String) urlOrBinary)
+                                        : "from binary"),
+                        e);
         }
     }
 
-    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException, CsvValidationException {
+    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader)
+            throws IOException, CsvValidationException {
 
         CSVReader csv = new CSVReaderBuilder(reader)
                 .withCSVParser(new CSVParserBuilder()
                         .withEscapeChar(config.getEscapeChar())
                         .withQuoteChar(config.getQuoteChar())
-                        .withIgnoreQuotations( config.isIgnoreQuotations() )
+                        .withIgnoreQuotations(config.isIgnoreQuotations())
                         .withSeparator(config.getSeparator())
                         .build())
                 .build();
 
         String[] header = getHeader(csv, config);
-        boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch(m -> m.ignore);
-        return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false)
+        boolean checkIgnore = !config.getIgnore().isEmpty()
+                || config.getMappings().values().stream().anyMatch(m -> m.ignore);
+        return StreamSupport.stream(
+                        new CSVSpliterator(
+                                csv,
+                                header,
+                                url,
+                                config.getSkip(),
+                                config.getLimit(),
+                                checkIgnore,
+                                config.getMappings(),
+                                config.getNullValues(),
+                                config.getResults(),
+                                config.getIgnoreErrors()),
+                        false)
                 .onClose(() -> closeReaderSafely(reader));
     }
 
@@ -125,7 +157,18 @@ public class LoadCsv {
         private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException, CsvValidationException {
+        public CSVSpliterator(
+                CSVReader csv,
+                String[] header,
+                String url,
+                long skip,
+                long limit,
+                boolean ignore,
+                Map<String, Mapping> mapping,
+                List<String> nullValues,
+                EnumSet<Results> results,
+                boolean ignoreErrors)
+                throws IOException, CsvValidationException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -147,15 +190,20 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo, ignore,mapping, nullValues,results));
+                    action.accept(new CSVResult(header, row, lineNo, ignore, mapping, nullValues, results));
                     lineNo++;
                     return true;
                 }
                 return false;
             } catch (IOException | CsvValidationException e) {
-                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo, e);
+                throw new RuntimeException(
+                        "Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at "
+                                + lineNo,
+                        e);
             } catch (ArrayIndexOutOfBoundsException e) {
-                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo + ". Please check whether you included a delimiter before a column separator or forgot a column separator.");
+                throw new RuntimeException(
+                        "Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo
+                                + ". Please check whether you included a delimiter before a column separator or forgot a column separator.");
             }
         }
     }

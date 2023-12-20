@@ -19,7 +19,6 @@
 package apoc.convert;
 
 import apoc.util.Util;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class ConvertConfig {
     private Map<String, List<String>> rels;
     private final boolean sortPaths;
 
-    public ConvertConfig(Map<String,Object> config) {
+    public ConvertConfig(Map<String, Object> config) {
         this.sortPaths = Util.toBoolean(config.getOrDefault("sortPaths", true));
 
         this.nodes = (Map<String, List<String>>) config.getOrDefault("nodes", Collections.EMPTY_MAP);
@@ -60,8 +59,10 @@ public class ConvertConfig {
 
     private void validateListProperties(List<String> list) {
         boolean isFirstExclude = list.get(0).startsWith("-");
-        Optional<String> hasMixedProp = list.stream().skip(1).filter(prop ->
-                (isFirstExclude && !prop.startsWith("-")) || (!isFirstExclude && prop.startsWith("-"))).findFirst();
+        Optional<String> hasMixedProp = list.stream()
+                .skip(1)
+                .filter(prop -> (isFirstExclude && !prop.startsWith("-")) || (!isFirstExclude && prop.startsWith("-")))
+                .findFirst();
         if (hasMixedProp.isPresent()) {
             throw new RuntimeException("Only include or exclude attribute are possible!");
         }

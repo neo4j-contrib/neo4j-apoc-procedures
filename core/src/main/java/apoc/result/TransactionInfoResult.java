@@ -33,13 +33,7 @@ public class TransactionInfoResult {
     public long totalTx;
 
     public TransactionInfoResult(
-            long rolledBackTx,
-            long peakTx,
-            long lastTxId,
-            long currentOpenedTx,
-            long totalOpenedTx,
-            long totalTx
-    ) {
+            long rolledBackTx, long peakTx, long lastTxId, long currentOpenedTx, long totalOpenedTx, long totalTx) {
         this.rolledBackTx = rolledBackTx;
         this.peakTx = peakTx;
         this.lastTxId = lastTxId;
@@ -47,5 +41,4 @@ public class TransactionInfoResult {
         this.totalOpenedTx = totalOpenedTx;
         this.totalTx = totalTx;
     }
-
 }

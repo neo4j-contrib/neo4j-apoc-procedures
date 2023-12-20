@@ -18,13 +18,13 @@
  */
 package apoc.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
 
 public class FileTestUtil {
 
@@ -34,13 +34,15 @@ public class FileTestUtil {
         String[] expectArray = expectedText.split("\n");
         assertEquals(expectArray.length, actualArray.length);
         for (int i = 0; i < actualArray.length; i++) {
-            assertEquals(JsonUtil.parse(expectArray[i],null, Object.class), JsonUtil.parse(actualArray[i],null, Object.class));
+            assertEquals(
+                    JsonUtil.parse(expectArray[i], null, Object.class),
+                    JsonUtil.parse(actualArray[i], null, Object.class));
         }
     }
 
     public static Path createTempFolder() {
         try {
-            return Files.createTempDirectory( UUID.randomUUID().toString() );
+            return Files.createTempDirectory(UUID.randomUUID().toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

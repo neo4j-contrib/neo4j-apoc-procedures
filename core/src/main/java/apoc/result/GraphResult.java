@@ -18,10 +18,9 @@
  */
 package apoc.result;
 
+import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-
-import java.util.List;
 
 /**
  * @author mh

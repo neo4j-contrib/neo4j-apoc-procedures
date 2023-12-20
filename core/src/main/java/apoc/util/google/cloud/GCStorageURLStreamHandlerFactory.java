@@ -19,7 +19,6 @@
 package apoc.util.google.cloud;
 
 import apoc.util.FileUtils;
-
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
