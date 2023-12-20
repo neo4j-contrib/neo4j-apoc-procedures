@@ -265,6 +265,14 @@ public class Jdbc {
             if (Types.DATE == sqlType) {
                 return ((java.sql.Date)value).toLocalDate();
             }
+
+            if (Types.ARRAY == sqlType) {
+                try {
+                    return ((java.sql.Array)value).getArray();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
             return value;
         }
 
