@@ -156,13 +156,12 @@ CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $a
 We can also call the Completion API of HuggingFace and Cohere, similar to the https://github.com/r2d4/openlm[OpenLM] library, as below.
 
 For the https://huggingface.co/[HuggingFace API], we have to define the config `apiType: 'HUGGINGFACE'`, since we have to transform the body request.
-Unlike the default behavior, under-the-hood the `/completions` suffix is not added to the URL.
 
 For example:
 [source,cypher]
 ----
 CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $huggingFaceApiKey, 
-{endpoint: 'https://api-inference.huggingface.co/models/gpt2', apiType: 'HUGGINGFACE', model: 'gpt2'})
+{endpoint: 'https://api-inference.huggingface.co/models/gpt2', apiType: 'HUGGINGFACE', model: 'gpt2', path: ''})
 ----
 
 Or also, by using the https://docs.cohere.com/docs[Cohere API], where we have to define `path: '''` not to add the `/completions` suffix to the URL:

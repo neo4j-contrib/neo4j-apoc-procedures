@@ -3,7 +3,6 @@ package apoc.ml;
 
 import apoc.ApocConfig;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.security.URLAccessChecker;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,7 +40,7 @@ abstract class OpenAIRequestHandler {
 
     enum Type {
         AZURE(new Azure(null)),
-        HUGGINGFACE(new HuggingFace()),
+        HUGGINGFACE(new OpenAi(null)),
         OPENAI(new OpenAi("https://api.openai.com/v1"));
 
         private final OpenAIRequestHandler handler;
@@ -51,12 +50,6 @@ abstract class OpenAIRequestHandler {
 
         public OpenAIRequestHandler get() {
             return handler;
-        }
-    }
-    
-    private static class HuggingFace extends OpenAi {
-        public HuggingFace() {
-            super(null);
         }
     }
 

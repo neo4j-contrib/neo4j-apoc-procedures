@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
-import static apoc.util.ExtendedUtil.isLocalAddress;
 
 
 @Extended
