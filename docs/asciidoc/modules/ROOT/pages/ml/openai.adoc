@@ -2,17 +2,21 @@
 = OpenAI API Access
 :description: This section describes procedures that can be used to access the OpenAI API.
 
-NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incur costs on your OpenAI account. You can set the api key globally by defining the `apoc.openai.key` configuration in `apoc.conf`
+[NOTE]
+====
+You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incur costs on your OpenAI account. You can set the api key globally by defining the `apoc.openai.key` configuration in `apoc.conf`
 
-
+But you can also use these procedures to call OpenAI-compatible APIs, which will therefore have their own API key (or even without API Key). 
+See the paragraph <<openai_compatible_provider>> below.
+====
 
 All the following procedures can have the following APOC config, i.e. in `apoc.conf` or via docker env variable
 .Apoc configuration
 |===
 |key | description | default
-| apoc.ml.openai.type | "AZURE" or "OPENAI", indicates whether the API is Azure or not | "OPENAI" 
+| apoc.ml.openai.type | "AZURE", "HUGGINGFACE", "OPENAI", indicates whether the API is Azure, HuggingFace or another one | "OPENAI" 
 | apoc.ml.openai.url | the OpenAI endpoint base url | https://api.openai.com/v1 
-    (or empty string if `apoc.ml.openai.type=AZURE`)
+    (or empty string if `apoc.ml.openai.type=<AZURE OR HUGGINGFACE>`)
 | apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url
 |===
 
@@ -27,6 +31,10 @@ If present, they take precedence over the analogous APOC configs.
 | apiType | analogous to `apoc.ml.openai.type` APOC config
 | endpoint | analogous to `apoc.ml.openai.url` APOC config
 | apiVersion | analogous to `apoc.ml.azure.api.version` APOC config
+| path | To customize the url portion added to the base url (defined by the `endpoint` config).
+    By default, is `/embeddings`, `/completions` and `/chat/completions` for respectively the `apoc.ml.openai.embedding`, `apoc.ml.openai.completion` and `apoc.ml.openai.chat` procedures.
+| jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] of the response. 
+    The default is `$` for the `apoc.ml.openai.chat` and `apoc.ml.openai.completion` procedures, and `$.data` for the `apoc.ml.openai.embedding` procedure.
 |===
 
 
@@ -142,6 +150,28 @@ CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $a
 | value | result entry from OpenAI (containing)
 |===
 
+
+=== OpenLM API
+
+We can also call the Completion API of HuggingFace and Cohere, similar to the https://github.com/r2d4/openlm[OpenLM] library, as below.
+
+For the https://huggingface.co/[HuggingFace API], we have to define the config `apiType: 'HUGGINGFACE'`, since we have to transform the body request.
+
+For example:
+[source,cypher]
+----
+CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $huggingFaceApiKey, 
+{endpoint: 'https://api-inference.huggingface.co/models/gpt2', apiType: 'HUGGINGFACE', model: 'gpt2', path: ''})
+----
+
+Or also, by using the https://docs.cohere.com/docs[Cohere API], where we have to define `path: '''` not to add the `/completions` suffix to the URL:
+[source,cypher]
+----
+CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $cohereApiKey, 
+{endpoint: 'https://api.cohere.ai/v1/generate', path: '', model: 'command'})
+----
+
+
 == Chat Completion API
 
 This procedure `apoc.ml.openai.chat` takes a list of maps of chat exchanges between assistant and user (with optional system message), and will return the next message in the flow.
@@ -182,6 +212,35 @@ choices=[{finish_reason="stop", index=0, message={role="assistant", content="Ear
 |name | description
 | value | result entry from OpenAI (containing created, id, model, object, usage(tokens), choices(message, index, finish_reason))
 |===
+
+
+[[openai_compatible_provider]]
+== OpenAI-compatible provider
+
+We can also use these procedures to call OpenAI-compatible APIs,
+by defining the `endpoint` config, and possibly the `model`, `path` and `jsonPath` configs.
+
+For example, we can call the https://app.endpoints.anyscale.com/[Anyscale Endpoints]:
+[source,cypher]
+----
+CALL apoc.ml.openai.embedding(['Some Text'], $anyScaleApiKey, 
+{endpoint: 'https://api.endpoints.anyscale.com/v1', model: 'thenlper/gte-large'})
+----
+
+
+Or via https://localai.io/[LocalAI APIs] (note that the apiKey is `null` by default):
+[source,cypher]
+----
+CALL apoc.ml.openai.embedding(['Some Text'], "ignored", 
+{endpoint: 'http://localhost:8080/v1', model: 'text-embedding-ada-002'})
+----
+
+Or also, by using https://github.com/fardjad/node-llmatic[LLMatic Library]:
+[source,cypher]
+----
+CALL apoc.ml.openai.embedding(['Some Text'], "ignored", 
+{endpoint: 'http://localhost:3000/v1', model: 'thenlper/gte-large'})
+----
 
 
 == Query with natural language
