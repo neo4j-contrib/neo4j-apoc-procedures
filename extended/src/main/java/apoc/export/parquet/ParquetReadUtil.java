@@ -8,6 +8,7 @@ import org.apache.parquet.io.DelegatingSeekableInputStream;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.values.storable.DateTimeValue;
 import org.neo4j.values.storable.DateValue;
 import org.neo4j.values.storable.DurationValue;
@@ -165,13 +166,13 @@ public class ParquetReadUtil {
         };
     }
 
-    public static InputFile getInputFile(Object source) throws IOException {
-        return new ParquetStream(FileUtils.inputStreamFor(source, null, null, CompressionAlgo.NONE.name()).readAllBytes());
+    public static InputFile getInputFile(Object source, URLAccessChecker urlAccessChecker) throws IOException {
+        return new ParquetStream(FileUtils.inputStreamFor(source, null, null, CompressionAlgo.NONE.name(), urlAccessChecker).readAllBytes());
     }
 
-    public static ApocParquetReader getReader(Object source, ParquetConfig conf) {
+    public static ApocParquetReader getReader(Object source, ParquetConfig conf, URLAccessChecker urlAccessChecker) {
         try {
-            return new ApocParquetReader(getInputFile(source), conf);
+            return new ApocParquetReader(getInputFile(source, urlAccessChecker), conf);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
