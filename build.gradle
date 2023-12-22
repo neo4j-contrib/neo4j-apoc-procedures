@@ -20,6 +20,8 @@ allprojects {
 }
 
 apply plugin: 'java-library'
+if (System.env.CI != null)
+    apply from: 'teamcity-repository.gradle'
 
 repositories {
 
