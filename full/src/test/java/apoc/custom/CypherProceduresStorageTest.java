@@ -34,6 +34,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -793,5 +794,91 @@ public class CypherProceduresStorageTest {
         restartDb();
         listFunNames.forEach(name ->
                 TestUtil.testCall(db, String.format(funQuery, name), (row) -> assertEquals(1L, row.get("row"))));
+    }
+
+    @Test
+    public void functionSignatureShouldNotChangeBeforeAndAfterRestartAndOverwriteMap() {
+        // given
+        String mapReturn = "RETURN {value : $val} as row";
+        String listMapReturn = "RETURN [{value : $val}] as row";
+        db.executeTransactionally("CALL apoc.custom.declareFunction('map(val :: INTEGER) :: MAP ', $statement)",
+                Map.of("statement", mapReturn));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('map_list(val :: INTEGER) :: LIST OF MAP ', $statement)",
+                Map.of("statement", listMapReturn));
+
+        db.executeTransactionally("CALL apoc.custom.declareFunction('map_result(val :: INTEGER) :: MAPRESULT ', $statement)",
+                Map.of("statement", mapReturn));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('map_result_list(val :: INTEGER) :: LIST OF MAPRESULT ', $statement)",
+                Map.of("statement", listMapReturn));
+
+        functionMapAssertions();
+
+        restartDb();
+        functionMapAssertions();
+    }
+
+    private void functionMapAssertions() {
+        // check that both `MAP` and `MAPRESULT` have signature `MAP?` when it runs `SHOW FUNCTIONS` command
+        TestUtil.testResult(db, "SHOW FUNCTIONS YIELD signature, name WHERE name STARTS WITH 'custom.map' RETURN DISTINCT name, signature ORDER BY name",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals("custom.map(val :: INTEGER) :: MAP", row.get("signature"));
+                    row = r.next();
+                    assertEquals("custom.map_list(val :: INTEGER) :: LIST<MAP>", row.get("signature"));
+                    row = r.next();
+                    assertEquals("custom.map_result(val :: INTEGER) :: MAP", row.get("signature"));
+                    row = r.next();
+                    assertEquals("custom.map_result_list(val :: INTEGER) :: LIST<MAP>", row.get("signature"));
+                    assertFalse(r.hasNext());
+                });
+
+        TestUtil.testResult(db, "call apoc.custom.list",
+                row -> {
+                    final Set<String> sumFun1 = Set.of("map", "map_list", "map_result", "map_result_list");
+                    assertEquals(sumFun1, Iterators.asSet(row.columnAs("name")));
+                });
+
+        // then
+        TestUtil.testResult(db, "RETURN custom.map_result(3) AS val", (result) -> {
+            Map map = result.<Map>columnAs("val").next();
+            assertIsMap(map);
+        });
+
+        TestUtil.testResult(db, "RETURN custom.map(3) AS val", (result) -> {
+            Map<String, Map> map = result.<Map<String, Map>>columnAs("val").next();
+            assertEquals(1, map.size());
+            Map innerMap = map.get("row");
+
+            assertIsMap(innerMap);
+        });
+
+        TestUtil.testResult(db, "RETURN custom.map_result_list(3) AS val", (result) -> {
+            List<List<Map>> list = result.<List<List<Map>>>columnAs("val").next();
+            assertEquals(1, list.size());
+
+            List<Map> map = list.get(0);
+            assertIsListOfMap(map);
+        });
+
+        TestUtil.testResult(db, "RETURN custom.map_list(3) AS val", (result) -> {
+            List<Map<String, List<Map>>> list = result.<List<Map<String, List<Map>>>>columnAs("val").next();
+            assertEquals(1, list.size());
+            assertEquals(1, list.get(0).size());
+
+            List<Map> mapList = list.get(0).get("row");
+            assertIsListOfMap(mapList);
+        });
+
+    }
+
+    private static void assertIsListOfMap(List<Map> mapList) {
+        assertEquals(1, mapList.size());
+        Map map = mapList.get(0);
+        assertIsMap(map);
+    }
+
+    private static void assertIsMap(Map map) {
+        Map<String, Object> expected = Map.of("value", 3L);
+        assertEquals(expected, map);
     }
 }
