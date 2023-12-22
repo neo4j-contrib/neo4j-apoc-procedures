@@ -33,7 +33,7 @@ public class OpenAITest {
         // openaiKey = System.getenv("OPENAI_KEY");
         // Assume.assumeNotNull("No OPENAI_KEY environment configured", openaiKey);
         var path = Paths.get(getUrlFileName("embeddings").toURI()).getParent().toUri();
-        System.setProperty(APOC_ML_OPENAI_URL, path.toString());
+        apocConfig().setProperty(APOC_ML_OPENAI_URL, path.toString());
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, OpenAI.class);
     }
