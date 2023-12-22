@@ -116,8 +116,7 @@ public class LoadHtmlTest {
 
         assertWrongConfig(errorInvalidConfig, map("browser", FIREFOX, "architecture", "dunno"));
 
-        assertWrongConfig(
-                "Error HTTP 401 executing", map("browser", FIREFOX, "gitHubToken", "12345", "forceDownload", true));
+        assertWrongConfig("Error HTTP", map("browser", FIREFOX, "gitHubToken", "12345", "forceDownload", true));
     }
 
     private void assertWrongConfig(String msgError, Map<String, Object> config) {

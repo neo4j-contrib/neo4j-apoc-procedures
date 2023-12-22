@@ -26,6 +26,7 @@ import io.github.bonigarcia.wdm.config.OperatingSystem;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.openqa.selenium.By;
@@ -36,7 +37,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 
 public class LoadHtmlBrowser {
 
