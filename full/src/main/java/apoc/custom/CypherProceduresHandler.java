@@ -276,7 +276,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    public synchronized void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
+    public synchronized void storeFunction(
+            UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         withSystemDb(tx -> {
             Node node = Util.mergeNode(
                     tx,
@@ -481,12 +482,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             return false;
         }
     }
-    
+
     public boolean registerFunction(UserFunctionSignature signature) {
         return registerFunction(signature, null, false, false);
     }
 
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
+    public boolean registerFunction(
+            UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         try {
             QualifiedName name = signature.name();
             boolean exists = globalProceduresRegistry
@@ -560,8 +562,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     /**
      * We wrap the result only if we have a "true" map,
-     * that is: the output signature is not a `MAP` / `LIST OF MAP` 
-     *  and the outputType is exactly equals to MapType 
+     * that is: the output signature is not a `MAP` / `LIST OF MAP`
+     *  and the outputType is exactly equals to MapType
      *  (neither with NodeType nor with RelationshipType wrap the result, even though they extend MapType)
      */
     private boolean isWrapped(AnyType outType, boolean mapResult) {
@@ -855,7 +857,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         private final boolean forceSingle;
         private final boolean mapResult;
 
-        public UserFunctionDescriptor(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
+        public UserFunctionDescriptor(
+                UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
             super(statement);
             this.signature = signature;
             this.forceSingle = forceSingle;
