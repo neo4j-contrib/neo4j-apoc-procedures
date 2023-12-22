@@ -409,7 +409,7 @@ public class CypherExtendedTest {
 
         // the failed file produces an "error" row
         testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
-            String cypherError = "Error in `constraints.cypher`:\n" + "An equivalent constraint already exists";
+            String cypherError = "Error in `constraints.cypher`:\nConstraint already exists";
             assertErrorResult(cypherError, row);
         });
     }
