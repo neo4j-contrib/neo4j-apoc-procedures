@@ -18,9 +18,11 @@
  */
 package apoc.nodes;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 
 import apoc.create.Create;
+import apoc.meta.Meta;
 import apoc.util.TestUtil;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -40,11 +43,12 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 public class NodesExtendedTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"));
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, NodesExtended.class, Create.class);
+        TestUtil.registerProcedure(db, NodesExtended.class, Create.class, Meta.class);
     }
 
     @After
@@ -77,10 +81,28 @@ public class NodesExtendedTest {
                     final List<Path> rebindList = (List<Path>) row.get("rebind");
                     assertEquals(2, rebindList.size());
                     final Path firstPath = rebindList.get(0);
-                    assertPath(firstPath, List.of("Foo", "Bar"), List.of("MY_REL"));
+                    assertFooBarPath(firstPath);
                     final Path secondPath = rebindList.get(1);
                     assertPath(secondPath, List.of("Bar", "Baz"), List.of("ANOTHER_REL"));
                 });
+
+        // check via `apoc.meta.cypher.type()` that, even if the return type is Object,
+        // the output of a rebound Path is also a Path (i.e.: `PATH NOT NULL`)
+        TestUtil.testCall(
+                db,
+                "CREATE path=(a:Foo)-[r1:MY_REL]->(b:Bar)\n" + "WITH apoc.any.rebind(path) AS rebind\n"
+                        + "RETURN rebind, apoc.meta.cypher.type(rebind) as valueType",
+                (row) -> {
+                    final String valueType = (String) row.get("valueType");
+                    assertEquals("PATH", valueType);
+
+                    final Path pathRebind = (Path) row.get("rebind");
+                    assertFooBarPath(pathRebind);
+                });
+    }
+
+    private void assertFooBarPath(Path pathRebind) {
+        assertPath(pathRebind, List.of("Foo", "Bar"), List.of("MY_REL"));
     }
 
     private void assertPath(Path rebind, List<String> labels, List<String> relTypes) {
