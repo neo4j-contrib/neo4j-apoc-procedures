@@ -1,6 +1,7 @@
 package apoc.ml.aws;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -21,6 +22,7 @@ import static apoc.ml.aws.AWSConfig.JSON_PATH;
 import static apoc.ml.aws.SageMakerConfig.ENDPOINT_NAME_KEY;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 
+@Extended
 public class SageMaker {
     
     @Context
