@@ -17,7 +17,7 @@ jar {
 }
 
 dependencies {
-    implementation 'org.mongodb:mongodb-driver:3.2.2', {
+    implementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1', {
         exclude group: 'io.netty'
     }
 }
