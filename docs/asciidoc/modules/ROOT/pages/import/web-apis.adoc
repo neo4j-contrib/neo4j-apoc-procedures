@@ -26,6 +26,30 @@ Adding `failOnError:false` (by default `true`) to the config map when using any 
 CALL apoc.load.json('http://example.com/test.json', null, {failOnError:false})
 ----
 
+== Load from Compressed File (zip/tar/tar.gz/tgz)
+
+When loading a file that has been compressed, the compression algorithm has to be provided in the configuration options.
+For example, in the following case, if `xmlCompressed` was a `.gzip` extension file, the configuration options `{compression: 'GZIP'}`
+need to be supplied to the procedure call to load the root of the document `/` into a Cypher map in memory:
+
+----
+CALL apoc.load.xml(xmlCompressed, '/', {compression: 'GZIP'})
+----
+
+For other valid compression configuration values, refer to the xref::import/load-xml.adoc[documentation of apoc.load.xml,role=more information].
+
+By default, the size of a decompressed file is limited to 200 times its compressed size.
+That number can be changed by adjusting the configuration option `apoc.max.decompression.ratio` in  the `apoc.conf` (it cannot be 0 as that would make decompression impossible).
+If a negative number is given, there is no limit to how big a decompressed size can be.
+This exposes the database to potential zip bomb attacks.
+
+Trying to load an uncompressed file that exceeds the relative ratio with respect to the original compressed file will generate the following message:
+
+----
+The file dimension exceeded maximum size in bytes, 250000,
+which is 250 times the width of the original file.
+The InputStream has been blocked because the file could be a compression bomb attack.
+----
 
 == Load Single File From Compressed File (zip/tar/tar.gz/tgz)
 

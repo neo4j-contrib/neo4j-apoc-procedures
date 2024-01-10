@@ -49,6 +49,7 @@ The meta-configuration is located in `src/main/resources/apoc-config.xml`.
 - link:#_apoc_couchbase_key_uri[apoc.couchbase.<key>.uri]: Stores CouchBase URLs to be used.
 - link:#_apoc_es_key_uri[apoc.es.<key>.uri]: Store ElasticSearch URLs to be used.
 - link:#_apoc_mongodb_key_uri[apoc.mongodb.<key>.uri]: Store MongoDB URLs to be used.
+- link:#_apoc_max_decompression_ratio[apoc.max.decompression.ratio]: Limits the relative size a decompressed file can reach with respect to the compressed file in the loading procedures.
 
 [#_apoc_export_file_enabled]
 .apoc.export.file.enabled
@@ -374,4 +375,16 @@ The URLs must contain credentials.
 a|URL
 |Default value
 m|+++None+++
+|===
+
+[#_apoc_max_decompression_ratio]
+.apoc.max.decompression.ratio
+[cols="<1s,<4"]
+|===
+|Description
+a|Limits the relative size a decompressed file can reach with respect to the compressed file in the loading procedures. If negative, no limit to the decompressed size is imposed.
+|Valid values
+a|Integers different from 0
+|Default value
+m|+++200+++
 |===
