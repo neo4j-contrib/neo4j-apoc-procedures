@@ -73,7 +73,8 @@ subprojects {
                 'user.country' : 'US',
                 'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise-debian' : 'neo4j:5.16.0-enterprise',
                 'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.16.0',
-                'coreDir': 'apoc-core/core'
+                'coreDir': 'apoc-core/core',
+                'testDockerBundle': false
 
         maxHeapSize = "5G"
         forkEvery = 50
