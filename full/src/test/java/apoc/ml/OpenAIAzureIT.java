@@ -1,8 +1,8 @@
 package apoc.ml;
 
-import static apoc.ml.OpenAI.API_TYPE_CONF_KEY;
-import static apoc.ml.OpenAI.API_VERSION_CONF_KEY;
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
+import static apoc.ml.MLUtil.API_TYPE_CONF_KEY;
+import static apoc.ml.MLUtil.API_VERSION_CONF_KEY;
+import static apoc.ml.MLUtil.ENDPOINT_CONF_KEY;
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.ml.OpenAITestResultUtils.assertCompletion;
 import static apoc.util.TestUtil.testCall;

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static apoc.ml.MLUtil.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.MixedbreadAI.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
