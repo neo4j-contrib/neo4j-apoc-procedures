@@ -4,6 +4,60 @@
 
 NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incur costs on your OpenAI account. You can set the api key globally by defining the `apoc.openai.key` configuration in `apoc.conf`
 
+
+
+All the following procedures can have the following APOC config, i.e. in `apoc.conf` or via docker env variable
+.Apoc configuration
+|===
+|key | description | default
+| apoc.ml.openai.type | "AZURE" or "OPENAI", indicates whether the API is Azure or not | "OPENAI" 
+| apoc.ml.openai.url | the OpenAI endpoint base url | https://api.openai.com/v1 
+    (or empty string if `apoc.ml.openai.type=AZURE`)
+| apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url
+|===
+
+
+Moreover, they can have the following configuration keys, as the last parameter.
+If present, they take precedence over the analogous APOC configs.
+
+.Common configuration parameter
+
+|===
+| key | description
+| apiType | analogous to `apoc.ml.openai.type` APOC config
+| endpoint | analogous to `apoc.ml.openai.url` APOC config
+| apiVersion | analogous to `apoc.ml.azure.api.version` APOC config
+|===
+
+
+Therefore, we can use the following procedures with the Open AI Services provided by Azure,
+pointing to the correct endpoints https://learn.microsoft.com/it-it/azure/ai-services/openai/reference[as explained in the documentation].
+
+That is, if we want to call an endpoint like https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/embeddings?api-version=my-api-version` for example,
+by passing as a configuration parameter:
+```
+    {endpoint: "https://my-resource.openai.azure.com/openai/deployments/my-deployment-id",
+        apiVersion: my-api-version,
+        apiType: 'AZURE'
+}
+```
+
+The `/embeddings` portion will be added under-the-hood.
+Similarly, if we use the `apoc.ml.openai.completion`,  if we want to call an endpoint like `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/completions?api-version=my-api-version` for example,
+we can write the same configuration parameter as above,
+where the `/completions` portion will be added.
+
+While using the `apoc.ml.openai.chat`, with the same configuration, the url portion `/chat/completions` will be added
+
+Or else, we can write this `apoc.conf`:
+```
+apoc.ml.openai.url=https://my-resource.openai.azure.com/openai/deployments/my-deployment-id
+apoc.ml.azure.api.version=my-api-version
+apoc.ml.openai.type=AZURE
+```
+
+
+
 == Generate Embeddings API
 
 This procedure `apoc.ml.openai.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 1536 element vector.
@@ -30,7 +84,15 @@ CALL apoc.ml.openai.embedding(['Some Text'], $apiKey, {}) yield index, text, emb
 |name | description
 | texts | List of text strings
 | apiKey | OpenAI API key
-| configuration | optional map for entries like model and other request parameters
+| configuration | optional map for entries like model and other request parameters.
+
+    We can also pass a custom `endpoint: <MyAndPointKey>` entry (it takes precedence over the `apoc.ml.openai.url` config).
+    The `<MyAndPointKey>` can be the complete andpoint (e.g. using Azure: `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/chat/completions?api-version=my-api-version`),
+    or with a `%s` (e.g. using Azure: `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/%s?api-version=my-api-version`) which will eventually be replaced with `embeddings`, `chat/completion` and `completion` 
+    by using respectively the `apoc.ml.openai.embedding`, `apoc.ml.openai.chat` and `apoc.ml.openai.completion`.
+
+    Or an `authType: `AUTH_TYPE`, which can be `authType: "BEARER"` (default config.), to pass the apiKey via the header as an `Authorization: Bearer $apiKey`,
+        or `authType: "API_KEY"` to pass the apiKey as an `api-key: $apiKey` header entry.
 |===
 
 
