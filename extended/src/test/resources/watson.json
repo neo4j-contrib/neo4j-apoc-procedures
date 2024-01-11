@@ -1,0 +1,12 @@
+{
+  "model_id": "fakeId",
+  "created_at": "2024-01-11T10:51:48.694Z",
+  "results": [
+    {
+      "generated_text": "\n\nAnswer: Earth\n\nExplanation: The question asks for the system that humans live on",
+      "generated_token_count": 20,
+      "input_token_count": 19,
+      "stop_reason": "max_tokens"
+    }
+  ]
+}
