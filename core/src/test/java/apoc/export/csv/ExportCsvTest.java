@@ -46,10 +46,13 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -239,6 +242,44 @@ public class ExportCsvTest {
         TestUtil.testResult(db, "MATCH (n:Roundtrip) return n.name as name", r -> {
             final Set<String> actual = Iterators.asSet(r.columnAs("name"));
             assertEquals(Set.of("foo", "bar", ""), actual);
+        });
+
+        db.executeTransactionally(deleteQuery);
+    }
+
+    @Test
+    public void testCsvBackslashes() {
+        db.executeTransactionally(
+                "CREATE (n:Test {name: 'Test', value: '{\"new\":\"4\\'10\\\\\\\"\"}'})");
+
+        String fileName = "test.csv.quotes.csv";
+        final Map<String, Object> params = map(
+                "file",
+                fileName,
+                "query",
+                "MATCH (n: Test) RETURN n",
+                "config",
+                map("quotes", "always"));
+
+        TestUtil.testCall(
+                db,
+                "CALL apoc.export.csv.all($file, $config)",
+                params,
+                (r) -> assertEquals(fileName, r.get("file")));
+
+        final String deleteQuery = "MATCH (n:Test) DETACH DELETE n";
+        db.executeTransactionally(deleteQuery);
+
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Test']}],[],{})",
+                params,
+                r -> assertEquals(9L, r.get("nodes")));
+
+        TestUtil.testResult(db, "MATCH (n:Test) RETURN n.name as name, n.value as value", r -> {
+            var nodes = r.stream().filter(node -> node.get("name").equals("Test"));
+            var actual = nodes.map(node -> (String) node.get("value")).collect(Collectors.toSet());
+            assertEquals(Set.of("{\"new\":\"4'10\\\"\"}"), actual);
         });
 
         db.executeTransactionally(deleteQuery);

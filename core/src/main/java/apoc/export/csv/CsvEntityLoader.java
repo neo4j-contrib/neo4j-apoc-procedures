@@ -28,6 +28,8 @@ import apoc.util.FileUtils;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180ParserBuilder;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,7 +101,7 @@ public class CsvEntityLoader {
             final Map<String, Mapping> mapping = getMapping(fields);
 
             final CSVReader csv = new CSVReaderBuilder(reader)
-                    .withCSVParser(new CSVParserBuilder()
+                    .withCSVParser(new RFC4180ParserBuilder()
                             .withSeparator(clc.getDelimiter())
                             .withQuoteChar(clc.getQuotationCharacter())
                             .build())
