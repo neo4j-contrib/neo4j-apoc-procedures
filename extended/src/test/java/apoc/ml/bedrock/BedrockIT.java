@@ -263,7 +263,7 @@ public class BedrockIT {
                     r -> fail());
         } catch (Exception e) {
             String message = e.getMessage();
-            assertTrue("curr message is: " + message, message.contains("java.net.UnknownHostException"));
+            assertTrue("curr message is: " + message, message.contains("Unable to verify access to bedrock-runtime.notExistent.amazonaws.com"));
         }
     }
     
