@@ -46,13 +46,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -249,23 +247,14 @@ public class ExportCsvTest {
 
     @Test
     public void testCsvBackslashes() {
-        db.executeTransactionally(
-                "CREATE (n:Test {name: 'Test', value: '{\"new\":\"4\\'10\\\\\\\"\"}'})");
+        db.executeTransactionally("CREATE (n:Test {name: 'Test', value: '{\"new\":\"4\\'10\\\\\\\"\"}'})");
 
         String fileName = "test.csv.quotes.csv";
-        final Map<String, Object> params = map(
-                "file",
-                fileName,
-                "query",
-                "MATCH (n: Test) RETURN n",
-                "config",
-                map("quotes", "always"));
+        final Map<String, Object> params =
+                map("file", fileName, "query", "MATCH (n: Test) RETURN n", "config", map("quotes", "always"));
 
         TestUtil.testCall(
-                db,
-                "CALL apoc.export.csv.all($file, $config)",
-                params,
-                (r) -> assertEquals(fileName, r.get("file")));
+                db, "CALL apoc.export.csv.all($file, $config)", params, (r) -> assertEquals(fileName, r.get("file")));
 
         final String deleteQuery = "MATCH (n:Test) DETACH DELETE n";
         db.executeTransactionally(deleteQuery);
