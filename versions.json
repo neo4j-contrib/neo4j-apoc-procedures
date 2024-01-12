@@ -234,24 +234,6 @@
         }
     },
     {
-        "neo4j": "5.2.0",
-        "neo4jVersion": "5.2.0",
-        "apoc": "5.2.0",
-        "version": "5.2.0",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.2.0/apoc-5.2.0-extended.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.2.0/apoc-5.2.0-extended.jar",
-        "sha1": "e458219a41f6222f757a094a4235a7004611d5d6",
-        "sha256": "227925028f0169192711a9266119e3109a2fb1024778c8df745348556f872268",
-        "md5": "c149503d4687d6d8b46ee44b159acf24",
-        "config": {
-            "+:dbms.security.procedures.unrestricted": [
-                "apoc.*"
-            ]
-        }
-    },
-    {
         "neo4j": "5.1.0",
         "neo4jVersion": "5.1.0",
         "apoc": "5.1.0",
@@ -722,15 +704,15 @@
     {
         "neo4j": "4.4.4",
         "neo4jVersion": "4.4.4",
-        "apoc": "4.4.0.3",
-        "version": "4.4.0.3",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "sha1": "b7b26ec7c22680d347fb3c8e3b0392e6a03fe73c",
-        "sha256": "e823b79f6e7138ab5a591add723300dc0faa6b8df0b66dd052fc3095bdf5fd92",
-        "md5": "14e47d615337c7ed097891d48161bba0",
+        "apoc": "4.4.0.2",
+        "version": "4.4.0.2",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "sha1": "05bd9d0ce8ca1932772ee6fbd22453a84cec2211",
+        "sha256": "9409c2e48081192ba4bc3882c35df6d1ce76cba3f3ab72a9c717f92b2b6cbf82",
+        "md5": "1d38731b953969d5423492b42cfbc528",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -740,15 +722,15 @@
     {
         "neo4j": "4.4.3",
         "neo4jVersion": "4.4.3",
-        "apoc": "4.4.0.3",
-        "version": "4.4.0.3",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "sha1": "b7b26ec7c22680d347fb3c8e3b0392e6a03fe73c",
-        "sha256": "e823b79f6e7138ab5a591add723300dc0faa6b8df0b66dd052fc3095bdf5fd92",
-        "md5": "14e47d615337c7ed097891d48161bba0",
+        "apoc": "4.4.0.2",
+        "version": "4.4.0.2",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "sha1": "05bd9d0ce8ca1932772ee6fbd22453a84cec2211",
+        "sha256": "9409c2e48081192ba4bc3882c35df6d1ce76cba3f3ab72a9c717f92b2b6cbf82",
+        "md5": "1d38731b953969d5423492b42cfbc528",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -758,15 +740,15 @@
     {
         "neo4j": "4.4.2",
         "neo4jVersion": "4.4.2",
-        "apoc": "4.4.0.3",
-        "version": "4.4.0.3",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "sha1": "b7b26ec7c22680d347fb3c8e3b0392e6a03fe73c",
-        "sha256": "e823b79f6e7138ab5a591add723300dc0faa6b8df0b66dd052fc3095bdf5fd92",
-        "md5": "14e47d615337c7ed097891d48161bba0",
+        "apoc": "4.4.0.2",
+        "version": "4.4.0.2",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "sha1": "05bd9d0ce8ca1932772ee6fbd22453a84cec2211",
+        "sha256": "9409c2e48081192ba4bc3882c35df6d1ce76cba3f3ab72a9c717f92b2b6cbf82",
+        "md5": "1d38731b953969d5423492b42cfbc528",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -776,15 +758,15 @@
     {
         "neo4j": "4.4.1",
         "neo4jVersion": "4.4.1",
-        "apoc": "4.4.0.3",
-        "version": "4.4.0.3",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.3",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar",
-        "sha1": "b7b26ec7c22680d347fb3c8e3b0392e6a03fe73c",
-        "sha256": "e823b79f6e7138ab5a591add723300dc0faa6b8df0b66dd052fc3095bdf5fd92",
-        "md5": "14e47d615337c7ed097891d48161bba0",
+        "apoc": "4.4.0.2",
+        "version": "4.4.0.2",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.2",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.2/apoc-4.4.0.2-all.jar",
+        "sha1": "05bd9d0ce8ca1932772ee6fbd22453a84cec2211",
+        "sha256": "9409c2e48081192ba4bc3882c35df6d1ce76cba3f3ab72a9c717f92b2b6cbf82",
+        "md5": "1d38731b953969d5423492b42cfbc528",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -866,15 +848,15 @@
     {
         "neo4j": "4.3.21",
         "neo4jVersion": "4.3.21",
-        "apoc": "4.3.0.11",
-        "version": "4.3.0.11",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "sha1": "1b98a26b201b8a6a6d365b7b773752e2e010adf0",
-        "sha256": "bdee3a8efedbd8c90addea40666c28f746dc445846e6023f7a15859dc5174160",
-        "md5": "95b2db9b9d1877aa73711f1f681ee572",
+        "apoc": "4.3.0.10",
+        "version": "4.3.0.10",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "sha1": "00628574e16fdc991479ad906038114264faec57",
+        "sha256": "9980ed1cfa156a528116396188a9e61ed41acc39a24365c2a09b64d3a82e6ef2",
+        "md5": "f8b5f6622f4d3e1ed6a30563662325d0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -884,15 +866,15 @@
     {
         "neo4j": "4.3.20",
         "neo4jVersion": "4.3.20",
-        "apoc": "4.3.0.11",
-        "version": "4.3.0.11",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "sha1": "1b98a26b201b8a6a6d365b7b773752e2e010adf0",
-        "sha256": "bdee3a8efedbd8c90addea40666c28f746dc445846e6023f7a15859dc5174160",
-        "md5": "95b2db9b9d1877aa73711f1f681ee572",
+        "apoc": "4.3.0.10",
+        "version": "4.3.0.10",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "sha1": "00628574e16fdc991479ad906038114264faec57",
+        "sha256": "9980ed1cfa156a528116396188a9e61ed41acc39a24365c2a09b64d3a82e6ef2",
+        "md5": "f8b5f6622f4d3e1ed6a30563662325d0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -902,15 +884,15 @@
     {
         "neo4j": "4.3.19",
         "neo4jVersion": "4.3.19",
-        "apoc": "4.3.0.11",
-        "version": "4.3.0.11",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.11",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.11/apoc-4.3.0.11-all.jar",
-        "sha1": "1b98a26b201b8a6a6d365b7b773752e2e010adf0",
-        "sha256": "bdee3a8efedbd8c90addea40666c28f746dc445846e6023f7a15859dc5174160",
-        "md5": "95b2db9b9d1877aa73711f1f681ee572",
+        "apoc": "4.3.0.10",
+        "version": "4.3.0.10",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.3.0.10",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.3.0.10/apoc-4.3.0.10-all.jar",
+        "sha1": "00628574e16fdc991479ad906038114264faec57",
+        "sha256": "9980ed1cfa156a528116396188a9e61ed41acc39a24365c2a09b64d3a82e6ef2",
+        "md5": "f8b5f6622f4d3e1ed6a30563662325d0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -1856,15 +1838,15 @@
     {
         "neo4j": "4.1.0",
         "neo4jVersion": "4.1.0",
-        "apoc": "4.1.0.1",
-        "version": "4.1.0.1",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.1",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.1",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.1.0.1/apoc-4.1.0.1-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.1.0.1/apoc-4.1.0.1-all.jar",
-        "sha1": "ca0d0bf6dfcf68a779a84743676ea7280e434c87",
-        "sha256": "0bf4143c061d05faa0f7dfa21475266a0a113a967408ae75641226bd3a4c1d10",
-        "md5": "4ba842e7829bcc921873000d22c2390d",
+        "apoc": "4.1.0.0",
+        "version": "4.1.0.0",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.0",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.1.0.0",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.1.0.0/apoc-4.1.0.0-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.1.0.0/apoc-4.1.0.0-all.jar",
+        "sha1": "f469d9b4dfed8815edf6af9bbcf20f6104f2a112",
+        "sha256": "3af9b48f85bdca7b8afeb67f154d06b093dee8456aa32e888931efe45a13ae75",
+        "md5": "808ce44db510a8f7c5879045a421c964",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2036,15 +2018,15 @@
     {
         "neo4j": "4.0.3",
         "neo4jVersion": "4.0.3",
-        "apoc": "4.0.0.17",
-        "version": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "sha1": "a24df5dbb469a1d3bbd9c1aab647113f071ec547",
-        "sha256": "ed388e5e7bea1842f35dccfe2d2e03db3271c59b2b6fa52ae8cfcc50fbb5e2b6",
-        "md5": "a637a134db2cf4f1751c6fe09541242a",
+        "apoc": "4.0.0.10",
+        "version": "4.0.0.10",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.10",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.10",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.10/apoc-4.0.0.10-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.10/apoc-4.0.0.10-all.jar",
+        "sha1": "9f61fcc93fc936ea9911cb35faa911cc568f9196",
+        "sha256": "3bc4f0c62f956bdae8cd52d6c388810b87b1fdee0f881565d91ae5aff4046caa",
+        "md5": "1c2c74f591a7b19d9a5a51849575d5ea",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2054,15 +2036,15 @@
     {
         "neo4j": "4.0.2",
         "neo4jVersion": "4.0.2",
-        "apoc": "4.0.0.17",
-        "version": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "sha1": "a24df5dbb469a1d3bbd9c1aab647113f071ec547",
-        "sha256": "ed388e5e7bea1842f35dccfe2d2e03db3271c59b2b6fa52ae8cfcc50fbb5e2b6",
-        "md5": "a637a134db2cf4f1751c6fe09541242a",
+        "apoc": "4.0.0.7",
+        "version": "4.0.0.7",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "sha1": "d60209dc0da8bff4de06df23bb47e824100a1d3a",
+        "sha256": "3f0adac0107aaea364c025b941766f7b77534a10274c550538b9e0128e49f9be",
+        "md5": "e3a4548d51811761b9d315c99c4486c0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2072,15 +2054,15 @@
     {
         "neo4j": "4.0.1",
         "neo4jVersion": "4.0.1",
-        "apoc": "4.0.0.17",
-        "version": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "sha1": "a24df5dbb469a1d3bbd9c1aab647113f071ec547",
-        "sha256": "ed388e5e7bea1842f35dccfe2d2e03db3271c59b2b6fa52ae8cfcc50fbb5e2b6",
-        "md5": "a637a134db2cf4f1751c6fe09541242a",
+        "apoc": "4.0.0.7",
+        "version": "4.0.0.7",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "sha1": "d60209dc0da8bff4de06df23bb47e824100a1d3a",
+        "sha256": "3f0adac0107aaea364c025b941766f7b77534a10274c550538b9e0128e49f9be",
+        "md5": "e3a4548d51811761b9d315c99c4486c0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2090,15 +2072,15 @@
     {
         "neo4j": "4.0.0",
         "neo4jVersion": "4.0.0",
-        "apoc": "4.0.0.17",
-        "version": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "sha1": "a24df5dbb469a1d3bbd9c1aab647113f071ec547",
-        "sha256": "ed388e5e7bea1842f35dccfe2d2e03db3271c59b2b6fa52ae8cfcc50fbb5e2b6",
-        "md5": "a637a134db2cf4f1751c6fe09541242a",
+        "apoc": "4.0.0.7",
+        "version": "4.0.0.7",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "sha1": "d60209dc0da8bff4de06df23bb47e824100a1d3a",
+        "sha256": "3f0adac0107aaea364c025b941766f7b77534a10274c550538b9e0128e49f9be",
+        "md5": "e3a4548d51811761b9d315c99c4486c0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2108,15 +2090,15 @@
     {
         "neo4j": "4.0.0-rc01",
         "neo4jVersion": "4.0.0-rc01",
-        "apoc": "4.0.0.17",
-        "version": "4.0.0.17",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.17",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.17/apoc-4.0.0.17-all.jar",
-        "sha1": "a24df5dbb469a1d3bbd9c1aab647113f071ec547",
-        "sha256": "ed388e5e7bea1842f35dccfe2d2e03db3271c59b2b6fa52ae8cfcc50fbb5e2b6",
-        "md5": "a637a134db2cf4f1751c6fe09541242a",
+        "apoc": "4.0.0.7",
+        "version": "4.0.0.7",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.0.0.7",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.7/apoc-4.0.0.7-all.jar",
+        "sha1": "d60209dc0da8bff4de06df23bb47e824100a1d3a",
+        "sha256": "3f0adac0107aaea364c025b941766f7b77534a10274c550538b9e0128e49f9be",
+        "md5": "e3a4548d51811761b9d315c99c4486c0",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2468,15 +2450,15 @@
     {
         "neo4j": "3.5.16",
         "neo4jVersion": "3.5.16",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2486,15 +2468,15 @@
     {
         "neo4j": "3.5.15",
         "neo4jVersion": "3.5.15",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2504,15 +2486,15 @@
     {
         "neo4j": "3.5.14",
         "neo4jVersion": "3.5.14",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2522,15 +2504,15 @@
     {
         "neo4j": "3.5.13",
         "neo4jVersion": "3.5.13",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2540,15 +2522,15 @@
     {
         "neo4j": "3.5.12",
         "neo4jVersion": "3.5.12",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2558,15 +2540,15 @@
     {
         "neo4j": "3.5.11",
         "neo4jVersion": "3.5.11",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2576,15 +2558,15 @@
     {
         "neo4j": "3.5.10",
         "neo4jVersion": "3.5.10",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2594,15 +2576,15 @@
     {
         "neo4j": "3.5.9",
         "neo4jVersion": "3.5.9",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2612,15 +2594,15 @@
     {
         "neo4j": "3.5.8",
         "neo4jVersion": "3.5.8",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2630,15 +2612,15 @@
     {
         "neo4j": "3.5.7",
         "neo4jVersion": "3.5.7",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2648,15 +2630,15 @@
     {
         "neo4j": "3.5.6",
         "neo4jVersion": "3.5.6",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2666,15 +2648,15 @@
     {
         "neo4j": "3.5.5",
         "neo4jVersion": "3.5.5",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2684,15 +2666,15 @@
     {
         "neo4j": "3.5.4",
         "neo4jVersion": "3.5.4",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2702,15 +2684,15 @@
     {
         "neo4j": "3.5.3",
         "neo4jVersion": "3.5.3",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2720,15 +2702,15 @@
     {
         "neo4j": "3.5.2",
         "neo4jVersion": "3.5.2",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2738,15 +2720,15 @@
     {
         "neo4j": "3.5.1",
         "neo4jVersion": "3.5.1",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2756,15 +2738,15 @@
     {
         "neo4j": "3.5.0",
         "neo4jVersion": "3.5.0",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2774,15 +2756,15 @@
     {
         "neo4j": "3.5.0-rc01",
         "neo4jVersion": "3.5.0-rc01",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2792,15 +2774,15 @@
     {
         "neo4j": "3.5.0-beta03",
         "neo4jVersion": "3.5.0-beta03",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2810,15 +2792,15 @@
     {
         "neo4j": "3.5.0-beta02",
         "neo4jVersion": "3.5.0-beta02",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2828,15 +2810,15 @@
     {
         "neo4j": "3.5.0-beta01",
         "neo4jVersion": "3.5.0-beta01",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2846,15 +2828,15 @@
     {
         "neo4j": "3.5.0-alpha09",
         "neo4jVersion": "3.5.0-alpha09",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2864,15 +2846,15 @@
     {
         "neo4j": "3.5.0-alpha08",
         "neo4jVersion": "3.5.0-alpha08",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2882,15 +2864,15 @@
     {
         "neo4j": "3.5.0-alpha07",
         "neo4jVersion": "3.5.0-alpha07",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2900,15 +2882,15 @@
     {
         "neo4j": "3.5.0-alpha06",
         "neo4jVersion": "3.5.0-alpha06",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2918,15 +2900,15 @@
     {
         "neo4j": "3.5.0-alpha05",
         "neo4jVersion": "3.5.0-alpha05",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2936,15 +2918,15 @@
     {
         "neo4j": "3.5.0-alpha04",
         "neo4jVersion": "3.5.0-alpha04",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2954,15 +2936,15 @@
     {
         "neo4j": "3.5.0-alpha03",
         "neo4jVersion": "3.5.0-alpha03",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2972,15 +2954,15 @@
     {
         "neo4j": "3.5.0-alpha02",
         "neo4jVersion": "3.5.0-alpha02",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
@@ -2990,15 +2972,15 @@
     {
         "neo4j": "3.5.0-alpha01",
         "neo4jVersion": "3.5.0-alpha01",
-        "apoc": "3.5.0.12",
-        "version": "3.5.0.12",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.12",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.12/apoc-3.5.0.12-all.jar",
-        "sha1": "17e32b18443d0bce70158ab98ba9dd0b1666ab35",
-        "sha256": "7c2b56fcb3027590a277653b25e256b1d06887b04e5a247a18e573513c6d4e95",
-        "md5": "d00e9f48baf6b4123989bcc4db9ff419",
+        "apoc": "3.5.0.11",
+        "version": "3.5.0.11",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.11",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.11/apoc-3.5.0.11-all.jar",
+        "sha1": "c407ed2a3488e4e1cd0d4ad29524d797360b78b7",
+        "sha256": "1074ec1fe21f64b24daaedd8862fe4a9b1a9da17a99b52876c4d3cb8f9e18fb0",
+        "md5": "fdea41fae4f1404623811189478bd083",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
