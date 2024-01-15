@@ -12,15 +12,17 @@ As `apoc.import.file.use_neo4j_config` is enabled, the procedures check whether 
 reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively.
 If you want to remove these constraints please set `apoc.import.file.use_neo4j_config=false`
 
-[cols="5m,5"]
+[options="header",cols="5m,5"]
 |===
+| Procedure | Description
 | CALL apoc.load.json('http://example.com/map.json', [path], [config]) YIELD value as person | load JSON from URL
 | CALL apoc.load.xml('http://example.com/test.xml', ['xPath'], [config]) YIELD value as doc  | load XML from URL
 | CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap            | load CSV fom URL
 | CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',\{config}) YIELD lineNo, list, map          | load XLS fom URL
 |===
 
-Adding `failOnError:false` (by default `true`) to the config map when using any of the procedures in the above table will make them not fail in case of an error and just return zero rows. Example:
+Adding `failOnError:false` (by default `true`) to the config map when using any of the procedures in the above table will make them not fail in case of an error.
+The procedure will instead return zero rows. For example:
 
 ----
 CALL apoc.load.json('http://example.com/test.json', null, {failOnError:false})
@@ -91,11 +93,11 @@ Google Cloud Storage urls have the following shape:
 
 `gs://<bucket_name>/<file_path>`
 
-The authorization type can be specified via an additional `authenticationType` query parameter:
+The authorization type can be specified by an additional `authenticationType` query parameter:
 
 * `NONE`: for public buckets (this is the default behavior if the parameter is not specified)
 * `GCP_ENVIRONMENT`: for passive authentication as a service account when Neo4j is running in the Google Cloud
-* `PRIVATE_KEY`: for using private keys generated for service accounts (requires setting `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a private key json file as described here: https://cloud.google.com/docs/authentication#strategies)
+* `PRIVATE_KEY`: for using private keys generated for service accounts (requires setting `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a private key JSON file as described by https://cloud.google.com/docs/authentication#strategies[the official Google documentation].)
 
 Example:
 
