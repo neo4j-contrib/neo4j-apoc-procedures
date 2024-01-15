@@ -1,11 +1,13 @@
 package apoc.ml.bedrock;
 
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -20,6 +22,7 @@ import static apoc.ml.bedrock.BedrockConfig.METHOD_KEY;
 import static apoc.ml.bedrock.BedrockConfig.SECRET_KEY;
 import static apoc.ml.bedrock.BedrockGetModelsConfig.*;
 import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
+import static apoc.ml.bedrock.BedrockInvokeConfig.OPEN_AI_COMPATIBLE;
 import static apoc.ml.bedrock.BedrockTestUtil.*;
 import static apoc.ml.bedrock.BedrockUtil.*;
 import static apoc.util.TestUtil.testCall;
@@ -46,8 +49,8 @@ public class BedrockIT {
         
         keyId = System.getenv(keyIdEnv);
         secretKey = System.getenv(secretKeyEnv);
-        assumeNotNull(keyIdEnv + "environment not configured", keyId);
-        assumeNotNull(secretKeyEnv + " environment configured", secretKey);
+        assumeNotNull(keyIdEnv + " environment not configured", keyId);
+        assumeNotNull(secretKeyEnv + "  environment configured", secretKey);
         
         TestUtil.registerProcedure(db, Bedrock.class);
     }
@@ -120,7 +123,7 @@ public class BedrockIT {
     @Test
     public void testCustomWithAnthropicClaude() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", ANTHROPIC_CLAUDE_BODY,
+                Map.of("body", ANTHROPIC_CLAUDE_CUSTOM_BODY,
                         "conf", Map.of(MODEL, "anthropic.claude-v1")
                 ),
         r -> {
@@ -198,15 +201,34 @@ public class BedrockIT {
     }
 
     @Test
-    public void testChatCompletion() {
+    public void testChatCompletionWithOpenAICompatibleTrue() {
+        testResult(db, """
+                        CALL apoc.ml.bedrock.chat([
+                            {role:"system", content:"Only answer with a single word"}
+                            ,{role:"user", content:"What planet do humans live on?"}
+                        ], $conf)""",
+                Map.of("conf", Map.of(OPEN_AI_COMPATIBLE, true)),
+                this::chatCompletionAssertions);
+    }
+
+    @Test
+    public void testChatCompletionWithOpenAICompatibleFalse() {
+        List<Map<String, String>> body = List.of(
+                Map.of("prompt", "\n\nHuman: Hello world\n\nAssistant:"),
+                Map.of("prompt", "\n\nHuman: Ciao mondo\n\nAssistant:")
+        );
         testResult(db, "CALL apoc.ml.bedrock.chat($body)",
-                Map.of("body", List.of(ANTHROPIC_CLAUDE_BODY, ANTHROPIC_CLAUDE_BODY)),
-                r -> {
-            r.<Map<String,Object>>columnAs("value").forEachRemaining(row -> {
-                        assertNotNull(row.get("completion"));
-                        assertNotNull(row.get("stop_reason"));
-                    });
-                });
+                Map.of("body", body),
+                this::chatCompletionAssertions);
+    }
+
+    private void chatCompletionAssertions(Result r) {
+        List<Map<String, Object>> values = Iterators.asList(r.columnAs("value"));
+        assertEquals(2, values.size());
+        values.forEach(row -> {
+            assertNotNull(row.get("completion"));
+            assertNotNull(row.get("stop_reason"));
+        });
     }
 
     @Test
@@ -241,7 +263,7 @@ public class BedrockIT {
                     r -> fail());
         } catch (Exception e) {
             String message = e.getMessage();
-            assertTrue("curr message is: " + message, message.contains("java.net.UnknownHostException"));
+            assertTrue("curr message is: " + message, message.contains("Unable to verify access to bedrock-runtime.notExistent.amazonaws.com"));
         }
     }
     
