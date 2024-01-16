@@ -1,0 +1,12 @@
+= apoc.diff
+:description: This section contains reference documentation for the apoc.get procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
+
+Returns a Map detailing the property differences between the two given relationships
+|label:function[]
+|===
+
