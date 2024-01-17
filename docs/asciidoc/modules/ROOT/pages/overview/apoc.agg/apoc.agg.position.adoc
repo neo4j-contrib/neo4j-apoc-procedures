@@ -1,0 +1,46 @@
+= apoc.agg.position
+:description: This section contains reference documentation for the apoc.agg.position function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.agg.position(element, value) - Returns index of the `element` that match the given `value`
+
+== Signature
+
+[source]
+----
+apoc.agg.position(value :: ANY, element :: ANY) :: LONG
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|value|ANY|null
+|element|ANY|null
+|===
+
+== Usage Examples
+
+Given the following dataset:
+[source,cypher]
+----
+UNWIND range(0,20) AS id CREATE (:Person {id: 'index' + id})
+----
+
+we can execute:
+
+[source,cypher]
+----
+MATCH (n:Person) RETURN apoc.agg.position(n.id, 'index10') AS row
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| row
+| 10
+|===
+
+
