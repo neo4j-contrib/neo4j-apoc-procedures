@@ -1,10 +1,10 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import apoc.util.Util;
 
 import java.util.Map;
 
-public class BedrockInvokeConfig extends BedrockConfig {
+public class BedrockInvokeConfig extends AWSConfig {
     public static final String MODEL = "model";
     public static final String OPEN_AI_COMPATIBLE = "openAICompatible";
 

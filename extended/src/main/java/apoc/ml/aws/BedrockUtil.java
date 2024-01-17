@@ -1,4 +1,4 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 
 public class BedrockUtil {

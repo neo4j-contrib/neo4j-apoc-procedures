@@ -1,4 +1,4 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import java.util.List;
 import java.util.Map;
