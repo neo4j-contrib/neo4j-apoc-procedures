@@ -1,4 +1,4 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -18,7 +18,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AwsSignatureV4Generator {
 
-    public static final String AWS_SERVICE_NAME = "bedrock";
     public static final String AUTHORIZATION_KEY = "Authorization";
 
     /**
@@ -26,13 +25,14 @@ public class AwsSignatureV4Generator {
      * <p>
      * Following steps outlined here: <a href="https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html">docs.aws.amazon.com</a>
      * <p>
-     * @param conf - The {@link BedrockConfig config}
+     * @param conf - The {@link AWSConfig config}
      * @param bodyString - The HTTP body
      */
     public static void calculateAuthorizationHeaders(
-            BedrockConfig conf,
+            AWSConfig conf,
             String bodyString,
-            Map<String, Object> headers
+            Map<String, Object> headers,
+            String awsServiceName
     ) throws MalformedURLException {
         
         // skip if "Authorization" has already been valued
@@ -57,9 +57,9 @@ public class AwsSignatureV4Generator {
 
         Pair<String, String> pairSignedHeaderAndCanonicalHash = createCanonicalRequest(conf.getMethod(), headers, path, query, bodySha256);
 
-        Pair<String, String> pairCredentialAndStringSign = createStringToSign(conf.getRegion(), isoDateTime, isoDateOnly, pairSignedHeaderAndCanonicalHash);
+        Pair<String, String> pairCredentialAndStringSign = createStringToSign(conf.getRegion(), isoDateTime, isoDateOnly, pairSignedHeaderAndCanonicalHash, awsServiceName);
 
-        String signature = calculateSignature(conf.getSecretKey(), conf.getRegion(), isoDateOnly, pairCredentialAndStringSign.getRight());
+        String signature = calculateSignature(conf.getSecretKey(), conf.getRegion(), isoDateOnly, pairCredentialAndStringSign.getRight(), awsServiceName);
 
         createAuthorizationHeader(conf, headers, pairSignedHeaderAndCanonicalHash, pairCredentialAndStringSign, signature);
     }
@@ -71,7 +71,7 @@ public class AwsSignatureV4Generator {
         return bodyString.getBytes();
     }
 
-    private static void createAuthorizationHeader(BedrockConfig conf, Map<String, Object> headers, Pair<String, String> pairSignedHeaderAndCanonicalHash, Pair<String, String> pairCredentialAndStringSign, String signature) {
+    private static void createAuthorizationHeader(AWSConfig conf, Map<String, Object> headers, Pair<String, String> pairSignedHeaderAndCanonicalHash, Pair<String, String> pairCredentialAndStringSign, String signature) {
         String authStringParameter = "AWS4-HMAC-SHA256 Credential=" + conf.getKeyId() + "/" + pairCredentialAndStringSign.getLeft()
                                      + ", SignedHeaders=" + pairSignedHeaderAndCanonicalHash.getLeft()
                                      + ", Signature=" + signature;
@@ -82,11 +82,11 @@ public class AwsSignatureV4Generator {
     /**
      * Based on <a href="https://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html">sigv4-create-string-to-sign</a>
      */
-    private static Pair<String, String> createStringToSign(String awsRegion, String isoDateTime, String isoJustDate, Pair<String, String> pairSignedHeaderCanonicalHash) {
+    private static Pair<String, String> createStringToSign(String awsRegion, String isoDateTime, String isoJustDate, Pair<String, String> pairSignedHeaderCanonicalHash, String awsServiceName) {
         List<String> stringToSignLines = new ArrayList<>();
         stringToSignLines.add("AWS4-HMAC-SHA256");
         stringToSignLines.add(isoDateTime);
-        String credentialScope = isoJustDate + "/" + awsRegion + "/" + AWS_SERVICE_NAME + "/aws4_request";
+        String credentialScope = isoJustDate + "/" + awsRegion + "/" + awsServiceName + "/aws4_request";
         stringToSignLines.add(credentialScope);
         stringToSignLines.add(pairSignedHeaderCanonicalHash.getRight());
         String stringToSign = String.join("\n", stringToSignLines);
@@ -119,10 +119,10 @@ public class AwsSignatureV4Generator {
     /**
      * Based on <a href="https://docs.aws.amazon.com/general/latest/gr/sigv4-calculate-signature.html">sigv4-calculate-signature</a>
      */
-    private static String calculateSignature(String awsSecret, String awsRegion, String isoJustDate, String stringToSign) {
+    private static String calculateSignature(String awsSecret, String awsRegion, String isoJustDate, String stringToSign, String awsServiceName) {
         byte[] kDate = toHmac(("AWS4" + awsSecret).getBytes(StandardCharsets.UTF_8), isoJustDate);
         byte[] kRegion = toHmac(kDate, awsRegion);
-        byte[] kService = toHmac(kRegion, AWS_SERVICE_NAME);
+        byte[] kService = toHmac(kRegion, awsServiceName);
         byte[] kSigning = toHmac(kService, "aws4_request");
         return hex(toHmac(kSigning, stringToSign));
     }
