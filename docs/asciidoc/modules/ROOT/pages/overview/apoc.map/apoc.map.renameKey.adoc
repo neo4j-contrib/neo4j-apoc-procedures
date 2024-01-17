@@ -1,0 +1,129 @@
+
+= apoc.map.renameKey
+:description: This section contains reference documentation for the apoc.map.renameKey procedure.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+Rename the given key(s) in the `MAP`.
+
+== Signature
+
+[source]
+----
+apoc.metrics.get(map :: MAP?, keyFrom :: STRING?, keyTo :: STRING?, config = {} :: MAP?) :: MAP?
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|map|MAP?|null
+|keyFrom|STRING?|null
+|keyTo|STRING?|null
+|config|MAP?|{}
+|===
+
+== Configuration parameters
+
+.Config parameters
+[opts=header, cols="1,1,1,4"]
+|===
+| name | type | default | description
+| recursive | boolean | true | searches for keys to rename even within submaps or sublists of maps
+|===
+
+[[usage-apoc.metrics.get]]
+== Usage Examples
+
+
+.apoc.map.renameKey (default config)
+[source,cypher]
+----
+WITH {
+    old_key: [1, "test", {old_key: "some_value"}],
+    otherKey: [1, ["test", {old_key: "some_value"}]],
+    name: {old_key: "some_value"},
+    other: "key"
+ } AS map
+RETURN apoc.map.renameKey(map, "old_key", "new_key") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "new_key": [
+    1,
+    "test",
+    {
+      "new_key": "some_value"
+    }
+  ],
+  "other": "key",
+  "otherKey": [
+    1,
+    [
+      "test",
+      {
+        "new_key": "some_value"
+      }
+    ]
+  ],
+  "name": {
+    "new_key": "some_value"
+  }
+}
+----
+|===
+
+
+
+.apoc.map.renameKey (with config `recursive: false`)
+[source,cypher]
+----
+WITH {
+    old_key: [1, "test", {old_key: "some_value"}],
+    otherKey: [1, ["test", {old_key: "some_value"}]],
+    name: {old_key: "some_value"},
+    other: "key"
+ } AS map
+RETURN apoc.map.renameKey(map, "old_key", "new_key", {recursive: false}) as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "new_key": [
+    1,
+    "test",
+    {
+      "old_key": "some_value"
+    }
+  ],
+  "other": "key",
+  "otherKey": [
+    1,
+    [
+      "test",
+      {
+        "old_key": "some_value"
+      }
+    ]
+  ],
+  "name": {
+    "old_key": "some_value"
+  }
+}
+----
+|===
+

@@ -1,0 +1,11 @@
+= apoc.map
+:description: This section contains reference documentation for the apoc.map procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.map/apoc.map.renameKey.adoc[apoc.map.renameKey icon:book[]]
+
+Rename the given key(s) in the `MAP`.
+|label:function[]
+|===
