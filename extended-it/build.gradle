@@ -13,9 +13,6 @@ test {
     maxParallelForks = 1
 }
 
-//compileTestJava.dependsOn tasks.getByPath(':extended')
-
-
 dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
@@ -31,17 +28,9 @@ dependencies {
     }
 
     implementation project(":extended")
-//    testImplementation(project(":extended", "test"))
 
-//    implementation project(':common')
-//    compileOnly project(":common")
-//    compileOnly project(':test-utils')
-//    api project(':test-utils')
-//    compileOnly project(":extended")
-//    testImplementation project(":extended")
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
-    
 
     testImplementation project(':core')
     testImplementation project(':test-utils')
@@ -50,23 +39,7 @@ dependencies {
     testImplementation project(':core').sourceSets.test.output
     compileOnly project(':extended').sourceSets.main.allJava
     testImplementation project(':extended').sourceSets.test.output
-// https://stackoverflow.com/questions/5644011/multi-project-test-dependencies-with-gradle
-//    testImplementation(testFixtures(project(":extended")))
-
     testImplementation files(project(':extended').sourceSets.test.output)
-//    testImplementation project(path: ':extended', configuration: 'unitTestArtifact')
-
-//    testImplementation files(project(':extended').sourceSets.test.output.classesDir)
-
-
-//    api group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'elasticsearch', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'couchbase', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
-//    api group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
     
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
@@ -87,23 +60,3 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
-
-//plugins {
-//    id 'java'
-//}
-//
-//group 'org.neo4j.procedure'
-//version '5.14.0'
-//
-//repositories {
-//    mavenCentral()
-//}
-//
-//dependencies {
-//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-//}
-//
-//test {
-//    useJUnitPlatform()
-//}
