@@ -2,13 +2,12 @@ rootProject.name = 'apoc'
 
 include("extended")
 include ("extended-it")
-include ':core', ':common', ':processor', ':test-utils'//, ':extended-it'
+include ':core', ':common', ':processor', ':test-utils'
 project(':core').projectDir = new File(rootDir, 'apoc-core/core')
 project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
 
-// TODO - MAYBE EXCLUDE FOR TEAMCITY?
 startParameter.excludedTaskNames = [
         ':core:build',
         ':common:build',
@@ -18,13 +17,11 @@ startParameter.excludedTaskNames = [
         ':common:test',
         ':processor:test',
         ':test-utils:test',
-        //':core:publish',
-        //':common:publish',
-        //':test-utils:publish',
+        ':core:publish',
+        ':common:publish',
+        ':test-utils:publish',
         // the :core:shadowJar should be used only for integration tests with both core and extended jars
         // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
         // not when a `gradle shadow` or a `gradle build` is executed in this root project folder
-//        ':core:shadowJar'
+        ':core:shadowJar'
 ]
-
-
