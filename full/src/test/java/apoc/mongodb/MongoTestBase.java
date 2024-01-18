@@ -1,51 +1,9 @@
-/*
- * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package apoc.mongodb;
 
-import static apoc.util.MapUtil.map;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import apoc.util.JsonUtil;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import java.text.ParseException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
@@ -66,13 +24,49 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
 
+import java.text.ParseException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static apoc.util.MapUtil.map;
+import static java.net.HttpURLConnection.HTTP_OK;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 public class MongoTestBase {
+    enum MongoVersion {
+        FOUR("mongo:4", "mongo"),
+        LATEST("mongo:7.0.4", "mongosh");
+
+        public final String dockerImg;
+        public final String shell;
+
+        MongoVersion(String dockerImg, String shell) {
+            this.dockerImg = dockerImg;
+            this.shell = shell;
+        }
+    }
+    
     private long numConnections = -1;
 
     protected static final int MONGO_DEFAULT_PORT = 27017;
     protected static final long NUM_OF_RECORDS = 10_000L;
-    protected static final Set<String> SET_OBJECT_ID_MAP =
-            Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond");
+    protected static final Set<String> SET_OBJECT_ID_MAP = Set.of("date", "timestamp");
 
     protected static String[] commands;
 
@@ -111,8 +105,8 @@ public class MongoTestBase {
         assertEquals(numConnections, numConnectionsAfter);
     }
 
-    public static void createContainer(boolean withAuth) {
-        mongo = new GenericContainer("mongo:4")
+    public static void createContainer(boolean withAuth, MongoVersion mongoVersion) {
+        mongo = new GenericContainer(mongoVersion.dockerImg)
                 .withNetworkAliases("mongo-" + Base58.randomString(6))
                 .withExposedPorts(MONGO_DEFAULT_PORT)
                 .waitingFor(new HttpWaitStrategy()
@@ -121,13 +115,12 @@ public class MongoTestBase {
                         .withStartupTimeout(Duration.ofMinutes(2)));
 
         if (withAuth) {
-            mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin").withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass");
+            mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin")
+                .withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass");
 
-            commands =
-                    new String[] {"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"
-                    };
+            commands = new String[]{mongoVersion.shell, "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"};
         } else {
-            commands = new String[] {"mongo", "test", "--eval", "db.serverStatus().connections"};
+            commands = new String[]{mongoVersion.shell, "test", "--eval", "db.serverStatus().connections"};
         }
         mongo.start();
     }
@@ -140,34 +133,30 @@ public class MongoTestBase {
         testCollection.deleteMany(new Document());
         productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
-                .forEach(i -> testCollection.insertOne(new Document(
-                        map("name", "testDocument", "date", currentTime, "longValue", longValue, "nullField", null))));
-        productCollection.insertOne(new Document(map(
-                "name", "My Awesome Product", "price", 800, "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
-        productCollection.insertOne(new Document(map(
-                "name",
-                "My Awesome Product 2",
-                "price",
-                1200,
-                "tags",
-                Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
+                .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
+                        "date", currentTime, "longValue", longValue, "nullField", null))));
+        productCollection.insertOne(new Document(map("name", "My Awesome Product",
+                "price", 800,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
+        productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
+                "price", 1200,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
         productReferences = StreamSupport.stream(productCollection.find().spliterator(), false)
                 .map(doc -> (ObjectId) doc.get("_id"))
                 .collect(Collectors.toList());
         boughtListObjectIds = productReferences.stream().map(ObjectId::toString).collect(Collectors.toList());
 
-        personCollection.insertOne(new Document(map(
-                "name",
-                "Andrea Santurbano",
-                "bought",
-                productReferences,
-                "born",
-                DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
-                "coordinates",
-                Arrays.asList(12.345, 67.890))));
-        personCollection.insertOne(new Document(map("name", nameAsObjectId, "age", 40, "bought", productReferences)));
-        personCollection.insertOne(
-                new Document(map("_id", idAsObjectId, "name", "Sherlock", "age", 25, "bought", productReferences)));
+        personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
+                "bought", productReferences,
+                "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
+                "coordinates", Arrays.asList(12.345, 67.890))));
+        personCollection.insertOne(new Document(map("name", nameAsObjectId,
+                "age", 40,
+                "bought", productReferences)));
+        personCollection.insertOne(new Document(map("_id", idAsObjectId,
+                "name", "Sherlock",
+                "age", 25,
+                "bought", productReferences)));
     }
 
     /**
@@ -175,17 +164,13 @@ public class MongoTestBase {
      * by invoking:
      *  $ mongo [dbName] --eval db.serverStatus().connections
      * into the container
-     * @return A Map<String, Long> with three fields three fields {current, available, totalCreated}
+     * @return A Map<String, Long> with three fields {current, available, totalCreated}
      */
-    public static Map<String, Object> getNumConnections(GenericContainer mongo, String... commands) {
+    public static Map<String, Object> getNumConnections(GenericContainer mongo, String ...commands) {
         try {
             Container.ExecResult execResult = mongo.execInContainer(commands);
-            assertTrue(
-                    "stderr is empty",
-                    execResult.getStderr() == null || execResult.getStderr().isEmpty());
-            assertTrue(
-                    "stdout is not empty",
-                    execResult.getStdout() != null && !execResult.getStdout().isEmpty());
+            assertTrue("stderr is empty", execResult.getStderr() == null || execResult.getStderr().isEmpty());
+            assertTrue("stdout is not empty", execResult.getStdout() != null && !execResult.getStdout().isEmpty());
 
             List<String> lists = Stream.of(execResult.getStdout().split("\n"))
                     .filter(StringUtils::isNotBlank)
@@ -249,16 +234,15 @@ public class MongoTestBase {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
 
         Map<String, List<Node>> nodeMap = nodes.stream()
-                .collect(Collectors.groupingBy(
-                        e -> e.getLabels().iterator().next().name()));
+                .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
         List<Node> persons = nodeMap.get("Person");
         assertEquals(1, persons.size());
         List<Node> products = nodeMap.get("Product");
         assertEquals(2, products.size());
 
         Node person = persons.get(0);
-        Map<String, Object> personMap = map(
-                "name", "Andrea Santurbano", "born", LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
+        Map<String, Object> personMap = map("name", "Andrea Santurbano",
+                "born", LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
         assertEquals(personMap, person.getProperties("name", "born"));
         assertTrue(Arrays.equals(new double[] {12.345, 67.890}, (double[]) person.getProperty("coordinates")));
         assertEquals(Arrays.asList(Label.label("Person"), Label.label("Customer")), person.getLabels());
@@ -266,13 +250,13 @@ public class MongoTestBase {
         Node product1 = products.get(0);
         Map<String, Object> product1Map = map("name", "My Awesome Product", "price", 800L);
         assertEquals(product1Map, product1.getProperties("name", "price"));
-        assertArrayEquals(new String[] {"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
+        assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
         assertEquals(Arrays.asList(Label.label("Product")), product1.getLabels());
 
         Node product2 = products.get(1);
         Map<String, Object> product2Map = map("name", "My Awesome Product 2", "price", 1200L);
         assertEquals(product2Map, product2.getProperties("name", "price"));
-        assertArrayEquals(new String[] {"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
+        assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
         assertEquals(Arrays.asList(Label.label("Product")), product2.getLabels());
 
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
@@ -286,6 +270,5 @@ public class MongoTestBase {
         assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
         assertEquals(person, rel2.getStartNode());
         assertEquals(product2, rel2.getEndNode());
-        assertFalse(r.hasNext());
     }
 }

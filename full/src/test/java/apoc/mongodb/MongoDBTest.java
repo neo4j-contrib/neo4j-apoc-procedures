@@ -29,6 +29,15 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import org.bson.types.ObjectId;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -49,17 +58,18 @@ import org.junit.rules.ExpectedException;
  * @since 30.06.16
  */
 public class MongoDBTest extends MongoTestBase {
-    private static Map<String, Object> params;
 
     private static String HOST = null;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        createContainer(false);
-        MongoClient mongoClient =
-                new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
+        beforeClassCommon(MongoVersion.LATEST);
+    }
+
+    static void beforeClassCommon(MongoVersion mongoVersion) throws ParseException {
+        createContainer(false, mongoVersion);
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
-        params = map("host", HOST, "db", "test", "collection", "test");
+        MongoClient mongoClient = MongoClients.create(HOST);
 
         fillDb(mongoClient);
 
@@ -152,13 +162,9 @@ public class MongoDBTest extends MongoTestBase {
                     assertEquals(
                             Set.of(
                                     "date",
-                                    "machineIdentifier",
-                                    "processIdentifier",
-                                    "counter",
-                                    "time",
-                                    "timestamp",
-                                    "timeSecond"),
-                            ((Map<String, Object>) doc.get("_id")).keySet());
+                                    "timestamp"),
+                            ((Map<String, Object>) doc.get("_id")).keySet()
+                    );
                     assertEquals("Sherlock", doc.get("name"));
                     assertEquals(25L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
@@ -180,12 +186,7 @@ public class MongoDBTest extends MongoTestBase {
                     assertEquals(
                             Set.of(
                                     "date",
-                                    "machineIdentifier",
-                                    "processIdentifier",
-                                    "counter",
-                                    "time",
-                                    "timestamp",
-                                    "timeSecond"),
+                                    "timestamp"),
                             ((Map<String, Object>) doc.get("_id")).keySet());
                     assertEquals(40L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
