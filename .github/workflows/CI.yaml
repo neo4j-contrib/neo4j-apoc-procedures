@@ -100,7 +100,7 @@ jobs:
           docker load --input ${ENTERPRISE_TAR}
           docker load --input ${COMMUNITY_TAR}
 
-      # todo ---> > Task :core:compileJava is done.. Maybe we can skip it..
+      # todo: Task :core:compileJava is done.. Maybe we can skip it..
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
         with:
