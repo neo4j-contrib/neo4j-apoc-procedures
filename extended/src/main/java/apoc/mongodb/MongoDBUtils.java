@@ -19,9 +19,23 @@ public class MongoDBUtils {
         if (query == null) {
             return new Document();
         }
-        return Document.parse(query instanceof String
+        String json = query instanceof String
                 ? (String) query
-                : JsonUtil.writeValueAsString(query));
+                : JsonUtil.writeValueAsString(query);
+        
+        json = adaptLegacyDocuments(json);
+        
+        Document document = Document.parse(json);
+        
+        return document;
+    }
+
+    /**
+     * In case someone use an old notation, e.g. {`$binary`: $bytes, `$subType`: '00'}
+     */
+    private static String adaptLegacyDocuments(String json) {
+        return json.replace("'$subType'", "'$type'")
+                .replace("\"$subType\"", "\"$type\"");
     }
 
     protected static List<Document> getDocuments(List<Map<String, Object>> pipeline) {
