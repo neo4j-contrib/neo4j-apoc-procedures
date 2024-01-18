@@ -3,10 +3,10 @@ package apoc.mongodb;
 import apoc.util.Util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.MongoCommandException;
+import com.mongodb.ConnectionString;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
@@ -56,8 +56,7 @@ class MongoDBColl implements MongoDbCollInterface {
     public static final String ERROR_MESSAGE = "The connection string must have %s name";
 
     private MongoDBColl(String url, String db, String coll) {
-        MongoClientURI connectionString = new MongoClientURI(url);
-        mongoClient = new MongoClient(connectionString);
+        mongoClient = MongoClients.create(url);
         database = mongoClient.getDatabase(db);
         collection = database.getCollection(coll);
     }
@@ -78,13 +77,12 @@ class MongoDBColl implements MongoDbCollInterface {
     /**
      *
      * @param uri the string Uri to convert in connectionString
-     * @see MongoClientURI
      * @param conf the configuration
      * @see MongoDbConfig
      */
     public MongoDBColl(String uri, MongoDbConfig conf) {
 
-        MongoClientURI connectionString = new MongoClientURI(uri);
+        ConnectionString connectionString = new ConnectionString(uri);
 
         if (connectionString.getDatabase() == null) {
             throw new RuntimeException(format(ERROR_MESSAGE, "db"));
@@ -102,13 +100,13 @@ class MongoDBColl implements MongoDbCollInterface {
             collectionName = collectionFromUri;
         }
 
-        mongoClient = new MongoClient(connectionString);
+        mongoClient = MongoClients.create(connectionString);
         database = mongoClient.getDatabase(connectionString.getDatabase());
 
         try {
             // check if correctly authenticated
             database.runCommand(new Document("listCollections", 1));
-        } catch (MongoCommandException e) {
+        } catch (Exception e) {
             mongoClient.close();
             throw new RuntimeException(e);
         }
@@ -247,12 +245,12 @@ class MongoDBColl implements MongoDbCollInterface {
 
     @Override
     public long count(Map<String, Object> query) {
-        return query == null ? collection.count() : collection.count(new Document(query));
+        return query == null ? collection.countDocuments() : collection.countDocuments(new Document(query));
     }
 
     @Override
     public long count(Document query) {
-        return collection.count(query);
+        return collection.countDocuments(query);
     }
 
     @Override
