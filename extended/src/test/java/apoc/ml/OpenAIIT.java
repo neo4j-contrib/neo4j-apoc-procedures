@@ -41,7 +41,7 @@ public class OpenAIIT {
     public void completion() {
         testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
                 Map.of("apiKey", openaiKey),
-                (row) -> assertCompletion(row, "text-davinci-003"));
+                (row) -> assertCompletion(row, "gpt-3.5-turbo-instruct"));
     }
 
     @Test
