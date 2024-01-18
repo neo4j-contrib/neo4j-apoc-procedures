@@ -25,8 +25,11 @@ import static org.junit.Assert.assertFalse;
 import apoc.Extended;
 import apoc.util.TestUtil;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -77,42 +80,36 @@ public class HelpExtendedTest {
     }
 
     @Test
-    public void indicateNotCore() throws IOException {
-        File extendedFile = new File("src/main/resources/extended.txt");
-        FileOutputStream fos = new FileOutputStream(extendedFile);
-
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos))) {
-            db.executeTransactionally(
-                    "CALL dbms.procedures() YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name",
-                    Collections.emptyMap(),
-                    result -> {
-                        result.stream().forEach(record -> {
-                            try {
-                                bw.write(record.get("name").toString());
-                                bw.newLine();
-                            } catch (IOException ignored) {
-                            }
-                        });
-                        return null;
-                    });
-
-            db.executeTransactionally(
-                    "CALL dbms.functions() YIELD name WHERE name STARTS WITH 'apoc'  AND name <> 'apoc.help' RETURN name",
-                    Collections.emptyMap(),
-                    result -> {
-                        result.stream().forEach(record -> {
-                            try {
-                                bw.write(record.get("name").toString());
-                                bw.newLine();
-                            } catch (IOException ignored) {
-                            }
-                        });
-                        return null;
-                    });
-        }
+    public void indicateNotCore() {
+        List<String> expected = listHelpExtendedProcsAndFuncs();
+        List<String> actual = listCypherCommandsProcsAndFuncs();
+        assertEquals(expected, actual);
 
         TestUtil.testCall(db, "CALL apoc.help($text)", map("text", "rock_n_roll_while"), (row) -> {
             assertEquals(false, row.get("core"));
         });
+    }
+
+    private List<String> listHelpExtendedProcsAndFuncs() {
+        String query = "CALL apoc.help('') YIELD name, core WHERE core = false RETURN name";
+        List<String> helpExtendedProcedures = getNames(query);
+        Collections.sort(helpExtendedProcedures);
+        return helpExtendedProcedures;
+    }
+
+    private List<String> listCypherCommandsProcsAndFuncs() {
+        String commonReturnStatement = " YIELD name WHERE name STARTS WITH 'apoc' AND name <> 'apoc.help' RETURN name";
+        List<String> procsAndFuncs = getNames("SHOW FUNCTIONS" + commonReturnStatement);
+        List<String> procedures = getNames("SHOW PROCEDURES" + commonReturnStatement);
+
+        procsAndFuncs.addAll(procedures);
+        Collections.sort(procsAndFuncs);
+        return procsAndFuncs;
+    }
+
+    private List<String> getNames(String query) {
+        return db.executeTransactionally(
+                query, Collections.emptyMap(), result -> result.<String>columnAs("name").stream()
+                        .collect(Collectors.toCollection(ArrayList::new)));
     }
 }
