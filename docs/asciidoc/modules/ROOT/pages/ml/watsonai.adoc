@@ -1,12 +1,12 @@
-[[watson-api]]
-= watson API Access
-:description: This section describes procedures that can be used to access the watson API.
+[[Watson-api]]
+= Watson API Access
+:description: This section describes procedures that can be used to access the Watson API.
 
-NOTE: You need to acquire an https://cloud.ibm.com/apidocs/watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.
+NOTE: You need to acquire an https://cloud.ibm.com/apidocs/Watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.
 This token must be defined in the second parameter
 
 
-Each procedure can have the following APOC config, i.e. in `apoc.conf` or via docker env variable
+Each procedure can have the following APOC config parameters, i.e. in `apoc.conf` or via docker env variable
 
 .Apoc configuration
 |===
@@ -71,7 +71,7 @@ The following procedure will create, without any config, the following API reque
 .Text Completion Call
 [source,cypher]
 ----
-CALL apoc.ml.watson.completion('What color is the sky? Answer in one word: ', '<apiKey>', {config})
+CALL apoc.ml.watson.completion('What color is the sky? Answer in one word: ', '<apiKey>', {})
 ----
 
 
@@ -143,3 +143,9 @@ With a result like this:
 |===
 
 
+== Generate Embeddings API
+
+Watson does not have built-in embedding APIs, 
+so if we want to use embeddings, we have to use one of the other Apoc ML integrations,
+such as xref::ml/openai.adoc[apoc.ml.openai.embeddings] or xref::ml/vertexai.adoc[apoc.ml.vertexai.embeddings], 
+or https://huggingface.co/docs/hub/sentence-transformers[HuggingFace embeddings as sentence transformers].
