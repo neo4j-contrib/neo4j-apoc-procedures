@@ -1,0 +1,166 @@
+[[aws-sagemaker]]
+= AWS SageMaker procedures
+
+
+These procedures leverage the https://aws.amazon.com/sagemaker/[Amazon SageMaker API].
+
+
+Here is a list of all available Aws SageMaker procedures:
+
+[opts=header, cols="1, 4", separator="|"]
+|===
+|name| description
+|apoc.ml.sagemaker.custom(body, $config)| To create a customizable SageMaker API call
+|apoc.ml.sagemaker.embedding(texts, $config)| To create an API call to generate embedding
+|apoc.ml.sagemaker.chat(messages, $config)| To create a Chat Completion API call
+|apoc.ml.sagemaker.completion(prompt, $config)| To create a Text Completion API call
+|===
+
+All the procedures, leverage the `apoc.ml.sagemaker.custom` procedures,
+and support the same config parameter, but unlike the `custom` one,
+they have some different default parameters and endpoint name. 
+
+Moreover, the return data is consistent with the called API, 
+instead of returning a generic `Object` as a result
+
+
+== Config 
+
+.Config parameters
+[opts=header, cols="1,1,2,5"]
+|===
+| name | type | default | description
+| keyId | String | null | The AWS key ID. We can also evaluate it via `apoc.conf`, with the key `apoc.aws.key.id`. As an alternative to the pair keyId-secretKey, we can directly pass the https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html[aws V4 signature] via the `headers` config
+| secretKey | String | null | The AWS secret access key. We can also evaluate it via `apoc.conf`, with the key `apoc.aws.secret.id`. As an alternative to the pair keyId-secretKey, we can directly pass the https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html[aws V4 signature] via the `headers` config
+| region | String | us-east-1 | The AWS region
+| endpoint | String | see below | The AWS endpoint.
+| method | String | `"POST"` | The HTTP Method
+| headers | Map<String, Object> | `{Content-Type: application/json', Accept, '\*/*'}` | The HTTP Header
+| endpointName | String | see below | The SageMaker Endpoint name 
+|===
+
+The `endpoint` config takes precedence over the `model` one.
+In case of all procedures, the default `endpoint` is `"https://runtime.sagemaker.<regionConfigValue>.amazonaws.com/endpoints/<endpointNameConfigValue>/invocations"`.
+So, with the default `region` config, i.e. "us-east-1", the default endpoint is `"https://runtime.sagemaker.us-east-1.amazonaws.com/endpoints/<endpointNameConfigValue>/invocations"`.
+
+If we use the `ml.sagemaker.custom` procedure, either the `<endpointNameConfigValue>` part or the `endpoint` url must be configured ,
+while with the `sagemaker.chat`, `sagemaker.completion`, `sagemaker.embedding` ones,
+has a default value of "Endpoint-Distilbart-xsum-1-1-1", "Endpoint-GPT-2-1", "Endpoint-Jina-Embeddings-v2-Base-en-1" respectively.
+
+
+NOTE: Since SageMaker allows you to choose the endpoint to use, this parameter will most likely always need to be set
+
+
+== Authentication settings
+
+To authenticate to SageMaker services, we can set in the `apoc.conf` file the following entries.
+
+.apoc.conf
+[source,properties]
+----
+apoc.aws.key.id=<AWS Key ID>
+apoc.aws.secret.key=<AWS Secret Access Key>
+----
+
+Alternatively we can set them as `$config` parameters, i.e.: `{keyId: '<AWS Key ID>', secretKey:'<AWS Secret Access Key>'}`.
+
+Or also, we can put an Authorization header, by using the `header` parameter, 
+i.e. `{header: {Authorization: 'AWS4-HMAC-SHA256 <CredentialAndSignature..>',  ...other entries...} }`.
+
+Note that the default `Content-Type: application/json` and the `Accept: \*/*` header entries,
+are always passed to the http request, unless overridden via the config `header`.
+
+
+In the following examples, 
+we assume that we set Key id and Secret Access Key via `apoc.conf`.
+
+== Usage Examples
+
+=== Chat Completion API
+
+This procedure `apoc.ml.sagemaker.chat` takes a list of maps of chat exchanges between assistant and user (with optional system context), and will return the next message in the flow.
+Additional configuration can be passed to the API, the default endpoint name is `Endpoint-Distilbart-xsum-1-1-1`.
+
+.apoc.ml.sagemaker.chat
+[source,cypher]
+----
+CALL apoc.ml.sagemaker.chat([{role: "admin", content: "Test answer"}],
+    {endpointName: 'Endpoint-Distilbart-xsum-1-1-1', region: 'us-east-1'}
+)
+----
+
+.Results
+[opts="header"]
+|===
+|  value
+| {
+"summary_text": " The ABritainThe,A"
+}
+|===
+
+=== Text Completion API
+
+This procedure `apoc.ml.sagemaker.completion` can continue/complete a given text.
+Additional configuration can be passed to the API, the default endpoint name is `Endpoint-GPT-2-1`.
+
+.apoc.ml.sagemaker.completion
+[source,cypher]
+----
+CALL apoc.ml.sagemaker.completion('Test answer API',
+    {endpointName: 'Endpoint-GPT-2-1-0', headers: {`Content-Type`: "application/x-text"}, region: "eu-central-1"}
+)
+----
+
+.Results
+[opts="header"]
+|===
+|  value
+|
+{
+  "generated_text": "Test answer API
+
+The previous answer in this question was:
+
+<summary> - this is in fact an answer to this question, and has a description of the "language" it was written in. Please test in your language first,"
+}
+|===
+
+
+
+=== Embedding API
+
+This procedure `apoc.ml.sagemaker.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 768 element vector.
+Additional configuration can be passed to the API, the default endpoint name is `Endpoint-Jina-Embeddings-v2-Base-en-1`.
+
+.Generate Embeddings Call
+[source,cypher]
+----
+CALL apoc.ml.sagemaker.embedding(['Some Text'], {region: 'eu-central-1'})
+----
+
+.Generate Embeddings Response
+[%autowidth, opts=header]
+|===
+|index | text | embedding
+|0 | "Some Text" | [-0.0065358975, -7.9563365E-4, .... -0.010693862, -0.005087272]
+|===
+
+
+=== Custom AWS API Call
+
+Via the `apoc.ml.sagemaker.custom` we can create a customizable SageMaker API Request, by choosing the HTTP Method, the endpoint, the region and the additional headers.
+Useful both for https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_runtime_InvokeEndpoint.html[invoke an endpoint], 
+in the case the response is incompatible with the previous procedures, and to use any other SageMaker API.
+
+For example, we can execute a `POST` request to call the https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListEndpoints.html[ListEndpoints API],
+we can execute:
+
+[source,cypher]
+----
+CALL apoc.ml.sagemaker.custom({SortBy: "Name"},
+{
+    endpoint: "https://api.sagemaker.us-east-1.amazonaws.com/",
+    headers: {`X-Amz-Target`: "SageMaker.ListEndpoints", `Content-Type`: "application/x-amz-json-1.1"},
+    method: "POST"
+})
+----

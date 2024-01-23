@@ -1,4 +1,4 @@
-package apoc.ml.bedrock;
+package apoc.ml.aws;
 
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
@@ -22,11 +22,11 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.ml.bedrock.BedrockConfig.ENDPOINT_KEY;
-import static apoc.ml.bedrock.BedrockConfig.HEADERS_KEY;
-import static apoc.ml.bedrock.BedrockTestUtil.*;
-import static apoc.ml.bedrock.BedrockInvokeConfig.MODEL;
-import static apoc.ml.bedrock.BedrockUtil.STABILITY_STABLE_DIFFUSION_XL;
+import static apoc.ml.aws.AWSConfig.ENDPOINT_KEY;
+import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
+import static apoc.ml.aws.BedrockTestUtil.*;
+import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
+import static apoc.ml.aws.BedrockUtil.STABILITY_STABLE_DIFFUSION_XL;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
