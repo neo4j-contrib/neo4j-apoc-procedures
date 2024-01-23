@@ -415,7 +415,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test
     public void testLoadCsvByUrlRedirect() throws Exception {
-        URL url = new URL("http://bit.ly/2nXgHA2");
+        URL url = new URL("https://bit.ly/2nXgHA2");
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url", url.toString()),
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");

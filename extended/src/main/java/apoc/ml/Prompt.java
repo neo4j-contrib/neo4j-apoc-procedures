@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -34,6 +35,8 @@ public class Prompt {
     public ApocConfig apocConfig;
     @Context
     public ProcedureCallContext procedureCallContext;
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     public static final String BACKTICKS = "```";
     public static final String EXPLAIN_SCHEMA_PROMPT = """
@@ -155,7 +158,7 @@ public class Prompt {
         String apiKey = (String) conf.get("apiKey");
         String model = (String) conf.getOrDefault("model", "gpt-3.5-turbo");
         String result = OpenAI.executeRequest(apiKey, Map.of(), "chat/completions",
-                        model, "messages", prompt, "$", apocConfig)
+                        model, "messages", prompt, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String, Object>) v)
                 .flatMap(m -> ((List<Map<String, Object>>) m.get("choices")).stream())
                 .map(m -> (String) (((Map<String, Object>) m.get("message")).get("content")))

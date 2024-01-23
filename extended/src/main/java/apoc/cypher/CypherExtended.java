@@ -16,6 +16,7 @@ import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -77,6 +78,9 @@ public class CypherExtended {
 
     @Context
     public Pools pools;
+
+    @Context
+    public URLAccessChecker urlAccessChecker;
 
     @Procedure(mode = WRITE)
     @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
@@ -306,7 +310,7 @@ public class CypherExtended {
     }
     private Reader readerForFile(@Name("file") String fileName) {
         try {
-            return FileUtils.readerFor(fileName, CompressionAlgo.NONE.name());
+            return FileUtils.readerFor(fileName, CompressionAlgo.NONE.name(), urlAccessChecker);
         } catch (IOException ioe) {
             throw new RuntimeException("Error accessing file "+fileName,ioe);
         }

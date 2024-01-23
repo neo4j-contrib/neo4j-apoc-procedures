@@ -5,6 +5,8 @@ import apoc.load.LoadJsonUtils;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
 import apoc.util.Util;
+import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -25,6 +27,9 @@ import static apoc.util.MapUtil.map;
 @Extended
 public class ElasticSearch {
 
+    @Context
+    public URLAccessChecker urlAccessChecker;
+    
     private final static String fullQueryTemplate = "/%s/%s/%s?%s";
 
     // /{index}/{type}/_search?{query}
@@ -187,7 +192,7 @@ public class ElasticSearch {
         return loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
     }
 
-    private static Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
-        return LoadJsonUtils.loadJsonStream(url, headers, payload, "", true, null, null, null);
+    private Stream<MapResult> loadJsonStream(@Name("url") Object url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        return LoadJsonUtils.loadJsonStream(url, headers, payload, "", true, null, null, null, urlAccessChecker);
     }
 }
