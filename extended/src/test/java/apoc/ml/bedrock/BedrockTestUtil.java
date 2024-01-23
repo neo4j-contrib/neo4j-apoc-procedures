@@ -18,7 +18,8 @@ public class BedrockTestUtil {
             "temperature", 0,
             "topP", 1.0
     );
-    public static final Map<String, Object> ANTHROPIC_CLAUDE_BODY = Map.of(
+            
+    public static final Map<String, Object> ANTHROPIC_CLAUDE_CUSTOM_BODY = Map.of(
             "prompt", "\n\nHuman: Hello world\n\nAssistant:",
             "max_tokens_to_sample", 300,
             "temperature", 0.5,

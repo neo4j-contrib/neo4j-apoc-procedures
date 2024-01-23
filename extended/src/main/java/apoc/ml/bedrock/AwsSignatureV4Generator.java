@@ -31,9 +31,9 @@ public class AwsSignatureV4Generator {
      */
     public static void calculateAuthorizationHeaders(
             BedrockConfig conf,
-            String bodyString
+            String bodyString,
+            Map<String, Object> headers
     ) throws MalformedURLException {
-        Map<String, Object> headers = conf.getHeaders();
         
         // skip if "Authorization" has already been valued
         if (headers.containsKey(AUTHORIZATION_KEY)) {
