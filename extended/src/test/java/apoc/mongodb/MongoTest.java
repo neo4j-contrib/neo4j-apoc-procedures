@@ -2,8 +2,8 @@ package apoc.mongodb;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.time.DateUtils;
@@ -21,7 +21,6 @@ import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
@@ -34,6 +33,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static apoc.mongodb.MongoDBColl.ERROR_MESSAGE;
 import static apoc.util.MapUtil.map;
@@ -58,17 +58,21 @@ public class MongoTest extends MongoTestBase {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        createContainer(true);
+        beforeClassCommon(MongoVersion.LATEST);
+    }
+
+    static void beforeClassCommon(MongoVersion mongoVersion) throws Exception {
+        createContainer(true, mongoVersion);
+        
         TestUtil.registerProcedure(db, Mongo.class, Graphs.class);
 
         // readWrite user creation
-        mongo.execInContainer("mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.createUser({user: 'user', pwd: 'secret',roles: [{role: 'readWrite', db: 'test'}]});");
+        mongo.execInContainer(mongoVersion.shell, "admin", "--eval", "db.auth('admin', 'pass'); db.createUser({user: 'user', pwd: 'secret',roles: [{role: 'readWrite', db: 'test'}]});");
 
         final String host = mongo.getHost();
         final Integer port = mongo.getMappedPort(MONGO_DEFAULT_PORT);
         final String format = String.format("mongodb://admin:pass@%s:%s", host, port);
-        MongoClientURI clientURI = new MongoClientURI(format);
-        try (MongoClient mongoClient = new MongoClient(clientURI)) {
+        try (MongoClient mongoClient = MongoClients.create(format)) {
             String uriPrefix = String.format("mongodb://admin:pass@%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
             PERSON_URI = uriPrefix + "/test.person?authSource=admin";
             TEST_URI = uriPrefix + "/test.test?authSource=admin";
@@ -203,6 +207,38 @@ public class MongoTest extends MongoTestBase {
                     assertionsPersonJohn(values.next(), false, false);
                     assertFalse(values.hasNext());
                 });
+    }
+
+    @Test
+    public void countWithStringOrMapBinaryQuery() {
+        String bytesEncoded = Base64.getEncoder().encodeToString("fooBar".getBytes());
+        Map<String, Object> params = map("uri", PERSON_URI);
+        Consumer<Map<String, Object>> consumer = r -> assertEquals(2L, r.get("value"));
+        
+        // string queries (with respectively double and single quotes)
+        testCall(db, "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$type':'00'}}\")".formatted(bytesEncoded),
+                params, consumer);
+        
+        testCall(db, "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$type\":\"00\"}}')".formatted(bytesEncoded),
+                params, consumer);
+
+        // map query
+        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$type`: '00'}})".formatted(bytesEncoded),
+                params, consumer);
+
+        // legacy queries (used by mongodb-driver:3.2.2)
+        // i.e. with `$subType` instead of `$type`
+        
+        // string queries (with respectively double and single quotes) 
+        testCall(db, "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$subType':'00'}}\")".formatted(bytesEncoded),
+                params, consumer);
+
+        testCall(db, "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$subType\":\"00\"}}')".formatted(bytesEncoded),
+                params, consumer);
+        
+        // map query
+        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$subType`: '00'}})".formatted(bytesEncoded),
+                params, consumer);
     }
 
     @Test
@@ -341,7 +377,7 @@ public class MongoTest extends MongoTestBase {
     @Test
     public void testCountWithComplexTypes() {
         final String bytes = Base64.getEncoder().encodeToString("fooBar".getBytes());
-        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: 'Zm9vQmFy', `$subType`: '00'}, int64: {`$numberLong`: '29'}})",
+        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: 'Zm9vQmFy', `$type`: '00'}, int64: {`$numberLong`: '29'}})",
                 map("uri", PERSON_URI, "bytes", bytes),
                 r -> assertEquals(2L, r.get("value")));
     }
@@ -430,14 +466,13 @@ public class MongoTest extends MongoTestBase {
         }
     }
 
-    @Ignore
     @Test
     public void shouldInsertDataIntoNeo4jWithFromDocument() throws Exception {
         Date date = DateUtils.parseDate("11-10-1935", "dd-MM-yyyy");
-        testResult(db, "CALL apoc.mongo.find($uri, null, {extractReferences: true}) YIELD value " +
+        testResult(db, "CALL apoc.mongo.find($uri, {name: $name}, {extractReferences: true}) YIELD value " +
                         "CALL apoc.graph.fromDocument(value, $fromDocConfig) YIELD graph AS g1 " +
                         "RETURN g1",
-                map("uri", PERSON_URI,
+                map("uri", PERSON_URI, "name", "Andrea Santurbano",
                         "fromDocConfig", map("write", true, "skipValidation", true, "mappings",
                                 map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
                 r -> assertionsInsertDataWithFromDocument(date, r));
