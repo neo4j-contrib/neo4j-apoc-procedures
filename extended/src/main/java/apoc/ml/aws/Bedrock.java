@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import apoc.Description;
+import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -21,7 +22,7 @@ import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.ml.aws.BedrockInvokeResult.*;
 
-
+@Extended
 public class Bedrock {
     @Context
     public URLAccessChecker urlAccessChecker;
