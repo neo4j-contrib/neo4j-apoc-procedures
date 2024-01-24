@@ -39,20 +39,24 @@ import static org.junit.Assert.fail;
 
 public class LoadHtmlTest {
 
-    protected static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
-            "{attributes={name=ResourceLoaderDynamicStyles}, tagName=meta}, " +
-            "{attributes={name=generator, content=MediaWiki 1.32.0-wmf.18}, tagName=meta}, " +
-            "{attributes={name=referrer, content=origin}, tagName=meta}, " +
-            "{attributes={name=referrer, content=origin-when-crossorigin}, tagName=meta}, " +
-            "{attributes={name=referrer, content=origin-when-cross-origin}, tagName=meta}, " +
-            "{attributes={property=og:image, content=https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg}, tagName=meta}");
+    protected static final List<Map<String, Object>> RESULT_QUERY_METADATA = asList(
+                map("tagName", "meta", "attributes", map("charset", "UTF-8")),
+                map("attributes", map("name", "ResourceLoaderDynamicStyles"), "tagName", "meta"),
+                map("attributes", map("name", "generator", "content", "MediaWiki 1.32.0-wmf.18"), "tagName", "meta"),
+                map("attributes", map("name", "referrer", "content", "origin"), "tagName", "meta"),
+                map("attributes", map("name", "referrer", "content", "origin-when-crossorigin"), "tagName", "meta"),
+                map("attributes", map("name", "referrer", "content", "origin-when-cross-origin"), "tagName", "meta"),
+                map("attributes", map("property", "og:image", "content", "https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg"), "tagName", "meta")
+        );
 
-    protected static final String RESULT_QUERY_H2 = ("{text=Contents, tagName=h2}, " +
-            "{text=Origins[edit], tagName=h2}, " +
-            "{text=Content[edit], tagName=h2}, " +
-            "{text=Legacy[edit], tagName=h2}, " +
-            "{text=References[edit], tagName=h2}, " +
-            "{text=Navigation menu, tagName=h2}");
+    protected static final List<Map<String, Object>> RESULT_QUERY_H2 = asList(
+            map("text", "Contents", "tagName", "h2"),
+            map("text", "Origins[edit]", "tagName", "h2"),
+            map("text", "Content[edit]", "tagName", "h2"),
+            map("text", "Legacy[edit]", "tagName", "h2"),
+            map("text", "References[edit]", "tagName", "h2"),
+            map("text", "Navigation menu", "tagName", "h2")
+    );
 
     private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").getName();
     private static final String VALID_PATH = new File("src/test/resources/wikipedia.html").toURI().toString();
@@ -170,7 +174,7 @@ public class LoadHtmlTest {
         testResult(db, "CALL apoc.load.html($url,$query)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
-                    assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
+                    assertEquals(map("metadata", RESULT_QUERY_METADATA), row.get("value"));
                     assertFalse(result.hasNext());
                 });
     }
@@ -345,7 +349,7 @@ public class LoadHtmlTest {
         testResult(db, "CALL apoc.load.html($url,$query)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
-                    assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
+                    assertEquals(map("h2", RESULT_QUERY_H2), row.get("value"));
                     assertFalse(result.hasNext());
                 });
     }
