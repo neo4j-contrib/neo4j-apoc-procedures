@@ -133,7 +133,7 @@ public class CypherProcedures {
             throws ProcedureException {
         UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
         validateFunction(statement, signature.inputSignature());
-        cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
+        cypherProceduresHandler.storeFunction(signature, statement, forceSingle, false);
     }
 
     @Procedure(value = "apoc.custom.declareFunction", mode = Mode.WRITE)
@@ -145,11 +145,13 @@ public class CypherProcedures {
             @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
             @Name(value = "description", defaultValue = "") String description)
             throws ProcedureException {
-        UserFunctionSignature userFunctionSignature =
-                new Signatures(PREFIX).asFunctionSignature(signature, description);
+        final Signatures signatures = new Signatures(PREFIX);
+        final SignatureParser.FunctionContext functionContext = signatures.parseFunction(signature);
+        UserFunctionSignature userFunctionSignature = signatures.toFunctionSignature(functionContext, description);
         validateFunction(statement, userFunctionSignature.inputSignature());
+        final boolean mapResult = signatures.isMapResult(functionContext);
 
-        cypherProceduresHandler.storeFunction(userFunctionSignature, statement, forceSingle);
+        cypherProceduresHandler.storeFunction(userFunctionSignature, statement, forceSingle, mapResult);
     }
 
     @Procedure(value = "apoc.custom.list", mode = Mode.READ)
