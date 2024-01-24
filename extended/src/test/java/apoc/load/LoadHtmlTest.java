@@ -388,7 +388,10 @@ public class LoadHtmlTest {
     public void testQueryWithFailsSilentlyWithList() {
         Map<String, Object> query = map("a", "a", "invalid", "invalid", "h6", "h6");
 
-        String expectedH6 = "[{attributes={id=correct}, text=test, tagName=h6}, {attributes={id=childIncorrect}, text=incorrecttest, tagName=h6}]";
+        List<Map<String, Object>> expectedH6 = asList(
+                map("attributes", map("id", "correct"), "text", "test", "tagName", "h6"),
+                map("attributes", map("id", "childIncorrect"), "text", "incorrecttest", "tagName", "h6")
+        );
 
         testResult(db, "CALL apoc.load.html($url,$query, {failSilently: 'WITH_LIST'})",
                 map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
@@ -398,7 +401,7 @@ public class LoadHtmlTest {
                     // number of <a> tags in html file minus the incorrect tag
                     assertEquals(107, ((List) value.get("a")).size());
                     assertEquals(Collections.emptyList(), value.get("invalid"));
-                    assertEquals(expectedH6, value.get("h6").toString().trim());
+                    assertEquals(expectedH6, value.get("h6"));
                     assertEquals(2, ((List) value.get(KEY_ERROR)).size());
                     assertFalse(result.hasNext());
                 });
@@ -408,7 +411,10 @@ public class LoadHtmlTest {
     public void testQueryWithFailsSilentlyWithListAndChildren() {
         Map<String, Object> query = map("a", "a", "invalid", "invalid", "h6", "h6");
 
-        String expectedH6 = "[{children=[], attributes={id=correct}, text=test, tagName=h6}, {children=[], attributes={id=childIncorrect}, text=incorrect, tagName=h6}]";
+        List<Map<String, Object>> expectedH6 = asList(
+                map("children", asList(), "attributes", map("id", "correct"), "text", "test", "tagName", "h6"),
+                map("children", asList(), "attributes", map("id", "childIncorrect"), "text", "incorrect", "tagName", "h6")
+        );
 
         testResult(db, "CALL apoc.load.html($url,$query, {failSilently: 'WITH_LIST', children: true})",
                 map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
@@ -418,7 +424,7 @@ public class LoadHtmlTest {
                     // number of <a> tags in html file minus the incorrect tag
                     assertEquals(107, ((List) value.get("a")).size());
                     assertEquals(Collections.emptyList(), value.get("invalid"));
-                    assertEquals(expectedH6, value.get("h6").toString().trim());
+                    assertEquals(expectedH6, value.get("h6"));
                     assertEquals(3, ((List) value.get(KEY_ERROR)).size());
                     assertFalse(result.hasNext());
                 });
