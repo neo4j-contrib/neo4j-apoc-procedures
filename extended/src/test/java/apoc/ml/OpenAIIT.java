@@ -10,9 +10,9 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
-import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
-import static apoc.ml.OpenAITestResultUtils.assertCompletion;
+import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
+import static java.util.Collections.emptyMap;
 
 public class OpenAIIT {
 
@@ -33,25 +33,20 @@ public class OpenAIIT {
 
     @Test
     public void getEmbedding() {
-        testCall(db, "CALL apoc.ml.openai.embedding(['Some Text'], $apiKey)", Map.of("apiKey",openaiKey),
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
                 OpenAITestResultUtils::assertEmbeddings);
     }
 
     @Test
     public void completion() {
-        testCall(db, "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey)",
-                Map.of("apiKey", openaiKey),
+        testCall(db, COMPLETION_QUERY,
+                Map.of("apiKey", openaiKey, "conf", emptyMap()),
                 (row) -> assertCompletion(row, "gpt-3.5-turbo-instruct"));
     }
 
     @Test
     public void chatCompletion() {
-        testCall(db, """
-CALL apoc.ml.openai.chat([
-{role:"system", content:"Only answer with a single word"},
-{role:"user", content:"What planet do humans live on?"}
-],  $apiKey)
-""", Map.of("apiKey",openaiKey),
+        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
                 (row) -> assertChatCompletion(row, "gpt-3.5-turbo"));
 
         /*

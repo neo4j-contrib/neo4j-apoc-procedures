@@ -28,7 +28,10 @@ public class OpenAI {
     public static final String APIKEY_CONF_KEY = "apiKey";
     public static final String ENDPOINT_CONF_KEY = "endpoint";
     public static final String API_VERSION_CONF_KEY = "apiVersion";
-    
+    public static final String JSON_PATH_CONF_KEY = "jsonPath";
+    public static final String PATH_CONF_KEY = "path";
+    public static final String MODEL_CONF_KEY = "model";
+
     @Context
     public ApocConfig apocConfig;
 
@@ -57,20 +60,31 @@ public class OpenAI {
         String apiTypeString = (String) configuration.getOrDefault(API_TYPE_CONF_KEY,
                 apocConfig.getString(APOC_ML_OPENAI_TYPE, OpenAIRequestHandler.Type.OPENAI.name())
         );
-        OpenAIRequestHandler apiType = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH))
-                .get();
+        OpenAIRequestHandler.Type type = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
+        
+        var config = new HashMap<>(configuration);
+        // we remove these keys from config, since the json payload is calculated starting from the config map
+        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(config::remove);
+        
+        switch (type) {
+            case HUGGINGFACE -> {
+                config.putIfAbsent("inputs", inputs);
+                jsonPath = "$[0]";
+            }
+            default -> {
+                config.putIfAbsent(MODEL_CONF_KEY, model);
+                config.put(key, inputs);
+            }
+        }
+        
+        OpenAIRequestHandler apiType = type.get();
 
-        String endpoint = apiType.getEndpoint(configuration, apocConfig);
+        jsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
+        path = (String) configuration.getOrDefault(PATH_CONF_KEY, path);
         
         final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         apiType.addApiKey(headers, apiKey);
-
-        var config = new HashMap<>(configuration);
-        // we remove these keys from config, since the json payload is calculated starting from the config map
-        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(config::remove);
-        config.putIfAbsent("model", model);
-        config.put(key, inputs);
 
         String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
         

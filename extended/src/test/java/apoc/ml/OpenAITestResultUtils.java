@@ -7,6 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OpenAITestResultUtils {
+    public static final String EMBEDDING_QUERY = "CALL apoc.ml.openai.embedding(['Some Text'], $apiKey, $conf)";
+    public static final String CHAT_COMPLETION_QUERY = """
+            CALL apoc.ml.openai.chat([
+            {role:"system", content:"Only answer with a single word"},
+            {role:"user", content:"What planet do humans live on?"}
+            ], $apiKey, $conf)
+            """;
+    public static final String COMPLETION_QUERY = "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, $conf)";
+    
     public static void assertEmbeddings(Map<String, Object> row) {
         assertEquals(0L, row.get("index"));
         assertEquals("Some Text", row.get("text"));
