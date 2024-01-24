@@ -5,6 +5,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
 import apoc.util.collection.Iterators;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -19,6 +20,8 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,11 +49,11 @@ import static org.neo4j.driver.internal.util.Iterables.count;
  * @since 08.05.16
  */
 public class CypherExtendedTest {
-
+    public static final String IMPORT_DIR = "src/test/resources";
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").toPath().toAbsolutePath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(IMPORT_DIR).toPath().toAbsolutePath());
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();
@@ -226,7 +229,83 @@ public class CypherExtendedTest {
                     "RETURN value.title limit 5",
                 r -> assertEquals(5, Iterators.count(r)));
     }
-    
+
+    @Test
+    public void testIssue3751MapParallel2() {
+        int expected = 500;
+        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
+                Map.of("int", expected));
+
+        // the error is flaky, so we need to run the query several times to replicate it
+        for (int i = 0; i < 30; i++) {
+            testCallCount(db, """
+                            MATCH (n:Polling) WITH collect({childD: n}) as params \s
+                            CALL apoc.cypher.mapParallel2(" WITH _.childD as childD RETURN childD", {}, params, 6, 10)\s
+                            YIELD value RETURN value""",
+                    Map.of(),
+                    expected);
+        }
+
+        // Check that `SHOW TRANSACTIONS` just returns itself 
+        String showTransactionsQuery = "SHOW TRANSACTIONS";
+        testCall(db, showTransactionsQuery,
+                r -> assertEquals(showTransactionsQuery, r.get("currentQuery")));
+    }
+
+
+
+    @Test
+    public void testIssue3751RunFiles() {
+        int numEntities = 500;
+        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
+                Map.of("int", numEntities));
+
+        for (int i = 0; i < 30; i++) {
+            int numFiles = 30;
+            List<String> files = Collections.nCopies(numFiles, "parallel.cypher");
+
+            int expected = numEntities * numFiles;
+            testCallCount(db, "CALL apoc.cypher.runFiles($files, {statistics: false})",
+                    Map.of("files", files),
+                    expected);
+        }
+    }
+
+    @Test
+    public void testIssue3751RunSchemaFiles() throws IOException {
+        for (int i = 0; i < 15; i++) {
+            int numFiles = 10;
+            List<File> files = new ArrayList<>();
+
+            for (int fileIdx = 0; fileIdx < numFiles; fileIdx++) {
+                String id = i + "" + fileIdx;
+                File file = new File(IMPORT_DIR, "schema" + id);
+
+                String content = """
+                            CREATE INDEX index%1$s FOR (n:Person%1$s) ON (n.name%1$s);
+                            CREATE INDEX secondIndex%1$s FOR (n:Foo%1$s) ON (n.bar%1$s);
+                            CREATE INDEX thirdIndex%1$s FOR (n:Ajeje%1$s) ON (n.brazorf%1$s);
+                            """
+                        .formatted(id);
+                
+                FileUtils.writeStringToFile(file,
+                        content,
+                        StandardCharsets.UTF_8);
+                
+                files.add(file);
+            }
+
+            // 4 is the number of indexes
+            int expected = numFiles * 3;
+            List<String> fileNames = files.stream().map(File::getName).toList();
+            testCallCount(db, "CALL apoc.cypher.runSchemaFiles($files, {statistics: true})",
+                    Map.of("files", fileNames),
+                    expected);
+        
+            files.forEach(File::delete);
+        }
+        
+    }
     
     @Test
     public void testRunFileWithParameters() throws Exception {
