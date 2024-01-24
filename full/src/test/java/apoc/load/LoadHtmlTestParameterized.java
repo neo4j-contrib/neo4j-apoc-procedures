@@ -24,7 +24,6 @@ import static apoc.load.LoadHtmlTest.skipIfBrowserNotPresentOrCompatible;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -98,13 +97,9 @@ public class LoadHtmlTestParameterized {
 
                         List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
                         List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-
-                        assertEquals(
-                                asList(RESULT_QUERY_METADATA).toString().trim(),
-                                metadata.toString().trim());
-                        assertEquals(
-                                asList(RESULT_QUERY_H2).toString().trim(),
-                                h2.toString().trim());
+    
+                        assertEquals(RESULT_QUERY_METADATA, metadata);
+                        assertEquals(RESULT_QUERY_H2, h2);
                     });
         });
     }
@@ -131,9 +126,7 @@ public class LoadHtmlTestParameterized {
                             config),
                     result -> {
                         Map<String, Object> row = result.next();
-                        assertEquals(
-                                map("h2", asList(RESULT_QUERY_H2)).toString().trim(),
-                                row.get("value").toString().trim());
+                        assertEquals(map("h2",RESULT_QUERY_H2), row.get("value"));
                         assertFalse(result.hasNext());
                     });
         });
