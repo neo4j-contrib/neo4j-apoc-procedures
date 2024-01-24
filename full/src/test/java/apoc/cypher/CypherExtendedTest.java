@@ -34,6 +34,7 @@ import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
+import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -60,6 +61,9 @@ import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author mh
@@ -279,36 +283,40 @@ public class CypherExtendedTest {
     @Test
     public void testIssue3751MapParallel2() {
         int expected = 500;
-        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})", Map.of("int", expected));
+        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
+                Map.of("int", expected));
 
         // the error is flaky, so we need to run the query several times to replicate it
         for (int i = 0; i < 30; i++) {
-            testCallCount(
-                    db,
-                    "MATCH (n:Polling) WITH collect({childD: n}) as params  \n"
-                            + "CALL apoc.cypher.mapParallel2(\" WITH _.childD as childD RETURN childD\", {}, params, 6, 10) \n"
-                            + "YIELD value RETURN value",
+            testCallCount(db, "MATCH (n:Polling) WITH collect({childD: n}) as params  \n" +
+                              "CALL apoc.cypher.mapParallel2(\" WITH _.childD as childD RETURN childD\", {}, params, 6, 10)\n" +
+                              "YIELD value RETURN value",
                     Map.of(),
                     expected);
         }
 
-        // Check that `SHOW TRANSACTIONS` just returns itself
+        // Check that `SHOW TRANSACTIONS` just returns itself 
         String showTransactionsQuery = "SHOW TRANSACTIONS";
-        testCall(db, showTransactionsQuery, r -> assertEquals(showTransactionsQuery, r.get("currentQuery")));
+        testCall(db, showTransactionsQuery,
+                r -> assertEquals(showTransactionsQuery, r.get("currentQuery")));
     }
+
+
 
     @Test
     public void testIssue3751RunFiles() {
         int numEntities = 500;
-        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})", Map.of("int", numEntities));
+        db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
+                Map.of("int", numEntities));
 
         for (int i = 0; i < 30; i++) {
             int numFiles = 30;
             List<String> files = Collections.nCopies(numFiles, "parallel.cypher");
 
             int expected = numEntities * numFiles;
-            testCallCount(
-                    db, "CALL apoc.cypher.runFiles($files, {statistics: false})", Map.of("files", files), expected);
+            testCallCount(db, "CALL apoc.cypher.runFiles($files, {statistics: false})",
+                    Map.of("files", files),
+                    expected);
         }
     }
 
@@ -322,30 +330,30 @@ public class CypherExtendedTest {
                 String id = i + "" + fileIdx;
                 File file = new File(IMPORT_DIR, "schema" + id);
 
-                String content = String.format(
-                        "CREATE INDEX index%1$s FOR (n:Person%1$s) ON (n.name%1$s);\n"
-                                + "CREATE INDEX secondIndex%1$s FOR (n:Foo%1$s) ON (n.bar%1$s);\n"
-                                + "CREATE INDEX thirdIndex%1$s FOR (n:Ajeje%1$s) ON (n.brazorf%1$s);\n",
-                        id);
-
-                FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
-
+                String content = String.format("CREATE INDEX index%1$s FOR (n:Person%1$s) ON (n.name%1$s);\n" +
+                                  "CREATE INDEX secondIndex%1$s FOR (n:Foo%1$s) ON (n.bar%1$s);\n" +
+                                  "CREATE INDEX thirdIndex%1$s FOR (n:Ajeje%1$s) ON (n.brazorf%1$s);\n",
+                                id);
+                
+                FileUtils.writeStringToFile(file,
+                        content,
+                        StandardCharsets.UTF_8);
+                
                 files.add(file);
             }
 
             // 4 is the number of indexes
             int expected = numFiles * 3;
             List<String> fileNames = files.stream().map(File::getName).collect(Collectors.toList());
-            testCallCount(
-                    db,
-                    "CALL apoc.cypher.runSchemaFiles($files, {statistics: true})",
+            testCallCount(db, "CALL apoc.cypher.runSchemaFiles($files, {statistics: true})",
                     Map.of("files", fileNames),
                     expected);
-
+        
             files.forEach(File::delete);
         }
+        
     }
-
+    
     @Test
     public void testRunFileWithParameters() throws Exception {
         testResult(
@@ -674,16 +682,11 @@ public class CypherExtendedTest {
         try (Transaction tx = db.beginTx()) {
             final Schema schema = tx.schema();
             schema.awaitIndexesOnline(20, TimeUnit.SECONDS);
-            final List<String> actualIdx = StreamSupport.stream(
-                            schema.getIndexes().spliterator(), false)
+            final List<String> actualIdx = StreamSupport.stream(schema.getIndexes().spliterator(), false)
                     .filter(idx -> !idx.getIndexType().equals(IndexType.LOOKUP))
-                    .map(IndexDefinition::getName)
-                    .sorted()
-                    .collect(Collectors.toList());
-            final List<String> actualCons = StreamSupport.stream(
-                            schema.getConstraints().spliterator(), false)
-                    .map(ConstraintDefinition::getName)
-                    .sorted()
+                    .map(IndexDefinition::getName).sorted().collect(Collectors.toList());
+            final List<String> actualCons = StreamSupport.stream(schema.getConstraints().spliterator(), false)
+                    .map(ConstraintDefinition::getName).sorted()
                     .collect(Collectors.toList());
             assertEquals(expectedIdx, actualIdx);
             assertEquals(expectedCons, actualCons);
@@ -693,32 +696,34 @@ public class CypherExtendedTest {
     @Test
     @Ignore
     public void testSchemaRunMixedSchemaAndDataFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runSchemaFile('schema_create.cypher')", r -> {
-            Map<String, Object> row = r.next();
-            Map result = (Map) row.get("result");
-            assertEquals(1L, toLong(result.get("indexesAdded")));
-        });
+        testResult(db, "CALL apoc.cypher.runSchemaFile('schema_create.cypher')",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                });
     }
 
     @Test
     public void testRunFileWithEmptyFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('empty.cypher')", r -> assertFalse("should be empty", r.hasNext()));
+        testResult(db, "CALL apoc.cypher.runFile('empty.cypher')",
+                r -> assertFalse("should be empty", r.hasNext()));
     }
 
     @Test
     public void lengthyRunManyShouldTerminate() {
-        String repetetiveStatement =
-                "CALL apoc.cypher.runFile(\"enrollment-incremental.cypher\",{parameters: {SubID: \"218598584\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonMASnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n"
-                        + "CALL apoc.cypher.runFile(\"enrollment-incremental.cypher\",{parameters: {SubID: \"7898935\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonNorthSnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n";
+        String repetetiveStatement= "CALL apoc.cypher.runFile(\"enrollment-incremental.cypher\",{parameters: {SubID: \"218598584\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonMASnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n" +
+                "CALL apoc.cypher.runFile(\"enrollment-incremental.cypher\",{parameters: {SubID: \"7898935\", Account_Number: \"\", AccountType: \"\",Source: \"VerizonNorthSnapshot\", MDN: \"\", Offering: \"\", Enroll_Date: \"\", Product_SKU: \"\", Device_Model: \"\", Device_Make: \"\", First_Name: \"\", Last_Name: \"\",Email1: \"\", Email2: \"\", Email3: \"\", Postal_CD: \"\", City: \"\", State: \"\", BillingStatus: \"\", ActionType: \"Drop\", Text_Date : \"2020-03-11\"}}) yield result return sum(result.total) as total;\n";
 
-        String cypher = String.format(
-                "CALL apoc.cypher.runMany('%s',{statistics:true,timeout:60}) yield result return sum(result.total) as total;",
+        String cypher = String.format("CALL apoc.cypher.runMany('%s',{statistics:true,timeout:60}) yield result return sum(result.total) as total;",
                 String.join("", Collections.nCopies(25, repetetiveStatement)));
 
-        testResult(db, cypher, result -> {
-            Map<String, Object> single = Iterators.single(result);
-            assertEquals(50l, single.get("total"));
-        });
+        testResult(db, cypher,
+                result -> {
+                    Map<String, Object> single = Iterators.single(result);
+                    assertEquals(50l, single.get("total"));
+                });
+
     }
 
     private static void assertErrorResult(String cypherError, Map<String, Object> r) {
