@@ -102,6 +102,8 @@ apoc.ml.sagemaker.embedding
 apoc.ml.vertexai.chat
 apoc.ml.vertexai.completion
 apoc.ml.vertexai.embedding
+apoc.ml.watson.chat
+apoc.ml.watson.completion
 apoc.model.jdbc
 apoc.mongo.aggregate
 apoc.mongo.count

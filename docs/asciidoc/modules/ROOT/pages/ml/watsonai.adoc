@@ -1,0 +1,151 @@
+[[Watson-api]]
+= Watson API Access
+:description: This section describes procedures that can be used to access the Watson API.
+
+NOTE: You need to acquire an https://cloud.ibm.com/apidocs/Watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.
+This token must be defined in the second parameter
+
+
+Each procedure can have the following APOC config parameters, i.e. in `apoc.conf` or via docker env variable
+
+.Apoc configuration
+|===
+|key | description | default
+| apoc.ml.watson.project.id | The project_id | the `project_id` defined in the configuration map
+| apoc.ml.watson.url | The REST API endpoint | https://eu-de.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2023-05-29
+|===
+
+We can put the body request directly into the configuration parameter, 
+except for the `"input"` key, which will be added through the first parameter of the procedure, as we will see later.
+
+For example, if we want to send a request this request:
+```
+{
+ "model_id": "google/flan-ul2",
+ "input": "my test input",
+ "parameters": {
+  "max_new_tokens": 3
+ },
+ "project_id": "MyProjectId"
+}
+```
+we can create the following configuration map:
+```
+{
+    model_id: "google/flan-ul2",
+    project_id: "MyProjectId",
+    parameters: {
+      max_new_tokens: 3
+    }
+}
+```
+
+Note that the `model_id` is not mandatory, since has a default value `"ibm/granite-13b-chat-v2"`
+
+Also the `project_id` is not mandatory, if it has been defined via APOC configuration,
+or if alternatively is present in the configuration map an entry with the key `space_id` or `wml_instance_crn`; otherwise, an error will be thrown, since the Watson Request APIs require one of these.
+
+In addition, we can put in the configuration map, the entry `endpoint: "ENDPOINT_URL`, 
+which define the REST API endpoint, and takes precedence over the `apoc.watson.url` APOC configuration.
+If neither is specified, the default value `"https://eu-de.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2023-05-29"` will be used.
+
+
+The following examples assume we have this `apoc.conf`:
+```
+apoc.watson.project.id=MY_PROJECT_ID
+```
+
+== Text Completion API
+
+This procedure `apoc.ml.watson.completion` can continue/complete a given text.
+
+The following procedure will create, without any config, the following API request:
+```
+{
+"model_id": "ibm/granite-13b-chat-v2",
+"input": "What color is the sky? Answer in one word: ,
+"project_id": "<the one explicited in the APOC config>"
+}
+```
+
+.Text Completion Call
+[source,cypher]
+----
+CALL apoc.ml.watson.completion('What color is the sky? Answer in one word: ', '<apiKey>', {})
+----
+
+
+With a result like this:
+
+.Text Completion Response Example
+[opts="header",cols="1"]
+|===
+| value
+| {"model_id": "ibm/granite-13b-chat-v2",
+    "created_at": "2024-01-11T09:33:46.130Z",
+	"results": [
+        {
+			"generated_text": "\nThe sky is blue.",
+			"generated_token_count": 7,
+			"input_token_count": 12,
+			"stop_reason": "eos_tokens"
+		}
+	]
+}
+|===
+
+
+== Chat Completion API
+
+This procedure `apoc.ml.watson.chat` takes a list of maps of chat messages, and will return the next message in the flow.
+
+The keys `role` and `content` must be specified.
+
+From the `messages` list will be created a string like `<roleValue1>: <contentValue1> \n <roleValue2>: <contentValue2> etc..`.
+
+For example, the following call will create a request with this body:
+```
+{
+ "model_id": "ibm/granite-13b-chat-v2",
+ "input": "system: Only answer with a single word\nuser: What planet do humans live on?",
+ "project_id": "<the one explicited in the APOC config>"
+}
+```
+
+.Chat Completion Call
+[source,cypher]
+----
+CALL apoc.ml.watson.chat([
+    {role:"system", content:"Only answer with a single word"},
+    {role:"user", content:"What planet do humans live on?"}
+],  $apiKey) yield value
+----
+
+
+With a result like this:
+
+.Chat Completion Response Example
+[opts="header",cols="1"]
+|===
+| value
+| {"model_id": "ibm/granite-13b-chat-v2",
+    "created_at": "2024-01-11T09:33:46.130Z",
+    "results": [
+        {
+            "generated_text": "
+                system: Earth",
+            "generated_token_count": 7,
+            "input_token_count": 12,
+            "stop_reason": "eos_tokens"
+        }
+    ]
+}
+|===
+
+
+== Generate Embeddings API
+
+Watson does not have built-in embedding APIs, 
+so if we want to use embeddings, we have to use one of the other Apoc ML integrations,
+such as xref::ml/openai.adoc[apoc.ml.openai.embeddings] or xref::ml/vertexai.adoc[apoc.ml.vertexai.embeddings], 
+or https://huggingface.co/docs/hub/sentence-transformers[HuggingFace embeddings as sentence transformers].
