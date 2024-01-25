@@ -109,7 +109,6 @@ public class StartupExtendedTest {
         }
     }
 
-    // TODO - DECOMMENT
     private void checkCoreProcsAndFuncsExistence(Session session) {
         final List<String> functionNames = getNames(session, APOC_HELP_QUERY,
                 Map.of("core", true, "type", "function") );
