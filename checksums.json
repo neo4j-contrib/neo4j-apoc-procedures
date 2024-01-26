@@ -768,5 +768,10 @@
         "sha1": "4895fb584796124e38fbe62a28d395506686cb0c",
         "sha256": "51ac792cd4c5108e27ed5cc01891a3985fad337ed9d5a64299f21e16b8b07075",
         "md5": "7c6a702322b0aaf663c25f378cd3494d"
+    },
+    "5.16.0": {
+        "sha1": "f28eda5b1686aa8f1895176dd058c03e8e6f0e97",
+        "sha256": "4e728a94f8ac99ea2ae06ae022706519bb80c3285c5035afd72b2cef47f9efb6",
+        "md5": "979ea0e8a7d3da9aad8c5f1947d99d25"
     }
 }
