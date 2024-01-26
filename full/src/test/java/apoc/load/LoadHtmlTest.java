@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,14 +51,21 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 public class LoadHtmlTest {
 
     protected static final List<Map<String, Object>> RESULT_QUERY_METADATA = asList(
-                map("tagName", "meta", "attributes", map("charset", "UTF-8")),
-                map("attributes", map("name", "ResourceLoaderDynamicStyles"), "tagName", "meta"),
-                map("attributes", map("name", "generator", "content", "MediaWiki 1.32.0-wmf.18"), "tagName", "meta"),
-                map("attributes", map("name", "referrer", "content", "origin"), "tagName", "meta"),
-                map("attributes", map("name", "referrer", "content", "origin-when-crossorigin"), "tagName", "meta"),
-                map("attributes", map("name", "referrer", "content", "origin-when-cross-origin"), "tagName", "meta"),
-                map("attributes", map("property", "og:image", "content", "https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg"), "tagName", "meta")
-        );
+            map("tagName", "meta", "attributes", map("charset", "UTF-8")),
+            map("attributes", map("name", "ResourceLoaderDynamicStyles"), "tagName", "meta"),
+            map("attributes", map("name", "generator", "content", "MediaWiki 1.32.0-wmf.18"), "tagName", "meta"),
+            map("attributes", map("name", "referrer", "content", "origin"), "tagName", "meta"),
+            map("attributes", map("name", "referrer", "content", "origin-when-crossorigin"), "tagName", "meta"),
+            map("attributes", map("name", "referrer", "content", "origin-when-cross-origin"), "tagName", "meta"),
+            map(
+                    "attributes",
+                    map(
+                            "property",
+                            "og:image",
+                            "content",
+                            "https://upload.wikimedia.org/wikipedia/en/e/ea/Aap_Kaa_Hak_titles.jpg"),
+                    "tagName",
+                    "meta"));
 
     protected static final List<Map<String, Object>> RESULT_QUERY_H2 = asList(
             map("text", "Contents", "tagName", "h2"),
@@ -67,8 +73,7 @@ public class LoadHtmlTest {
             map("text", "Content[edit]", "tagName", "h2"),
             map("text", "Legacy[edit]", "tagName", "h2"),
             map("text", "References[edit]", "tagName", "h2"),
-            map("text", "Navigation menu", "tagName", "h2")
-    );
+            map("text", "Navigation menu", "tagName", "h2"));
 
     private static final String INVALID_PATH = new File("src/test/resources/wikipedia1.html").getName();
     private static final String VALID_PATH =
@@ -474,8 +479,7 @@ public class LoadHtmlTest {
 
         List<Map<String, Object>> expectedH6 = asList(
                 map("attributes", map("id", "correct"), "text", "test", "tagName", "h6"),
-                map("attributes", map("id", "childIncorrect"), "text", "incorrecttest", "tagName", "h6")
-        );
+                map("attributes", map("id", "childIncorrect"), "text", "incorrecttest", "tagName", "h6"));
 
         testResult(
                 db,
@@ -499,8 +503,15 @@ public class LoadHtmlTest {
 
         List<Map<String, Object>> expectedH6 = asList(
                 map("children", asList(), "attributes", map("id", "correct"), "text", "test", "tagName", "h6"),
-                map("children", asList(), "attributes", map("id", "childIncorrect"), "text", "incorrect", "tagName", "h6")
-        );
+                map(
+                        "children",
+                        asList(),
+                        "attributes",
+                        map("id", "childIncorrect"),
+                        "text",
+                        "incorrect",
+                        "tagName",
+                        "h6"));
 
         testResult(
                 db,
@@ -645,7 +656,9 @@ public class LoadHtmlTest {
 
             // The test don't fail if the current chrome/firefox version is incompatible or if the browser is not
             // installed
-            Stream<String> notPresentOrIncompatible = Stream.of("cannot find Chrome binary", "Cannot find firefox binary",
+            Stream<String> notPresentOrIncompatible = Stream.of(
+                    "cannot find Chrome binary",
+                    "Cannot find firefox binary",
                     "Expected browser binary location",
                     "browser start-up failure",
                     "This version of ChromeDriver only supports Chrome version");

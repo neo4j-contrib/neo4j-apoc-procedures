@@ -97,7 +97,7 @@ public class LoadHtmlTestParameterized {
 
                         List<Map<String, Object>> metadata = (List<Map<String, Object>>) value.get("metadata");
                         List<Map<String, Object>> h2 = (List<Map<String, Object>>) value.get("h2");
-    
+
                         assertEquals(RESULT_QUERY_METADATA, metadata);
                         assertEquals(RESULT_QUERY_H2, h2);
                     });
@@ -126,7 +126,7 @@ public class LoadHtmlTestParameterized {
                             config),
                     result -> {
                         Map<String, Object> row = result.next();
-                        assertEquals(map("h2",RESULT_QUERY_H2), row.get("value"));
+                        assertEquals(map("h2", RESULT_QUERY_H2), row.get("value"));
                         assertFalse(result.hasNext());
                     });
         });
