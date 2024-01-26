@@ -72,10 +72,10 @@ public class UUIDMultiDbTest {
     @Test(expected = RuntimeException.class)
     public void testWithSpecificDatabaseWithUUIDDisabled() {
         try {
-            dbTestSession.writeTransaction(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE"));
-            dbTestSession.writeTransaction(tx -> {
-                tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})");
-                return tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label");
+            dbTestSession.executeWrite(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE").consume());
+            dbTestSession.executeWrite(tx -> {
+                tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})").consume();
+                return tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label").consume();
             });
         } catch (RuntimeException e) {
             String expectedMessage = "Failed to invoke procedure `apoc.uuid.install`: " +
@@ -87,10 +87,10 @@ public class UUIDMultiDbTest {
 
     @Test
     public void testWithDefaultDatabaseWithUUIDEnabled() {
-        neo4jSession.writeTransaction(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE"));
-        neo4jSession.writeTransaction(tx -> {
-            tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label");
-            return tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})");
+        neo4jSession.executeWrite(tx -> tx.run("CREATE CONSTRAINT FOR (foo:Foo) REQUIRE foo.uuid IS UNIQUE").consume());
+        neo4jSession.executeWrite(tx -> {
+            tx.run("CALL apoc.uuid.install('Foo', {addToExistingNodes: false }) YIELD label RETURN label").consume();
+            return tx.run("CREATE (d:Foo {name:'Test'})-[:WORK]->(l:Bar {name:'Baz'})").consume();
         });
 
         String call = "MATCH (n:Foo) RETURN n.uuid as uuid";
@@ -102,13 +102,12 @@ public class UUIDMultiDbTest {
 
         long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10);
         while (System.currentTimeMillis() < timeout && !nodeHasUUID.get()) {
-            neo4jSession.writeTransaction(tx -> {
-                Map<String, Object> p = Collections.<String, Object>emptyMap();
+            neo4jSession.executeWrite(tx -> {
+                Map<String, Object> p = Collections.emptyMap();
                 resultConsumer.accept(tx.run(call, p).list()
                         .stream()
                         .map(org.neo4j.driver.Record::asMap)
                         .collect(Collectors.toList()).iterator());
-                tx.commit();
                 return null;
             });
         }
@@ -123,10 +122,10 @@ public class UUIDMultiDbTest {
     @Test(expected = RuntimeException.class)
     public void createUUIDWithSpecificDbWithUUIDDisabled() {
         try(Session session = driver.session(SYS_CONF)) {
-            session.writeTransaction(tx -> tx.run(
+            session.executeWrite(tx -> tx.run(
                     "CALL apoc.uuid.setup('Disabled', $db) YIELD label RETURN label",
                     Map.of("db", DB_TEST)
-            ));
+            ).consume());
             fail("Should fail due to uuid disabled");
         } catch (RuntimeException e) {
             String expectedMessage = "Failed to invoke procedure `apoc.uuid.setup`: " +
@@ -139,12 +138,12 @@ public class UUIDMultiDbTest {
     @Test
     public void createUUIDWithDefaultDbWithUUIDEnabled() {
         driver.session(SYS_CONF)
-                .writeTransaction(tx -> tx.run("CALL apoc.uuid.setup('Baz', 'neo4j', {addToExistingNodes: false })"));
+                .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Baz', 'neo4j', {addToExistingNodes: false })").consume());
 
         // check uuid set
         awaitUuidSet(neo4jSession, "Baz");
 
-        neo4jSession.writeTransaction(tx -> tx.run("CREATE (:Baz)"));
+        neo4jSession.executeWrite(tx -> tx.run("CREATE (:Baz)").consume());
 
         assertEventually(() -> {
             Result res = neo4jSession.run("MATCH (n:Baz) RETURN n.uuid AS uuid");
@@ -158,15 +157,15 @@ public class UUIDMultiDbTest {
     @Test
     public void setupUUIDInNotDefaultDbWithUUIDEnabled() throws InterruptedException {
         driver.session(SYS_CONF)
-                .writeTransaction(tx -> tx.run("CALL apoc.uuid.setup('Another', $db, {addToExistingNodes: false })",
-                        Map.of("db", DB_ENABLED))
+                .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Another', $db, {addToExistingNodes: false })",
+                        Map.of("db", DB_ENABLED)).consume()
                 );
 
         try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
             // check uuid set
             awaitUuidSet(session, "Another");
 
-            session.writeTransaction(tx -> tx.run("CREATE (:Another)"));
+            session.executeWrite(tx -> tx.run("CREATE (:Another)").consume());
 
             Result res = session.run("MATCH (n:Another) RETURN n.uuid AS uuid");
             String uuid = res.single().get("uuid").asString();
@@ -197,8 +196,8 @@ public class UUIDMultiDbTest {
     private static void createDatabases() {
         try (Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
             Stream.of(DB_TEST, DB_ENABLED).forEach(
-                    db -> systemSession.writeTransaction(
-                            tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", db))
+                    db -> systemSession.executeWrite(
+                            tx -> tx.run(String.format("CREATE DATABASE %s WAIT;", db)).consume()
                     ));
         }
     }

@@ -60,7 +60,7 @@ public class TriggerClusterTest {
         cluster.getSession().run("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         // Test that the trigger is present in another instance
         org.neo4j.test.assertion.Assert.assertEventually(() -> cluster.getDriver().session()
-                        .readTransaction(tx -> tx.run("CALL apoc.trigger.list() YIELD name RETURN name").single().get("name").asString()),
+                        .executeRead(tx -> tx.run("CALL apoc.trigger.list() YIELD name RETURN name").single().get("name").asString()),
                 (value) -> "timestamp".equals(value), 30, TimeUnit.SECONDS);
     }
 

@@ -63,7 +63,7 @@ public class UUIDClusterRoutingTest {
                 testCall(session, query, params,
                     row -> assertEquals(label, row.get("label"))
                 );
-                session.writeTransaction(tx -> tx.run("CALL apoc.uuid.drop($label)", params));
+                session.executeWrite(tx -> tx.run("CALL apoc.uuid.drop($label)", params).consume());
                 }
         );
     }
@@ -91,7 +91,7 @@ public class UUIDClusterRoutingTest {
         final List<Neo4jContainerExtension> members = cluster.getClusterMembers();
         assertEquals(NUM_CORES, members.size());
         final String label = UUID.randomUUID().toString();
-        clusterSession.writeTransaction(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)));
+        clusterSession.executeWrite(tx -> tx.run(format("CREATE CONSTRAINT IF NOT EXISTS FOR (n:`%s`) REQUIRE n.uuid IS UNIQUE", label)).consume());
         for (Neo4jContainerExtension container: members) {
             // we skip READ_REPLICA members with write operations
             // instead, we consider all members with a read only operations

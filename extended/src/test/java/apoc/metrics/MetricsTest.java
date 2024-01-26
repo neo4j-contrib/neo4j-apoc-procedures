@@ -67,7 +67,7 @@ public class MetricsTest {
     @Test
     @Ignore
     public void shouldGetMetrics() {
-        session.readTransaction(tx -> tx.run("RETURN 1 AS num;"));
+        session.executeRead(tx -> tx.run("RETURN 1 AS num;").consume());
         String metricKey = "neo4j.system.check_point.total_time";
         assertEventually(() -> {
                     try {

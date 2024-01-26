@@ -93,7 +93,7 @@ public class CypherEnterpriseExtendedTest {
 
     @After
     public void after() {
-        session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n"));
+        session.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
     }
 
     @Test
@@ -111,7 +111,7 @@ public class CypherEnterpriseExtendedTest {
         } catch (Exception ignored) {}
 
         // then
-        boolean anyLingeringParallelTx = neo4jContainer.getSession().readTransaction(tx -> {
+        boolean anyLingeringParallelTx = neo4jContainer.getSession().executeRead(tx -> {
             var currentTxs = tx.run("SHOW TRANSACTIONS").stream();
             return currentTxs.anyMatch( record -> record.get( "currentQuery" ).toString().contains(parallelQuery));
         });
@@ -153,7 +153,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testCypherParallelWithSetAndResults() {
-        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
 
         String query = "CALL apoc.cypher.parallel($file, {a: range(1,4)}, 'a')";
         Map<String, Object> params = Map.of("file", SET_NODE);
@@ -167,7 +167,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testCypherParallel2WithSetAndResults() {
-        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
 
         String query = "CALL apoc.cypher.parallel2($file, {a: range(1,4)}, 'a')";
         Map<String, Object> params = Map.of("file", SET_NODE);
@@ -196,7 +196,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     private void testCypherParallelCommon(String query, Map<String, Object> params) {
-        session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RETURNQUERY_NODES).consume());
 
         testResult(session, query, params, r -> {
             assertBatchCypherParallel(r);
@@ -241,7 +241,7 @@ public class CypherEnterpriseExtendedTest {
             Map<String, Object> params = Map.of("file", SIMPLE_RETURN_QUERIES);
             testCypherMapParallelCommon(query, params);
 
-            session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n"));
+            session.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
         }
 
         // Check that `SHOW TRANSACTIONS` just returns itself 
@@ -251,7 +251,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     public void testRunProcedureWithSimpleReturnResults(String query, Map<String, Object> params) {
-        session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RETURNQUERY_NODES).consume());
         testResult(session, query, params,
                 r -> {
                     // check that all results from the 1st statement are correctly returned
@@ -276,7 +276,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     public void testRunProcedureWithSetAndReturnResults(String query, Map<String, Object> params) {
-        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
 
         testResult(session, query, params,
                 r -> {
@@ -341,7 +341,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     private void testCypherMapParallelCommon(String query, Map<String, Object> params) {
-        session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RETURNQUERY_NODES).consume());
 
         testResult(session, query, params, r -> {
             Map<String, Object> next = r.next();
