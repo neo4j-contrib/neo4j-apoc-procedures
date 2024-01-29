@@ -32,6 +32,7 @@ public enum SystemPropertyKeys {
     output,
     forceSingle,
     prefix,
+    mapResult,
 
     // triggers
     selector,

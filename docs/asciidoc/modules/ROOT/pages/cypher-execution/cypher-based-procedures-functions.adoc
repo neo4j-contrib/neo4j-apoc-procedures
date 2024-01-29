@@ -58,6 +58,7 @@ The following values are supported:
 * DATE, DATETIME, LOCALDATETIME, TIME, LOCALTIME, DURATION
 * NODE, REL, RELATIONSHIP, EDGE, PATH
 * MAP
+* MAPRESULT (valid for declareFunction, does not wrap the result in a further map. see here: <<map-vs-map-result>>)
 * LIST TYPE, LIST OF TYPE (where `TYPE` can be one of the previous values)
 * ANY
 
