@@ -44,7 +44,7 @@ class AWSProceduresTest {
 
         assertEquals(0L, transformedResults.value["index"])
         val entities = transformedResults.value["entities"] as List<Map<String, Object>>
-        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
+        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L, "blockReferences" to null), entities[0])
     }
 
     @Test
@@ -89,7 +89,7 @@ class AWSProceduresTest {
 
         assertEquals(1L, result2.value["index"])
         val entities = result2.value["entities"] as List<Map<String, Object>>
-        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L), entities[0])
+        assertEquals(mapOf("text" to "foo", "type" to "bar", "score" to 2.0F, "beginOffset" to 0L, "endOffset" to 3L, "blockReferences" to null), entities[0])
     }
 
     @Test
