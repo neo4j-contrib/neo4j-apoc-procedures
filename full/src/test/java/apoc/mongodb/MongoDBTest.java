@@ -75,7 +75,8 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, true, false)) {
+        try (MongoDbCollInterface coll =
+                MongoDbCollInterface.Factory.create(url, "test", "person", false, true, false)) {
             Map<String, Object> document = coll.first(Collections.emptyMap());
             assertTrue(document.get("_id") instanceof String);
             assertEquals("Andrea Santurbano", document.get("name"));
@@ -104,7 +105,8 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "person", false, false, false)) {
+        try (MongoDbCollInterface coll =
+                MongoDbCollInterface.Factory.create(url, "test", "person", false, false, false)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "Andrea Santurbano"));
             assertTrue(document.get("_id") instanceof String);
             Collection<String> bought = (Collection<String>) document.get("bought");
@@ -120,7 +122,7 @@ public class MongoDBTest extends MongoTestBase {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDBUtils.Coll coll = MongoDBUtils.Coll.Factory.create(url, "test", "test", true, false, true)) {
+        try (MongoDbCollInterface coll = MongoDbCollInterface.Factory.create(url, "test", "test", true, false, true)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
             assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
             assertEquals(
