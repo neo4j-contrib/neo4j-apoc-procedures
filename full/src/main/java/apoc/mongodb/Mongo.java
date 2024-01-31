@@ -65,7 +65,7 @@ public class Mongo {
             @Name("uri") String uri,
             @Name("query") Object query,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
         return executeMongoQuery(
                 uri,
                 conf,
@@ -82,7 +82,7 @@ public class Mongo {
             @Name("uri") String uri,
             @Name(value = "query", defaultValue = "null") Object query,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        MongoDbConfig conf = new MongoDbConfig(config);
+        MongoDbConfig conf = getMongoConfig(config);
         return executeMongoQuery(
                 uri,
                 conf,
