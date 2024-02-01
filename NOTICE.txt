@@ -38,7 +38,7 @@ Apache-2.0
   HikariCP-java7-2.4.12.jar
   RoaringBitmap-0.7.17.jar
   WMI4Java-1.6.3.jar
-  accessors-smart-2.4.9.jar
+  accessors-smart-2.5.0.jar
   annotations-17.0.0.jar
   apiguardian-api-1.1.0.jar
   arrow-format-12.0.1.jar
@@ -49,9 +49,9 @@ Apache-2.0
   audience-annotations-0.5.0.jar
   avro-1.7.7.jar
   awaitility-4.1.0.jar
-  aws-java-sdk-core-1.12.425.jar
-  aws-java-sdk-kms-1.12.425.jar
-  aws-java-sdk-s3-1.12.425.jar
+  aws-java-sdk-core-1.12.646.jar
+  aws-java-sdk-kms-1.12.646.jar
+  aws-java-sdk-s3-1.12.646.jar
   byte-buddy-1.11.13.jar
   byte-buddy-agent-1.11.13.jar
   caffeine-3.0.3.jar
@@ -121,7 +121,6 @@ Apache-2.0
   hadoop-yarn-server-web-proxy-3.3.6.jar
   httpclient-4.5.13.jar
   httpcore-4.4.13.jar
-  ion-java-1.0.2.jar
   ipaddress-5.3.3.jar
   j2objc-annotations-2.8.jar
   jPowerShell-3.0.jar
@@ -160,14 +159,14 @@ Apache-2.0
   jetty-xml-9.4.53.v20231009.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
-  jmespath-java-1.12.425.jar
+  jmespath-java-1.12.646.jar
   jna-5.9.0.jar
   jnr-constants-0.9.9.jar
   jnr-ffi-2.1.7.jar
   joda-time-2.8.1.jar
   json-io-2.5.1.jar
-  json-path-2.8.0.jar
-  json-smart-2.4.10.jar
+  json-path-2.9.0.jar
+  json-smart-2.5.0.jar
   jsr305-3.0.2.jar
   kerb-admin-1.0.1.jar
   kerb-client-1.0.1.jar
@@ -456,6 +455,7 @@ MIT
   neo4j-1.17.6.jar
   postgresql-1.17.6.jar
   slf4j-api-1.7.36.jar
+  slf4j-api-2.0.11.jar
   slf4j-log4j12-1.7.25.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar

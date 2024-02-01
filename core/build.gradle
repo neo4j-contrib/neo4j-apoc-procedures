@@ -37,7 +37,7 @@ dependencies {
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.14'
     // when json-path is changed, it have to be changed in json-path-version version in antora.yml as well.
-    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.8.0'
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0'
     implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
@@ -62,7 +62,7 @@ dependencies {
 
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.646'
 
     testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
     testImplementation group: 'junit', name: 'junit', version: '4.13.1'
@@ -98,8 +98,8 @@ dependencies {
     testImplementation 'org.mock-server:mockserver-netty:5.15.0'
     testImplementation 'org.mock-server:mockserver-client-java:5.15.0'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.646' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.646' , withoutJacksons
 
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'

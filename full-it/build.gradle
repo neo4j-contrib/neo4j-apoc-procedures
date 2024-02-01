@@ -11,7 +11,7 @@ dependencies {
     testImplementation project(':core').sourceSets.test.output
     testImplementation project(':full').sourceSets.test.output
 
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.646'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
 
     configurations.all {

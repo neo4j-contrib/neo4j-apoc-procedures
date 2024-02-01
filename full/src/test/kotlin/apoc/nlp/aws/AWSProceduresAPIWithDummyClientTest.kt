@@ -80,8 +80,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val value = row1["value"] as Map<*, *>
             val entities = value["entities"] as List<*>
 
-            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-0-batch-0", "type" to "COMMERCIAL_ITEM")))
-            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")))
+            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-0-batch-0", "type" to "COMMERCIAL_ITEM", "blockReferences" to null)))
+            assertThat(entities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION", "blockReferences" to null)))
 
             assertTrue(it.hasNext())
 
@@ -89,8 +89,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val value2 = row2["value"] as Map<*, *>
             val entities2 = value2["entities"] as List<*>
 
-            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-1-batch-0", "type" to "COMMERCIAL_ITEM")))
-            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-1-batch-0", "type" to "ORGANIZATION")))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-1-batch-0", "type" to "COMMERCIAL_ITEM", "blockReferences" to null)))
+            assertThat(entities2, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-1-batch-0", "type" to "ORGANIZATION", "blockReferences" to null)))
         }
     }
 
@@ -117,8 +117,8 @@ class AWSProceduresAPIWithDummyClientTest {
             val allEntities = value.stream().flatMap { v -> ((v as Map<*, *>)["entities"] as List<*>).stream() }.collect(Collectors.toList())
 
             // assert that we have entries from the 2nd batch
-            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM")))
-            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION")))
+            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.5F, "text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM", "blockReferences" to null)))
+            assertThat(allEntities, hasItem(mapOf("beginOffset" to null, "endOffset" to null, "score" to 0.7F, "text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION", "blockReferences" to null)))
         }
     }
 
