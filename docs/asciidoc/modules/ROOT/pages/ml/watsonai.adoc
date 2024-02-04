@@ -2,7 +2,7 @@
 = Watson API Access
 :description: This section describes procedures that can be used to access the Watson API.
 
-NOTE: You need to acquire an https://cloud.ibm.com/apidocs/Watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.
+NOTE: You need to acquire an https://cloud.ibm.com/apidocs/watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.
 This token must be defined in the second parameter
 
 
