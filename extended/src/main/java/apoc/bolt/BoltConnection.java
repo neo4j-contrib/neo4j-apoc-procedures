@@ -25,7 +25,9 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
 
 import java.net.URISyntaxException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -60,7 +62,7 @@ public class BoltConnection {
                 SummaryCounters counters = statementResult.consume().counters();
                 return Stream.of(new RowResult(toMap(counters)));
             } else
-                return getRowResultStream(config.isVirtual(), session, params, statement);
+                return getRowResultStream(session, params, statement);
         });
     }
 
@@ -89,7 +91,7 @@ public class BoltConnection {
                     } else {
                         response.addAll(
                                 statementResult.stream()
-                                        .map(record -> buildRowResult(record, nodesCache, config.isVirtual()))
+                                        .map(record -> buildRowResult(record, nodesCache))
                                         .collect(Collectors.toList())
                         );
                     }
@@ -118,29 +120,43 @@ public class BoltConnection {
         return function.apply(transaction).onClose(transaction::commit).onClose(transaction::close);
     }
 
-    private RowResult buildRowResult(Record record, Map<Long,Object> nodesCache, boolean virtual) {
-        return new RowResult(record.asMap(value -> {
-            Object entity = value.asObject();
-            if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
-            if (entity instanceof Relationship) return toRelationship(entity, virtual, nodesCache);
-            if (entity instanceof Path) return toPath(entity, virtual, nodesCache);
-            return entity;
-        }));
+    private RowResult buildRowResult(Record record, Map<Long, Object> nodesCache) {
+        return new RowResult(record.asMap(value -> convertRecursive(value, nodesCache)));
     }
 
-    private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement) {
+    private Object convertRecursive(Object entity, Map<Long, Object> nodesCache) {
+        if (entity instanceof Value) return convertRecursive(((Value) entity).asObject(), nodesCache);
+        if (entity instanceof Node) return toNode(entity, nodesCache);
+        if (entity instanceof Relationship) return toRelationship(entity, nodesCache);
+        if (entity instanceof Path) return toPath(entity, nodesCache);
+        if (entity instanceof Collection) return toCollection((Collection) entity, nodesCache);
+        if (entity instanceof Map) return toMap((Map<String, Object>) entity, nodesCache);
+        return entity;
+    }
+
+    private Object toMap(Map<String, Object> entity, Map<Long, Object> nodeCache) {
+        return entity.entrySet().stream()
+                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convertRecursive(entry.getValue(), nodeCache)))
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+    }
+
+    private Object toCollection(Collection entity, Map<Long, Object> nodeCache) {
+        return entity.stream().map(elem -> convertRecursive(elem, nodeCache)).collect(Collectors.toList());
+    }
+
+    private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
         Map<Long, Object> nodesCache = new HashMap<>();
 
         return withTransaction(session, tx -> {
             ClosedAwareDelegatingIterator<Record> iterator = new ClosedAwareDelegatingIterator(tx.run(statement, params));
-            return Iterators.stream(iterator).map(record -> buildRowResult(record, nodesCache, virtual));
+            return Iterators.stream(iterator).map(record -> buildRowResult(record, nodesCache));
         });
     }
 
-    private Object toNode(Object value, boolean virtual, Map<Long, Object> nodesCache) {
+    private Object toNode(Object value, Map<Long, Object> nodesCache) {
         Value internalValue = ((InternalEntity) value).asValue();
         Node node = internalValue.asNode();
-        if (virtual) {
+        if (config.isVirtual()) {
             List<Label> labels = new ArrayList<>();
             node.labels().forEach(l -> labels.add(Label.label(l)));
             VirtualNode virtualNode = new VirtualNode(node.id(), labels.toArray(new Label[0]), node.asMap());
@@ -150,10 +166,10 @@ public class BoltConnection {
             return Util.map("entityType", internalValue.type().name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
     }
 
-    private Object toRelationship(Object value, boolean virtual, Map<Long, Object> nodesCache) {
+    private Object toRelationship(Object value, Map<Long, Object> nodesCache) {
         Value internalValue = ((InternalEntity) value).asValue();
         Relationship relationship = internalValue.asRelationship();
-        if (virtual) {
+        if (config.isVirtual()) {
             VirtualNode start = (VirtualNode) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId()));
             VirtualNode end = (VirtualNode) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId()));
             VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
@@ -162,13 +178,13 @@ public class BoltConnection {
             return Util.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
     }
 
-    private Object toPath(Object value, boolean virtual, Map<Long, Object> nodesCache) {
+    private Object toPath(Object value, Map<Long, Object> nodesCache) {
         List<Object> entityList = new LinkedList<>();
         Value internalValue = ((InternalPath) value).asValue();
         internalValue.asPath().forEach(p -> {
-            entityList.add(toNode(p.start(), virtual, nodesCache));
-            entityList.add(toRelationship(p.relationship(), virtual, nodesCache));
-            entityList.add(toNode(p.end(), virtual, nodesCache));
+            entityList.add(toNode(p.start(), nodesCache));
+            entityList.add(toRelationship(p.relationship(), nodesCache));
+            entityList.add(toNode(p.end(), nodesCache));
         });
         return entityList;
     }
