@@ -23,6 +23,13 @@ include::example$generated-documentation/apoc.es.delete.adoc[]
 |===
 // end::elasticsearch[]
 
+[NOTE]
+====
+It is currently not possible to query Elastic 8 via certificate, 
+but only disabling ssl with the configuration `"xpack.security.http.ssl.enabled=false"`, using the basic authentication via the header config (see `config parameter` below)
+or (not recommended) disabling security via `xpack.security.enabled=false`
+====
+
 
 == Example
 
@@ -197,6 +204,8 @@ Config can be an optional *map*, which can have the following entries:
 | headers | `Map` | {`content-type`: "application/json", `method`, "<httpMethod>"} | Contains a header map to add (or replace) the default one.
     The `method: <httpMethod>` is needed by APOC to figure out under the hood, which http request method to pass. 
     That is, by default, it is `PUT` with the `apoc.es.put`, POST with the `apoc.es.post` and `apoc.es.postRaw`, and GET in other cases.
+| version | `String` | `DEFAULT` | Can be `DEFAULT` and `EIGHT`, in order to change the RestAPI endpoint based on Elastic version. 
+    See `Endpoint` table below.
 |===
 
 
@@ -213,6 +222,48 @@ Authorization: Basic <Base64Token>
 method: GET
 Content-Type: application/json
 ```
+
+
+Some APIs in Elastic 8 can be called by the procedures without needing configuration `{version: 'EIGHT'}`,
+for example the `apoc.es.stats`,
+but for several APIs, it is necessary to set it, to handle the endpoint properly,
+for example the `apoc.es.query`.
+
+.Endpoint
+[opts=header]
+|===
+| procedure(s) | with version: `DEFAULT` | with version: `EIGHT` 
+| `apoc.es.stats(host)` |  <host>/_stats | same as `DEFAULT`
+| `apoc.es.query(host, index, type, query, payload, $conf)` |  <host>/<index param>/<type param>/_stats?<query param> | <host>/<index param>/_stats?<query param>
+| `apoc.es.getRaw/apoc.es.postRaw(host, path, payload, $conf)` | `<host>/<path param>` | same as `DEFAULT`
+| the others `apoc.es.<name>(host, index, type, id, query, payload, $conf)` procedures |  `<host>/<index param>/<type param>/<id param>_stats?<query param>`
+By default, the `<index param>` and `<id param>` will be populated as `_all`, while the `<id param>`, if not present, will be removed from the endpoint 
+|  `<host>/<index param>/<type param>/<id param>_stats?<query param>`. Note that you only need to enter one of three values between `<index param>`,`<id param>` and `<type param>`, the others will eventually be excluded from the endpoint.
+
+The type param is usually an underscore string indicating the type of the API, e.g. `_doc` or `_update` (while previously indicated https://www.elastic.co/guide/en/elasticsearch/reference/6.1/removal-of-types.html[the mapping types]).
+This is to allow you to call, for example, https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html[this API]
+|===
+
+
+For example, by using the `apoc.es.query`, we can execute a Search API:
+[source, cypher]
+----
+CALL apoc.es.query(<$host>, <$index>, <$type>, 'q=name:Neo4j', null, { version: 'EIGHT' })
+----
+
+Updates a document in Elastic 8 via https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update.html#docs-update[Update API]:
+
+[source, cypher]
+----
+CALL apoc.es.put($host,'<indexName>','_doc','<idName>','refresh=true',{name: 'foo'}, {version: 'EIGHT'})
+----
+
+Call a https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-index[Create Index API] in elastic 8:
+
+[source, cypher]
+----
+CALL apoc.es.put($host,'<indexName>', null, null, null, null, { version: 'EIGHT' })
+----
 
 
 === Results
