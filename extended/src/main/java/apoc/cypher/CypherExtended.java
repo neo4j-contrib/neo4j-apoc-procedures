@@ -52,6 +52,7 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.neo4j.procedure.Mode.READ;
 import static org.neo4j.procedure.Mode.WRITE;
 
 /**
@@ -82,25 +83,41 @@ public class CypherExtended {
     @Context
     public URLAccessChecker urlAccessChecker;
 
-    @Procedure(mode = WRITE)
+    @Procedure(name = "apoc.cypher.runFile", mode = WRITE)
     @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
-        return runFiles(singletonList(fileName),config);
+        return runFiles(singletonList(fileName), config);
+    }
+    
+    @Procedure(value = "apoc.cypher.runReadFile", mode = READ)
+    @Description("apoc.cypher.runReadFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated")
+    public Stream<RowResult> runReadFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        return runReadFiles(singletonList(fileName), config);
     }
 
-    @Procedure(mode = WRITE)
+    @Procedure(value = "apoc.cypher.runFiles", mode = WRITE)
     @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated")
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        return runNonSchemaFiles(fileNames, config, true);
+    }
+    
+    @Procedure(value = "apoc.cypher.runReadFiles", mode = READ)
+    @Description("apoc.cypher.runReadFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each `READ` statement in the files, all semicolon separated")
+    public Stream<RowResult> runReadFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        return runNonSchemaFiles(fileNames, config, false);
+    }
+
+    private Stream<RowResult> runNonSchemaFiles(List<String> fileNames, Map<String, Object> config, boolean defaultStatistics) {
         @SuppressWarnings( "unchecked" )
         final Map<String,Object> parameters = (Map<String,Object>) config.getOrDefault("parameters",Collections.emptyMap());
         final boolean schemaOperation = false;
-        return runFiles(fileNames, config, parameters, schemaOperation);
+        return runFiles(fileNames, config, parameters, schemaOperation, defaultStatistics);
     }
 
     // This runs the files sequentially
-    private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation) {
+    private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation, boolean defaultStatistics) {
         boolean reportError = Util.toBoolean(config.get("reportError"));
-        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
+        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics", defaultStatistics));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
         var result = fileNames.stream().flatMap(fileName -> {
@@ -124,7 +141,7 @@ public class CypherExtended {
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         final boolean schemaOperation = true;
         final Map<String, Object> parameters = Collections.emptyMap();
-        return runFiles(fileNames, config, parameters, schemaOperation);
+        return runFiles(fileNames, config, parameters, schemaOperation, true);
     }
 
     private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout, int queueCapacity, boolean reportError, String fileName) {

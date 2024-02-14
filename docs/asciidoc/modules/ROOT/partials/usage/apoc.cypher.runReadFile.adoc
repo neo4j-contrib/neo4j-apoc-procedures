@@ -1,0 +1,33 @@
+Given this dataset:
+
+[source, cypher]
+----
+CREATE (:ReturnQuery {id:1}), (:ReturnQuery {id:2}), (:ReturnQuery {id:3});
+CREATE (n:Other {id: 4});
+----
+
+and this file, located in `.$NEO4J_HOME/import`:
+
+.match.cypher
+[source, cypher]
+----
+MATCH (n:ReturnQuery) RETURN n;
+MATCH (n:Other) RETURN n;
+----
+
+we can run the Cypher commands in `match.cypher`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.cypher.runReadFile("match.cypher");
+----
+
+.Results
+[opts="header", cols="1,5"]
+|===
+| row | result
+| 0  | {"n":{"identity":1,"labels":["ReturnQuery"],"properties":{"id":1},"elementId":"..."}}
+| 1  | {"n":{"identity":2,"labels":["ReturnQuery"],"properties":{"id":2},"elementId":"..."}}
+| 2  | {"n":{"identity":3,"labels":["ReturnQuery"],"properties":{"id":3},"elementId":"..."}}
+| 0  | {"n":{"identity":4,"labels":["Other"],"properties":{"id":4},"elementId":"..."}}
+|===

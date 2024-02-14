@@ -1,0 +1,5 @@
+¦xref::overview/apoc.cypher/apoc.cypher.runReadFile.adoc[apoc.cypher.runReadFile icon:book[]] +
+
+`apoc.cypher.runReadFile(file or url,[{timeout:10,parameters:{}}])` - runs each `READ` statement in the file, all semicolon separated
+¦label:procedure[]
+¦label:apoc-extended[]
