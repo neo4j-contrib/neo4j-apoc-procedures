@@ -411,8 +411,8 @@ public class BoltTest {
                 "remoteStatement", remoteStatement,
                 "config", Util.map("readOnly", false));
         db.executeTransactionally("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config) YIELD row return row", map);
-        final long remoteCount = neo4jContainer.getSession().readTransaction(tx ->
-                (long) tx.run("MATCH (n: TestLoadFromLocalNode { m: 'foobar' }) RETURN count(n) AS count").next().asMap().get("count"));
+        final long remoteCount = neo4jContainer.getSession().executeRead(tx ->
+                (long) tx.run("MATCH (n: TestLoadFromLocalNode { m: 'foobar' }) RETURN count(n) AS count").single().asMap().get("count"));
         assertEquals(1L, remoteCount);
     }
 
@@ -425,8 +425,8 @@ public class BoltTest {
                 "remoteStatement", null,
                 "config", Util.map("readOnly", false, "streamStatements", true));
         db.executeTransactionally("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config)", map);
-        final long remoteCount = neo4jContainer.getSession().readTransaction(tx ->
-                (long) tx.run("MATCH (n: TestLoadFromLocalStream) RETURN count(n) AS count").next().asMap().get("count"));
+        final long remoteCount = neo4jContainer.getSession().executeRead(tx ->
+                (long) tx.run("MATCH (n: TestLoadFromLocalStream) RETURN count(n) AS count").single().asMap().get("count"));
         assertEquals(1L, remoteCount);
     }
 

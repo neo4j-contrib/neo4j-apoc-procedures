@@ -50,10 +50,10 @@ public class TTLMultiDbTest {
 
     @After
     public void cleanDb() {
-        neo4jSession.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n;"));
-        testSession.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n;"));
-        fooSession.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n;"));
-        barSession.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n;"));
+        neo4jSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
+        testSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
+        fooSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
+        barSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
     }
 
     @AfterClass
@@ -115,10 +115,10 @@ public class TTLMultiDbTest {
 
     private static void createDatabases() {
         try(Session systemSession = driver.session(SessionConfig.forDatabase("system"))) {
-            systemSession.writeTransaction(tx -> {
-                tx.run("CREATE DATABASE " + DB_TEST + " WAIT;");
-                tx.run("CREATE DATABASE " + DB_FOO + " WAIT;");
-                return tx.run("CREATE DATABASE " + DB_BAR + " WAIT;");
+            systemSession.executeWrite(tx -> {
+                tx.run("CREATE DATABASE " + DB_TEST + " WAIT;").consume();
+                tx.run("CREATE DATABASE " + DB_FOO + " WAIT;").consume();
+                return tx.run("CREATE DATABASE " + DB_BAR + " WAIT;").consume();
             });
         }
 
