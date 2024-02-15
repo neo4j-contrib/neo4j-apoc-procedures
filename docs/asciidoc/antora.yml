@@ -8,4 +8,4 @@ asciidoc:
     docs-version: "5.0"
     branch: "5.0"
     apoc-release-absolute: "5.0"
-    apoc-release: "5.17.0"
+    apoc-release: "5.18.0"

@@ -14,7 +14,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '5.17.0'
+    version = '5.18.0'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -71,8 +71,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise-debian' : 'neo4j:5.17.0-enterprise-debian',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.17.0-debian',
+                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise-debian' : 'neo4j:5.18.0-enterprise-debian',
+                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.18.0-debian',
                 'coreDir': 'apoc-core/core',
                 'testDockerBundle': false
 
@@ -131,7 +131,7 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "5.17.0"
+    neo4jVersion = "5.18.0"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.18.3'
