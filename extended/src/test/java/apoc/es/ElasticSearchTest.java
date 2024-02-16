@@ -435,11 +435,9 @@ public class ElasticSearchTest {
                     assertEquals("Brazorf", response);
                 });
 
-        // TODO: forced the apoc.es.postRaw's HTTP method to be a DELETE, to remove the document and ensure isolation of tests.
-        //  Replace with `apoc.es.delete` when the issue https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2999 is implemented
-        TestUtil.testCall(db, "CALL apoc.es.postRaw($host, $suffixDelete, '', {headers: {method: 'DELETE'}}) yield value", params, r -> {
-            Map expected = Util.map("acknowledged", true);
-            assertEquals(expected, r.get("value"));
+        TestUtil.testCall(db, "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true')", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("deleted", result);
         });
     }
 
@@ -471,14 +469,10 @@ public class ElasticSearchTest {
                     Object actual = extractValueFromResponse(r, "$._source.ajeje");
                     assertEquals("Brazorf", actual);
                 });
-
-        // TODO: forced the apoc.es.postRaw's HTTP method to be a DELETE, to remove the document and ensure isolation of tests.
-        //  Replace with `apoc.es.delete` when the issue https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2999 is implemented
-        Map<String, Object> deleteHeaders = Util.merge(basicAuthHeader, Util.map("method", "DELETE"));
-        params.put("headers", deleteHeaders);
-        TestUtil.testCall(db, "CALL apoc.es.postRaw($host, $suffix, '', {headers: $headers}) yield value", params, r -> {
-            Map expected = Util.map("acknowledged", true);
-            assertEquals(expected, r.get("value"));
+        
+        TestUtil.testCall(db, "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true', {headers: $headers})", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("deleted", result);
         });
     }
 
@@ -551,6 +545,26 @@ public class ElasticSearchTest {
         assertTrue(!es.getQueryUrl(host, index, type, id, new HashMap<String, String>()).endsWith("?"));
     }
 
+    @Test
+    public void testDelete() {
+        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"to\":\"delete\"}", UUID.randomUUID().toString());
+        TestUtil.testCall(db, "CALL apoc.es.put($host, $index, $type, $id, 'refresh=true', $payload) yield value", params, r -> {
+            Object created = extractValueFromResponse(r, "$.result");
+            assertEquals("created", created);
+        });
+
+        TestUtil.testCall(db, "CALL apoc.es.stats($url)", defaultParams,
+                commonEsStatsConsumer(4));
+
+        TestUtil.testCall(db, "CALL apoc.es.delete($host,$index,$type,$id,'refresh=true') yield value", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("deleted", result);
+        });
+
+        TestUtil.testCall(db, "CALL apoc.es.stats($url)", defaultParams,
+                commonEsStatsConsumer());
+    }
+
     private static Consumer<Map<String, Object>> commonEsGetConsumer() {
         return r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
@@ -559,11 +573,15 @@ public class ElasticSearchTest {
     }
 
     private static Consumer<Map<String, Object>> commonEsStatsConsumer() {
+        return commonEsStatsConsumer(3);
+    }
+    
+    private static Consumer<Map<String, Object>> commonEsStatsConsumer(int expectedNumOfDocs) {
         return r -> {
             assertNotNull(r.get("value"));
 
             Object numOfDocs = extractValueFromResponse(r, "$._all.total.docs.count");
-            assertEquals(3, numOfDocs);
+            assertEquals(expectedNumOfDocs, numOfDocs);
         };
     }
 }
