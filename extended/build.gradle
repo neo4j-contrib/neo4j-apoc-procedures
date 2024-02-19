@@ -77,7 +77,7 @@ dependencies {
     implementation project(':common')
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
-    implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
+    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0'
     implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
 
     // These will be dependencies not packaged with the .jar
@@ -154,7 +154,7 @@ dependencies {
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
-
+    testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
