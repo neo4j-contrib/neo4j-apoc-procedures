@@ -182,7 +182,7 @@ public class Json {
             @Name("paths") List<Path> paths,
             @Name(value = "lowerCaseRels", defaultValue = "true") boolean lowerCaseRels,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        if (paths.isEmpty()) return Stream.of(new MapResult(Collections.emptyMap()));
+        if (paths == null || paths.isEmpty()) return Stream.of(new MapResult(Collections.emptyMap()));
         ConvertConfig conf = new ConvertConfig(config);
         Map<String, List<String>> nodes = conf.getNodes();
         Map<String, List<String>> rels = conf.getRels();
@@ -207,9 +207,11 @@ public class Json {
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
                     if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
+                    // Check that this combination of rel and node doesn't already exist
                     List<Map<String, Object>> list = (List) nMap.get(typeName);
                     Optional<Map<String, Object>> optMap = list.stream()
-                            .filter(elem -> elem.get("_id").equals(m.getId()))
+                            .filter(elem -> elem.get("_id").equals(m.getId())
+                                    && elem.get(typeName + "._id").equals(r.getId()))
                             .findFirst();
                     if (!optMap.isPresent()) {
                         Map<String, Object> mMap = toMap(m, nodes);
@@ -262,8 +264,9 @@ public class Json {
     private Map<String, Object> addRelProperties(
             Map<String, Object> mMap, String typeName, Relationship r, Map<String, List<String>> relFilters) {
         Map<String, Object> rProps = r.getAllProperties();
-        if (rProps.isEmpty()) return mMap;
         String prefix = typeName + ".";
+        mMap.put(prefix + "_id", r.getId());
+        if (rProps.isEmpty()) return mMap;
         if (relFilters.containsKey(typeName)) {
             rProps = filterProperties(rProps, relFilters.get(typeName));
         }

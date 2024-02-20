@@ -452,7 +452,7 @@ public class ConvertJsonTest {
                     List<Object> actedInList = (List<Object>) root.get("acted_in");
                     assertEquals(7, actedInList.size());
                     List<Object> innerList = (List) ((Map<String, Object>) actedInList.get(1)).get("acted_in");
-                    assertEquals(6, ((Map<String, Object>) innerList.get(0)).size());
+                    assertEquals(7, ((Map<String, Object>) innerList.get(0)).size());
                 });
     }
 
@@ -624,20 +624,34 @@ public class ConvertJsonTest {
             MatcherAssert.assertThat(
                     subParts,
                     Matchers.hasItem(MapUtil.map(
-                            "_type", "User",
-                            "flag.Created", "2018-11-21T11:22:01",
-                            "_id", 3L,
-                            "id", "facebook|680594762097202",
-                            "flag.FlagType", 4L)));
+                            "_type",
+                            "User",
+                            "flag.Created",
+                            "2018-11-21T11:22:01",
+                            "_id",
+                            3L,
+                            "flag._id",
+                            2L,
+                            "id",
+                            "facebook|680594762097202",
+                            "flag.FlagType",
+                            4L)));
 
             MatcherAssert.assertThat(
                     subParts,
                     Matchers.hasItem(MapUtil.map(
-                            "_type", "User",
-                            "flag.Created", "2018-11-21T11:20:31",
-                            "_id", 4L,
-                            "id", "google-oauth2|106707535753175966005",
-                            "flag.FlagType", 1L)));
+                            "_type",
+                            "User",
+                            "flag.Created",
+                            "2018-11-21T11:20:31",
+                            "_id",
+                            4L,
+                            "flag._id",
+                            5L,
+                            "id",
+                            "google-oauth2|106707535753175966005",
+                            "flag.FlagType",
+                            1L)));
 
             Map<String, Object> mapFlag = subParts.get(0);
             hasPart = has.get(1);
