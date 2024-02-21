@@ -1,0 +1,43 @@
+= apoc.temporal.overlap
+:description: This section contains reference documentation for the apoc.temporal.overlap function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.temporal.overlap(start1,end1,start2,end2,$config) - Check whether the two temporal spans (start1-end1 and start2-end2) overlap or not
+
+== Signature
+
+[source]
+----
+apoc.temporal.overlap(start1 :: ANY?, end1 :: ANY?, start2 :: ANY?, end2 :: ANY?, config = {} :: MAP?) :: BOOLEAN?
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|start1|ANY?|null
+|end1|ANY?|null
+|start2|ANY?|null
+|end2|ANY?|null
+|config|MAP?|{}
+|===
+
+
+== Config parameters
+
+The function support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| acceptAdjacentSpans | boolean | false | also considers adjacent spans 
+|===
+
+[[usage-apoc.temporal.overlap]]
+== Usage Examples
+include::partial$usage/apoc.temporal.overlap.adoc[]
+
+
