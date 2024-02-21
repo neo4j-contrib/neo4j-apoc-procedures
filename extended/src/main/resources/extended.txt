@@ -80,6 +80,7 @@ apoc.log.debug
 apoc.log.error
 apoc.log.info
 apoc.log.warn
+apoc.map.renameKey
 apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
