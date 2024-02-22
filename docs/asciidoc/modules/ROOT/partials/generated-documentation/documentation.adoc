@@ -2043,6 +2043,17 @@ apoc.meta.types(node-relationship-map)  - returns a map of keys to types
 |label:apoc-core[]
 |===
 
+== xref::overview/apoc.map/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.map/apoc.map.renameKey.adoc[apoc.map.renameKey icon:book[]]
+
+Rename the given key(s) in the `MAP`.
+|label:function[]
+|===
+
 == xref::overview/apoc.metrics/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
