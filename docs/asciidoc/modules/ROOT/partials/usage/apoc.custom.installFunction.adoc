@@ -1,0 +1,118 @@
+NOTE: Function, input and output names must have at least 2 characters.
+
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction('answerFun() :: INT', 'RETURN 42 as answer')
+----
+
+This registers, *after a time defined by the configuration `apoc.custom.procedures.refresh`*,
+the statement as procedure `custom.answer` that you then can call.
+[source,cypher]
+----
+RETURN custom.answerFun()
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+Or you can also write in this way:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction('answerFunMap() :: MAP', 'RETURN 42 as answer')
+----
+
+In this case the result is wrapped in a stream of maps called `row`. Therefore, you can do:
+
+[source,cypher]
+----
+WITH custom.answerFunMap() YIELD row
+RETURN row.answer
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+
+We can create the function `custom.double`, that doubles the provided value, by running the following function:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction(
+  'double(input::INT) :: INT',
+  'RETURN $input*2 as answer'
+);
+----
+
+We can use this function, as shown in the query below:
+
+[source,cypher]
+----
+RETURN custom.double(83) AS value;
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 166
+|===
+
+
+Moreover, via the 3rd parameter, we can create the custom procedure in a different database than `neo4j`.
+For example, the following one creates a custom procedure in the `foo` database:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction('foodb() :: INT', 'RETURN 42', 'foo')
+----
+
+Furthermore, we can pass as a 4th parameter a boolean (with default false) which, if true,
+in case the function returns a list of a single element, it will return only the single element itself and not the list.
+
+For example:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction('forceSingleTrue(input::ANY) :: LIST OF INT',
+  'RETURN 1',
+  true
+);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| 1
+|===
+
+otherwise with false the result will be a singleton list:
+
+[source,cypher]
+----
+CALL apoc.custom.installFunction('forceSingleFalse(input::ANY) :: LIST OF INT',
+  'RETURN 1',
+  false
+);
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [1]
+|===
+
+Also, we can pass a `description` parameter as the 5th parameter,
+which will be returned by the `call apoc.custom.list` and `SHOW FUNCTIONS`.

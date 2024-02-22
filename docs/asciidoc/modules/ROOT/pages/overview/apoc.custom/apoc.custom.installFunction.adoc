@@ -1,0 +1,31 @@
+
+= apoc.custom.installFunction
+:description: This section contains reference documentation for the apoc.custom.installFunction procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Eventually registers a custom cypher function
+
+== Signature
+
+[source]
+----
+apoc.custom.installFunction(signature :: STRING?, statement :: STRING?, databaseName = neo4j :: STRING?, forceSingle = false :: BOOLEAN?, description =  :: STRING?) :: VOID
+----
+
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|signature|STRING?|null
+|statement|STRING?|null
+|databaseName|STRING?|neo4j
+|forceSingle|BOOLEAN?|false
+|description|STRING?|
+|===
+
+
+xref:cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.dropFunction,role=more information]
+

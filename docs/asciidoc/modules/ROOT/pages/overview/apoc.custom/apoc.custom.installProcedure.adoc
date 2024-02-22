@@ -1,0 +1,30 @@
+
+= apoc.custom.installProcedure
+:description: This section contains reference documentation for the apoc.custom.installProcedure procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Eventually registers a custom cypher procedure
+
+== Signature
+
+[source]
+----
+apoc.custom.installProcedure(signature :: STRING?, statement :: STRING?, databaseName = neo4j :: STRING?, mode = read :: STRING?, description =  :: STRING?) :: VOID
+----
+
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|signature|STRING?|null
+|statement|STRING?|null
+|databaseName|STRING?|neo4j
+|mode|STRING?|read
+|description|STRING?|
+|===
+
+xref:cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.installProcedure,role=more information]
+
