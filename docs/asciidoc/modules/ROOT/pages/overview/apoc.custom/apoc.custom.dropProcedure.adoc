@@ -1,0 +1,28 @@
+
+= apoc.custom.dropProcedure
+:description: This section contains reference documentation for the apoc.custom.dropProcedure procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Eventually drops the targeted custom procedure
+
+== Signature
+
+[source]
+----
+apoc.custom.dropProcedure(name :: STRING?, databaseName = neo4j :: STRING?) :: VOID
+----
+
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|name|STRING?|null
+|databaseName|STRING?|neo4j
+|===
+
+
+xref:cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.dropFunction,role=more information]
+
