@@ -982,6 +982,9 @@ apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with gi
 |label:apoc-core[]
 |===
 
+
+
+[discrete]
 == xref::overview/apoc.data/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -1097,6 +1100,12 @@ toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating 
 
 |label:function[]
 |label:apoc-core[]
+
+|xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
+
+Returns a Map detailing the property differences between the two given relationships
+|label:function[]
+|label:apoc-full[]
 |===
 
 [discrete]
