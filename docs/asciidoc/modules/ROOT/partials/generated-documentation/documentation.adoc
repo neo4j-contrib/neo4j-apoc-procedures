@@ -151,6 +151,18 @@ apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allow
 |label:procedure[]
 |===
 
+== xref::overview/apoc.diff/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
+
+Returns a Map detailing the property differences between the two given relationships
+|label:function[]
+|===
+
+
 [discrete]
 == xref::overview/apoc.data/index.adoc[]
 

@@ -34,6 +34,7 @@ apoc.cypher.runFile
 apoc.cypher.runFiles
 apoc.cypher.runSchemaFile
 apoc.cypher.runSchemaFiles
+apoc.diff.relationships
 apoc.dv.catalog.add
 apoc.dv.catalog.list
 apoc.dv.catalog.remove

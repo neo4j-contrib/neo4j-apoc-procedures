@@ -1,0 +1,68 @@
+= apoc.diff.relationships
+:description: This section contains reference documentation for the apoc.diff.relationships function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+Returns a Map detailing the property differences between the two given relationships
+
+== Signature
+
+[source]
+----
+apoc.diff.relationships(leftNode :: NODE?, rightNode :: NODE?) :: (MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|leftRelationship|RELATIONSHIP?|null
+|rightRelationship|RELATIONSHIP?|null
+|===
+
+[[usage-apoc.diff.relationships]]
+== Usage Examples
+
+The examples in this section are based on the following sample graph:
+
+[source,cypher]
+----
+MERGE (start1:Start)-[:REL_ONE {name: "Joe", dateOfBirth: datetime("1981-09-02")}]->(end1:End)
+MERGE (start2:Start)-[:REL_TWO {name: "Ryan", twitter: "@ryguyrg"}]->(end2:End);
+----
+
+
+[source,cypher]
+----
+MATCH (:Start)-[relOne:REL_ONE]->(:End)
+MATCH (:Start)-[relTwo:REL_TWO]->(:End)
+RETURN apoc.diff.relationships(relOne, relTwo) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+a|
+[source,json]
+----
+{
+   "leftOnly":{
+      "dateOfBirth":"1981-09-02T00:00:00Z"
+   },
+   "different":{
+      "name":{
+         "left":"Joe",
+         "right":"Ryan"
+      }
+   },
+   "inCommon":{
+
+   },
+   "rightOnly":{
+      "twitter":"@ryguyrg"
+   }
+}
+----
+|===
