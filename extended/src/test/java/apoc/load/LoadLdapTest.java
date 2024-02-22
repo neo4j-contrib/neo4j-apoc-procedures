@@ -3,9 +3,9 @@ package apoc.load;
 
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
-import com.novell.ldap.LDAPEntry;
-import com.novell.ldap.LDAPSearchResults;
 import com.unboundid.ldap.sdk.LDAPConnection;
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -152,10 +152,12 @@ public class LoadLdapTest {
     public void testLoadLDAPConfig() throws Exception {
         LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(LoadLdap.getConnectionMap(connParams, null));
         
-        LDAPSearchResults results = mgr.doSearch(searchParams);
-        LDAPEntry le = results.next();
+        SearchResult results = mgr.doSearch(searchParams);
+        List<SearchResultEntry> searchEntries = results.getSearchEntries();
+        assertEquals(1, searchEntries.size());
+        SearchResultEntry le = searchEntries.get(0);
         assertEquals("uid=training,dc=example,dc=com", le.getDN());
-        assertEquals("training", le.getAttribute("uid").getStringValue());
+        assertEquals("training", le.getAttribute("uid").getValue());
 
     }
 
