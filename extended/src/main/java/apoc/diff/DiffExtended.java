@@ -1,6 +1,7 @@
 package apoc.diff;
 
 
+import apoc.Extended;
 import apoc.util.Util;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Extended
 public class DiffExtended {
 
     @Context
