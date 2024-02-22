@@ -4,7 +4,6 @@ import apoc.ApocConfig;
 import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
-import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.collection.RawIterator;

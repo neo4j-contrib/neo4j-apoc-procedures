@@ -1,7 +1,5 @@
 package apoc.util;
 
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.Session;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.ResultTransformer;
@@ -12,7 +10,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
 import static apoc.util.TestUtil.testCallAssertions;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 

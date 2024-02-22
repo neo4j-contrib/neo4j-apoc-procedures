@@ -2,8 +2,6 @@ package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
-import apoc.custom.CypherHandlerNewProcedure;
-import apoc.custom.CypherProceduresHandler;
 import apoc.custom.CypherProceduresUtil;
 import apoc.export.util.ProgressReporter;
 import org.apache.commons.lang3.tuple.Pair;
