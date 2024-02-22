@@ -5,15 +5,42 @@
 
 
 
+include::partial$systemdbonly.note.adoc[]
+
+[WARNING]
+====
+Installing, updating or removing a custom Cypher statement is an eventually consistent operation.
+Therefore, they are not immediately added/updated/removed,
+but they have a refresh rate handled by the Apoc configuration `apoc.custom.procedures.refresh=<MILLISECONDS>`.
+
+In case of a cluster environment,
+the `apoc.custom.procedures.refresh` also replicate the procedures/functions to each cluster member.
+====
+
+.Available procedures
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.custom.dropAll.adoc[]
+include::example$generated-documentation/apoc.custom.dropFunction.adoc[]
+include::example$generated-documentation/apoc.custom.dropProcedure.adoc[]
+include::example$generated-documentation/apoc.custom.installFunction.adoc[]
+include::example$generated-documentation/apoc.custom.installProcedure.adoc[]
+include::example$generated-documentation/apoc.custom.list.adoc[]
+include::example$generated-documentation/apoc.custom.show.adoc[]
+|===
+
+
+== Overview
+
 I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.
 
-You can achieve that with the `apoc.custom.declareProcedure` and `apoc.custom.declareFunction` procedure calls.
+You can achieve that with the `apoc.custom.installProcedure` and `apoc.custom.installFunction` procedure calls.
 Those register a given Cypher statement, prefixed with the `custom.*` namespace, overriding potentially existing ones, so you can redefine them as needed.
 
-
-
-The first parameter of the `apoc.custom.declareProcedure` and `apoc.custom.declareFunction` procedures,
+The first parameter of the `apoc.custom.installProcedure` and `apoc.custom.installFunction` procedures,
 is the signature of the procedure/function you want to create.
+
 This looks similar to the `signature` results returned by the `SHOW PROCEDURES YIELD signature`, `SHOW FUNCTIONS YIELD signature` cypher commands, or by the `CALL apoc.help('<fun_or_procedure_name>') YIELD signature` procedure, just without the `?`.
 That is:
 - for a procedure: `nameProcedure(firstParam = defaultValue :: typeParam , secondParam = defaultValue :: typeParam, ....) :: (firstResult :: typeResult, secondResult :: typeResult, ... )`
@@ -45,28 +72,31 @@ NOTE: If you override procedures or functions you might need to call `call db.cl
 
 [NOTE]
 ====
-Starting from version 5.11, if we execute a `CALL apoc.custom.declareFunction('nameFun(....)')`, or a `CALL apoc.custom.declareProcedure('nameProc(....)')`,
+Starting from version 5.11, if we execute a `CALL apoc.custom.installFunction('nameFun(....)')`, or a `CALL apoc.custom.installProcedure('nameProc(....)')`,
 we cannot execute respectively a `RETURN custom.nameFun(..)` or a `CALL custom.nameProc()` within the same transaction, an error will be thrown.
 
 So we must necessarily open a new transaction to execute the custom procedures / functions declared.
 ====
 
 
-== Custom Procedures with `apoc.custom.declareProcedure`
+The following examples assume that we are on the `neo4j` database,
+and we want to create the custom procedures/function in that database.
 
-include::partial$usage/apoc.custom.declareProcedure.adoc[]
+== Custom Procedures with `apoc.custom.installProcedure`
 
-== Custom Functions with `apoc.custom.declareFunction`
+include::partial$usage/apoc.custom.installProcedure.adoc[]
 
-include::partial$usage/apoc.custom.declareFunction.adoc[]
+== Custom Functions with `apoc.custom.installFunction`
+
+include::partial$usage/apoc.custom.installFunction.adoc[]
 
 
 == List of registered procedures/function with `apoc.custom.list`
 
 The procedure `apoc.custom.list` provide a list of all registered procedures/function via
-`apoc.custom.declareProcedure` and `apoc.custom.declareFunction`
+`apoc.custom.installProcedure` and `apoc.custom.installFunction`
 
-Given the this call:
+Given this call:
 
 [source,cypher]
 ----
@@ -83,16 +113,17 @@ The output will look like the following table:
 |===
 
 
-== Remove a procedure `apoc.custom.removeProcedure`
+== Remove a procedure `apoc.custom.dropProcedure`
 
-The procedure `apoc.custom.removeProcedure` allows to delete the targeted custom procedure.
+The procedure `apoc.custom.dropProcedure` allows to delete the targeted custom procedure, from a specific database (with `neo4j` as a default),
+*after a time defined by the configuration `apoc.custom.procedures.refresh`*.
 
 
-Given the this call:
+Given this call:
 
 [source,cypher]
 ----
-CALL apoc.custom.removeProcedure(<name>)
+CALL apoc.custom.dropProcedure(<name>, <databaseName>)
 ----
 
 Fields:
@@ -101,19 +132,21 @@ Fields:
 |===
 | argument | description
 | name  | the procedure name
+| databaseName  | the database name (default: `neo4j`)
 |===
 
 
-== Remove a procedure `apoc.custom.removeFunction`
+== Remove a procedure `apoc.custom.dropFunction`
 
-The procedure `apoc.custom.removeFunction` allows to delete the targeted custom function.
+The procedure `apoc.custom.dropFunction` allows to delete the targeted custom function, from a specific database (with `neo4j` as a default),
+*after a time defined by the configuration `apoc.custom.procedures.refresh`*.
 
 
-Given the this call:
+Given this call:
 
 [source,cypher]
 ----
-CALL apoc.custom.removeFunction(<name>)
+CALL apoc.custom.dropFunction(<name>)
 ----
 
 Fields:
@@ -122,19 +155,10 @@ Fields:
 |===
 | argument | description
 | name  | the function name
+| databaseName  | the database name (default: `neo4j`)
 |===
 
 
-== How to manage procedure/function replication in a Causal Cluster
-
-In order to replicate the procedure/function in a cluster environment you can tune the following parameters:
-
-[%autowidth,opts=header]
-|===
-| name | type | description
-| `apoc.custom.procedures.refresh` | long (default `60000`) | the refresh time that allows replicating the procedure/function
-changes to each cluster member
-|===
 
 === Export metadata
 

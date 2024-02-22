@@ -1,0 +1,40 @@
+
+= apoc.custom.dropAll
+:description: This section contains reference documentation for the apoc.custom.dropAll procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Eventually drops all previously added custom procedures/functions and returns info
+
+== Signature
+
+[source]
+----
+apoc.custom.dropAll(databaseName = neo4j :: STRING?) :: (type :: STRING?, name :: STRING?, description :: STRING?, mode :: STRING?, statement :: STRING?, inputs :: LIST? OF LIST? OF STRING?, outputs :: ANY?, forceSingle :: BOOLEAN?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|databaseName|STRING?|neo4j
+|===
+
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type 
+|type|STRING?
+|name|STRING?
+|description|STRING?
+|mode|STRING?
+|statement|STRING?
+|inputs|LIST? OF LIST? OF STRING?
+|outputs|ANY?
+|forceSingle|BOOLEAN?
+|===
+
+xref:cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.dropAll,role=more information]
+

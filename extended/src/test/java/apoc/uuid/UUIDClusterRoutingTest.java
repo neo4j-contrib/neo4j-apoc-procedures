@@ -1,6 +1,5 @@
 package apoc.uuid;
 
-import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestcontainersCausalCluster;
@@ -18,6 +17,9 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
+import static apoc.util.ExtendedTestContainerUtil.dbIsWriter;
+import static apoc.util.ExtendedTestContainerUtil.getBoltAddress;
+import static apoc.util.ExtendedTestContainerUtil.getDriverIfNotReplica;
 import static apoc.util.SystemDbUtil.PROCEDURE_NOT_ROUTED_ERROR;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -116,31 +118,6 @@ public class UUIDClusterRoutingTest {
                 }
             }
         }
-    }
-
-    private static Driver getDriverIfNotReplica(Neo4jContainerExtension container) {
-        final String readReplica = TestcontainersCausalCluster.ClusterInstanceType.READ_REPLICA.toString();
-        final Driver driver = container.getDriver();
-        if (readReplica.equals(container.getEnvMap().get("NEO4J_dbms_mode")) || driver == null) {
-            return null;
-        }
-        return driver;
-    }
-
-    private static String getBoltAddress(Neo4jContainerExtension instance) {
-        return instance.getEnvMap().get("NEO4J_dbms_connector_bolt_advertised__address");
-    }
-
-    private static boolean dbIsWriter(String dbName, Session session, String boltAddress) {
-        return session.run( "SHOW DATABASE $dbName WHERE address = $boltAddress",
-                        Map.of("dbName", dbName, "boltAddress", boltAddress) )
-                .single().get("writer")
-                .asBoolean();
-    }
-
-    private static boolean sysIsLeader(Session session) {
-        final String systemRole = ExtendedTestContainerUtil.singleResultFirstColumn(session, "CALL dbms.cluster.role('system')");
-        return "LEADER".equals(systemRole);
     }
 
 }

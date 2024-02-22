@@ -6,7 +6,6 @@ import apoc.SystemPropertyKeys;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +37,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -901,12 +899,6 @@ public class CypherProceduresTest  {
     }
 
     private void assertProcedureFails(String expectedMessage, String query) {
-        try {
-            testCall(db, query, row -> fail("The test should fail because of: " + expectedMessage));
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertTrue(except.getMessage().contains(expectedMessage));
-        }
+        CypherProcedureTestUtil.assertProcedureFails(db, expectedMessage, query, Map.of());
     }
 }
