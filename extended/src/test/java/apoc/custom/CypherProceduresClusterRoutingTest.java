@@ -72,12 +72,12 @@ public class CypherProceduresClusterRoutingTest {
             final String queryProc = "CALL apoc.custom.installProcedure($signature, $statement)";
             Map<String, Object> paramsProc = Map.of("signature", name + "() :: (answer::ANY)",
                     "statement", statement);
-            session.writeTransaction(tx -> tx.run(queryProc, paramsProc));
+            session.executeWrite(tx -> tx.run(queryProc, paramsProc).consume());
 
             final String queryFun = "CALL apoc.custom.installFunction($signature, $statement)";
             Map<String, Object> paramsFun = Map.of("signature", name + "() :: STRING",
                     "statement", statement);
-            session.writeTransaction(tx -> tx.run(queryFun, paramsFun));
+            session.executeWrite(tx -> tx.run(queryFun, paramsFun).consume());
         });
 
         // the apoc.custom.list count is equal to 2 items for each member (1 proc. and 1 fun.)
@@ -108,10 +108,10 @@ public class CypherProceduresClusterRoutingTest {
             Map<String, Object> params = Map.of("name", name);
 
             String queryProc = "CALL apoc.custom.dropProcedure($name)";
-            session.writeTransaction(tx -> tx.run(queryProc, params));
+            session.executeWrite(tx -> tx.run(queryProc, params).consume());
 
             String queryFun = "CALL apoc.custom.dropFunction($name)";
-            session.writeTransaction(tx -> tx.run(queryFun, params));
+            session.executeWrite(tx -> tx.run(queryFun, params).consume());
         });
 
         assertEventually(() -> (long) singleResultFirstColumn(clusterSession, countCustom),
