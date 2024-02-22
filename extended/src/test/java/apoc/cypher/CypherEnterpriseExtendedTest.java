@@ -181,7 +181,7 @@ public class CypherEnterpriseExtendedTest {
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
         // performing `WRITE` operations on the `apoc.cypher.runReadFile` procedure returns an empty result
-        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
         testCallEmpty(session, query, params);
     }
     
@@ -191,7 +191,7 @@ public class CypherEnterpriseExtendedTest {
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
         // performing `WRITE` operations on the `apoc.cypher.runReadFile` procedure returns an empty result
-        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
+        session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
         testCallEmpty(session, query, params);
     }
 
