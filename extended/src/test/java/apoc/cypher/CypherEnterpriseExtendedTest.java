@@ -146,7 +146,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testRunFileWithResultsAndStatisticsFalse() {
-        String query = "CALL apoc.cypher.runReadFile($file, {statistics: false})";
+        String query = "CALL apoc.cypher.runFileReadOnly($file, {statistics: false})";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
         testRunProcedureWithSimpleReturnResults(query, params, false);
@@ -154,7 +154,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testRunReadFileWithResults() {
-        String query = "CALL apoc.cypher.runReadFile($file)";
+        String query = "CALL apoc.cypher.runFileReadOnly($file)";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
         testRunProcedureWithSimpleReturnResults(query, params, false);
@@ -177,20 +177,20 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testRunReadFileWithWriteOperation() {
-        String query = "CALL apoc.cypher.runReadFile($file)";
+        String query = "CALL apoc.cypher.runFileReadOnly($file)";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        // performing `WRITE` operations on the `apoc.cypher.runReadFile` procedure returns an empty result
+        // performing `WRITE` operations on the `apoc.cypher.runFileReadOnly` procedure returns an empty result
         session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
         testCallEmpty(session, query, params);
     }
     
     @Test
     public void testReadRunFilesWithWriteOperation() {
-        String query = "CALL apoc.cypher.runReadFiles([$file])";
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file])";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        // performing `WRITE` operations on the `apoc.cypher.runReadFile` procedure returns an empty result
+        // performing `WRITE` operations on the `apoc.cypher.runFileReadOnly` procedure returns an empty result
         session.executeWrite(tx -> tx.run(CREATE_RESULT_NODES).consume());
         testCallEmpty(session, query, params);
     }
@@ -205,7 +205,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testRunFilesWithResultsAndStatisticsFalse() {
-        String query = "CALL apoc.cypher.runReadFiles([$file], {statistics: false})";
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file], {statistics: false})";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
         testRunProcedureWithSimpleReturnResults(query, params, false);
@@ -213,7 +213,7 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testRunReadFilesWithResults() {
-        String query = "CALL apoc.cypher.runReadFiles([$file])";
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file])";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
         testRunProcedureWithSimpleReturnResults(query, params, false);
@@ -393,6 +393,7 @@ public class CypherEnterpriseExtendedTest {
                     assertEquals(4L, rels.size());
                     assertEquals(4L, nodes.size());
                     assertEquals(4L, others.size());
+                    assertEquals(SET_RETURN_FILE, row.get("fileName"));
 
                     if (statisticsConf) {
                         // check `queryStatistics` row
@@ -414,6 +415,7 @@ public class CypherEnterpriseExtendedTest {
         assertEquals(-1L, row.get("row"));
         assertEquals(0L, (long) result.get("nodesCreated"));
         assertEquals(4L, (long) result.get("propertiesSet"));
+        assertEquals(SET_RETURN_FILE, row.get("fileName"));
     }
 
     private void testCypherMapParallelCommon(String query, Map<String, Object> params) {
@@ -452,6 +454,8 @@ public class CypherEnterpriseExtendedTest {
         assertEquals(1L, n.size());
         assertEquals("REL", n.get(0).type());
         assertEquals(Map.of("idRel", id, "updated", 1L), n.get(0).asMap());
+
+        assertEquals(SET_RETURN_FILE, row.get("fileName"));
     }
 
     private void assertReturnQueryNode(Map<String, Object> row, long id) {
@@ -460,6 +464,8 @@ public class CypherEnterpriseExtendedTest {
         Map<String, Node> result = (Map<String, Node>) row.get("result");
         assertEquals(1, result.size());
         assertReturnQueryNode(id, result);
+
+        assertEquals(MATCH_RETURN_FILE, row.get("fileName"));
     }
 
     public void assertReturnQueryNode(long id, Map<String, Node> result) {
@@ -477,5 +483,7 @@ public class CypherEnterpriseExtendedTest {
         Node n = result.get("n");
         assertEquals(List.of("Result"), Iterables.asList(n.labels()));
         assertEquals(Map.of("id", id, "updated", true), n.asMap());
+        
+        assertEquals(SET_RETURN_FILE, row.get("fileName"));
     }
 }

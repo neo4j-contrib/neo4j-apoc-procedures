@@ -30,5 +30,5 @@ CALL apoc.cypher.runSchemaFile("schema.cypher", {statistics: false});
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
+| row | fileName | result
 |===

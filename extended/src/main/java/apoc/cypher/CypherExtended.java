@@ -89,8 +89,8 @@ public class CypherExtended {
         return runFiles(singletonList(fileName), config);
     }
     
-    @Procedure(value = "apoc.cypher.runReadFile", mode = READ)
-    @Description("apoc.cypher.runReadFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated")
+    @Procedure(value = "apoc.cypher.runFileReadOnly", mode = READ)
+    @Description("apoc.cypher.runFileReadOnly(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated")
     public Stream<RowResult> runReadFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runReadFiles(singletonList(fileName), config);
     }
@@ -101,8 +101,8 @@ public class CypherExtended {
         return runNonSchemaFiles(fileNames, config, true);
     }
     
-    @Procedure(value = "apoc.cypher.runReadFiles", mode = READ)
-    @Description("apoc.cypher.runReadFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each `READ` statement in the files, all semicolon separated")
+    @Procedure(value = "apoc.cypher.runFilesReadOnly", mode = READ)
+    @Description("apoc.cypher.runFilesReadOnly([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each `READ` statement in the files, all semicolon separated")
     public Stream<RowResult> runReadFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runNonSchemaFiles(fileNames, config, false);
     }
@@ -195,7 +195,7 @@ public class CypherExtended {
                 if (isPeriodicOperation(stmt)) {
                     Util.inThread(pools , () -> {
                         try {
-                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, tx));
+                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -205,7 +205,7 @@ public class CypherExtended {
                 else {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
-                            return consumeResult(result, queue, addStatistics, tx);
+                            return consumeResult(result, queue, addStatistics, tx, fileName);
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -220,11 +220,8 @@ public class CypherExtended {
         if (!reportError) {
             throw new RuntimeException(e);
         }
-        String error = String.format("Error in `%s`:\n%s ",
-                fileName, e.getMessage()
-        );
-
-        RowResult result = new RowResult(-1, Map.of("error", error));
+        String error = e.getMessage();
+        RowResult result = new RowResult(-1, Map.of("error", error), fileName);
         QueueUtil.put(queue, result, 10);
     }
 
@@ -248,7 +245,7 @@ public class CypherExtended {
             if (schemaOperation) {
                 Util.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
-                        return consumeResult(result, queue, addStatistics, tx);
+                        return consumeResult(result, queue, addStatistics, tx, fileName);
                     } catch (Exception e) {
                         collectError(queue, reportError, e, fileName);
                         return null;
@@ -260,17 +257,18 @@ public class CypherExtended {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx) {
+    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx, String fileName) {
         try {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
                 Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
-                queue.put(new RowResult(row++, res));
+                queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {
-                queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
+                Map<String, Object> mapResult = toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row);
+                queue.put(new RowResult(-1, mapResult, fileName));
             }
             return row;
         } catch (InterruptedException e) {
@@ -316,13 +314,15 @@ public class CypherExtended {
     }
 
     public static class RowResult {
-        public static final RowResult TOMBSTONE = new RowResult(-1,null);
+        public static final RowResult TOMBSTONE = new RowResult(-1,null,null);
         public long row;
         public Map<String,Object> result;
+        public String fileName;
 
-        public RowResult(long row, Map<String, Object> result) {
+        public RowResult(long row, Map<String, Object> result, String fileName) {
             this.row = row;
             this.result = result;
+            this.fileName = fileName;
         }
     }
     private Reader readerForFile(@Name("file") String fileName) {
@@ -399,7 +399,7 @@ public class CypherExtended {
                     Transaction transaction = db.beginTx();
                     transactions.add(transaction);
                     try (Result result = transaction.execute(statement, parallelParams(params, "_", partition))) {
-                        return consumeResult(result, queue, false, transaction);
+                        return consumeResult(result, queue, false, transaction, null);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }}
