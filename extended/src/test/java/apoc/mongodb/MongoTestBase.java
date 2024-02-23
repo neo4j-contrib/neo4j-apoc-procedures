@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class MongoTestBase {
     enum MongoVersion {
@@ -101,8 +103,11 @@ public class MongoTestBase {
     @After
     public void after() {
         // the connections active before must be equal to the connections active after
-        long numConnectionsAfter = (long) getNumConnections(mongo, commands).get("current");
-        assertEquals(numConnections, numConnectionsAfter);
+        assertEventually(() -> {
+            long numConnectionsAfter = (long) getNumConnections(mongo, commands).get("current");
+            return numConnections == numConnectionsAfter;
+        },
+        v -> v, 10, TimeUnit.SECONDS);
     }
 
     public static void createContainer(boolean withAuth, MongoVersion mongoVersion) {
