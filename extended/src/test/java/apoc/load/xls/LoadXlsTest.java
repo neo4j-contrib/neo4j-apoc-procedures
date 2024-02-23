@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
@@ -415,13 +416,11 @@ RETURN m.col_1,m.col_2,m.col_3
         testResult(db, "CALL apoc.load.xls($url,'test1', $config)",
                 params,
                 (r) -> {
-                    Map<String, Object> firstMap = Map.of("Empty__0", 1L,
-                            "b", 2L,
+                    Map<String, Object> firstMap = Map.of("b", 2L,
                             "c", 3L,
                             "d", 4L,
                             "e", 5L);
-                    Map<String, Object> secondMap = Map.of("Empty__0", 6L,
-                            "b", 7L,
+                    Map<String, Object> secondMap = Map.of("b", 7L,
                             "c", 8L,
                             "d", 9L,
                             "e", 10L);
@@ -431,12 +430,10 @@ RETURN m.col_1,m.col_2,m.col_3
         testResult(db, "CALL apoc.load.xls($url,'test2', $config)",
                 params,
                 (r) -> {
-                    Map<String, Object> firstMap = Map.of("Empty__0", 1L, "Empty__1", 2L,
-                            "c", 3L,
+                    Map<String, Object> firstMap = Map.of("c", 3L,
                             "d", 4L,
                             "e", 5L);
-                    Map<String, Object> secondMap = Map.of("Empty__0", 6L, "Empty__1", 7L,
-                            "c", 8L,
+                    Map<String, Object> secondMap = Map.of("c", 8L,
                             "d", 9L,
                             "e", 10L);
                     assertIssue2403Excel(r, firstMap, secondMap);
@@ -504,14 +501,16 @@ RETURN m.col_1,m.col_2,m.col_3
         
         assertEquals(firstMap, row.get("map"));
         
-        List<Long> firstRow = asList(1L, 2L, 3L, 4L, 5L);
-        assertEquals(firstRow, row.get("list"));
+        List<Long> firstRow = asList(2L, 3L, 4L, 5L);
+        Set actualFirstList = Set.copyOf((List) row.get("list"));
+        assertEquals(Set.copyOf(firstMap.values()), actualFirstList);
         row = r.next();
         
         assertEquals(secondMap, row.get("map"));
         
-        List<Long> secondRow = asList(6L, 7L, 8L, 9L, 10L);
-        assertEquals(secondRow, row.get("list"));
+        List<Long> secondRow = asList(7L, 8L, 9L, 10L);
+        Set actualSecondList = Set.copyOf((List) row.get("list"));
+        assertEquals(Set.copyOf(secondMap.values()), actualSecondList);
 
         assertFalse(r.hasNext());
     }

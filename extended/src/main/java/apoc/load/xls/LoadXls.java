@@ -120,7 +120,7 @@ public class LoadXls {
             List<Object> nullValues = value(config, "nullValues", emptyList());
             Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
             Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
-            
+
             LoadXlsHandler.XLSSpliterator xlsSpliterator = getXlsSpliterator(url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
             return StreamSupport.stream(xlsSpliterator, false);
         } catch (NoClassDefFoundError e) {
@@ -223,32 +223,6 @@ public class LoadXls {
         if (!(value instanceof List)) throw new RuntimeException("Only array of Strings are allowed!");
         List<String> strings = (List<String>) value;
         return strings.toArray(new String[strings.size()]);
-    }
-
-    private String[] getHeader(boolean hasHeader, boolean skipNulls, Row header, Selection selection, List<String> ignore, Map<String, Mapping> mapping) throws IOException {
-        if (!hasHeader) return null;
-
-        String[] result = new String[selection.right - selection.left];
-        for (int i = selection.left; i < selection.right; i++) {
-            Cell cell = header.getCell(i);
-            String value = getHeaderValue(skipNulls, i, cell);
-
-            result[i- selection.left] = ignore.contains(value) || mapping.getOrDefault(value, Mapping.EMPTY).ignore ? null : value;
-        }
-        return result;
-    }
-
-    private String getHeaderValue(boolean skipNulls, int i, Cell cell) {
-        boolean cellBlank = cell == null || cell.getStringCellValue().isBlank();
-        if (cellBlank && skipNulls) {
-            return "Empty__" + i;
-        }
-        
-        if (cell != null) {
-            return cell.getStringCellValue();
-        }
-
-        throw new IllegalStateException("Header at position " + i + " doesn't have a value");
     }
 
     private boolean booleanValue(Map<String, Object> config, String key, boolean defaultValue) {
