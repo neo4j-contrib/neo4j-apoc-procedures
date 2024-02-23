@@ -21,7 +21,6 @@ import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
 import static apoc.util.ExtendedTestContainerUtil.dbIsWriter;
 import static apoc.util.ExtendedTestContainerUtil.getBoltAddress;
 import static apoc.util.ExtendedTestContainerUtil.getDriverIfNotReplica;
-import static apoc.util.SystemDbTestUtil.TIMEOUT;
 import static apoc.util.ExtendedTestContainerUtil.routingSessionForEachMembers;
 import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
@@ -33,6 +32,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class CypherProceduresClusterRoutingTest {
+    private static final long TIMEOUT = 30L;
     private static final int NUM_CORES = 3;
     private static TestcontainersCausalCluster cluster;
     private static Session clusterSession;
