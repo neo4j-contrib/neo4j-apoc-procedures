@@ -9,10 +9,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.iterableWithSize;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
