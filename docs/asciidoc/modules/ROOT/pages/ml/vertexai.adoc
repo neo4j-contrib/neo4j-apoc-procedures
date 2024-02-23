@@ -269,7 +269,7 @@ CALL apoc.ml.vertexai.custom({
 CALL apoc.ml.vertexai.custom({contents: {role: "user", parts: [{text: "translate book in italian"}]}}, 
     "<accessToken>", 
     "<projectId>",
-    {endpoint: "https://us-central1-aiplatform.googleapis.com/v1/projects/%2$s/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent"}
+    {endpoint: "https://us-central1-aiplatform.googleapis.com/v1/projects/{project}/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent"}
 )
 ----
 
