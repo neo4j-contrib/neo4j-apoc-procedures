@@ -2,6 +2,7 @@ package apoc.ml;
 
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -57,6 +58,11 @@ public class VertexAITest {
 
         Stream.of(EMBEDDINGS, COMPLETION, CHAT_COMPLETION)
                 .forEach(VertexAITest::setRequestResponse);
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        mockServer.stop();
     }
 
     private static void setRequestResponse(String path) {
