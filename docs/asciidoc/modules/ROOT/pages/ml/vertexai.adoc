@@ -18,7 +18,7 @@ Moreover, they can have the following configuration keys, as the last parameter.
 [opts=header]
 |===
 | key | description | default
-| endpoint | analogous to `apoc.ml.vertexai.url` APOC config | https://%1$s-aiplatform.googleapis.com/v1/projects/%2$s/locations/%1$s/publishers/google/models/%3$s:%4$s
+| endpoint | analogous to `apoc.ml.vertexai.url` APOC config | https://\{region\}-aiplatform.googleapis.com/v1/projects/\{project\}/locations/\{region\}/publishers/google/models/\{model\}:\{resource\}
 | headers | to add or edit the HTTP default header | 
     `{``Content-Type``: "application/json", ``Accept``: "application/json", ``Authorization``: "Bearer " + <$accessToken, i.e. 2nd parameter> }`
 | model | The Vertex AI model | depends on the procedure
@@ -32,14 +32,15 @@ We can define the `endpoint` configuration as a full URL, e.g. `https://us-centr
 or define it via parameters that will then be replaced by the other configurations.
 
 For example, if we define no `endpoint` config., 
-the default one `https://%1$s-aiplatform.googleapis.com/v1/projects/%2$s/locations/%1$s/publishers/google/models/%3$s:%4$s` will be valued, where:
-- `%1$s` will be model with the `model` configuration
-- `%2$s` with `region` configuration
-- `%3$s` with the 3rd parameter (`project`)
-- `%4$s` with `resource` configuration
+the default one `https://\{region\}-aiplatform.googleapis.com/v1/projects/\{project\}/locations/\{region\}/publishers/google/models/\{model\}:\{resource\}` will be valued, where:
 
-Or else, we can define an `endpoint` as `https://us-central1-aiplatform.googleapis.com/v1/projects/%2$s/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent`,
-and in this case we just substitute `%2$s` with the 3rd parameter.
+- `\{model\}` will be model defined by the `model` configuration
+- `\{region\}` defined by `region` configuration
+- `\{project\}` defined by the 3rd parameter (`project`)
+- `\{resource\}` defined by `resource` configuration
+
+Or else, we can define an `endpoint` as `https://us-central1-aiplatform.googleapis.com/v1/projects/\{project\}/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent`,
+and in this case we just substitute `\{project\}` with the 3rd parameter.
 
 
 Let's see some example.

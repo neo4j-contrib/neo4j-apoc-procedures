@@ -5,6 +5,7 @@ import apoc.ApocConfig;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 import static apoc.ExtendedApocConfig.APOC_ML_VERTEXAI_URL;
 import static apoc.ml.VertexAI.getParameters;
@@ -18,7 +19,7 @@ public abstract class VertexAIHandler {
     public static final String STREAM_RESOURCE = "streamGenerateContent";
     public static final String PREDICT_RESOURCE = "predict";
     
-    private static final String DEFAULT_BASE_URL = "https://%1$s-aiplatform.googleapis.com/v1/projects/%2$s/locations/%1$s/publishers/google/models/%3$s:%4$s";
+    private static final String DEFAULT_BASE_URL = "https://{region}-aiplatform.googleapis.com/v1/projects/{project}/locations/{region}/publishers/google/models/{model}:{resource}";
     public static final String DEFAULT_REGION = "us-central1";
     
     public abstract String getDefaultResource();
@@ -31,13 +32,16 @@ public abstract class VertexAIHandler {
         String model = configuration.getOrDefault(MODEL_CONF_KEY, defaultModel).toString();
         String region = configuration.getOrDefault("region", DEFAULT_REGION).toString();
         String resource = configuration.getOrDefault(RESOURCE_CONF_KEY, getDefaultResource()).toString();
-        
+        project = Objects.toString(project, "");
         String endpoint = getUrlTemplate(configuration, apocConfig);
         
         if (isBlank(endpoint) && isBlank(project)) {
                 throw new IllegalArgumentException("Either project parameter or endpoint config. must not be empty");
         }
-        return String.format(endpoint, region, project, model, resource);
+        return endpoint.replace("{region}", region)
+                .replace("{project}", project)
+                .replace("{model}", model)
+                .replace("{resource}", resource);
     }
 
     private String getUrlTemplate(Map<String, Object> procConfig, ApocConfig apocConfig) {

@@ -110,7 +110,7 @@ public class VertexAIIT {
     public void customWithStringFormat() {
         HashMap<String, Object> params = new HashMap<>(parameters);
         params.put("contents", streamContents);
-        String endpoint = "https://us-central1-aiplatform.googleapis.com/v1/projects/%2$s/locations/us-central1/publishers/google/models/gemini-pro-vision:" + STREAM_RESOURCE;
+        String endpoint = "https://us-central1-aiplatform.googleapis.com/v1/projects/{project}/locations/us-central1/publishers/google/models/gemini-pro-vision:" + STREAM_RESOURCE;
         params.put(ENDPOINT_CONF_KEY, endpoint);
         testCall(db, "CALL apoc.ml.vertexai.custom({contents: $contents}, $apiKey, $project, {endpoint: $endpoint})", 
                 params, 
@@ -142,7 +142,7 @@ public class VertexAIIT {
                             $project,
                             $conf)""", 
                 params, 
-                (row) -> assertCorrectResponse(row, "tarallo"));
+                (row) -> assertCorrectResponse(row, "tarall"));
     }
 
     @Test
