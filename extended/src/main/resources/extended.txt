@@ -109,7 +109,9 @@ apoc.ml.sagemaker.custom
 apoc.ml.sagemaker.embedding
 apoc.ml.vertexai.chat
 apoc.ml.vertexai.completion
+apoc.ml.vertexai.custom
 apoc.ml.vertexai.embedding
+apoc.ml.vertexai.stream
 apoc.ml.watson.chat
 apoc.ml.watson.completion
 apoc.model.jdbc

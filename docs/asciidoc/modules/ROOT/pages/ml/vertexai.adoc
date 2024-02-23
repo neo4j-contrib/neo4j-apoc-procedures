@@ -4,6 +4,47 @@
 
 NOTE: You need to create a Google Cloud project in your account an enable the Vertex.AI services. As an access-token you can run `gcloud auth print-access-token`. Using these services will incurr costs on your Google Cloud account.
 
+
+All the following procedures can have the following APOC config, i.e. in `apoc.conf` or via docker env variable
+.Apoc configuration
+|===
+|key | description | default
+| apoc.ml.vertexai.url | the OpenAI endpoint base url | the `endpoint` configuration parameter value
+|===
+
+Moreover, they can have the following configuration keys, as the last parameter.
+
+.Common configuration parameter
+[opts=header]
+|===
+| key | description | default
+| endpoint | analogous to `apoc.ml.vertexai.url` APOC config | https://\{region\}-aiplatform.googleapis.com/v1/projects/\{project\}/locations/\{region\}/publishers/google/models/\{model\}:\{resource\}
+| headers | to add or edit the HTTP default header | 
+    `{``Content-Type``: "application/json", ``Accept``: "application/json", ``Authorization``: "Bearer " + <$accessToken, i.e. 2nd parameter> }`
+| model | The Vertex AI model | depends on the procedure
+| region | The Vertex AI region  | us-central1
+| resource | The Vertex AI resource (see below) | depends on the procedure
+| temperature, maxOutputTokens, maxDecodeSteps, topP, topK | Optional parameter which can be passed into the HTTP request. Depend on the API used |
+    {temperature: 0.3, maxOutputTokens: 256, maxDecodeSteps: 200, topP: 0.8, topK: 40}
+|===
+
+We can define the `endpoint` configuration as a full URL, e.g. `https://us-central1-aiplatform.googleapis.com/v1/projects/myVertexAIProject/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent`,
+or define it via parameters that will then be replaced by the other configurations.
+
+For example, if we define no `endpoint` config., 
+the default one `https://\{region\}-aiplatform.googleapis.com/v1/projects/\{project\}/locations/\{region\}/publishers/google/models/\{model\}:\{resource\}` will be valued, where:
+
+- `\{model\}` will be model defined by the `model` configuration
+- `\{region\}` defined by `region` configuration
+- `\{project\}` defined by the 3rd parameter (`project`)
+- `\{resource\}` defined by `resource` configuration
+
+Or else, we can define an `endpoint` as `https://us-central1-aiplatform.googleapis.com/v1/projects/\{project\}/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent`,
+and in this case we just substitute `\{project\}` with the 3rd parameter.
+
+
+Let's see some example.
+
 == Generate Embeddings API
 
 This procedure `apoc.ml.vertexai.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 768 element vector.
@@ -128,3 +169,156 @@ yield value
 |name | description
 | value | result entry from Vertex.AI (containing candidates(author, content), safetyAttributes(categories, scores, blocked), recitationResults(recitationAction, recitations))
 |===
+
+
+== Streaming API
+
+This procedure `apoc.ml.vertexai.stream` takes a list of maps of contents exchanges between assistant and user (with optional system context), and will return the next message in the flow.
+
+By default, it uses the https://cloud.google.com/vertex-ai/docs/generative-ai/multimodal/overview[Gemini AI APIs].
+
+
+[source,cypher]
+----
+CALL apoc.ml.vertexai.stream([{role: "user", parts: [{text: "translate book in italian"}]}], '<accessToken>', '<projectID>')
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| `{finishReason:"STOP", safetyRatings:[{probability:"NEGLIGIBLE", category:"HARM_CATEGORY_HARASSMENT"}, {probability:"NEGLIGIBLE", category:"HARM_CATEGORY_HATE_SPEECH"}, {probability:"NEGLIGIBLE", category:"HARM_CATEGORY_SEXUALLY_EXPLICIT"}, {probability:"NEGLIGIBLE", category:"HARM_CATEGORY_DANGEROUS_CONTENT"}], content:{role:"model", parts:[{text:"Libro"}]}}`
+|===
+
+
+We can adjust the parameter, for example `temperature`
+
+[source,cypher]
+----
+CALL apoc.ml.vertexai.stream([{role: "user", parts: [{text: "translate book in italian"}]}], '<accessToken>', '<projectID>', 
+    {temperature: 0})
+----
+
+which corresponds to the following Http body request, where `maxOutputTokens`, `topP` and `topK` have the default values specified above (`Common configuration parameter`):
+----
+{
+    "contents": [
+        {
+            "role": "user",
+            "parts": [
+                {
+                    "text": "translate book in italian"
+                }
+            ]
+        }
+    ],
+    "generation_config": {
+        "temperature": 0,
+        "maxOutputTokens": 256,
+        "topP": 0.8,
+        "topK": 40
+    }
+}
+----
+
+
+== Custom API
+
+Using this procedure we can potentially invoke any API available with vertex AI.
+
+To permit maximum flexibility, in this case the first parameter is not manipulated and exactly matches the body of the HTTP request,
+and the return type is `ANY`.
+
+
+.Gemini Pro Vision example
+[source,cypher]
+----
+CALL apoc.ml.vertexai.custom({
+    contents: [
+        {
+            role: "user",
+            parts: [
+					{text: "What is this?"},
+                    {inlineData: {
+                        mimeType: "image/png",
+                        data: '<base64Image>'}
+                }
+            ]
+        }
+    ]
+}, 
+"<accessToken>", 
+"<projectId>",
+{model: 'gemini-pro-vision'}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| `[{usageMetadata: {promptTokenCount: 262, totalTokenCount: 272, candidatesTokenCount: 10}, candidates: [{content: {role: "model", parts: [{text: " This is a photo of a book..."}]}, finishReason: "STOP", safetyRatings: [{category: "HARM_CATEGORY_HARASSMENT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_HATE_SPEECH", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_DANGEROUS_CONTENT", probability│
+│: "NEGLIGIBLE"}]}]}]`
+|===
+
+
+
+
+[source,cypher]
+----
+CALL apoc.ml.vertexai.custom({contents: {role: "user", parts: [{text: "translate book in italian"}]}}, 
+    "<accessToken>", 
+    "<projectId>",
+    {endpoint: "https://us-central1-aiplatform.googleapis.com/v1/projects/{project}/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent"}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| `[{usageMetadata: {promptTokenCount: 4, totalTokenCount: 5, candidatesTokenCount: 1}, candidates: [{content: {role: "model", parts: [{text: "libro"}]}, finishReason: "STOP", safetyRatings: [{category: "HARM_CATEGORY_HARASSMENT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_HATE_SPEECH", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_DANGEROUS_CONTENT", probability: "NEGLIGIBLE"}]}]}]`
+|===
+
+
+
+[source,cypher]
+----
+CALL apoc.ml.vertexai.custom({contents: {role: "user", parts: [{text: "translate book in italian"}]}}, 
+    "<accessToken>",
+    null,
+    {endpoint: "https://us-central1-aiplatform.googleapis.com/v1/projects/vertex-project-413513/locations/us-central1/publishers/google/models/gemini-pro-vision:streamGenerateContent"}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| `[{usageMetadata: {promptTokenCount: 4, totalTokenCount: 5, candidatesTokenCount: 1}, candidates: [{content: {role: "model", parts: [{text: "libro"}]}, finishReason: "STOP", safetyRatings: [{category: "HARM_CATEGORY_HARASSMENT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_HATE_SPEECH", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", probability: "NEGLIGIBLE"}, {category: "HARM_CATEGORY_DANGEROUS_CONTENT", probability: "NEGLIGIBLE"}]}]}]`
+|===
+
+
+Moreover, we can use with other Google API with endpoints that don't start with `https://<region>-aiplatform.googleapis.com`, 
+for example we can use the https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize[Text-to-Speech API]:
+
+[source,cypher]
+----
+CALL apoc.ml.vertexai.custom(
+{
+  input:{
+    text:'just a test'
+  },
+  voice:{
+    languageCode:'en-US',
+    name:'en-US-Studio-O'
+  },
+  audioConfig:{
+    audioEncoding:'LINEAR16',
+    speakingRate:1
+  }
+},
+"<accessToken>", 
+"<projectId>",
+{endpoint: "https://texttospeech.googleapis.com/v1/text:synthesize"})
+----
