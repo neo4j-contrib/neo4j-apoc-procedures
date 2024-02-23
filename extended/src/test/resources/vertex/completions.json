@@ -1,0 +1,29 @@
+{
+  "instances": [
+    { "prompt": "Give me ten interview questions for the role of program manager."}
+  ],
+  "parameters": {
+    "temperature": 0.2,
+    "maxOutputTokens": 256,
+    "topK": 40,
+    "topP": 0.95
+  },
+  "predictions": [
+    {
+      "safetyAttributes": {
+        "categories": [
+          "Violent"
+        ],
+        "scores": [
+          0.10000000149011612
+        ],
+        "blocked": false
+      },
+      "recitationResult": {
+        "recitations": [],
+        "recitationAction": "NO_ACTION"
+      },
+      "content": "RESPONSE"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "instances": [{
+    "context":  "My name is Ned. You are my personal assistant. My favorite movies are Lord of the Rings and Hobbit.",
+    "examples": [ {
+      "input": {"content": "Who do you work for?"},
+      "output": {"content": "I work for Ned."}
+    },
+      {
+        "input": {"content": "What do I like?"},
+        "output": {"content": "Ned likes watching movies."}
+      }],
+    "messages": [
+      {
+        "author": "user",
+        "content": "Are my favorite movies based on a book series?"
+      },
+      {
+        "author": "bot",
+        "content": "Yes, your favorite movies, The Lord of the Rings and The Hobbit, are based on book series by J.R.R. Tolkien."
+      },
+      {
+        "author": "user",
+        "content": "When where these books published?"
+      }]
+  }],
+  "parameters": {
+    "temperature": 0.3,
+    "maxDecodeSteps": 200,
+    "topP": 0.8,
+    "topK": 40
+  },
+  "predictions": [
+    {
+      "safetyAttributes": {
+        "scores": [],
+        "blocked": false,
+        "categories": []
+      },
+      "recitationResult": {
+        "recitations": [],
+        "recitationAction": "NO_ACTION"
+      },
+      "candidates": [
+        {
+          "author": "AUTHOR",
+          "content": "RESPONSE"
+        }
+      ]
+    }
+  ]
+}
