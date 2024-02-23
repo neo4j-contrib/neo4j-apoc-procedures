@@ -148,11 +148,11 @@ public class BoltConnection {
     }
 
     private RowResult buildRowResult(Transaction tx, Record record, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
-        return new RowResult(record.asMap(value -> convert(tx, value, nodesCache)));
+        return new RowResult(record.asMap(value -> convertRecursive(tx, value, nodesCache)));
     }
 
-    private Object convert(Transaction tx, Object entity, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
-        if (entity instanceof Value) return convert(tx, ((Value) entity).asObject(), nodesCache);
+    private Object convertRecursive(Transaction tx, Object entity, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
+        if (entity instanceof Value) return convertRecursive(tx, ((Value) entity).asObject(), nodesCache);
         if (entity instanceof Node) return toNode(entity, nodesCache);
         if (entity instanceof Relationship) return toRelationship(tx, entity, nodesCache);
         if (entity instanceof Path) return toPath(tx, entity, nodesCache);
@@ -163,12 +163,12 @@ public class BoltConnection {
 
     private Object toMap(Transaction tx, Map<String, Object> entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
         return entity.entrySet().stream()
-                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convert(tx, entry.getValue(), nodeCache)))
+                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convertRecursive(tx, entry.getValue(), nodeCache)))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
     private Object toCollection(Transaction tx, Collection entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
-        return entity.stream().map(elem -> convert(tx, elem, nodeCache)).collect(Collectors.toList());
+        return entity.stream().map(elem -> convertRecursive(tx, elem, nodeCache)).collect(Collectors.toList());
     }
 
     private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
