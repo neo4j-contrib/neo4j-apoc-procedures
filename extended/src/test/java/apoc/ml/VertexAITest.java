@@ -1,5 +1,6 @@
 package apoc.ml;
 
+import apoc.ExtendedApocConfig;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
@@ -51,9 +52,9 @@ public class VertexAITest {
         mockServer = startClientAndServer(1080);
 
         var path = Paths.get(getUrlFileName(VERTEX_MOCK_FOLDER + EMBEDDINGS).toURI()).getParent().toUri();
-        // %2$s will be substituted by project parameter, 
-        // see String.format(urlTemplate, region, project, region, model) in VertexAi.executeRequest method
-        System.setProperty(VertexAI.APOC_ML_VERTEXAI_URL, path + "%2$s");
+        // {project} will be substituted by project parameter, 
+        // see getFullUrl method in VertexAIHandler.java
+        System.setProperty(ExtendedApocConfig.APOC_ML_VERTEXAI_URL, path + "{project}");
 
         Stream.of(EMBEDDINGS, COMPLETION, CHAT_COMPLETION)
                 .forEach(VertexAITest::setRequestResponse);
