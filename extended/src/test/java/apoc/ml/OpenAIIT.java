@@ -10,6 +10,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
+import static apoc.ml.OpenAI.MODEL_CONF_KEY;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Collections.emptyMap;
@@ -35,6 +36,36 @@ public class OpenAIIT {
     public void getEmbedding() {
         testCall(db, EMBEDDING_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
                 OpenAITestResultUtils::assertEmbeddings);
+    }
+
+    @Test
+    public void getEmbedding3Small() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small");
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                OpenAITestResultUtils::assertEmbeddings);
+    }
+
+    @Test
+    public void getEmbedding3Large() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large");
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 3072));
+    }
+
+    @Test
+    public void getEmbedding3SmallWithDimensionsRequestParameter() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small",
+                "dimensions", 256);
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 256));
+    }
+
+    @Test
+    public void getEmbedding3LargeWithDimensionsRequestParameter() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large",
+                "dimensions", 256);
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 256));
     }
 
     @Test
