@@ -37,6 +37,11 @@ public class CypherTestUtil {
 
     public static void testRunProcedureWithSimpleReturnResults(
             Session session, String query, Map<String, Object> params) {
+        testRunProcedureWithSimpleReturnResults(session, query, params, true);
+    }
+    
+    public static void testRunProcedureWithSimpleReturnResults(
+            Session session, String query, Map<String, Object> params, boolean statisticsConf) {
         session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
         testResult(session, query, params, r -> {
             // check that all results from the 1st statement are correctly returned
@@ -49,9 +54,11 @@ public class CypherTestUtil {
             row = r.next();
             assertReturnQueryNode(row, 3L);
 
-            // check `queryStatistics` row
-            row = r.next();
-            assertReadOnlyResult(row);
+            if (statisticsConf) {
+                // check `queryStatistics` row
+                row = r.next();
+                assertReadOnlyResult(row);
+            }
 
             assertFalse(r.hasNext());
         });
@@ -80,7 +87,7 @@ public class CypherTestUtil {
 
     // placed in test-utils because is used by extended as well
     public static void testRunProcedureWithSetAndReturnResults(
-            Session session, String query, Map<String, Object> params) {
+            Session session, String query, Map<String, Object> params, boolean statisticsConf) {
         session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES));
 
         testResult(session, query, params, r -> {
@@ -94,9 +101,11 @@ public class CypherTestUtil {
             row = r.next();
             assertRunProcNode(row, 3L);
 
-            // check `queryStatistics` row
-            row = r.next();
-            assertRunProcStatistics(row);
+            if (statisticsConf) {
+                // check `queryStatistics` row
+                row = r.next();
+                assertRunProcStatistics(row);
+            }
 
             // check that all results from the 2nd statement are correctly returned
             row = r.next();
@@ -108,9 +117,11 @@ public class CypherTestUtil {
             row = r.next();
             assertRunProcRel(row, 3L);
 
-            // check `queryStatistics` row
-            row = r.next();
-            assertRunProcStatistics(row);
+            if (statisticsConf) {
+                // check `queryStatistics` row
+                row = r.next();
+                assertRunProcStatistics(row);
+            }
 
             // check that all results from the 3rd statement are correctly returned
             row = r.next();
@@ -125,9 +136,11 @@ public class CypherTestUtil {
             assertEquals(4L, others.size());
             row = r.next();
 
-            // check `queryStatistics` row
-            assertRunProcStatistics(row);
-            assertFalse(r.hasNext());
+            if (statisticsConf) {
+                // check `queryStatistics` row
+                assertRunProcStatistics(row);
+                assertFalse(r.hasNext());
+            }
         });
 
         // check that the procedure's SET operations work properly

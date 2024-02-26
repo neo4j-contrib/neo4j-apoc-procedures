@@ -482,10 +482,12 @@ public class CypherExtendedTest {
         testCallEmpty(db, "CALL apoc.cypher.runSchemaFile($file)", Map.of("file", failingFile));
 
         // the failed file produces an "error" row
-        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
-            String cypherError = "Error in `constraints.cypher`:\nConstraint already exists";
-            assertErrorResult(cypherError, row);
-        });
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
+                Map.of("file", failingFile),
+                row -> {
+                    String cypherError = "An equivalent constraint already exists";
+                    assertErrorResult(cypherError, row);
+                });
     }
 
     @Test
@@ -499,16 +501,18 @@ public class CypherExtendedTest {
         clearSchema();
 
         // the failed file produces an "error" row
-        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
-            String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" + "Variable `bar` not defined";
-            assertErrorResult(cypherError, row);
-        });
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
+                Map.of("file", failingFile),
+                row -> {
+                    String cypherError = "Variable `bar` not defined";
+                    assertErrorResult(cypherError, row);
+                });
     }
 
     @Test
     public void testRunSchemaFilesWithFailingStatement() {
         String failingFile = "constraints.cypher";
-        String cypherError = "Error in `constraints.cypher`:\n" + "An equivalent constraint already exists";
+        String cypherError = "An equivalent constraint already exists";
 
         testRunFailingSchemaFilesCommon(failingFile, cypherError);
     }
@@ -517,7 +521,7 @@ public class CypherExtendedTest {
     public void testRunSchemaFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_schema_statements_runtime.cypher";
-        String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" + "Variable `bar` not defined";
+        String cypherError = "Variable `bar` not defined";
 
         testRunFailingSchemaFilesCommon(failingFile, cypherError);
     }

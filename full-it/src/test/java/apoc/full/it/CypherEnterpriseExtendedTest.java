@@ -29,6 +29,7 @@ import static apoc.cypher.CypherTestUtil.testRunProcedureWithSimpleReturnResults
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
+import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -98,7 +99,15 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFile($file)";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        testRunProcedureWithSetAndReturnResults(session, query, params);
+        testRunProcedureWithSetAndReturnResults(session, query, params, true);
+    }
+
+    @Test
+    public void testRunFileWithSetAndResultsAndStatisticsFalse() {
+        String query = "CALL apoc.cypher.runFile($file, {statistics: false})";
+        Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
+
+        testRunProcedureWithSetAndReturnResults(session, query, params, false);
     }
 
     @Test
@@ -106,7 +115,23 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFile($file)";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(session, query, params);
+        testRunProcedureWithSimpleReturnResults(session, query, params, true);
+    }
+
+    @Test
+    public void testRunFileWithResultsAndStatisticsFalse() {
+        String query = "CALL apoc.cypher.runFileReadOnly($file, {statistics: false})";
+        Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
+
+        testRunProcedureWithSimpleReturnResults(session, query, params, false);
+    }
+
+    @Test
+    public void testRunReadFileWithResults() {
+        String query = "CALL apoc.cypher.runFileReadOnly($file)";
+        Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
+
+        testRunProcedureWithSimpleReturnResults(session, query, params, false);
     }
 
     @Test
@@ -114,7 +139,35 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFiles([$file])";
         Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
 
-        testRunProcedureWithSetAndReturnResults(session, query, params);
+        testRunProcedureWithSetAndReturnResults(session, query, params, true);
+    }
+
+    @Test
+    public void testRunFilesWithSetAndResultsAndStatisticsFalse() {
+        String query = "CALL apoc.cypher.runFiles([$file], {statistics: false})";
+        Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
+
+        testRunProcedureWithSetAndReturnResults(session, query, params, false);
+    }
+
+    @Test
+    public void testRunReadFileWithWriteOperation() {
+        String query = "CALL apoc.cypher.runFileReadOnly($file)";
+        Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
+
+        // performing `WRITE` operations on the `apoc.cypher.runFileReadOnly` procedure returns an empty result
+        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES).consume());
+        testCallEmpty(session, query, params);
+    }
+
+    @Test
+    public void testReadRunFilesWithWriteOperation() {
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file])";
+        Map<String, Object> params = Map.of("file", SET_RETURN_FILE);
+
+        // performing `WRITE` operations on the `apoc.cypher.runFileReadOnly` procedure returns an empty result
+        session.writeTransaction(tx -> tx.run(CREATE_RESULT_NODES).consume());
+        testCallEmpty(session, query, params);
     }
 
     @Test
@@ -122,7 +175,23 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFiles([$file])";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(session, query, params);
+        testRunProcedureWithSimpleReturnResults(query, params, true);
+    }
+
+    @Test
+    public void testRunFilesWithResultsAndStatisticsFalse() {
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file], {statistics: false})";
+        Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
+
+        testRunProcedureWithSimpleReturnResults(query, params, false);
+    }
+
+    @Test
+    public void testRunReadFilesWithResults() {
+        String query = "CALL apoc.cypher.runFilesReadOnly([$file])";
+        Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
+
+        testRunProcedureWithSimpleReturnResults(query, params, false);
     }
 
     @Test

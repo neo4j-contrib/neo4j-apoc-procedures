@@ -32,6 +32,8 @@ apoc.cypher.parallel
 apoc.cypher.parallel2
 apoc.cypher.runFile
 apoc.cypher.runFiles
+apoc.cypher.runFileReadOnly
+apoc.cypher.runFilesReadOnly
 apoc.cypher.runSchemaFile
 apoc.cypher.runSchemaFiles
 apoc.date.expire

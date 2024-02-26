@@ -1,0 +1,42 @@
+= apoc.cypher.runFileReadOnly
+:description: This section contains reference documentation for the apoc.cypher.runFileReadOnly procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+apoc.cypher.runFileReadOnly(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated - currently no schema operations
+
+== Signature
+
+[source]
+----
+apoc.cypher.runFileReadOnly(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?, fileName :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+|Name|Type|Default
+|file|STRING?|null
+|config|MAP?|{}
+|===
+
+== Config parameters
+include::partial$usage/config/apoc.cypher.runExtended.adoc[]
+
+== Output parameters
+[.procedures, opts=header]
+|===
+|Name|Type
+|row|INTEGER?
+|result|MAP?
+|===
+
+== Reading from a file
+include::../../import/includes/enableFileImport.adoc[]
+
+[[usage-apoc.cypher.runFileReadOnly]]
+== Usage Examples
+include::partial$usage/apoc.cypher.runFileReadOnly.adoc[]
+
+xref::cypher-execution/index.adoc[More documentation of apoc.cypher.runFileReadOnly,role=more information]

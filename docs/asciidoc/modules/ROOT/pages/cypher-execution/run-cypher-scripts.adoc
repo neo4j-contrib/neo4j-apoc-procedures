@@ -18,11 +18,19 @@ The available procedures and functions are described in the following table:
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.cypher.runFileReadOnly.adoc[]
+include::example$generated-documentation/apoc.cypher.runFilesReadOnly.adoc[]
 include::example$generated-documentation/apoc.cypher.runFile.adoc[]
 include::example$generated-documentation/apoc.cypher.runFiles.adoc[]
 include::example$generated-documentation/apoc.cypher.runSchemaFile.adoc[]
 include::example$generated-documentation/apoc.cypher.runSchemaFiles.adoc[]
 |===
+
+
+[[run-cypher-scripts-read-operations]]
+== Read Operations only
+* `apoc.cypher.runFileReadOnly(file or url,[\{config}])`
+* `apoc.cypher.runFilesReadOnly([files or urls],[\{config})])`
 
 
 [[run-cypher-scripts-data-operations]]
