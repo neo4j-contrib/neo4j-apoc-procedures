@@ -6,7 +6,7 @@ site:
 content:
   sources:
   - url: https://github.com/neo4j-contrib/neo4j-apoc-procedures
-    branches: ['5.11', '4.4', '4.3', '4.2', '4.1', '4.0']
+    branches: ['5.18', '4.4', '4.3', '4.2', '4.1', '4.0']
     start_path: docs/asciidoc
     exclude:
     - '!**/_includes/*'
