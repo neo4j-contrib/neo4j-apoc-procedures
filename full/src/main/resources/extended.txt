@@ -1,3 +1,5 @@
+apoc.agg.position
+apoc.agg.row
 apoc.algo.aStarWithPoint
 apoc.algo.travellingSalesman
 apoc.bolt.execute
