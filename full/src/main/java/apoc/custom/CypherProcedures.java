@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.summary.QueryType;
 import org.neo4j.graphdb.Notification;
 import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Result;
@@ -231,32 +232,109 @@ public class CypherProcedures {
                         checkInputParams(result);
                     }
                     if (mode != null) {
-                        checkMode(result.getQueryExecutionType().queryType(), mode);
+                        checkMode(result, mode);
                     }
                     return null;
                 });
     }
 
-    private void checkMode(QueryExecutionType.QueryType queryType, Mode mode) {
-        Map<QueryExecutionType.QueryType, Mode> map = Map.of(
-                QueryExecutionType.QueryType.WRITE,
-                Mode.WRITE,
-                QueryExecutionType.QueryType.READ_ONLY,
-                Mode.READ,
-                QueryExecutionType.QueryType.READ_WRITE,
-                Mode.WRITE,
-                QueryExecutionType.QueryType.DBMS,
-                Mode.DBMS,
-                QueryExecutionType.QueryType.SCHEMA_WRITE,
-                Mode.SCHEMA);
+    private void checkMode(Result result, Mode mode) {
+        Set<Mode> modes = new HashSet<>() {{
+            // parameter mode
+            add(mode);
+            // all modes can have DEFAULT and READ procedures as well
+            add(Mode.DEFAULT);
+            add(Mode.READ);
+        }};
 
-        if (!map.get(queryType).equals(mode)) {
-            throw new RuntimeException(String.format(
-                    "The query execution type is %s, but you provided mode %s.\n" + "Supported modes are %s",
+        // schema can have WRITE procedures as well
+        if (mode.equals(Mode.SCHEMA)) {
+            modes.add(Mode.WRITE);
+        }
+
+        // check that all inner procedure have a correct Mode
+        if (!procsAreValid(api, modes, result)) {
+            throw new RuntimeException("One or more inner procedure modes have operation different from the mode parameter: " + mode);
+        }
+
+        // check that the `Result.getQueryExecutionType()` is correct
+        checkCorrectQueryType(result, mode);
+    }
+
+    private void checkCorrectQueryType(Result result, Mode mode) {
+        List<QueryExecutionType.QueryType> readQueryTypes = List.of(QueryType.READ_ONLY);
+        List<QueryType> writeQueryTypes = List.of(QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE);
+        List<QueryType> schemaQueryTypes = List.of(QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE, QueryType.SCHEMA_WRITE);
+        List<QueryType> dbmsQueryTypes = List.of(QueryType.READ_ONLY, QueryType.DBMS);
+
+        // create a map of Mode to allowed `QueryType`s
+        // WRITE mode can have READ and WRITE query types
+        // SCHEMA mode can have SCHEMA, READ and WRITE query types
+        // DBMS mode can have READ and DBMS query types
+        Map<Mode, List<QueryType>> modeQueryTypeMap = Map.of(
+                Mode.READ, readQueryTypes,
+                Mode.WRITE, writeQueryTypes,
+                Mode.SCHEMA, schemaQueryTypes,
+                Mode.DBMS, dbmsQueryTypes);
+
+        List<QueryType> queryTypes = modeQueryTypeMap.get(mode);
+
+        // check that the statement have a valid queryType
+        QueryType queryType = isQueryValid(result, queryTypes.toArray(QueryType[]::new));
+        // if query type not matched
+        if (queryType != null) {
+            /*
+            The `correspondenceList` prints a list like:
+                - Mode: SCHEMA can have as a query execution type: [READ_ONLY, WRITE, READ_WRITE, SCHEMA_WRITE]
+                - Mode: DBMS can have as a query execution type: [DBMS]
+                ...
+             */
+            String correspondenceList = modeQueryTypeMap.entrySet()
+                    .stream()
+                    .map(i -> "- Mode: " + i.getKey() + " can have as a query execution type: " + i.getValue())
+                    .collect(Collectors.joining("\n"));
+
+            throw new RuntimeException(String.format("The query execution type of the statement is: `%s`, but you provided as a parameter mode: `%s`.\n" +
+                                                     "You have to declare a `mode` which corresponds to one of the following query execution type.\n" +
+                                                     "That is:\n" +
+                                                     "%s",
                     queryType.name(),
                     mode.name(),
-                    map.values().stream().sorted().collect(Collectors.toList())));
+                    correspondenceList)
+            );
         }
+    }
+
+
+    // Similar to `boolean isQueryTypeValid` located in Util.java (APOC Core)
+    public static QueryExecutionType.QueryType isQueryValid(Result result, QueryExecutionType.QueryType[] supportedQueryTypes) {
+        QueryExecutionType.QueryType type = result.getQueryExecutionType().queryType();
+        // if everything is ok return null, otherwise the current getQueryExecutionType().queryType()
+        if (supportedQueryTypes != null && supportedQueryTypes.length != 0 && Stream.of(supportedQueryTypes).noneMatch(sqt -> sqt.equals(type))) {
+            return type;
+        }
+        return null;
+    }
+
+    public static boolean procsAreValid(GraphDatabaseService db, Set<Mode> supportedModes, Result result) {
+        if (supportedModes != null && !supportedModes.isEmpty()) {
+            final ExecutionPlanDescription executionPlanDescription = result.getExecutionPlanDescription();
+            // get procedures used in the query
+            Set<String> queryProcNames = new HashSet<>();
+            getAllQueryProcs(executionPlanDescription, queryProcNames);
+
+            if (!queryProcNames.isEmpty()) {
+                final Set<String> modes = supportedModes.stream().map(Mode::name).collect(Collectors.toSet());
+                // check if sub-procedures have valid mode
+                final Set<String> procNames = db.executeTransactionally("SHOW PROCEDURES YIELD name, mode where mode in $modes return name",
+                        Map.of("modes", modes),
+                        r -> Iterators.asSet(r.columnAs("name")));
+
+                return procNames.containsAll(queryProcNames);
+            }
+        }
+
+        return true;
     }
 
     private void checkOutputParams(Set<String> outputSet, Set<String> columns) {
