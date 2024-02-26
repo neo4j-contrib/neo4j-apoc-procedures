@@ -20,13 +20,13 @@ public class ExtendedApocConfigTest {
     public void setup() {
         InternalLogProvider logProvider = new AssertableLogProvider();
         GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
-        cut = new ExtendedApocConfig(new SimpleLogService(logProvider), registry);
+        cut = new ExtendedApocConfig(new SimpleLogService(logProvider), registry, "C:/neo4j/neo4j-enterprise-5.x.0/conf");
     }
 
     @Test
     public void testDetermineNeo4jConfFolderDefault() {
         System.setProperty(SUN_JAVA_COMMAND, "");
-        assertEquals(".", cut.determineNeo4jConfFolder());
+        assertEquals("C:/neo4j/neo4j-enterprise-5.x.0/conf", cut.determineNeo4jConfFolder());
     }
 
     @Test
