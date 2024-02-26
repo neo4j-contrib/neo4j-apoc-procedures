@@ -88,7 +88,7 @@ This example was tested on a Mac Book Pro with 16GB of RAM. Loading 20000 docume
 
 [source,cypher]
 ----
-call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
+call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value
 
 // GET/PUT/POST url/index/type/id?query -d payload
 ----
@@ -179,6 +179,34 @@ Query can be a map which is turned into a query string, a direct string or null 
 === payload parameter
 
 Payload can be a *map* which will be turned into a json payload or a string which will be sent directly or null.
+
+=== config parameter
+
+Config can be an optional *map*, which can have the following entries:
+
+.Config parameters
+[opts=header, cols="1,1,1,4"]
+|===
+| name | type | default | description
+| headers | `Map` | {`content-type`: "application/json", `method`, "<httpMethod>"} | Contains a header map to add (or replace) the default one.
+    The `method: <httpMethod>` is needed by APOC to figure out under the hood, which http request method to pass. 
+    That is, by default, it is `PUT` with the `apoc.es.put`, POST with the `apoc.es.post` and `apoc.es.postRaw`, and GET in other cases.
+|===
+
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats('custom', { headers: {Authorization: "Basic <Base64Token>"} })
+----
+
+to use a https://www.elastic.co/guide/en/elasticsearch/reference/current/http-clients.html[Basic authentication] 
+and create the following HTTP header:
+```
+Authorization: Basic <Base64Token>
+method: GET
+Content-Type: application/json
+```
 
 
 === Results
