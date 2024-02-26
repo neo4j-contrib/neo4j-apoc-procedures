@@ -23,9 +23,9 @@ CALL apoc.cypher.runFiles(["create.cypher", "update.cypher"]);
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
-| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
-| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+| row | fileName      | result
+| -1  | create.cypher | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
+| -1  | update.cypher | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
 |===
 
 We can see the contents of the database, by running the following query:
@@ -53,5 +53,5 @@ CALL apoc.cypher.runFiles(["create.cypher", "update.cypher"], {statistics: false
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
+| row | fileName | result
 |===

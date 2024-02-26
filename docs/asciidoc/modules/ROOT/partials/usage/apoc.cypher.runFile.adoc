@@ -19,9 +19,9 @@ CALL apoc.cypher.runFile("create_delete.cypher");
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
-| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
-| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 1, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+| row | fileName             | result
+| -1  | create_delete.cypher | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 1, rows: 0, propertiesSet: 1, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 1, relationshipsCreated: 0, time: 0}
+| -1  | create_delete.cypher | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 1, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
 |===
 
 If we don't want to see statistics for each Cypher statement, we can set `statistics: false`:
@@ -35,5 +35,5 @@ CALL apoc.cypher.runFile("create_delete.cypher", {statistics: false});
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
+| row | fileName | result
 |===
