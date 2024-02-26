@@ -1,0 +1,18 @@
+
+= apoc.agg
+:description: This section contains reference documentation for the apoc.agg procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+
+Returns index of the `element` that match the given `value`
+|label:function[]
+
+|xref::overview/apoc.agg/apoc.agg.row.adoc[apoc.agg.row icon:book[]]
+
+Returns index of the `element` that match the given `predicate`
+|label:procedure[]
+|===
+
