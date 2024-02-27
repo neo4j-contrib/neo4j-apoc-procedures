@@ -87,7 +87,11 @@ public class DataVirtualizationCatalog {
                 .stream()
                 .map(m -> (Node) m.get(("node")))
                 .map(n -> new VirtualRelationship(node, n, relationshipType))
-                .map(r -> new VirtualPath.Builder(r.getStartNode()).push(r).build())
+                .map(r -> {
+                    VirtualPath virtualPath =  new VirtualPath(r.getStartNode());
+                    virtualPath.addRel(r);
+                    return virtualPath;
+                })
                 .map(PathResult::new);
     }
 }
