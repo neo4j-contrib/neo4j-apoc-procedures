@@ -37,6 +37,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.SettingImpl.newBuilder;
 import static org.neo4j.configuration.SettingValueParsers.BOOL;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import junit.framework.TestCase;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hamcrest.Matchers;
@@ -1690,5 +1692,23 @@ public class GraphRefactoringTest {
             String actualRelType = next.getType().name();
             assertEquals(expectedRelType, actualRelType);
         }
+    }
+
+    @Test
+    public void issue3960WithCloneNodes() {
+        // Any node created in cloneNodes should not be committed if the entire query fails.
+        String query = "CREATE (original:Person {uid: \"original\"}), (original2:Person {uid: \"original\"}) \n"
+                + "WITH original, original2 \n"
+                + "CALL apoc.refactor.cloneNodes([original, original2], false, [\"uid\"]) \n"
+                + "YIELD input, output AS clone, error \n"
+                + "SET clone.uid = \"clone\" \n"
+                + "RETURN 1/0";
+
+        QueryExecutionException e = assertThrows(QueryExecutionException.class, () -> testCall(db, query, (r) -> {}));
+        Throwable except = ExceptionUtils.getRootCause(e);
+        TestCase.assertTrue(except instanceof RuntimeException);
+        TestCase.assertEquals("/ by zero", except.getMessage());
+
+        testCall(db, "MATCH (n) RETURN count(*) AS count", r -> assertEquals(0L, r.get("count")));
     }
 }

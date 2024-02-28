@@ -155,7 +155,32 @@ public class GraphRefactoring {
             @Name("nodes") List<Node> nodes,
             @Name(value = "withRelationships", defaultValue = "false") boolean withRelationships,
             @Name(value = "skipProperties", defaultValue = "[]") List<String> skipProperties) {
-        return doCloneNodes(nodes, withRelationships, skipProperties);
+        if (nodes == null) return Stream.empty();
+        return nodes.stream().map(node -> {
+            NodeRefactorResult result = new NodeRefactorResult(node.getId());
+            Node newNode = tx.createNode(Util.getLabelsArray(node));
+            Map<String, Object> properties = node.getAllProperties();
+            if (skipProperties != null && !skipProperties.isEmpty()) {
+                for (String skip : skipProperties) properties.remove(skip);
+            }
+            try {
+                copyProperties(properties, newNode);
+                if (withRelationships) {
+                    copyRelationships(node, newNode, false, true);
+                }
+            } catch (Exception e) {
+                // If there was an error, the procedure still passes, but this node + its rels should not
+                // be created. Instead, an error is returned to the user in the output.
+                if (withRelationships) {
+                    for (Relationship rel : newNode.getRelationships()) {
+                        rel.delete();
+                    }
+                }
+                newNode.delete();
+                return result.withError(e);
+            }
+            return result.withOther(newNode);
+        });
     }
 
     /**
