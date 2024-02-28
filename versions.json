@@ -1,5 +1,23 @@
 [
     {
+        "neo4j": "5.17.0",
+        "neo4jVersion": "5.17.0",
+        "apoc": "5.17.1",
+        "version": "5.17.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.17.1",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.17.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.17.1/apoc-5.17.1-extended.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.17.1/apoc-5.17.1-extended.jar",
+        "sha1": "68f2672613c52dd40c5d42df8c32d0ae715a71eb",
+        "sha256": "180d5876a85463063a2382f8c9cdc96df01a58e605e04a4b56a444184f6ea7a9",
+        "md5": "833a0539164323a7b4480d23530b0bca",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "apoc.*"
+            ]
+        }
+    },
+    {
         "neo4j": "5.16.0",
         "neo4jVersion": "5.16.0",
         "apoc": "5.16.0",
@@ -281,6 +299,24 @@
         "sha1": "b40b05a536e8f356996f520754f02e4d7a834756",
         "sha256": "d02d53352515ef074f236fa526ec7833f2fd58e2252842a2d7e408edc8b78224",
         "md5": "f9d0db216b0e7a94fb279de73b35e12d",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "apoc.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "4.4.31",
+        "neo4jVersion": "4.4.31",
+        "apoc": "4.4.0.25",
+        "version": "4.4.0.25",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.25",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.25",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.25/apoc-4.4.0.25-all.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.25/apoc-4.4.0.25-all.jar",
+        "sha1": "863be0e9c7596a049f36a10c46b6a901f3871d82",
+        "sha256": "7cfeb65ab892811bfdcab98fb760025e7eeaf9d58f1ada2fec2d7c6d3d328023",
+        "md5": "3a9e07dce1c1e1407a6c0b32c512c2ef",
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "apoc.*"
