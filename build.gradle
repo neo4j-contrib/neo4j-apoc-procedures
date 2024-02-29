@@ -27,7 +27,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.4.0.25'
+    version = '4.4.0.26'
     base {
         archivesName = 'apoc'
     }
@@ -88,8 +88,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise-debian' : 'neo4j:4.4.31-enterprise-debian',
-                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-debian': 'neo4j:4.4.31-debian'
+                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise-debian' : 'neo4j:4.4.32-enterprise-debian',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-debian': 'neo4j:4.4.32-debian'
 
         maxHeapSize = "5G"
         forkEvery = 50
@@ -135,7 +135,7 @@ apply from: "licenses-3rdparties.gradle"
 ext {
     publicDir =  "${project.rootDir}"
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.4.31"
+    neo4jVersion = "4.4.32"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.17.6'
