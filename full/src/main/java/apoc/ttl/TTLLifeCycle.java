@@ -45,7 +45,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
     private final Log log;
 
     public TTLLifeCycle(
-            JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
+            JobScheduler scheduler, GraphDatabaseAPI db, TTLConfig ttlConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
         this.ttlConfig = ttlConfig;
