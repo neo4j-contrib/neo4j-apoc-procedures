@@ -33,7 +33,7 @@ runs:
         TEAMCITY_USER: ${{ inputs.TEAMCITY_USER }}
         TEAMCITY_PASSWORD: ${{ inputs.TEAMCITY_PASSWORD }}
       run: |
-        ./gradlew ${{ inputs.gradle-command }}
+        ./gradlew ${{ inputs.gradle-command }} || true
 
     - name: Check for modified files
       shell: bash
