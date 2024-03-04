@@ -94,13 +94,28 @@ public class CypherProceduresClusterRoutingTest {
                 .toList();
         for (Neo4jContainerExtension member : members) {
             Session session = member.getSession();
+            session.executeWrite(tx->tx.run("call db.clearQueryCaches()").consume());
 
             for (String name: customNames) {
-                assertEventually(() -> (long) singleResultFirstColumn(session, "CALL custom.%s".formatted(name)),
-                        (v) -> v == 42L, TIMEOUT, SECONDS);
+                assertEventually(() -> {
+                            try {
+                                long res = singleResultFirstColumn(session, "CALL custom.%s".formatted(name));
+                                return 42L == res;
+                            } catch (Exception e) {
+                                return false;
+                            }
+                        },
+                        (v) -> v, TIMEOUT, SECONDS);
 
-                assertEventually(() -> (long) singleResultFirstColumn(session, "RETURN custom.%s() AS answer".formatted(name)),
-                        (v) -> v == 42L, TIMEOUT, SECONDS);
+                assertEventually(() -> {
+                            try {
+                                long res = singleResultFirstColumn(session, "RETURN custom.%s() AS answer".formatted(name));
+                                return 42L == res;
+                            } catch (Exception e) {
+                                return false;
+                            }
+                        },
+                        (v) -> v, TIMEOUT, SECONDS);
             }
         }
 
