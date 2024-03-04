@@ -175,6 +175,19 @@ public class Util {
         return new Label[] {Label.label(labelNames.toString())};
     }
 
+    public static Label[] getLabelsArray(Node node) {
+        List<Label> labels = getLabels(node);
+        return labels.toArray(new Label[0]);
+    }
+
+    public static List<Label> getLabels(Node node) {
+        return getLabelsAsStream(node).collect(Collectors.toList());
+    }
+
+    private static Stream<Label> getLabelsAsStream(Node node) {
+        return StreamSupport.stream(node.getLabels().spliterator(), false);
+    }
+
     public static RelationshipType type(Object type) {
         if (type == null) throw new RuntimeException("No relationship-type provided");
         return RelationshipType.withName(type.toString());
