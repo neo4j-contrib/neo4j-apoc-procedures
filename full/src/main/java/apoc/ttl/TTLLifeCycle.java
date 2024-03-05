@@ -44,8 +44,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
     private final TTLConfig ttlConfig;
     private final Log log;
 
-    public TTLLifeCycle(
-            JobScheduler scheduler, GraphDatabaseAPI db, TTLConfig ttlConfig, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, TTLConfig ttlConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
         this.ttlConfig = ttlConfig;
@@ -71,7 +70,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
             final String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
             final String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() WITH r LIMIT $limit DELETE r RETURN r";
-            final String queryNodes = matchTTL +  "WITH t LIMIT $limit DETACH DELETE t RETURN t";
+            final String queryNodes = matchTTL + "WITH t LIMIT $limit DETACH DELETE t RETURN t";
 
             long relationshipsDeleted = deleteEntities(limit, queryRels);
             long nodesDeleted = deleteEntities(limit, queryNodes);
@@ -84,7 +83,6 @@ public class TTLLifeCycle extends LifecycleAdapter {
         }
     }
 
-
     private long deleteEntities(long limit, String query) {
         return deleteEntities(limit, query, 0);
     }
@@ -93,8 +91,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
      * Delete entities in batches, until the result is 0
      */
     private long deleteEntities(long limit, String query, long deleted) {
-        long currDeleted = db.executeTransactionally(query, Map.of("limit", limit),
-                Iterators::count);
+        long currDeleted = db.executeTransactionally(query, Map.of("limit", limit), Iterators::count);
 
         if (currDeleted > 0) {
             deleted += currDeleted;
