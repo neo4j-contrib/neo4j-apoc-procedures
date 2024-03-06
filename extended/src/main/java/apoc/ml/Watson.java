@@ -39,6 +39,9 @@ public class Watson {
     @Procedure("apoc.ml.watson.chat")
     @Description("apoc.ml.watson.chat(messages, accessToken, $configuration) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        if (messages == null) {
+            return Stream.of(new MapResult(null));
+        }
         String prompt = messages.stream()
                 .map(message -> {
                     Object role = message.get("role");
@@ -56,6 +59,9 @@ public class Watson {
     @Procedure("apoc.ml.watson.completion")
     @Description("apoc.ml.watson.completion(prompt, accessToken, $configuration) - prompts the completion API")
     public Stream<MapResult> completion(@Name("prompt") String prompt, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        if (prompt == null) {
+            return Stream.of(new MapResult(null));
+        }
         return executeRequest(prompt, accessToken, configuration);
     }
 
