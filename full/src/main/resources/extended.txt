@@ -35,6 +35,7 @@ apoc.cypher.runSchemaFiles
 apoc.date.expire
 apoc.date.expireIn
 apoc.diff.graphs
+apoc.diff.relationships
 apoc.dv.catalog.add
 apoc.dv.catalog.list
 apoc.dv.catalog.remove
