@@ -137,6 +137,7 @@ public class LoadXls {
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);
             long skip = longValue(config, "skip", 0L);
             boolean hasHeader = booleanValue(config, "header", true);
+            boolean skipNulls = booleanValue(config, "skipNulls", false);
             long limit = longValue(config, "limit", Long.MAX_VALUE);
 
             List<String> ignore = value(config, "ignore", emptyList());

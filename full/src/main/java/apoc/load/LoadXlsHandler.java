@@ -122,7 +122,7 @@ public class LoadXlsHandler {
         Row firstRow = sheet.getRow(selection.top);
         selection.updateHorizontal(firstRow.getFirstCellNum(), firstRow.getLastCellNum());
 
-        String[] header = getHeader(hasHeader, firstRow, selection, ignore, mappings);
+        String[] header = getHeader(hasHeader, skipNulls, firstRow, selection, ignore, mappings);
         boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch(m -> m.ignore);
         XLSSpliterator xlsSpliterator =
                 new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore, mappings, nullValues, skipNulls);
