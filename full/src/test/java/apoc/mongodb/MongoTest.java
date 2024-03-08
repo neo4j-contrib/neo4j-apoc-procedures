@@ -55,7 +55,6 @@ import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.ResourceIterator;
@@ -312,28 +311,28 @@ public class MongoTest extends MongoTestBase {
         Consumer<Map<String, Object>> consumer = r -> assertEquals(2L, r.get("value"));
 
         // string queries (with respectively double and single quotes)
-        testCall(db, "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$type':'00'}}\")".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$type':'00'}}\")", bytesEncoded),
                 params, consumer);
 
-        testCall(db, "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$type\":\"00\"}}')".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$type\":\"00\"}}')", bytesEncoded),
                 params, consumer);
 
         // map query
-        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$type`: '00'}})".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$type`: '00'}})", bytesEncoded),
                 params, consumer);
 
         // legacy queries (used by mongodb-driver:3.2.2)
         // i.e. with `$subType` instead of `$type`
 
         // string queries (with respectively double and single quotes) 
-        testCall(db, "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$subType':'00'}}\")".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$subType':'00'}}\")", bytesEncoded),
                 params, consumer);
 
-        testCall(db, "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$subType\":\"00\"}}')".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$subType\":\"00\"}}')", bytesEncoded),
                 params, consumer);
 
         // map query
-        testCall(db, "CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$subType`: '00'}})".formatted(bytesEncoded),
+        testCall(db, String.format("CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$subType`: '00'}})", bytesEncoded),
                 params, consumer);
     }
 
