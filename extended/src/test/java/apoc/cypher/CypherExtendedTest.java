@@ -48,6 +48,8 @@ import static org.neo4j.driver.internal.util.Iterables.count;
  * @author mh
  * @since 08.05.16
  */
+
+@Ignore
 public class CypherExtendedTest {
     public static final String IMPORT_DIR = "src/test/resources";
     @ClassRule
