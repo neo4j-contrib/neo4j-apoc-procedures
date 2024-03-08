@@ -12,12 +12,12 @@ public class ElasticSearchConfig {
     public ElasticSearchConfig(Map<String, Object> config) {
         this(config, null);
     }
-    
+
     public ElasticSearchConfig(Map<String, Object> config, String httpMethod) {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        
+
         Map<String, Object> headerConf = (Map<String, Object>) config.getOrDefault(HEADERS_KEY, new HashMap<>());
         headerConf.putIfAbsent("content-type", "application/json");
         if (httpMethod != null) {

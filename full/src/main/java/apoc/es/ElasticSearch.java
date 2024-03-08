@@ -154,7 +154,8 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.stats(host-url-Key,$config) - elastic search statistics")
-    public Stream<MapResult> stats(@Name("host") String hostOrKey, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResult> stats(
+            @Name("host") String hostOrKey, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         String url = getElasticSearchUrl(hostOrKey);
         return loadJsonStream(url + "/_stats", new ElasticSearchConfig(config), null);
     }
@@ -171,9 +172,7 @@ public class ElasticSearch {
             @Name("payload") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return loadJsonStream(
-                getQueryUrl(hostOrKey, index, type, id, query),
-                new ElasticSearchConfig(config),
-                toPayload(payload));
+                getQueryUrl(hostOrKey, index, type, id, query), new ElasticSearchConfig(config), toPayload(payload));
     }
 
     @Procedure
@@ -187,9 +186,7 @@ public class ElasticSearch {
             @Name("payload") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return loadJsonStream(
-                getSearchQueryUrl(hostOrKey, index, type, query),
-                new ElasticSearchConfig(config),
-                toPayload(payload));
+                getSearchQueryUrl(hostOrKey, index, type, query), new ElasticSearchConfig(config), toPayload(payload));
     }
 
     @Procedure
@@ -201,8 +198,7 @@ public class ElasticSearch {
             @Name("payload") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         String url = getElasticSearchUrl(hostOrKey);
-        return loadJsonStream(
-                url + "/" + suffix, new ElasticSearchConfig(config), toPayload(payload));
+        return loadJsonStream(url + "/" + suffix, new ElasticSearchConfig(config), toPayload(payload));
     }
 
     @Procedure
@@ -214,8 +210,7 @@ public class ElasticSearch {
             @Name("payload") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         String url = getElasticSearchUrl(hostOrKey);
-        return loadJsonStream(
-                url + "/" + suffix, new ElasticSearchConfig(config, "POST"), toPayload(payload));
+        return loadJsonStream(url + "/" + suffix, new ElasticSearchConfig(config, "POST"), toPayload(payload));
     }
 
     @Procedure
@@ -226,7 +221,8 @@ public class ElasticSearch {
             @Name("index") String index,
             @Name("type") String type,
             @Name("query") Object query,
-            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload) {
+            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null) {
             payload = Collections.emptyMap();
         }
@@ -256,7 +252,8 @@ public class ElasticSearch {
                 toPayload(payload));
     }
 
-    private Stream<MapResult> loadJsonStream(@Name("url") Object url, ElasticSearchConfig conf, @Name("payload") String payload) {
+    private Stream<MapResult> loadJsonStream(
+            @Name("url") Object url, ElasticSearchConfig conf, @Name("payload") String payload) {
         return LoadJson.loadJsonStream(url, conf.getHeaders(), payload, "", true, null, null, null);
     }
 }
