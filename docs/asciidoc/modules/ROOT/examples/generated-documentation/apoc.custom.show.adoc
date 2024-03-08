@@ -1,5 +1,5 @@
-¦xref::overview/apoc.custom/apoc.custom.list.adoc[apoc.custom.list icon:book[]] +
+¦xref::overview/apoc.custom/apoc.custom.show.adoc[apoc.custom.show icon:book[]] +
 
-`apoc.custom.list()` - provide a list of custom procedures/function registered
+`apoc.custom.show()` - Provides a list of custom procedures/function registered
 ¦label:procedure[]
 ¦label:apoc-extended[]

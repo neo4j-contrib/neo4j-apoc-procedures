@@ -1,5 +1,5 @@
-¦xref::overview/apoc.custom/apoc.custom.list.adoc[apoc.custom.list icon:book[]] +
+¦xref::overview/apoc.custom/apoc.custom.installProcedure.adoc[apoc.custom.installProcedure icon:book[]] +
 
-`apoc.custom.list()` - provide a list of custom procedures/function registered
+`apoc.custom.installProcedure()` - Eventually registers a custom cypher procedure
 ¦label:procedure[]
 ¦label:apoc-extended[]
