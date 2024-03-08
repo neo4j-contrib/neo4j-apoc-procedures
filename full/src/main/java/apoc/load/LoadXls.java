@@ -145,8 +145,8 @@ public class LoadXls {
             Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
             Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
 
-            LoadXlsHandler.XLSSpliterator xlsSpliterator =
-                    getXlsSpliterator(url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
+            LoadXlsHandler.XLSSpliterator xlsSpliterator = getXlsSpliterator(
+                    url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
             return StreamSupport.stream(xlsSpliterator, false);
         } catch (NoClassDefFoundError e) {
             throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);

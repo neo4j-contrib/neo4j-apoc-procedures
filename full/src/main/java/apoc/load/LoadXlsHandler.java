@@ -79,13 +79,13 @@ public class LoadXlsHandler {
         @Override
         public boolean tryAdvance(Consumer<? super LoadXls.XLSResult> action) {
             try {
-                Row row = sheet.getRow((int)lineNo);
+                Row row = sheet.getRow((int) lineNo);
                 if (lineNo <= limit) {
 
                     Object[] list;
                     if (row != null) {
                         list = extract(row, selection);
-                        action.accept(new LoadXls.XLSResult(header, list, lineNo-skip, ignore,mapping, nullValues));
+                        action.accept(new LoadXls.XLSResult(header, list, lineNo - skip, ignore, mapping, nullValues));
                         lineNo++;
                         return true;
                     }
@@ -124,8 +124,8 @@ public class LoadXlsHandler {
 
         String[] header = getHeader(hasHeader, skipNulls, firstRow, selection, ignore, mappings);
         boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch(m -> m.ignore);
-        XLSSpliterator xlsSpliterator =
-                new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore, mappings, nullValues, skipNulls);
+        XLSSpliterator xlsSpliterator = new XLSSpliterator(
+                sheet, selection, header, url, skip, limit, checkIgnore, mappings, nullValues, skipNulls);
         return xlsSpliterator;
     }
 
@@ -143,7 +143,8 @@ public class LoadXlsHandler {
         for (int i = selection.left; i < selection.right; i++) {
             Cell cell = header.getCell(i);
             String value = getHeaderValue(skipNulls, i, cell);
-            result[i- selection.left] = ignore.contains(value) || mapping.getOrDefault(value, LoadXls.Mapping.EMPTY).ignore ? null : value;
+            result[i - selection.left] =
+                    ignore.contains(value) || mapping.getOrDefault(value, LoadXls.Mapping.EMPTY).ignore ? null : value;
         }
         return result;
     }
