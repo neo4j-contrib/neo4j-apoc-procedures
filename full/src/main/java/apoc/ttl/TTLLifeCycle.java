@@ -18,7 +18,6 @@
  */
 package apoc.ttl;
 
-import apoc.ApocConfig;
 import apoc.TTLConfig;
 import apoc.util.Util;
 import java.util.Map;
@@ -37,22 +36,17 @@ import org.neo4j.scheduler.JobScheduler;
  */
 public class TTLLifeCycle extends LifecycleAdapter {
 
-    public static final int INITIAL_DELAY = 30;
-    public static final int DEFAULT_SCHEDULE = 60;
     private static final Group TTL_GROUP = Group.INDEX_UPDATING;
     private final JobScheduler scheduler;
     private final GraphDatabaseAPI db;
-    private final ApocConfig apocConfig;
     private JobHandle ttlIndexJobHandle;
     private JobHandle ttlJobHandle;
-    private TTLConfig ttlConfig;
-    private Log log;
+    private final TTLConfig ttlConfig;
+    private final Log log;
 
-    public TTLLifeCycle(
-            JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, TTLConfig ttlConfig, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, TTLConfig ttlConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
-        this.apocConfig = apocConfig;
         this.ttlConfig = ttlConfig;
         this.log = log;
     }
@@ -73,19 +67,13 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
-            String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() RETURN id(r) as id";
-            String queryNodes = matchTTL + "RETURN id(t) as id";
-            Map<String, Object> params = Util.map("batchSize", limit, "queryRels", queryRels, "queryNodes", queryNodes);
-            long relationshipsDeleted = db.executeTransactionally(
-                    "CALL apoc.periodic.iterate($queryRels, 'MATCH ()-[r]->() WHERE id(r) = id DELETE r', {batchSize: $batchSize})",
-                    params,
-                    result -> Iterators.single(result.columnAs("total")));
 
-            long nodesDeleted = db.executeTransactionally(
-                    "CALL apoc.periodic.iterate($queryNodes, 'MATCH (n) WHERE id(n) = id DETACH DELETE n', {batchSize: $batchSize})",
-                    params,
-                    result -> Iterators.single(result.columnAs("total")));
+            final String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
+            final String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() WITH r LIMIT $limit DELETE r RETURN r";
+            final String queryNodes = matchTTL + "WITH t LIMIT $limit DETACH DELETE t RETURN t";
+
+            long relationshipsDeleted = deleteEntities(limit, queryRels);
+            long nodesDeleted = deleteEntities(limit, queryNodes);
 
             if (nodesDeleted > 0) {
                 log.info("TTL: Expired %d nodes %d relationships", nodesDeleted, relationshipsDeleted);
@@ -95,9 +83,26 @@ public class TTLLifeCycle extends LifecycleAdapter {
         }
     }
 
+    private long deleteEntities(long limit, String query) {
+        return deleteEntities(limit, query, 0);
+    }
+
+    /**
+     * Delete entities in batches, until the result is 0
+     */
+    private long deleteEntities(long limit, String query, long deleted) {
+        long currDeleted = db.executeTransactionally(query, Map.of("limit", limit), Iterators::count);
+
+        if (currDeleted > 0) {
+            deleted += currDeleted;
+            return deleteEntities(limit, query, deleted);
+        }
+        return deleted;
+    }
+
     public void createTTLIndex() {
         try {
-            db.executeTransactionally("call apoc.schema.assert({ TTL: ['ttl'] }, null, false)");
+            db.executeTransactionally("CREATE INDEX IF NOT EXISTS FOR (n:TTL) ON (n.ttl)");
         } catch (Exception e) {
             log.error("TTL: Error creating index", e);
         }
