@@ -341,10 +341,11 @@ public class CypherProceduresTest {
 
     @Test
     public void testWrongMode() {
-        assertProcedureFails(
-                "The query execution type is READ_WRITE, but you provided mode READ.\n"
-                        + "Supported modes are [READ, WRITE, WRITE, SCHEMA, DBMS]",
-                "call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','read', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])");
+        String expectedMessage =
+                "The query execution type of the statement is: `READ_WRITE`, but you provided as a parameter mode: `READ`";
+        String query =
+                "call apoc.custom.asProcedure('answer','create path=(node)-[relationship:FOO]->() return node, relationship, path','read', [['node','Node'], ['relationship','RELATIONSHIP'], ['path','PATH']], [])";
+        assertProcedureFails(expectedMessage, query);
     }
 
     @Test
