@@ -201,22 +201,21 @@ public class CypherEnterpriseExtendedTest {
 
     @Test
     public void testCypherMapParallel2WithResults() {
-        // this test could cause flaky errors, 
+        // this test could cause flaky errors,
         // so we need to run the query several times to make sure it always works
         for (int i = 0; i < 30; i++) {
-            String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n" +
-                           "CALL apoc.cypher.mapParallel2('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list, 1)\n" +
-                           "YIELD value RETURN value";
+            String query = "MATCH (n:ReturnQuery) WITH COLLECT(n) AS list\n"
+                    + "CALL apoc.cypher.mapParallel2('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list, 1)\n"
+                    + "YIELD value RETURN value";
             Map<String, Object> params = Map.of("file", SIMPLE_RETURN_QUERIES);
             testCypherMapParallelCommon(query, params);
 
             session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n"));
         }
 
-        // Check that `SHOW TRANSACTIONS` just returns itself 
+        // Check that `SHOW TRANSACTIONS` just returns itself
         String showTransactionsQuery = "SHOW TRANSACTIONS";
-        testCall(session, showTransactionsQuery,
-                r -> assertEquals(showTransactionsQuery, r.get("currentQuery")));
+        testCall(session, showTransactionsQuery, r -> assertEquals(showTransactionsQuery, r.get("currentQuery")));
     }
 
     private void testCypherMapParallelCommon(String query, Map<String, Object> params) {
