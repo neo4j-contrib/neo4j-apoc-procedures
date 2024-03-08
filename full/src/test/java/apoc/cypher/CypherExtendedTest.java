@@ -482,12 +482,10 @@ public class CypherExtendedTest {
         testCallEmpty(db, "CALL apoc.cypher.runSchemaFile($file)", Map.of("file", failingFile));
 
         // the failed file produces an "error" row
-        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
-                Map.of("file", failingFile),
-                row -> {
-                    String cypherError = "An equivalent constraint already exists";
-                    assertErrorResult(cypherError, row);
-                });
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
+            String cypherError = "An equivalent constraint already exists";
+            assertErrorResult(cypherError, row);
+        });
     }
 
     @Test
@@ -501,12 +499,10 @@ public class CypherExtendedTest {
         clearSchema();
 
         // the failed file produces an "error" row
-        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
-                Map.of("file", failingFile),
-                row -> {
-                    String cypherError = "Variable `bar` not defined";
-                    assertErrorResult(cypherError, row);
-                });
+        testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
+            String cypherError = "Variable `bar` not defined";
+            assertErrorResult(cypherError, row);
+        });
     }
 
     @Test

@@ -85,6 +85,11 @@ public class CypherTestUtil {
         assertEquals(Map.of("id", id), n.asMap());
     }
 
+    public static void testRunProcedureWithSetAndReturnResults(
+            Session session, String query, Map<String, Object> params) {
+        testRunProcedureWithSimpleReturnResults(session, query, params, true);
+    }
+
     // placed in test-utils because is used by extended as well
     public static void testRunProcedureWithSetAndReturnResults(
             Session session, String query, Map<String, Object> params, boolean statisticsConf) {
