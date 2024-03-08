@@ -1424,6 +1424,7 @@ public class CypherProceduresTest {
             assertFalse(r.hasNext());
         });
     }
+
     @Test
     public void testValidateIssue3072() {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
@@ -1431,37 +1432,47 @@ public class CypherProceduresTest {
         // even if `apoc.schema.assert` do schema operations, the `EXPLAIN <query>` sees the  query as a `READ_WRITE`,
         // as is a procedure with mode SCHEMA, not a cypher query like `CREATE INDEX ....`.
         // So, by passing either `write` or `schema` as a `mode` parameter, the custom procedure works correctly.
-        String statement = "CALL apoc.schema.assert({Foo:['bar']}, null) yield label, key, keys, unique, action " +
-                           "RETURN 0 as response";
+        String statement = "CALL apoc.schema.assert({Foo:['bar']}, null) yield label, key, keys, unique, action "
+                + "RETURN 0 as response";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testOne() :: (response::INT)",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of(
+                        "signature",
+                        "testOne() :: (response::INT)",
+                        "statement",
+                        statement,
+                        "mode",
+                        Mode.SCHEMA.name()));
         db.executeTransactionally("CALL custom.testOne");
-        testCallCount(db, "SHOW INDEX YIELD labelsOrTypes, properties WHERE properties = ['bar'] AND labelsOrTypes = ['Foo']",
+        testCallCount(
+                db,
+                "SHOW INDEX YIELD labelsOrTypes, properties WHERE properties = ['bar'] AND labelsOrTypes = ['Foo']",
                 1);
 
         // failing modes
 
-        String expectedMessageWrite = "One or more inner procedure modes have operation different from the mode parameter: WRITE";
-        assertProcedureFails(expectedMessageWrite, procedure,
-                Map.of("signature", "testFoo() :: (response::INT)",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        String expectedMessageWrite =
+                "One or more inner procedure modes have operation different from the mode parameter: WRITE";
+        assertProcedureFails(
+                expectedMessageWrite,
+                procedure,
+                Map.of("signature", "testFoo() :: (response::INT)", "statement", statement, "mode", Mode.WRITE.name()));
 
-        String expectedMessageRead = "One or more inner procedure modes have operation different from the mode parameter: READ";
-        assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: (response::INT)",
-                "statement", statement,
-                "mode", Mode.READ.name())
-        );
+        String expectedMessageRead =
+                "One or more inner procedure modes have operation different from the mode parameter: READ";
+        assertProcedureFails(
+                expectedMessageRead,
+                procedure,
+                Map.of("signature", "testTwo() :: (response::INT)", "statement", statement, "mode", Mode.READ.name()));
 
-
-        String expectedMessage24 = "One or more inner procedure modes have operation different from the mode parameter: DBMS";;
-        assertProcedureFails(expectedMessage24, procedure, Map.of("signature", "testFour() :: (response::INT)",
-                "statement", statement,
-                "mode", Mode.DBMS.name()));
+        String expectedMessage24 =
+                "One or more inner procedure modes have operation different from the mode parameter: DBMS";
+        ;
+        assertProcedureFails(
+                expectedMessage24,
+                procedure,
+                Map.of("signature", "testFour() :: (response::INT)", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     @Test
@@ -1469,31 +1480,31 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "CREATE (n:Something {id: 1}) RETURN n.id AS id";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testOne() :: (id::INT)",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testOne() :: (id::INT)", "statement", statement, "mode", Mode.SCHEMA.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testThree() :: (id::INT)",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testThree() :: (id::INT)", "statement", statement, "mode", Mode.WRITE.name()));
 
         // failing modes
 
-        String expectedMessageRead = "The query execution type of the statement is: `READ_WRITE`, but you provided as a parameter mode: `READ`.\n" +
-                                     "You have to declare a `mode` which corresponds to one of the following query execution type.\n";
-        assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: (id::INT)",
-                "statement", statement,
-                "mode", Mode.READ.name())
-        );
+        String expectedMessageRead =
+                "The query execution type of the statement is: `READ_WRITE`, but you provided as a parameter mode: `READ`.\n"
+                        + "You have to declare a `mode` which corresponds to one of the following query execution type.\n";
+        assertProcedureFails(
+                expectedMessageRead,
+                procedure,
+                Map.of("signature", "testTwo() :: (id::INT)", "statement", statement, "mode", Mode.READ.name()));
 
-        String expectedMessageDbms = "The query execution type of the statement is: `READ_WRITE`, but you provided as a parameter mode: `DBMS`.\n" +
-                                     "You have to declare a `mode` which corresponds to one of the following query execution type.\n";
-        assertProcedureFails(expectedMessageDbms, procedure, Map.of("signature", "testFour() :: (id::INT)",
-                "statement", statement,
-                "mode", Mode.DBMS.name()));
+        String expectedMessageDbms =
+                "The query execution type of the statement is: `READ_WRITE`, but you provided as a parameter mode: `DBMS`.\n"
+                        + "You have to declare a `mode` which corresponds to one of the following query execution type.\n";
+        assertProcedureFails(
+                expectedMessageDbms,
+                procedure,
+                Map.of("signature", "testFour() :: (id::INT)", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     @Test
@@ -1501,32 +1512,31 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "CREATE (n:Something {id: 1})";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testOne() :: VOID",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testOne() :: VOID", "statement", statement, "mode", Mode.SCHEMA.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testThree() :: VOID",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testThree() :: VOID", "statement", statement, "mode", Mode.WRITE.name()));
 
         // failing modes
 
-        String expectedMessageRead = "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `READ`.\n" +
-                                     "You have to declare a `mode` which corresponds to one of the following query execution type.";
-        assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: VOID",
-                "statement", statement,
-                "mode", Mode.READ.name())
-        );
+        String expectedMessageRead =
+                "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `READ`.\n"
+                        + "You have to declare a `mode` which corresponds to one of the following query execution type.";
+        assertProcedureFails(
+                expectedMessageRead,
+                procedure,
+                Map.of("signature", "testTwo() :: VOID", "statement", statement, "mode", Mode.READ.name()));
 
-
-        String expectedMessageDbms = "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `DBMS`.\n" +
-                                     "You have to declare a `mode` which corresponds to one of the following query execution type.";
-        assertProcedureFails(expectedMessageDbms, procedure, Map.of("signature", "testFour() :: VOID",
-                "statement", statement,
-                "mode", Mode.DBMS.name()));
+        String expectedMessageDbms =
+                "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `DBMS`.\n"
+                        + "You have to declare a `mode` which corresponds to one of the following query execution type.";
+        assertProcedureFails(
+                expectedMessageDbms,
+                procedure,
+                Map.of("signature", "testFour() :: VOID", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     @Test
@@ -1534,27 +1544,33 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "RETURN 1 as response";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testOne() :: (response::INT)",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of(
+                        "signature",
+                        "testOne() :: (response::INT)",
+                        "statement",
+                        statement,
+                        "mode",
+                        Mode.SCHEMA.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testTwo() :: (response::INT)",
-                        "statement", statement,
-                        "mode", Mode.READ.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testTwo() :: (response::INT)", "statement", statement, "mode", Mode.READ.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testThree() :: (response::INT)",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of(
+                        "signature",
+                        "testThree() :: (response::INT)",
+                        "statement",
+                        statement,
+                        "mode",
+                        Mode.WRITE.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testFour() :: (response::INT)",
-                        "statement", statement,
-                        "mode", Mode.DBMS.name()));
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testFour() :: (response::INT)", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     @Test
@@ -1562,29 +1578,21 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "CALL apoc.when(true, 'return 1', 'return 2') yield value return value";
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testOne() :: (value::ANY)",
-                        "statement", statement,
-                        "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testOne() :: (value::ANY)", "statement", statement, "mode", Mode.SCHEMA.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testTwo() :: (value::ANY)",
-                        "statement", statement,
-                        "mode", Mode.READ.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testTwo() :: (value::ANY)", "statement", statement, "mode", Mode.READ.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testThree() :: (value::ANY)",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testThree() :: (value::ANY)", "statement", statement, "mode", Mode.WRITE.name()));
 
-        db.executeTransactionally(procedure,
-                Map.of("signature", "testFour() :: (value::ANY)",
-                        "statement", statement,
-                        "mode", Mode.DBMS.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testFour() :: (value::ANY)", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     @Test
@@ -1592,33 +1600,41 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "CALL dbms.listConfig() YIELD name";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testFour() :: (name::STRING)",
-                "statement", statement,
-                "mode", Mode.DBMS.name()));
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testFour() :: (name::STRING)", "statement", statement, "mode", Mode.DBMS.name()));
         testCall(db, "CALL custom.testFour() YIELD name RETURN name LIMIT 1", r -> {
             assertNotNull(r.get("name"));
         });
 
         // failing modes
 
-        String expectedMessageSchema = "One or more inner procedure modes have operation different from the mode parameter: SCHEMA";
-        assertProcedureFails(expectedMessageSchema, procedure, Map.of("signature", "testOne() :: (name::STRING)",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        String expectedMessageSchema =
+                "One or more inner procedure modes have operation different from the mode parameter: SCHEMA";
+        assertProcedureFails(
+                expectedMessageSchema,
+                procedure,
+                Map.of("signature", "testOne() :: (name::STRING)", "statement", statement, "mode", Mode.SCHEMA.name()));
 
-        String expectedMessageRead = "One or more inner procedure modes have operation different from the mode parameter: READ";
-        assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: (name::STRING)",
-                "statement", statement,
-                "mode", Mode.READ.name())
-        );
+        String expectedMessageRead =
+                "One or more inner procedure modes have operation different from the mode parameter: READ";
+        assertProcedureFails(
+                expectedMessageRead,
+                procedure,
+                Map.of("signature", "testTwo() :: (name::STRING)", "statement", statement, "mode", Mode.READ.name()));
 
-        String expectedMessageWrite = "One or more inner procedure modes have operation different from the mode parameter: WRITE";
-        assertProcedureFails(expectedMessageWrite, procedure,
-                Map.of("signature", "testThree() :: (name::STRING)",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        String expectedMessageWrite =
+                "One or more inner procedure modes have operation different from the mode parameter: WRITE";
+        assertProcedureFails(
+                expectedMessageWrite,
+                procedure,
+                Map.of(
+                        "signature",
+                        "testThree() :: (name::STRING)",
+                        "statement",
+                        statement,
+                        "mode",
+                        Mode.WRITE.name()));
     }
 
     @Test
@@ -1626,30 +1642,32 @@ public class CypherProceduresTest {
         String procedure = "CALL apoc.custom.declareProcedure($signature, $statement, $mode)";
         String statement = "CREATE INDEX IF NOT EXISTS FOR (n:LabelName) ON n.propertyName";
 
-        db.executeTransactionally(procedure, Map.of("signature", "testOne() :: VOID",
-                "statement", statement,
-                "mode", Mode.SCHEMA.name())
-        );
+        db.executeTransactionally(
+                procedure,
+                Map.of("signature", "testOne() :: VOID", "statement", statement, "mode", Mode.SCHEMA.name()));
 
         // failing modes
 
-        String expectedMessageRead = "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `READ`.\n";
-        assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: VOID",
-                "statement", statement,
-                "mode", Mode.READ.name())
-        );
+        String expectedMessageRead =
+                "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `READ`.\n";
+        assertProcedureFails(
+                expectedMessageRead,
+                procedure,
+                Map.of("signature", "testTwo() :: VOID", "statement", statement, "mode", Mode.READ.name()));
 
-        String expectedMessageWrite = "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `WRITE`.\n";
-        assertProcedureFails(expectedMessageWrite, procedure,
-                Map.of("signature", "testThree() :: VOID",
-                        "statement", statement,
-                        "mode", Mode.WRITE.name())
-        );
+        String expectedMessageWrite =
+                "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `WRITE`.\n";
+        assertProcedureFails(
+                expectedMessageWrite,
+                procedure,
+                Map.of("signature", "testThree() :: VOID", "statement", statement, "mode", Mode.WRITE.name()));
 
-        String expectedMessageDbms = "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `DBMS`.\n";
-        assertProcedureFails(expectedMessageDbms, procedure, Map.of("signature", "testFour() :: VOID",
-                "statement", statement,
-                "mode", Mode.DBMS.name()));
+        String expectedMessageDbms =
+                "The query execution type of the statement is: `SCHEMA_WRITE`, but you provided as a parameter mode: `DBMS`.\n";
+        assertProcedureFails(
+                expectedMessageDbms,
+                procedure,
+                Map.of("signature", "testFour() :: VOID", "statement", statement, "mode", Mode.DBMS.name()));
     }
 
     private void assertProcedureFails(String expectedMessage, String query) {
