@@ -24,10 +24,12 @@ import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -56,6 +58,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.procedure.Mode;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -1511,20 +1514,16 @@ public class CypherProceduresTest {
 
         // failing modes
 
-        String expectedMessageRead = """
-                The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `READ`.
-                You have to declare a `mode` which corresponds to one of the following query execution type.
-                """;
+        String expectedMessageRead = "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `READ`.\n" +
+                                     "You have to declare a `mode` which corresponds to one of the following query execution type.";
         assertProcedureFails(expectedMessageRead, procedure, Map.of("signature", "testTwo() :: VOID",
                 "statement", statement,
                 "mode", Mode.READ.name())
         );
 
 
-        String expectedMessageDbms = """
-                The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `DBMS`.
-                You have to declare a `mode` which corresponds to one of the following query execution type.
-                """;
+        String expectedMessageDbms = "The query execution type of the statement is: `WRITE`, but you provided as a parameter mode: `DBMS`.\n" +
+                                     "You have to declare a `mode` which corresponds to one of the following query execution type.";
         assertProcedureFails(expectedMessageDbms, procedure, Map.of("signature", "testFour() :: VOID",
                 "statement", statement,
                 "mode", Mode.DBMS.name()));
@@ -1654,8 +1653,12 @@ public class CypherProceduresTest {
     }
 
     private void assertProcedureFails(String expectedMessage, String query) {
+        assertProcedureFails(expectedMessage, query, Map.of());
+    }
+
+    private void assertProcedureFails(String expectedMessage, String query, Map<String, Object> params) {
         try {
-            testCall(db, query, row -> fail("The test should fail because of: " + expectedMessage));
+            testCall(db, query, params, row -> fail("The test should fail because of: " + expectedMessage));
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);

@@ -19,11 +19,14 @@
 package apoc.custom;
 
 import static apoc.custom.CypherProceduresHandler.*;
+import static apoc.util.Util.getAllQueryProcs;
+import static org.neo4j.graphdb.QueryExecutionType.QueryType;
 
 import apoc.Extended;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,11 +36,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.summary.QueryType;
+import org.neo4j.graphdb.ExecutionPlanDescription;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Notification;
 import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.DefaultParameterValue;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
@@ -262,7 +267,7 @@ public class CypherProcedures {
     }
 
     private void checkCorrectQueryType(Result result, Mode mode) {
-        List<QueryExecutionType.QueryType> readQueryTypes = List.of(QueryType.READ_ONLY);
+        List<QueryType> readQueryTypes = List.of(QueryType.READ_ONLY);
         List<QueryType> writeQueryTypes = List.of(QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE);
         List<QueryType> schemaQueryTypes = List.of(QueryType.READ_ONLY, QueryType.WRITE, QueryType.READ_WRITE, QueryType.SCHEMA_WRITE);
         List<QueryType> dbmsQueryTypes = List.of(QueryType.READ_ONLY, QueryType.DBMS);
