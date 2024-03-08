@@ -175,7 +175,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFiles([$file])";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(query, params, true);
+        testRunProcedureWithSimpleReturnResults(session, query, params, true);
     }
 
     @Test
@@ -183,7 +183,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFilesReadOnly([$file], {statistics: false})";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(query, params, false);
+        testRunProcedureWithSimpleReturnResults(session, query, params, false);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class CypherEnterpriseExtendedTest {
         String query = "CALL apoc.cypher.runFilesReadOnly([$file])";
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
-        testRunProcedureWithSimpleReturnResults(query, params, false);
+        testRunProcedureWithSimpleReturnResults(session, query, params, false);
     }
 
     @Test
