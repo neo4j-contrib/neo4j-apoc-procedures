@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -73,8 +74,9 @@ public class BoltTest {
     private static Session session;
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL, ApocPackage.CORE), true).withInitScript("init_neo4j_bolt.cypher");
+    public static void setUp() {
+        neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
+                .withInitScript("init_neo4j_bolt.cypher");
         neo4jContainer.start();
         TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class, PathExplorer.class, GraphRefactoring.class);
         BOLT_URL = getBoltUrl().replaceAll("'", "");
@@ -90,12 +92,12 @@ public class BoltTest {
     @After
     public void after() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
-        session.executeWrite(tx -> tx.run("MATCH (n:BoltStart), (m:Other) DETACH DELETE n, m").consume());
+        session.writeTransaction(tx -> tx.run("MATCH (n:BoltStart), (m:Other) DETACH DELETE n, m"));
     }
 
     @Test
     public void testBoltLoadWithSubgraphAllQuery() {
-        session.executeWrite(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1})").consume());
+        session.writeTransaction(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1})"));
 
         // procedure with config virtual: false
         String boltQuery = "MATCH (rootA:BoltStart {foobar: 'foobar'})\n" +
@@ -162,7 +164,7 @@ public class BoltTest {
         Map<String, Object> row = (Map<String, Object>) r.get("row");
         List<Node> nodes = (List<Node>) row.get("nodes");
         assertEquals(2, nodes.size());
-        List<Long> ids = nodes.stream().map(i -> i.getId()).toList();
+        List<Long> ids = nodes.stream().map(i -> i.getId()).collect(Collectors.toList());
 
         List<Relationship> relationships = (List<Relationship>) row.get("relationships");
         assertEquals(1, relationships.size());
@@ -181,7 +183,7 @@ public class BoltTest {
         Map<String, Object> row = (Map<String, Object>) r.get("row");
         List<Map> nodes = (List<Map>) row.get("nodes");
         assertEquals(2, nodes.size());
-        List<Long> ids = nodes.stream().map(i -> (Long) i.get("id")).toList();
+        List<Long> ids = nodes.stream().map(i -> (Long) i.get("id")).collect(Collectors.toList());
 
         List<Map> relationships = (List<Map>) row.get("relationships");
         assertEquals(1, relationships.size());
@@ -203,18 +205,16 @@ public class BoltTest {
 
     @Test
     public void testBoltLoadReturningMapAndList() {
-        session.executeWrite(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})").consume());
+        session.writeTransaction(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})"));
 
         // procedure with config virtual: false
-        String boltQuery = """
-            MATCH (start:BoltStart {foobar: 'foobar'})-[rel:VIEWED]->(end:Other)
-            WITH start, rel, end, [start, end, rel] as list
-            RETURN  start, rel, end, {keyOne: start, keyTwo: {innerKey: list}} as map, list""";
+        String boltQuery = "MATCH (start:BoltStart {foobar: 'foobar'})-[rel:VIEWED]->(end:Other)\n" +
+                           "WITH start, rel, end, [start, end, rel] as list\n" +
+                           "RETURN  start, rel, end, {keyOne: start, keyTwo: {innerKey: list}} as map, list";
 
-        String boltLoadQuery = """
-                CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: $virtual})
-                YIELD row
-                RETURN row""";
+        String boltLoadQuery = "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: $virtual})\n" +
+                               "YIELD row\n" +
+                               "RETURN row";
 
         TestUtil.testCall(db, boltLoadQuery,
                 Map.of("boltUrl", BOLT_URL, "boltQuery", boltQuery, "virtual", true),
