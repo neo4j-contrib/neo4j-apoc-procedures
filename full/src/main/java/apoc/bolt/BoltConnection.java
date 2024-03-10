@@ -163,12 +163,15 @@ public class BoltConnection {
 
     private Object toMap(Transaction tx, Map<String, Object> entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
         return entity.entrySet().stream()
-                .map(entry -> new AbstractMap.SimpleEntry(entry.getKey(), convertRecursive(tx, entry.getValue(), nodeCache)))
+                .map(entry ->
+                        new AbstractMap.SimpleEntry(entry.getKey(), convertRecursive(tx, entry.getValue(), nodeCache)))
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
     private Object toCollection(Transaction tx, Collection entity, Map<Long, org.neo4j.graphdb.Node> nodeCache) {
-        return entity.stream().map(elem -> convertRecursive(tx, elem, nodeCache)).collect(Collectors.toList());
+        return entity.stream()
+                .map(elem -> convertRecursive(tx, elem, nodeCache))
+                .collect(Collectors.toList());
     }
 
     private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
