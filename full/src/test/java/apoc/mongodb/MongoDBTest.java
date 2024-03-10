@@ -30,12 +30,6 @@ import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import org.bson.types.ObjectId;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -46,6 +40,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.bson.types.ObjectId;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * @author mh
@@ -153,12 +152,7 @@ public class MongoDBTest extends MongoTestBase {
                 r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);
-                    assertEquals(
-                            Set.of(
-                                    "date",
-                                    "timestamp"),
-                            ((Map<String, Object>) doc.get("_id")).keySet()
-                    );
+                    assertEquals(Set.of("date", "timestamp"), ((Map<String, Object>) doc.get("_id")).keySet());
                     assertEquals("Sherlock", doc.get("name"));
                     assertEquals(25L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
@@ -177,11 +171,7 @@ public class MongoDBTest extends MongoTestBase {
                 r -> {
                     Map doc = (Map) r.get("value");
                     assertTrue(doc.get("_id") instanceof Map);
-                    assertEquals(
-                            Set.of(
-                                    "date",
-                                    "timestamp"),
-                            ((Map<String, Object>) doc.get("_id")).keySet());
+                    assertEquals(Set.of("date", "timestamp"), ((Map<String, Object>) doc.get("_id")).keySet());
                     assertEquals(40L, doc.get("age"));
                     assertEquals(refsIds, doc.get("bought"));
                 });

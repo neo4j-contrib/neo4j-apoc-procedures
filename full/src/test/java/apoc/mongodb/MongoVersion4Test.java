@@ -7,7 +7,7 @@ import org.junit.BeforeClass;
  * the {@link MongoTest} works correctly with mongoDB 4
  */
 public class MongoVersion4Test extends MongoTest {
-    
+
     @BeforeClass
     public static void setUp() throws Exception {
         beforeClassCommon(MongoVersion.FOUR);

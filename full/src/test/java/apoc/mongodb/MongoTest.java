@@ -83,7 +83,11 @@ public class MongoTest extends MongoTestBase {
         TestUtil.registerProcedure(db, Mongo.class, Graphs.class);
 
         // readWrite user creation
-        mongo.execInContainer(mongoVersion.shell, "admin", "--eval", "db.auth('admin', 'pass'); db.createUser({user: 'user', pwd: 'secret',roles: [{role: 'readWrite', db: 'test'}]});");
+        mongo.execInContainer(
+                mongoVersion.shell,
+                "admin",
+                "--eval",
+                "db.auth('admin', 'pass'); db.createUser({user: 'user', pwd: 'secret',roles: [{role: 'readWrite', db: 'test'}]});");
 
         final String host = mongo.getHost();
         final Integer port = mongo.getMappedPort(MONGO_DEFAULT_PORT);
@@ -302,8 +306,8 @@ public class MongoTest extends MongoTestBase {
                     assertionsPersonJohn(values.next(), false, false);
                     assertFalse(values.hasNext());
                 });
-    }   
-    
+    }
+
     @Test
     public void countWithStringOrMapBinaryQuery() {
         String bytesEncoded = Base64.getEncoder().encodeToString("fooBar".getBytes());
@@ -311,29 +315,54 @@ public class MongoTest extends MongoTestBase {
         Consumer<Map<String, Object>> consumer = r -> assertEquals(2L, r.get("value"));
 
         // string queries (with respectively double and single quotes)
-        testCall(db, String.format("CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$type':'00'}}\")", bytesEncoded),
-                params, consumer);
+        testCall(
+                db,
+                String.format(
+                        "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$type':'00'}}\")", bytesEncoded),
+                params,
+                consumer);
 
-        testCall(db, String.format("CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$type\":\"00\"}}')", bytesEncoded),
-                params, consumer);
+        testCall(
+                db,
+                String.format(
+                        "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$type\":\"00\"}}')",
+                        bytesEncoded),
+                params,
+                consumer);
 
         // map query
-        testCall(db, String.format("CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$type`: '00'}})", bytesEncoded),
-                params, consumer);
+        testCall(
+                db,
+                String.format("CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$type`: '00'}})", bytesEncoded),
+                params,
+                consumer);
 
         // legacy queries (used by mongodb-driver:3.2.2)
         // i.e. with `$subType` instead of `$type`
 
-        // string queries (with respectively double and single quotes) 
-        testCall(db, String.format("CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$subType':'00'}}\")", bytesEncoded),
-                params, consumer);
+        // string queries (with respectively double and single quotes)
+        testCall(
+                db,
+                String.format(
+                        "CALL apoc.mongo.count($uri, \"{'binary':{'$binary':'%s','$subType':'00'}}\")", bytesEncoded),
+                params,
+                consumer);
 
-        testCall(db, String.format("CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$subType\":\"00\"}}')", bytesEncoded),
-                params, consumer);
+        testCall(
+                db,
+                String.format(
+                        "CALL apoc.mongo.count($uri, '{\"binary\":{\"$binary\":\"%s\",\"$subType\":\"00\"}}')",
+                        bytesEncoded),
+                params,
+                consumer);
 
         // map query
-        testCall(db, String.format("CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$subType`: '00'}})", bytesEncoded),
-                params, consumer);
+        testCall(
+                db,
+                String.format(
+                        "CALL apoc.mongo.count($uri, {binary: {`$binary`: '%s', `$subType`: '00'}})", bytesEncoded),
+                params,
+                consumer);
     }
 
     @Test
