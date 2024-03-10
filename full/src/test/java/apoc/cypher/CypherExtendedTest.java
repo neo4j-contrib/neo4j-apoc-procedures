@@ -286,7 +286,7 @@ public class CypherExtendedTest {
             testCallCount(
                     db,
                     "MATCH (n:Polling) WITH collect({childD: n}) as params  \n"
-                            + "CALL apoc.cypher.mapParallel2(\" WITH _.childD as childD RETURN childD\", {}, params, 6, 10) \n"
+                            + "CALL apoc.cypher.mapParallel2(\" WITH _.childD as childD RETURN childD\", {}, params, 6, 10)\n"
                             + "YIELD value RETURN value",
                     Map.of(),
                     expected);
