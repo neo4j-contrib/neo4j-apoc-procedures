@@ -5,6 +5,7 @@ import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Assume;
@@ -19,10 +20,13 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 public class PromptIT {
 
@@ -65,6 +69,23 @@ public class PromptIT {
                                     .map(Object::toString)
                                     .map(String::trim))
                             .isNotEmpty();
+                });
+    }
+
+    @Test
+    public void testQueryUsingRetryWithError() {
+        testResult(db, """
+                CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey, retryWithError: true})
+                """,
+                Map.of(
+                        "query", UUID.randomUUID().toString(),
+                        "retries", 10L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    // check that it returns a Cypher result, also empty, without errors
+                    List<Map<String, Object>> maps = Iterators.asList(r);
+                    assertNotNull(maps);
                 });
     }
 
