@@ -89,6 +89,18 @@ apoc.agg.slice(value, start, length) - returns subset of non-null values, start 
 apoc.agg.statistics(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values
 |label:function[]
 |label:apoc-core[]
+
+|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+
+Returns index of the `element` that match the given `value`
+|label:function[]
+|label:apoc-full[]
+
+|xref::overview/apoc.agg/apoc.agg.row.adoc[apoc.agg.row icon:book[]]
+
+Returns index of the `element` that match the given `predicate`
+|label:procedure[]
+|label:apoc-full[]
 |===
 
 == xref::overview/apoc.algo/index.adoc[]
@@ -982,6 +994,9 @@ apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with gi
 |label:apoc-core[]
 |===
 
+
+
+[discrete]
 == xref::overview/apoc.data/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -1097,6 +1112,12 @@ toYears(timestamp) or toYears(date[,format]) - converts timestamp into floating 
 
 |label:function[]
 |label:apoc-core[]
+
+|xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
+
+Returns a Map detailing the property differences between the two given relationships
+|label:function[]
+|label:apoc-full[]
 |===
 
 [discrete]
@@ -1156,37 +1177,37 @@ Query a virtualized resource by name and return virtual nodes linked using virtu
 | Qualified Name | Type | Release
 |xref::overview/apoc.es/apoc.es.get.adoc[apoc.es.get icon:book[]]
 
-apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search
+apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a GET operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.getRaw.adoc[apoc.es.getRaw icon:book[]]
 
-apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search
+apoc.es.getRaw(host-or-port,path,payload-or-null,$config) yield value - perform a raw GET operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.post.adoc[apoc.es.post icon:book[]]
 
-apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search
+apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a POST operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.postRaw.adoc[apoc.es.postRaw icon:book[]]
 
-apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search
+apoc.es.postRaw(host-or-port,path,payload-or-null,$config) yield value - perform a raw POST operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.put.adoc[apoc.es.put icon:book[]]
 
-apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search
+apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a PUT operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.query.adoc[apoc.es.query icon:book[]]
 
-apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search
+apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a SEARCH operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.stats.adoc[apoc.es.stats icon:book[]]
 
-apoc.es.stats(host-url-Key) - elastic search statistics
+apoc.es.stats(host-url-Key,$config) - elastic search statistics
 |label:procedure[]
 |label:apoc-full[]
 |===
@@ -2041,6 +2062,17 @@ apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,R
 apoc.meta.types(node-relationship-map)  - returns a map of keys to types
 |label:function[]
 |label:apoc-core[]
+|===
+
+== xref::overview/apoc.map/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.map/apoc.map.renameKey.adoc[apoc.map.renameKey icon:book[]]
+
+Rename the given key(s) in the `MAP`.
+|label:function[]
 |===
 
 == xref::overview/apoc.metrics/index.adoc[]

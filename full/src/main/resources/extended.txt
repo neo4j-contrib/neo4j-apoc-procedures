@@ -1,3 +1,5 @@
+apoc.agg.position
+apoc.agg.row
 apoc.algo.aStarWithPoint
 apoc.algo.travellingSalesman
 apoc.bolt.execute
@@ -35,6 +37,7 @@ apoc.cypher.runSchemaFiles
 apoc.date.expire
 apoc.date.expireIn
 apoc.diff.graphs
+apoc.diff.relationships
 apoc.dv.catalog.add
 apoc.dv.catalog.list
 apoc.dv.catalog.remove
@@ -79,6 +82,7 @@ apoc.log.debug
 apoc.log.error
 apoc.log.info
 apoc.log.warn
+apoc.map.renameKey
 apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage

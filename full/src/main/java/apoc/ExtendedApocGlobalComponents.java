@@ -59,7 +59,6 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                         new TTLLifeCycle(
                                 dependencies.scheduler(),
                                 db,
-                                dependencies.apocConfig(),
                                 dependencies.ttlConfig(),
                                 dependencies.log().getUserLog(TTLLifeCycle.class)),
                 "uuid",

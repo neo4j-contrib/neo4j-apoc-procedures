@@ -137,6 +137,7 @@ public class LoadXls {
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);
             long skip = longValue(config, "skip", 0L);
             boolean hasHeader = booleanValue(config, "header", true);
+            boolean skipNulls = booleanValue(config, "skipNulls", false);
             long limit = longValue(config, "limit", Long.MAX_VALUE);
 
             List<String> ignore = value(config, "ignore", emptyList());
@@ -144,8 +145,8 @@ public class LoadXls {
             Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
             Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
 
-            LoadXlsHandler.XLSSpliterator xlsSpliterator =
-                    getXlsSpliterator(url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings);
+            LoadXlsHandler.XLSSpliterator xlsSpliterator = getXlsSpliterator(
+                    url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
             return StreamSupport.stream(xlsSpliterator, false);
         } catch (NoClassDefFoundError e) {
             throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);

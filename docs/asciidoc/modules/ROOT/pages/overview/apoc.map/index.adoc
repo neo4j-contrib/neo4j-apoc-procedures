@@ -78,6 +78,12 @@ apoc.map.removeKey(map,key,{recursive:true/false}) - remove the key from the map
 apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.map/apoc.map.renameKey.adoc[apoc.map.renameKey icon:book[]]
+
+Rename the given key(s) in the `MAP`.
+|label:function[]
+|label:apoc-full[]
+
 |xref::overview/apoc.map/apoc.map.setEntry.adoc[apoc.map.setEntry icon:book[]]
 
 apoc.map.setEntry(map,key,value)
