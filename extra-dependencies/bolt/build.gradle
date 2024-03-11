@@ -19,7 +19,7 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.5'
+    implementation group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.14'
 }
 
 
