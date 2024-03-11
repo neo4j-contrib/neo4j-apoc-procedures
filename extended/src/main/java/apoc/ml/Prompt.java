@@ -11,6 +11,7 @@ import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -53,6 +54,15 @@ public class Prompt {
             Only answer with a single Cypher statement in triple backticks, if you can't determine a statement, answer with an empty response.
             Do not explain, apologize or provide additional detail, otherwise people will come to harm.
             """;
+    
+    static final String FROM_CYPHER_PROMPT = """
+            You are an expert in the Neo4j graph query language Cypher.
+            Given a graph database schema of entities (nodes) with labels and attributes and
+            relationships with start- and end-node, relationship-type, direction and properties,
+            you are able to develop graph database query that express a user question as a read only matching Cypher statements,
+            providing useful details of each entity.
+            """;
+
 
     public class PromptMapResult {
         public final Map<String, Object> value;
@@ -86,6 +96,18 @@ public class Prompt {
             // return error != null && !error.isBlank();
         }
     }
+    
+    @Procedure(mode = Mode.READ)
+    @Description("Takes a query in cypher and in natural language and returns the results in natural language")
+    public Stream<StringResult> fromCypher(@Name("question") String cypher,
+                                         @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
+        String schema = loadSchema(tx, conf);
+        
+        String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
+                FROM_CYPHER_PROMPT, "This database schema ", schema, conf);
+        return Stream.of(new StringResult(schemaExplanation));
+    }
+    
 
     @Procedure(mode = Mode.READ)
     public Stream<PromptMapResult> query(@Name("question") String question,
