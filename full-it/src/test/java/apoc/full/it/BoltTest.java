@@ -44,7 +44,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -78,7 +77,8 @@ public class BoltTest {
         neo4jContainer = createEnterpriseDB(List.of(ApocPackage.FULL), !TestUtil.isRunningInCI())
                 .withInitScript("init_neo4j_bolt.cypher");
         neo4jContainer.start();
-        TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class, PathExplorer.class, GraphRefactoring.class);
+        TestUtil.registerProcedure(
+                db, Bolt.class, ExportCypher.class, Cypher.class, PathExplorer.class, GraphRefactoring.class);
         BOLT_URL = getBoltUrl().replaceAll("'", "");
         session = neo4jContainer.getSession();
     }
@@ -88,7 +88,7 @@ public class BoltTest {
         neo4jContainer.close();
         db.shutdown();
     }
-    
+
     @After
     public void after() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
@@ -97,32 +97,35 @@ public class BoltTest {
 
     @Test
     public void testBoltLoadWithSubgraphAllQuery() {
-        session.writeTransaction(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1})"));
+        session.writeTransaction(
+                tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1})"));
 
         // procedure with config virtual: false
-        String boltQuery = "MATCH (rootA:BoltStart {foobar: 'foobar'})\n" +
-                           "WITH rootA\n" +
-                           "CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'VIEWED>'})\n" +
-                           "YIELD nodes, relationships\n" +
-                           "RETURN nodes, relationships, rootA";
+        String boltQuery = "MATCH (rootA:BoltStart {foobar: 'foobar'})\n" + "WITH rootA\n"
+                + "CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'VIEWED>'})\n"
+                + "YIELD nodes, relationships\n"
+                + "RETURN nodes, relationships, rootA";
 
-        String boltLoadQueryVirtualFalse = "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: false})\n" +
-                                           "YIELD row\n" +
-                                           "RETURN row";
+        String boltLoadQueryVirtualFalse =
+                "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: false})\n" + "YIELD row\n" + "RETURN row";
 
-        TestUtil.testCall(db, boltLoadQueryVirtualFalse,
+        TestUtil.testCall(
+                db,
+                boltLoadQueryVirtualFalse,
                 Map.of("boltUrl", BOLT_URL, "boltQuery", boltQuery, "virtual", false),
                 this::virtualFalseEntitiesAssertions);
 
         // procedure with config virtual: true
-        String boltLoadQueryVirtualTrue = "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: true}) YIELD row\n" +
-                                          "WITH row\n" +
-                                          "WITH row.nodes AS nodes, row.relationships AS relationships, row.rootA AS rootA\n" +
-                                          "CALL apoc.refactor.cloneSubgraph(nodes, relationships)\n" +
-                                          "YIELD input, output, error\n" +
-                                          "RETURN input, output, error;";
+        String boltLoadQueryVirtualTrue =
+                "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: true}) YIELD row\n" + "WITH row\n"
+                        + "WITH row.nodes AS nodes, row.relationships AS relationships, row.rootA AS rootA\n"
+                        + "CALL apoc.refactor.cloneSubgraph(nodes, relationships)\n"
+                        + "YIELD input, output, error\n"
+                        + "RETURN input, output, error;";
 
-        TestUtil.testResult(db, boltLoadQueryVirtualTrue,
+        TestUtil.testResult(
+                db,
+                boltLoadQueryVirtualTrue,
                 Map.of("boltUrl", BOLT_URL, "boltQuery", boltQuery, "virtual", true),
                 r -> {
                     graphRefactorAssertions(r.next());
@@ -130,33 +133,54 @@ public class BoltTest {
                     assertFalse(r.hasNext());
                 });
 
-        // check that `apoc.refactor.cloneSubgraph` after `apoc.bolt.load` creates entities correctly 
-        TestUtil.testCallCount(db, "MATCH (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1}) RETURN *",1);
+        // check that `apoc.refactor.cloneSubgraph` after `apoc.bolt.load` creates entities correctly
+        TestUtil.testCallCount(
+                db, "MATCH (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED]->(:Other {id: 1}) RETURN *", 1);
     }
-
 
     @Test
     public void testBoltFromLocalWithSubgraphAllQuery() {
         String localStatement = "RETURN 'foobar' AS foobar";
 
-        String remoteStatement = "MERGE (rootA:BoltStart {foobar: foobar})-[:VIEWED]->(:Other {id: 1})\n" +
-                                 "WITH rootA\n" +
-                                 "CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'VIEWED>'})\n" +
-                                 "YIELD nodes, relationships\n" +
-                                 "RETURN nodes, relationships, rootA";
+        String remoteStatement =
+                "MERGE (rootA:BoltStart {foobar: foobar})-[:VIEWED]->(:Other {id: 1})\n" + "WITH rootA\n"
+                        + "CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'VIEWED>'})\n"
+                        + "YIELD nodes, relationships\n"
+                        + "RETURN nodes, relationships, rootA";
 
-        String query = "CALL apoc.bolt.load.fromLocal($boltUrl, $localStatement, $remoteStatement, {virtual: $virtual, readOnly: false}) YIELD row\n" +
-                       "WITH row\n" +
-                       "RETURN row";
+        String query =
+                "CALL apoc.bolt.load.fromLocal($boltUrl, $localStatement, $remoteStatement, {virtual: $virtual, readOnly: false}) YIELD row\n"
+                        + "WITH row\n"
+                        + "RETURN row";
 
         // procedure with config virtual: true
-        TestUtil.testCall(db, query,
-                Map.of("boltUrl", BOLT_URL, "localStatement", localStatement, "remoteStatement", remoteStatement, "virtual", true),
+        TestUtil.testCall(
+                db,
+                query,
+                Map.of(
+                        "boltUrl",
+                        BOLT_URL,
+                        "localStatement",
+                        localStatement,
+                        "remoteStatement",
+                        remoteStatement,
+                        "virtual",
+                        true),
                 this::virtualTrueEntitiesAssertions);
 
         // procedure with config virtual: false
-        TestUtil.testCall(db, query,
-                Map.of("boltUrl", BOLT_URL, "localStatement", localStatement, "remoteStatement", remoteStatement, "virtual", false),
+        TestUtil.testCall(
+                db,
+                query,
+                Map.of(
+                        "boltUrl",
+                        BOLT_URL,
+                        "localStatement",
+                        localStatement,
+                        "remoteStatement",
+                        remoteStatement,
+                        "virtual",
+                        false),
                 this::virtualFalseEntitiesAssertions);
     }
 
@@ -205,22 +229,26 @@ public class BoltTest {
 
     @Test
     public void testBoltLoadReturningMapAndList() {
-        session.writeTransaction(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})"));
+        session.writeTransaction(
+                tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})"));
 
         // procedure with config virtual: false
-        String boltQuery = "MATCH (start:BoltStart {foobar: 'foobar'})-[rel:VIEWED]->(end:Other)\n" +
-                           "WITH start, rel, end, [start, end, rel] as list\n" +
-                           "RETURN  start, rel, end, {keyOne: start, keyTwo: {innerKey: list}} as map, list";
+        String boltQuery = "MATCH (start:BoltStart {foobar: 'foobar'})-[rel:VIEWED]->(end:Other)\n"
+                + "WITH start, rel, end, [start, end, rel] as list\n"
+                + "RETURN  start, rel, end, {keyOne: start, keyTwo: {innerKey: list}} as map, list";
 
-        String boltLoadQuery = "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: $virtual})\n" +
-                               "YIELD row\n" +
-                               "RETURN row";
+        String boltLoadQuery =
+                "CALL apoc.bolt.load($boltUrl, $boltQuery, {}, {virtual: $virtual})\n" + "YIELD row\n" + "RETURN row";
 
-        TestUtil.testCall(db, boltLoadQuery,
+        TestUtil.testCall(
+                db,
+                boltLoadQuery,
                 Map.of("boltUrl", BOLT_URL, "boltQuery", boltQuery, "virtual", true),
                 this::virtualTrueWithMapAndListAssertions);
 
-        TestUtil.testCall(db, boltLoadQuery,
+        TestUtil.testCall(
+                db,
+                boltLoadQuery,
                 Map.of("boltUrl", BOLT_URL, "boltQuery", boltQuery, "virtual", false),
                 this::virtualFalseWithMapAndListAssertions);
     }
