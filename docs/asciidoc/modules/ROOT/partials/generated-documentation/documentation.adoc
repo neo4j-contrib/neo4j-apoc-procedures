@@ -811,6 +811,18 @@ CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified
 |label:function[]
 |===
 
+== xref::overview/apoc.util/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.util/apoc.util.hashCode.adoc[apoc.util.hashCode icon:book[]]
+
+apoc.util.hashCode(value) - Returns the java.lang.Object#hashCode() of the value
+|label:function[]
+|===
+
+
 == xref::overview/apoc.uuid/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']

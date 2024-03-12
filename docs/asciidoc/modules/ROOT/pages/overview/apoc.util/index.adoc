@@ -1,0 +1,12 @@
+= apoc.util
+:description: This section contains reference documentation for the apoc.util procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.util/apoc.util.hashCode.adoc[apoc.util.hashCode icon:book[]]
+
+apoc.util.hashCode(value) - Returns the java.lang.Object#hashCode() of the value
+|label:function[]
+|===
+
