@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -121,13 +122,13 @@ public class ExtendedApocConfig extends LifecycleAdapter
      */
 
     protected void loadConfiguration() {
-        try {
+//        try {
 
-            URL resource = getClass().getClassLoader().getResource("apoc-config.xml");
-            log.info("loading apoc meta config from %s", resource.toString());
-            CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
-                    .configure(new Parameters().fileBased().setURL(resource));
-            config = builder.getConfiguration();
+//            URL resource = getClass().getClassLoader().getResource("apoc-config.xml");
+//            log.info("loading apoc meta config from %s", resource.toString());
+//            CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
+//                    .configure(new Parameters().fileBased().setURL(resource));
+            config = new PropertiesConfiguration();
 
             // set config settings not explicitly set in apoc.conf to their default value
             configDefaultValues.forEach((k,v) -> {
@@ -139,9 +140,9 @@ public class ExtendedApocConfig extends LifecycleAdapter
             });
 
             initLogging();
-        } catch ( ConfigurationException e) {
-            throw new RuntimeException(e);
-        }
+//        } catch ( ConfigurationException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     protected Configuration getConfig() {
