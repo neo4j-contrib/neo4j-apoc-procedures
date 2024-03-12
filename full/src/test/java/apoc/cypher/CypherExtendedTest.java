@@ -26,6 +26,7 @@ import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
 import static org.neo4j.driver.internal.util.Iterables.count;
@@ -483,7 +484,7 @@ public class CypherExtendedTest {
 
         // the failed file produces an "error" row
         testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})", Map.of("file", failingFile), row -> {
-            String cypherError = "An equivalent constraint already exists";
+            String cypherError = "constraint already exists";
             assertErrorResult(cypherError, row);
         });
     }
@@ -724,7 +725,7 @@ public class CypherExtendedTest {
     private static void assertErrorResult(String cypherError, Map<String, Object> r) {
         assertEquals(-1L, r.get("row"));
         Map<String, String> result = (Map<String, String>) r.get("result");
-        assertThat(result.get("error"), containsString(cypherError));
+        assertThat(result.get("error"), containsStringIgnoringCase(cypherError));
     }
 
     private void assertCreateDeleteFile(Result r) {

@@ -39,7 +39,7 @@ public class CypherTestUtil {
             Session session, String query, Map<String, Object> params) {
         testRunProcedureWithSimpleReturnResults(session, query, params, true);
     }
-    
+
     public static void testRunProcedureWithSimpleReturnResults(
             Session session, String query, Map<String, Object> params, boolean statisticsConf) {
         session.writeTransaction(tx -> tx.run(CREATE_RETURNQUERY_NODES));
@@ -85,9 +85,10 @@ public class CypherTestUtil {
         assertEquals(Map.of("id", id), n.asMap());
     }
 
+    // placed in test-utils because is used by extended as well
     public static void testRunProcedureWithSetAndReturnResults(
             Session session, String query, Map<String, Object> params) {
-        testRunProcedureWithSimpleReturnResults(session, query, params, true);
+        testRunProcedureWithSetAndReturnResults(session, query, params, true);
     }
 
     // placed in test-utils because is used by extended as well
@@ -139,9 +140,9 @@ public class CypherTestUtil {
             assertEquals(4L, rels.size());
             assertEquals(4L, nodes.size());
             assertEquals(4L, others.size());
-            row = r.next();
 
             if (statisticsConf) {
+                row = r.next();
                 // check `queryStatistics` row
                 assertRunProcStatistics(row);
                 assertFalse(r.hasNext());
