@@ -2,6 +2,7 @@ package apoc.uuid;
 
 import apoc.create.Create;
 import apoc.periodic.Periodic;
+import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.hamcrest.Matchers;
@@ -16,6 +17,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -506,5 +508,24 @@ public class UUIDNewProceduresTest {
             assertThat(e.getMessage(), Matchers.containsString(UUID_NOT_SET));
         }
         apocConfig().setProperty(APOC_UUID_REFRESH, PROCEDURE_DEFAULT_REFRESH);
+    }
+    
+    @Test
+    public void testAddAndRemoveUuidNodeDoesNotThrowError() throws Exception {
+        // given
+        db.executeTransactionally("CREATE CONSTRAINT FOR (test:Test1) REQUIRE test.foo IS UNIQUE");
+
+        // when
+        db.executeTransactionally("CALL apoc.uuid.install('Test1', {uuidProperty: 'foo'}) YIELD label RETURN label");
+        db.executeTransactionally("CREATE (p:Test1)");
+
+        db.executeTransactionally("MATCH (p:Test1) DELETE p");
+
+        // wait time greater than the refresh one, to make sure UUIDHandler.checkAndRestoreUuidProperty() has been executed
+        Thread.sleep(PROCEDURE_DEFAULT_REFRESH + 100);
+        
+        final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
+
+        assertFalse("Actual debug.log content:\n" + logFileContent, logFileContent.contains("NotFoundException"));
     }
 }
