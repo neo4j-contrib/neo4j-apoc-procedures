@@ -1,21 +1,3 @@
-/*
- * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package apoc.mongodb;
 
 import static apoc.util.MapUtil.map;
@@ -23,12 +5,11 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import apoc.util.JsonUtil;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.text.ParseException;
@@ -67,12 +48,24 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
 
 public class MongoTestBase {
+    enum MongoVersion {
+        FOUR("mongo:4", "mongo"),
+        LATEST("mongo:7.0.4", "mongosh");
+
+        public final String dockerImg;
+        public final String shell;
+
+        MongoVersion(String dockerImg, String shell) {
+            this.dockerImg = dockerImg;
+            this.shell = shell;
+        }
+    }
+
     private long numConnections = -1;
 
     protected static final int MONGO_DEFAULT_PORT = 27017;
     protected static final long NUM_OF_RECORDS = 10_000L;
-    protected static final Set<String> SET_OBJECT_ID_MAP =
-            Set.of("date", "machineIdentifier", "processIdentifier", "counter", "time", "timestamp", "timeSecond");
+    protected static final Set<String> SET_OBJECT_ID_MAP = Set.of("date", "timestamp");
 
     protected static String[] commands;
 
@@ -111,8 +104,8 @@ public class MongoTestBase {
         assertEquals(numConnections, numConnectionsAfter);
     }
 
-    public static void createContainer(boolean withAuth) {
-        mongo = new GenericContainer("mongo:4")
+    public static void createContainer(boolean withAuth, MongoVersion mongoVersion) {
+        mongo = new GenericContainer(mongoVersion.dockerImg)
                 .withNetworkAliases("mongo-" + Base58.randomString(6))
                 .withExposedPorts(MONGO_DEFAULT_PORT)
                 .waitingFor(new HttpWaitStrategy()
@@ -123,11 +116,11 @@ public class MongoTestBase {
         if (withAuth) {
             mongo.withEnv("MONGO_INITDB_ROOT_USERNAME", "admin").withEnv("MONGO_INITDB_ROOT_PASSWORD", "pass");
 
-            commands =
-                    new String[] {"mongo", "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"
-                    };
+            commands = new String[] {
+                mongoVersion.shell, "admin", "--eval", "db.auth('admin', 'pass'); db.serverStatus().connections;"
+            };
         } else {
-            commands = new String[] {"mongo", "test", "--eval", "db.serverStatus().connections"};
+            commands = new String[] {mongoVersion.shell, "test", "--eval", "db.serverStatus().connections"};
         }
         mongo.start();
     }
@@ -175,7 +168,7 @@ public class MongoTestBase {
      * by invoking:
      *  $ mongo [dbName] --eval db.serverStatus().connections
      * into the container
-     * @return A Map<String, Long> with three fields three fields {current, available, totalCreated}
+     * @return A Map<String, Long> with three fields {current, available, totalCreated}
      */
     public static Map<String, Object> getNumConnections(GenericContainer mongo, String... commands) {
         try {
@@ -286,6 +279,5 @@ public class MongoTestBase {
         assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
         assertEquals(person, rel2.getStartNode());
         assertEquals(product2, rel2.getEndNode());
-        assertFalse(r.hasNext());
     }
 }

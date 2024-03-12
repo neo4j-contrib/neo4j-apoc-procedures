@@ -110,10 +110,10 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
 
-    compileOnly 'org.mongodb:mongodb-driver:3.2.2', {
+    compileOnly group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1', {
         exclude group: 'io.netty'
     }
-    testImplementation 'org.mongodb:mongodb-driver:3.2.2', {
+    testImplementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1', {
         exclude group: 'io.netty'
     }
 
