@@ -14,7 +14,7 @@ apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allow
 
 [source]
 ----
-apoc.cypher.runSchemaFiles(file :: LIST? OF STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)
+apoc.cypher.runSchemaFiles(file :: LIST? OF STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?, fileName :: STRING?)
 ----
 
 == Input parameters

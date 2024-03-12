@@ -22,9 +22,9 @@ CALL apoc.cypher.runSchemaFiles(["createConstraint.cypher", "dropConstraint.cyph
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
-| -1  | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 1, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
-| -1  | {constraintsRemoved: 1, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+| row | fileName                | result
+| -1  | createConstraint.cypher | {constraintsRemoved: 0, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 1, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
+| -1  | dropConstraint.cypher   | {constraintsRemoved: 1, indexesRemoved: 0, nodesCreated: 0, rows: 0, propertiesSet: 0, labelsRemoved: 0, relationshipsDeleted: 0, constraintsAdded: 0, nodesDeleted: 0, indexesAdded: 0, labelsAdded: 0, relationshipsCreated: 0, time: 0}
 |===
 
 If we don't want to see statistics for each Cypher statement, we can set `statistics: false`:
@@ -37,5 +37,5 @@ CALL apoc.cypher.runSchemaFiles(["createConstraint.cypher", "dropConstraint.cyph
 .Results
 [opts="header", cols="1,5"]
 |===
-| row | result
+| row | fileName | result
 |===

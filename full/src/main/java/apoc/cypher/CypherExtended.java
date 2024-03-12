@@ -25,6 +25,7 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.neo4j.procedure.Mode.READ;
 import static org.neo4j.procedure.Mode.WRITE;
 
 import apoc.Extended;
@@ -94,7 +95,7 @@ public class CypherExtended {
     @Context
     public Pools pools;
 
-    @Procedure(mode = WRITE)
+    @Procedure(name = "apoc.cypher.runFile", mode = WRITE)
     @Description(
             "apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(
@@ -102,17 +103,39 @@ public class CypherExtended {
         return runFiles(singletonList(fileName), config);
     }
 
-    @Procedure(mode = WRITE)
+    @Procedure(value = "apoc.cypher.runFileReadOnly", mode = READ)
+    @Description(
+            "apoc.cypher.runFileReadOnly(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated")
+    public Stream<RowResult> runReadFile(
+            @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return runReadFiles(singletonList(fileName), config);
+    }
+
+    @Procedure(value = "apoc.cypher.runFiles", mode = WRITE)
     @Description(
             "apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated")
     public Stream<RowResult> runFiles(
             @Name("file") List<String> fileNames,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return runNonSchemaFiles(fileNames, config, true);
+    }
+
+    @Procedure(value = "apoc.cypher.runFilesReadOnly", mode = READ)
+    @Description(
+            "apoc.cypher.runFilesReadOnly([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each `READ` statement in the files, all semicolon separated")
+    public Stream<RowResult> runReadFiles(
+            @Name("file") List<String> fileNames,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+        return runNonSchemaFiles(fileNames, config, false);
+    }
+
+    private Stream<RowResult> runNonSchemaFiles(
+            List<String> fileNames, Map<String, Object> config, boolean defaultStatistics) {
         @SuppressWarnings("unchecked")
         final Map<String, Object> parameters =
                 (Map<String, Object>) config.getOrDefault("parameters", Collections.emptyMap());
         final boolean schemaOperation = false;
-        return runFiles(fileNames, config, parameters, schemaOperation);
+        return runFiles(fileNames, config, parameters, schemaOperation, defaultStatistics);
     }
 
     // This runs the files sequentially
@@ -120,9 +143,10 @@ public class CypherExtended {
             List<String> fileNames,
             Map<String, Object> config,
             Map<String, Object> parameters,
-            boolean schemaOperation) {
+            boolean schemaOperation,
+            boolean defaultStatistics) {
         boolean reportError = Util.toBoolean(config.get("reportError"));
-        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics", true));
+        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics", defaultStatistics));
         int timeout = Util.toInteger(config.getOrDefault("timeout", 10));
         int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity", 100));
         var result = fileNames.stream().flatMap(fileName -> {
@@ -164,7 +188,7 @@ public class CypherExtended {
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         final boolean schemaOperation = true;
         final Map<String, Object> parameters = Collections.emptyMap();
-        return runFiles(fileNames, config, parameters, schemaOperation);
+        return runFiles(fileNames, config, parameters, schemaOperation, true);
     }
 
     private Stream<RowResult> runManyStatements(
@@ -241,7 +265,7 @@ public class CypherExtended {
                     Util.inThread(pools, () -> {
                         try {
                             return db.executeTransactionally(
-                                    stmt, params, result -> consumeResult(result, queue, addStatistics, tx));
+                                    stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -250,7 +274,7 @@ public class CypherExtended {
                 } else {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
-                            return consumeResult(result, queue, addStatistics, tx);
+                            return consumeResult(result, queue, addStatistics, tx, fileName);
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
@@ -265,9 +289,8 @@ public class CypherExtended {
         if (!reportError) {
             throw new RuntimeException(e);
         }
-        String error = String.format("Error in `%s`:\n%s ", fileName, e.getMessage());
-
-        RowResult result = new RowResult(-1, Map.of("error", error));
+        String error = e.getMessage();
+        RowResult result = new RowResult(-1, Map.of("error", error), fileName);
         QueueUtil.put(queue, result, 10);
     }
 
@@ -298,7 +321,7 @@ public class CypherExtended {
             if (schemaOperation) {
                 Util.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
-                        return consumeResult(result, queue, addStatistics, tx);
+                        return consumeResult(result, queue, addStatistics, tx, fileName);
                     } catch (Exception e) {
                         collectError(queue, reportError, e, fileName);
                         return null;
@@ -311,18 +334,19 @@ public class CypherExtended {
     private static final Pattern shellControl =
             Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx) {
+    private Object consumeResult(
+            Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx, String fileName) {
         try {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
                 Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
-                queue.put(new RowResult(row++, res));
+                queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {
-                queue.put(
-                        new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
+                queue.put(new RowResult(
+                        -1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row), fileName));
             }
             return row;
         } catch (InterruptedException e) {
@@ -366,13 +390,15 @@ public class CypherExtended {
     }
 
     public static class RowResult {
-        public static final RowResult TOMBSTONE = new RowResult(-1, null);
+        public static final RowResult TOMBSTONE = new RowResult(-1, null, null);
         public long row;
         public Map<String, Object> result;
+        public String fileName;
 
-        public RowResult(long row, Map<String, Object> result) {
+        public RowResult(long row, Map<String, Object> result, String fileName) {
             this.row = row;
             this.result = result;
+            this.fileName = fileName;
         }
     }
 
@@ -472,7 +498,7 @@ public class CypherExtended {
                         Transaction transaction = db.beginTx();
                         transactions.add(transaction);
                         try (Result result = transaction.execute(statement, parallelParams(params, "_", partition))) {
-                            return consumeResult(result, queue, false, transaction);
+                            return consumeResult(result, queue, false, transaction, null);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }

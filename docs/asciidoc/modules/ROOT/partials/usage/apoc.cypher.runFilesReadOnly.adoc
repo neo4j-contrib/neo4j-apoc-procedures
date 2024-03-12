@@ -1,0 +1,43 @@
+Given this dataset:
+
+[source, cypher]
+----
+CREATE (:ReturnQuery {id:1}), (:ReturnQuery {id:2}), (:ReturnQuery {id:3});
+CREATE (n:Other {id: 4});
+CREATE (n:SecondFile {id: 5});
+----
+
+
+and the following files, located in `.$NEO4J_HOME/import`:
+
+.match_first.cypher
+[source, cypher]
+----
+MATCH (n:ReturnQuery) RETURN n;
+MATCH (n:Other) RETURN n;
+----
+
+.match_second.cypher
+[source, cypher]
+----
+MATCH (n:SecondFile) RETURN n
+----
+
+we can run the Cypher commands in `create.cypher` and `update.cypher`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.cypher.runFilesReadOnly(["match_first.cypher", "match_second.cypher"]);
+----
+
+.Results
+[opts="header", cols="1,1,5"]
+|===
+| row | fileName            | result
+| 0   | .match_first.cypher | {"n":{"identity":1,"labels":["ReturnQuery"],"properties":{"id":1},"elementId":"..."}}
+| 1   | .match_first.cypher | {"n":{"identity":2,"labels":["ReturnQuery"],"properties":{"id":2},"elementId":"..."}}
+| 2   | .match_first.cypher | {"n":{"identity":3,"labels":["ReturnQuery"],"properties":{"id":3},"elementId":"..."}}
+| 0   | .match_first.cypher | {"n":{"identity":4,"labels":["Other"],"properties":{"id":4},"elementId":"..."}}
+| 0   | .match_second.cypher| {"n":{"identity":5,"labels":["SecondFile"],"properties":{"id":5},"elementId":"..."}}
+|===
+
