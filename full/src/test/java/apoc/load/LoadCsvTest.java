@@ -52,6 +52,7 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.neo4j.values.storable.*;
 import org.testcontainers.containers.GenericContainer;
 
 public class LoadCsvTest {
@@ -718,5 +719,125 @@ public class LoadCsvTest {
                         .build()
                         .withHeader())
                 .writeValueAsString(mapList);
+    }
+
+    @Test
+    public void testMappingWithManyTypes() {
+        ZoneId defaultTimezone = ZoneId.of(apocConfig().getString(db_temporal_timezone.name()));
+
+        String url = "test-mapping-many-types.csv";
+        Map<String, Object> mapping = map(
+                "localDateTimeField", map("type", "localDateTime"),
+                "localTimeField", map("type", "localTime"),
+                "timeField", map("type", "time"),
+                "dateField", map("type", "date"),
+                "dateTimeField", map("type", "dateTime"),
+                "durationField", map("type", "duration"),
+                "boolField", map("type", "boolean"),
+                "pointField", map("type", "point"),
+                "listDatesField", map("array", true, "arraySep", ",", "type", "date")
+        );
+        testMappingWithManyTypesCommon(defaultTimezone, url, mapping);
+    }
+
+    @Test
+    public void testMappingWithManyTypesWithOptionalData() {
+        ZoneId timezone = ZoneId.of("UTC-8");
+
+        String url = "test-mapping-many-types.csv";
+        Map<String, Object> mapping = map(
+                "localDateTimeField", map("type", "localDateTime"),
+                "localTimeField", map("type", "localTime"),
+                "timeField", map("type", "time", "optionalData", map("timezone", timezone.getId())),
+                "dateField", map("type", "date"),
+                "dateTimeField", map("type", "dateTime", "optionalData", map("timezone", timezone.getId())),
+                "durationField", map("type", "duration"),
+                "boolField", map("type", "boolean"),
+                "pointField", map("type", "point"),
+                "listDatesField", map("array", true, "arraySep", ",", "type", "date")
+        );
+
+        testMappingWithManyTypesCommon(timezone, url, mapping);
+    }
+
+    private void testMappingWithManyTypesCommon(ZoneId zoneId, String url, Map<String, Object> mapping) {
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings'],mapping:$mapping})",
+                map("url", url, "mapping", mapping),
+                (r) -> {
+                    Map<String, Object> row = r.next();
+                    Map<String, Object> expectedFirstRow = map("localDateTimeField", LocalDateTimeValue.parse("1999").asObject(),
+                            "localTimeField", LocalTimeValue.parse("10:01").asObject(),
+                            "timeField", TimeValue.parse("10:01:00Z", () -> zoneId).asObject(),
+                            "dateField", DateValue.parse("2024-01-18").asObject(),
+                            "dateTimeField", DateTimeValue.parse("2024-01-18T14:22:59", () -> zoneId).asObject(),
+                            "durationField", DurationValue.parse("P5M1.5D"),
+                            "boolField", true,
+                            "pointField", PointValue.parse("{x: 56.7, y: 12.78, crs: 'wgs-84'}"),
+                            "listDatesField", asList(DateValue.parse("2000").asObject(), DateValue.parse("2001").asObject(), DateValue.parse("2002").asObject())
+                    );
+                    assertMapEquals(expectedFirstRow, (Map<String, Object>) row.get("map"));
+
+
+                    Map<String, Object> expectedFirstStringRow = map("localDateTimeField", "1999",
+                            "localTimeField","10:01",
+                            "timeField", "10:01:00Z",
+                            "dateField", "2024-01-18",
+                            "dateTimeField", "2024-01-18T14:22:59",
+                            "durationField", "P5M1.5D",
+                            "boolField", "true",
+                            "pointField", "{x: 56.7,y: 12.78, crs: 'wgs-84'}",
+                            "listDatesField", "2000,2001,2002"
+                    );
+                    assertMapEquals(expectedFirstStringRow, (Map<String, Object>) row.get("stringMap"));
+                    assertEquals(Set.copyOf(expectedFirstRow.values()), Set.copyOf((List) row.get("list")));
+                    assertEquals(Set.copyOf(expectedFirstStringRow.values()), Set.copyOf((List) row.get("strings")));
+
+                    row = r.next();
+
+                    Map<String, Object> expectedSecondRow = map("localDateTimeField", LocalDateTimeValue.parse("2000").asObject(),
+                            "localTimeField", LocalTimeValue.parse("11:01").asObject(),
+                            "timeField", TimeValue.parse("11:01:00Z", () -> zoneId).asObject(),
+                            "dateField", DateValue.parse("2023-01-18").asObject(),
+                            "dateTimeField", DateTimeValue.parse("2023-01-18T14:22:59", () -> zoneId).asObject(),
+                            "durationField", DurationValue.parse("P6M1.5D"),
+                            "boolField", false,
+                            "pointField", PointValue.parse("{x: 57.7, y: 11.78, crs: 'wgs-84'}"),
+                            "listDatesField", asList(DateValue.parse("2000").asObject(), DateValue.parse("2001").asObject(), DateValue.parse("2002").asObject())
+                    );
+                    assertMapEquals(expectedSecondRow, (Map<String, Object>) row.get("map"));
+
+                    Map<String, Object> expectedSecondStringRow = map("localDateTimeField", "2000",
+                            "localTimeField", "11:01",
+                            "timeField", "11:01:00Z",
+                            "dateField", "2023-01-18",
+                            "dateTimeField", "2023-01-18T14:22:59",
+                            "durationField", "P6M1.5D",
+                            "boolField", "false",
+                            "pointField", "{x: 57.7,y: 11.78, crs: 'wgs-84'}",
+                            "listDatesField", "2000,2001,2002"
+                    );
+                    assertMapEquals(expectedSecondStringRow, (Map<String, Object>) row.get("stringMap"));
+
+                    assertEquals(Set.copyOf(expectedSecondRow.values()), Set.copyOf((List) row.get("list")));
+                    assertEquals(Set.copyOf(expectedSecondStringRow.values()), Set.copyOf((List) row.get("strings")));
+
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
+        if (expected == null) {
+            assertNull(actual);
+        } else {
+            assertEquals(expected.keySet(), actual.keySet());
+
+            actual.forEach((key, value) -> {
+                if (value instanceof Map mapVal) {
+                    assertMapEquals((Map<String, Object>) expected.get(key), mapVal);
+                } else {
+                    assertEquals(expected.get(key), value);
+                }
+            });
+        }
     }
 }
