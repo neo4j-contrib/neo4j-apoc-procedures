@@ -15,7 +15,7 @@ public class OpenAITestResultUtils {
             ], $apiKey, $conf)
             """;
     public static final String COMPLETION_QUERY = "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, $conf)";
-
+    
     public static void assertEmbeddings(Map<String, Object> row) {
         assertEmbeddings(row, 1536);
     }
