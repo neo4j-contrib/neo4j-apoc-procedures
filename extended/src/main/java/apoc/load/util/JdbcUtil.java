@@ -13,8 +13,6 @@ import javax.security.auth.login.LoginContext;
 import java.net.URI;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.sql.Connection;
-import java.sql.DriverManager;
 
 public class JdbcUtil {
 
