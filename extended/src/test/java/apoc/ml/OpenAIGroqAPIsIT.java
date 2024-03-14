@@ -1,8 +1,6 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -10,19 +8,13 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.List;
 import java.util.Map;
 
 import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
 import static apoc.ml.OpenAI.MODEL_CONF_KEY;
 import static apoc.ml.OpenAITestResultUtils.CHAT_COMPLETION_QUERY;
-import static apoc.ml.OpenAITestResultUtils.COMPLETION_QUERY;
-import static apoc.ml.OpenAITestResultUtils.EMBEDDING_QUERY;
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
-import static apoc.ml.OpenAITestResultUtils.assertCompletion;
 import static apoc.util.TestUtil.testCall;
-import static java.util.Collections.emptyMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
