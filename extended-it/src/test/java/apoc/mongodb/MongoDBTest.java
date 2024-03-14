@@ -7,7 +7,6 @@ import apoc.util.UrlResolver;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.bson.types.ObjectId;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -159,7 +158,7 @@ public class MongoDBTest extends MongoTestBase {
                 map("host", HOST, "db", "test", "collection", "person", "objectId", idAsObjectId.toString(),
                         "config", map("extractReferences", true, "objectIdAsMap", false, "compatibleValues", false)), r -> {
                     Map doc = (Map) r.get("value");
-                    Assert.assertEquals(idAsObjectId.toString(), doc.get("_id"));
+                    assertEquals(idAsObjectId.toString(), doc.get("_id"));
                     assertEquals(25, doc.get("age"));
                     assertEquals("Sherlock", doc.get("name"));
                     assertBoughtReferences(doc, false, false);
