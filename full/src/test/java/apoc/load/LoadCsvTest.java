@@ -20,6 +20,7 @@ package apoc.load;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.load.LoadCsv.ERROR_WRONG_COL_SEPARATOR;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.ExtendedTestUtil.assertMapEquals;
