@@ -340,6 +340,17 @@ apoc.get.rels(rel\|id\|[ids]) - quickly returns all relationships with these id'
 |label:procedure[]
 |===
 
+== xref::overview/apoc.import/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.import/apoc.import.arrow.adoc[apoc.import.arrow icon:book[]]
+
+apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
+|label:procedure[]
+|===
+
 == xref::overview/apoc.load/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
