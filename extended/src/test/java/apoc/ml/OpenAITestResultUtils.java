@@ -15,12 +15,16 @@ public class OpenAITestResultUtils {
             ], $apiKey, $conf)
             """;
     public static final String COMPLETION_QUERY = "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, $conf)";
-    
+
     public static void assertEmbeddings(Map<String, Object> row) {
+        assertEmbeddings(row, 1536);
+    }
+    
+    public static void assertEmbeddings(Map<String, Object> row, int embeddingSize) {
         assertEquals(0L, row.get("index"));
         assertEquals("Some Text", row.get("text"));
         var embedding = (List<Double>) row.get("embedding");
-        assertEquals(1536, embedding.size());
+        assertEquals(embeddingSize, embedding.size());
     }
 
     public static void assertCompletion(Map<String, Object> row, String expectedModel) {
