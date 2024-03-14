@@ -45,8 +45,9 @@ import org.neo4j.procedure.Procedure;
 
 @Extended
 public class LoadCsv {
-    public static final String ERROR_WRONG_COL_SEPARATOR = ". Please check whether you included a delimiter before a column separator or forgot a column separator.";
-    
+    public static final String ERROR_WRONG_COL_SEPARATOR =
+            ". Please check whether you included a delimiter before a column separator or forgot a column separator.";
+
     @Context
     public GraphDatabaseService db;
 
@@ -188,7 +189,8 @@ public class LoadCsv {
 
         @Override
         public boolean tryAdvance(Consumer<? super CSVResult> action) {
-            final String message = "Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo;
+            final String message =
+                    "Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo;
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
