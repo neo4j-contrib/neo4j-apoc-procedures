@@ -78,7 +78,7 @@ dependencies {
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
-    implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
+    implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
 
     // These will be dependencies not packaged with the .jar
     // They need to be provided either through the database or in an extra .jar
