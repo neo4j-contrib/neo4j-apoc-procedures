@@ -3,16 +3,22 @@ package apoc;
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 
 import apoc.util.SimpleRateLimiter;
-import java.net.URL;
+
+import java.io.File;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.EnvironmentConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
+import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -84,7 +90,8 @@ public class ExtendedApocConfig extends LifecycleAdapter
         String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
         System.setProperty("NEO4J_CONF", neo4jConfFolder);
         log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
-        loadConfiguration();
+        File apocConfFile = new File(neo4jConfFolder + "/apoc.conf");
+        loadConfiguration(apocConfFile);
         initialized = true;
     }
 
@@ -120,14 +127,9 @@ public class ExtendedApocConfig extends LifecycleAdapter
      * classpath:/apoc-config.xml contains a description where to load configuration from
      */
 
-    protected void loadConfiguration() {
+    protected void loadConfiguration(File apocConfFile) {
         try {
-
-            URL resource = getClass().getClassLoader().getResource("apoc-config.xml");
-            log.info("loading apoc meta config from %s", resource.toString());
-            CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
-                    .configure(new Parameters().fileBased().setURL(resource));
-            config = builder.getConfiguration();
+            config = setupConfigurations(apocConfFile);
 
             // set config settings not explicitly set in apoc.conf to their default value
             configDefaultValues.forEach((k,v) -> {
@@ -142,6 +144,24 @@ public class ExtendedApocConfig extends LifecycleAdapter
         } catch ( ConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Configuration setupConfigurations(File propertyFile) throws ConfigurationException {
+        PropertiesConfiguration configFile = new PropertiesConfiguration();
+        if (propertyFile.exists()) {
+            final FileHandler handler = new FileHandler(configFile);
+            handler.setFile(propertyFile);
+            handler.load();
+        }
+
+        // OverrideCombiner will evaluate keys in order, i.e. env before sys etc.
+        CombinedConfiguration combined = new CombinedConfiguration();
+        combined.setNodeCombiner(new OverrideCombiner());
+        combined.addConfiguration(new EnvironmentConfiguration());
+        combined.addConfiguration(new SystemConfiguration());
+        combined.addConfiguration(configFile);
+
+        return combined;
     }
 
     protected Configuration getConfig() {
