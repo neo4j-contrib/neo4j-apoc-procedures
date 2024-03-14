@@ -1,0 +1,3 @@
+localDateTimeField,localTimeField,timeField,dateField,dateTimeField,durationField,boolField,pointField,listDatesField
+1999,10:01,10:01:00Z,2024-01-18,2024-01-18T14:22:59,P5M1.5D,true,"{x: 56.7,y: 12.78, crs: 'wgs-84'}","2000,2001,2002"
+2000,11:01,11:01:00Z,2023-01-18,2023-01-18T14:22:59,P6M1.5D,false,"{x: 57.7,y: 11.78, crs: 'wgs-84'}","2000,2001,2002"

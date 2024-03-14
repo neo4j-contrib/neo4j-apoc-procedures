@@ -11,10 +11,28 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static apoc.util.TestUtil.testCallAssertions;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
 
+    public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
+        if (expected == null) {
+            assertNull(actual);
+        } else {
+            assertEquals(expected.keySet(), actual.keySet());
+
+            actual.forEach((key, value) -> {
+                if (value instanceof Map mapVal) {
+                    assertMapEquals((Map<String, Object>) expected.get(key), mapVal);
+                } else {
+                    assertEquals(expected.get(key), value);
+                }
+            });
+        }
+    }
+    
     /**
      * similar to @link {@link TestUtil#testCallEventually(GraphDatabaseService, String, Consumer, long)}
      * but re-execute the {@link GraphDatabaseService#executeTransactionally(String, Map, ResultTransformer)} in case of error
