@@ -20,7 +20,7 @@ dependencies {
     def withoutJacksons = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-    }    
+    }
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
@@ -49,6 +49,14 @@ dependencies {
         exclude group: 'io.netty'
     }
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
+    
+    testImplementation group: 'org.testcontainers', name: 'qdrant', version: '1.19.7'
+    testImplementation group: 'org.testcontainers', name: 'chromadb', version: '1.19.7'
+
+    // https://mvnrepository.com/artifact/io.qdrant/client
+    implementation group: 'io.qdrant', name: 'client', version: '1.8.0'
+
+
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

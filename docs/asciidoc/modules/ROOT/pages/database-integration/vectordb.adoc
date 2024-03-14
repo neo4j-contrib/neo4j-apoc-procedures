@@ -1,0 +1,447 @@
+[[vectordb]]
+= Vector Databases
+:description: This section describes procedures that can be used to interact with Vector Databases.
+
+APOC provides these set of procedures, which leverages the Rest APIs, to interact with Vector Databases:
+
+- `apoc.vectordb.qdrant.*` (to interact with https://qdrant.tech/documentation/overview/[Qdrant])
+- `apoc.vectordb.chroma.*` (to interact with https://docs.trychroma.com/getting-started[Chroma])
+- `apoc.vectordb.custom.*` (to interact with other vector databases)
+
+
+
+All the procedures can have, as a final parameter, a configuration map with these possible parameters:
+
+.config parameters
+
+|===
+| key | description
+| headers | additional HTTP headers
+| method | HTTP method
+| endpoint | endpoint key, 
+    can be used to override the default endpoint created via the 1st parameter of the `apoc.vectordb.qdrant.*` and `apoc.vectordb.qdrant.*`,
+    to handle potential endpoint changes.
+| body | body HTTP request
+| jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] of the response. The default is `null`.
+|===
+
+
+Besides the above config, the `apoc.vectordb.<type>.get` and the `apoc.vectordb.<type>.query` procedures can have these additional parameters:
+
+.embeddingConfig parameters
+
+|===
+| key | description
+| mapping | to auto-create indexes/entities. See examples below. 
+| vectorKey, metadataKey, scoreKey, textKey | used with the `apoc.vectordb.custom.get` procedure.
+    To let the procedure know which key in the restAPI (if present) corresponds to the one that should be populated as respectively the vector/metadata/score/text result. 
+    Defaults are "vector", "metadata", "score", "text".
+    See examples below.
+|===
+
+
+== Qdrant
+
+Here is a list of all available Qdrant procedures:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $config) | 
+    Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+| apoc.vectordb.qdrant.deleteCollection(hostOrKey, collection, $config) | 
+    Deletes a collection with the name specified in the 2nd parameter
+| apoc.vectordb.qdrant.upsert(hostOrKey, collection, vectors, $config) | 
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+| apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $config) | 
+    Delete the vectors with the specified `ids`.
+| apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $config) | 
+    Get the vectors with the specified `ids`.
+| apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.qdrant.<key>.host=myHost`.
+
+
+=== Examples
+
+.Create a collection
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.createCollection('localhot:6333', 'test_collection', 'Cosine', 4, {<optional config>})
+----
+
+
+.Delete a collection
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.deleteCollection('localhot:6333', 'test_collection', {<optional config>})
+----
+
+
+.Upsert vectors
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.upsert('localhot:6333', 'test_collection',
+    [
+        {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+        {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+    ],
+    {<optional config>})
+----
+
+
+.Get vectors
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.get('localhost:6333', 'test_collection', [1,2], {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null
+| ...
+|===
+
+.Query vectors
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query('localhot:6333', 
+    'test_collection', 
+    [0.2, 0.1, 0.9, 0.7], 
+    { must: 
+        [ { key: "city", match: { value: "London" } } ]
+    }, 
+    5, 
+    {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null
+| ...
+|===
+
+
+We can define a mapping, to auto-create an index (if not exists), a constraint, and one/multiple nodes and relationships,
+by leveraging the vector metadata.
+
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($host, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    })
+----
+
+which creates an index `VECTOR INDEX FOR (n:Test) ON (n.vect) OPTIONS {indexConfig: {`vector.dimensions`: 4 `vector.similarity_function`: 'cosine'}}`, 
+    a constraint `CREATE CONSTRAINT IF NOT EXISTS FOR (n:Test) REQUIRE n.myId IS UNIQUE` 
+    and populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` 
+        and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`.
+
+
+Or else, we can create a node if not exists, via `create: true`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($host, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            create: true,
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo"
+        }
+    })
+----
+
+which creates an index, a constraint and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($host, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            type: "TEST", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    })
+----
+
+which creates an index `VECTOR INDEX FOR ()-[n:TEST]-() ON (n.vect) OPTIONS {indexConfig: {`vector.dimensions`: 4 `vector.similarity_function`: 'cosine'}}`,
+a constraint `CREATE CONSTRAINT IF NOT EXISTS FOR ()-[n:TEST]-() REQUIRE n.myId IS UNIQUE`
+and populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`.
+
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+
+For example, by executing a `CALL apoc.vectordb.qdrant.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
+so that we do not return the other values that we do not need.
+====
+
+
+
+.Delete vectors
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.delete(<host>, 'test_collection', [1,2], {<optional config>})
+----
+
+
+== Chroma
+
+The list and the signature procedures are consistent with the Qdrant ones:
+
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config) |
+    Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+| apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $config) | 
+    Deletes a collection with the name specified in the 2nd parameter
+| apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $config) | 
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+| apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $config) | 
+    Delete the vectors with the specified `ids`.
+| apoc.vectordb.chroma.get(hostOrKey, collection, ids, $config) | 
+    Get the vectors with the specified `ids`.
+| apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.chroma.<key>.host=myHost`.
+
+=== Examples
+
+.Create a collection
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.createCollection('localhot:8000', 'test_collection', 'Cosine', 4, {<optional config>})
+----
+
+
+.Delete a collection
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.deleteCollection('localhot:8000', '<collection_id>', {<optional config>})
+----
+
+
+.Upsert vectors
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.upsert('localhot:6333', '<collection_id>',
+    [
+        {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}, text: 'ajeje'},
+        {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}, text: 'brazorf'}
+    ],
+    {<optional config>})
+----
+
+
+.Get vectors
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.get('localhost:8000', '<collection_id>', ['1','2'], {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf
+| ...
+|===
+
+
+.Query vectors
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.query('localhot:8000', 
+    '<collection_id>', 
+    [0.2, 0.1, 0.9, 0.7], 
+    { must: 
+        [ { key: "city", match: { value: "London" } } ]
+    }, 
+    5, 
+    {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf
+| ...
+|===
+
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
+so that we do not return the other values that we do not need.
+====
+
+
+In the same way as other procedures, we can define a mapping, to auto-create an index (if not exists) and one/multiple nodes and relationships,
+by leveraging the vector metadata. For example:
+
+.Query vectors
+[source,cypher]
+----
+CALL apoc.vectordb.chrome.query($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    })
+----
+
+
+
+.Delete vectors
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.delete('localhot:8000', '<collection_id>', [1,2], {<optional config>})
+----
+
+
+== Custom (i.e. other vector databases)
+
+Here is a list of all available Qdrant procedures:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.custom.get(host, $embeddingConfig) | Customizable get / query procedure, 
+    returning a result like the others `apoc.vectordb.*.get` ones
+| apoc.vectordb.custom(host, $config) | Fully customizable procedure, returns generic object results.
+|===
+
+
+=== Examples
+
+
+The `apoc.vectordb.custom.get` can be used with every API that return something like this 
+(note that the call does not need to return all keys):
+
+```
+[
+   "<idKey>": "value",
+   "<scoreKey>": scoreValue,
+   "<embeddingKey>": [ ... ]
+   "<metadataKey>": { .. },
+    "<textKey>": "..."
+],
+[
+   ...
+]
+```
+
+where we can customize idKey, scoreKey, embeddingKey, metadataKey and textKey via the homonyms config parameters.
+
+
+Let's look at some examples using https://docs.pinecone.io/guides/getting-started/overview[Pinecone].
+
+
+.apoc.vectordb.custom.get example
+[source,cypher]
+----
+CALL apoc.vectordb.custom.get('https://<INDEX-ID>.svc.gcp-starter.pinecone.io/query', {
+    body: {
+        "namespace", namespace, 
+        "vector", vector, 
+        "topK", 3,
+        "includeValues", true,
+        "includeMetadata", true
+    },
+    headers: {"Api-Key", apiKey},
+    method: null,
+    jsonPath: "matches",
+    // the RestAPI return values as the key with values the vectors
+    embeddingKey: 'values'
+})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| 1, | {a: 1} | 1 | [1,2,3,4]
+| 0.1 | {a: 2} | 2 | [1,2,3,4] 
+| ...
+|===
+
+
+
+.apoc.vectordb.custom example
+[source,cypher]
+----
+CALL apoc.vectordb.custom('https://<INDEX-ID>.svc.gcp-starter.pinecone.io/query', {
+    body: {
+        "namespace", namespace, 
+        "vector", vector, 
+        "topK", 3,
+        "includeValues", true,
+        "includeMetadata", true
+    },
+    headers: {"Api-Key", apiKey},
+    method: null,
+    jsonPath: "matches"
+})
+----
+
+
+.Example esults
+[opts="header"]
+|===
+| value
+| {score: <score>, metadata: <metadata>, id: <id>, vector: <vector>}
+| {score: <score>, metadata: <metadata>, id: <id>, vector: <vector>}
+| ...
+|===

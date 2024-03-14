@@ -39,6 +39,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::database-integration/bolt-neo4j.adoc[]
     ** xref::database-integration/load-ldap.adoc[]
     ** xref::database-integration/redis.adoc[]
+    ** xref::database-integration/vectordb.adoc[]
 
 * xref:graph-updates/index.adoc[]
     ** xref::graph-updates/uuid.adoc[]
