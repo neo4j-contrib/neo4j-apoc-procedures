@@ -182,7 +182,7 @@ public class CypherExtended {
     private void runDataStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout, boolean reportError, String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
-            if (stmt.trim().isEmpty()) continue;
+            if (isCommentOrEmpty(stmt)) continue;
             boolean schemaOperation;
             try {
                 schemaOperation = isSchemaOperation(stmt);
@@ -227,14 +227,14 @@ public class CypherExtended {
 
     private Scanner createScannerFor(Reader reader) {
         Scanner scanner = new Scanner(reader);
-        scanner.useDelimiter(";\r?\n");
+        scanner.useDelimiter(";\s*\r?\n");
         return scanner;
     }
 
     private void runSchemaStatementsInTx(Scanner scanner, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout, boolean reportError, String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
-            if (stmt.trim().isEmpty()) continue;
+            if (isCommentOrEmpty(stmt)) continue;
             boolean schemaOperation;
             try {
                 schemaOperation = isSchemaOperation(stmt);
@@ -253,6 +253,11 @@ public class CypherExtended {
                 });
             }
         }
+    }
+
+    private static boolean isCommentOrEmpty(String stmt) {
+        String trimStatement = stmt.trim();
+        return trimStatement.isEmpty() || trimStatement.startsWith("//");
     }
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
