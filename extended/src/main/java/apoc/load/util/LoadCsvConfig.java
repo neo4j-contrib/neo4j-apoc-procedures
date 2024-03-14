@@ -2,7 +2,6 @@ package apoc.load.util;
 
 import apoc.load.Mapping;
 import apoc.util.CompressionConfig;
-import apoc.util.Util;
 
 import java.util.*;
 
