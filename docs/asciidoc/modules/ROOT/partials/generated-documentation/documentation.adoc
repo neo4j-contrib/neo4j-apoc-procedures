@@ -1578,6 +1578,17 @@ apoc.label.exists(element, label) - returns true or false related to label exist
 |label:apoc-core[]
 |===
 
+== xref::overview/apoc.import/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.import/apoc.import.arrow.adoc[apoc.import.arrow icon:book[]]
+
+apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
+|label:procedure[]
+|===
+
 == xref::overview/apoc.load/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
