@@ -143,7 +143,7 @@ RETURN m.col_1,m.col_2,m.col_3
         assertEquals(new ArrayList<>(stringMap.values()), row.get("strings"));
         assertEquals(lineNo, row.get("lineNo"));
     }
-    static void assertRow(Result r, String name, String age, long lineNo) {
+    public static void assertRow(Result r, String name, String age, long lineNo) {
         Map<String, Object> row = r.next();
         assertEquals(map("name", name,"age", age), row.get("map"));
         assertEquals(asList(name, age), row.get("list"));
