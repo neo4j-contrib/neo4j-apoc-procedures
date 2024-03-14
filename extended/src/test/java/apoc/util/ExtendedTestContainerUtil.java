@@ -16,6 +16,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
+import static apoc.util.ExtendedUtil.retryRunnable;
 import static apoc.util.TestContainerUtil.copyFilesToPlugin;
 import static apoc.util.TestContainerUtil.executeGradleTasks;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -52,14 +53,18 @@ public class ExtendedTestContainerUtil
                                            BiConsumer<Session, Neo4jContainerExtension> sessionConsumer) {
 
         for (Neo4jContainerExtension container: members) {
-            // Bolt (routing) url
-            String neo4jUrl = "neo4j://localhost:" + container.getMappedPort(7687);
 
-            AuthToken authToken = AuthTokens.basic("neo4j", container.getAdminPassword());
-            try (Driver driver = GraphDatabase.driver(neo4jUrl, authToken);
-                 Session session = driver.session(SessionConfig.forDatabase(SYSTEM_DATABASE_NAME))) {
+            retryRunnable(10, () -> {
+                String neo4jUrl = "neo4j://localhost:" + container.getMappedPort(7687);
+                AuthToken authToken = AuthTokens.basic("neo4j", container.getAdminPassword());
+                Driver driver = GraphDatabase.driver(neo4jUrl, authToken);
+                
+                Session session = driver.session(SessionConfig.forDatabase(SYSTEM_DATABASE_NAME));
                 sessionConsumer.accept(session, container);
-            }
+
+                session.close();
+                driver.close();
+            });
         }
     }
 

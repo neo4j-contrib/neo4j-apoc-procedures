@@ -86,4 +86,19 @@ public class ExtendedUtil
 
         return true;
     }
+
+    public static void retryRunnable(long maxRetries, Runnable supplier) {
+        retryRunnable(maxRetries, 0, supplier);
+    }
+
+    private static void retryRunnable(long maxRetries, long retry, Runnable consumer) {
+        try {
+            consumer.run();
+        } catch (Exception e) {
+            if (retry >= maxRetries) throw e;
+            Util.sleep(100);
+            retry++;
+            retryRunnable(maxRetries, retry, consumer);
+        }
+    }
 }
