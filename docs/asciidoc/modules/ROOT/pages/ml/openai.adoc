@@ -242,6 +242,14 @@ CALL apoc.ml.openai.embedding(['Some Text'], "ignored",
 {endpoint: 'http://localhost:3000/v1', model: 'thenlper/gte-large'})
 ----
 
+Furthermore, we can use the https://console.groq.com/docs/quickstart[Groq API], e.g.:
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of low latency LLMs"}], 
+    '<apiKey>',
+    {endpoint: 'https://api.groq.com/openai/v1', model: 'mixtral-8x7b-32768'})
+----
+
 
 == Query with natural language
 
