@@ -30,6 +30,7 @@ import static java.util.Collections.emptyList;
 
 @Extended
 public class LoadCsv {
+    public static final String ERROR_WRONG_COL_SEPARATOR = ". Please check whether you included a delimiter before a column separator or forgot a column separator.";
 
     @Context
     public GraphDatabaseService db;
@@ -80,7 +81,7 @@ public class LoadCsv {
         String[] header = getHeader(csv, config);
         boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch(m -> m.ignore);
         return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false)
+                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.isFailOnError()), false)
                 .onClose(() -> closeReaderSafely(reader));
     }
 
@@ -111,10 +112,10 @@ public class LoadCsv {
         private final Map<String, Mapping> mapping;
         private final List<String> nullValues;
         private final EnumSet<Results> results;
-        private final boolean ignoreErrors;
+        private final boolean failOnError;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException, CsvValidationException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean failOnError) throws IOException, CsvValidationException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -123,7 +124,7 @@ public class LoadCsv {
             this.mapping = mapping;
             this.nullValues = nullValues;
             this.results = results;
-            this.ignoreErrors = ignoreErrors;
+            this.failOnError = failOnError;
             this.limit = ExtendedUtil.isSumOutOfRange(skip, limit) ? Long.MAX_VALUE : (skip + limit);
             lineNo = skip;
             while (skip-- > 0) {
@@ -133,6 +134,7 @@ public class LoadCsv {
 
         @Override
         public boolean tryAdvance(Consumer<? super CSVResult> action) {
+            final String message = "Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo;
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
@@ -142,10 +144,21 @@ public class LoadCsv {
                 }
                 return false;
             } catch (IOException | CsvValidationException e) {
-                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo, e);
+                RuntimeException exception = new RuntimeException(message, e);
+                return skipOrFail(exception);
             } catch (ArrayIndexOutOfBoundsException e) {
-                throw new RuntimeException("Error reading CSV from " + (url == null ? "binary" : " URL " + cleanUrl(url)) + " at " + lineNo + ". Please check whether you included a delimiter before a column separator or forgot a column separator.");
+                String messageIdxOfBound = message + ERROR_WRONG_COL_SEPARATOR;
+                RuntimeException exception = new RuntimeException(messageIdxOfBound);
+                return skipOrFail(exception);
             }
+        }
+
+        private boolean skipOrFail(RuntimeException exception) {
+            if (failOnError) {
+                throw exception;
+            }
+            lineNo++;
+            return true;
         }
     }
 }
