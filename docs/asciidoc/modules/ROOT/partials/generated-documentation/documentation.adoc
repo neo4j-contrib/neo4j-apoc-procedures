@@ -3567,6 +3567,18 @@ apoc.util.validatePredicate(predicate, message, params) \| if the predicate yiel
 |label:apoc-core[]
 |===
 
+== xref::overview/apoc.util/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.util/apoc.util.hashCode.adoc[apoc.util.hashCode icon:book[]]
+
+apoc.util.hashCode(value) - Returns the java.lang.Object#hashCode() of the value
+|label:function[]
+|===
+
+
 == xref::overview/apoc.uuid/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
