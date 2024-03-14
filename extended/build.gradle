@@ -77,7 +77,11 @@ dependencies {
     implementation project(':common')
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
-    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0', {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
     implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
 
     // These will be dependencies not packaged with the .jar
