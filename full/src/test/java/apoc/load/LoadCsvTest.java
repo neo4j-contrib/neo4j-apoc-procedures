@@ -18,6 +18,7 @@
  */
 package apoc.load;
 
+import static apoc.load.LoadCsv.ERROR_WRONG_COL_SEPARATOR;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
@@ -550,6 +551,45 @@ public class LoadCsvTest {
                     assertEquals(Util.map("name", "Selina", "age", "18"), row.get("map"));
                     assertEquals(false, r.hasNext());
                 });
+    }
+
+    @Test
+    public void testIssue3156FailOnErrorFalse() {
+        String url = getUrlFileName("faulty.csv").getPath();
+        testResult(db, "CALL apoc.load.csv($url, {failOnError: false})", map("url",url),
+                (r) -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(0L, row.get("lineNo"));
+                    assertEquals(List.of("Galata Tower", "", "Turkey", "67"), row.get("list"));
+                    row = r.next();
+                    assertEquals(1L, row.get("lineNo"));
+                    assertEquals(List.of("Belem Tower","Lisbon","","30"), row.get("list"));
+                    row = r.next();
+                    assertEquals(3L, row.get("lineNo"));
+                    assertEquals(List.of("","London","United Kingdom","96"), row.get("list"));
+                    row = r.next();
+                    assertEquals(4L, row.get("lineNo"));
+                    assertEquals(List.of("Leaning tower","Pisa","Italia","56"), row.get("list"));
+                    row = r.next();
+                    assertEquals(5L, row.get("lineNo"));
+                    assertEquals(List.of("Eiffel Tower","Paris","France","300"), row.get("list"));
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testIssue3156FailOnErrorTrue() {
+        String url = getUrlFileName("faulty.csv").getPath();
+        try {
+            testResult(db, "CALL apoc.load.csv($url, {failOnError: true})", map("url", url),
+                    Result::resultAsString);
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            assertTrue("Actual error message is: " + message,
+                    message.contains(ERROR_WRONG_COL_SEPARATOR)
+            );
+        }
+
     }
 
     @Test

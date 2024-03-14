@@ -25,6 +25,7 @@ import static java.util.Collections.emptyList;
 import apoc.load.Mapping;
 import apoc.util.CompressionConfig;
 import apoc.util.Util;
+
 import java.util.*;
 
 public class LoadCsvConfig extends CompressionConfig {
@@ -35,7 +36,6 @@ public class LoadCsvConfig extends CompressionConfig {
     // this is the same value as ICSVParser.DEFAULT_ESCAPE_CHARACTER
     public static final char DEFAULT_ESCAPE_CHAR = '\\';
 
-    private final boolean ignoreErrors;
     private char separator;
     private char arraySep;
     private char quoteChar;
@@ -59,7 +59,6 @@ public class LoadCsvConfig extends CompressionConfig {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config, "quoteChar", DEFAULT_QUOTE_CHAR);
@@ -144,10 +143,6 @@ public class LoadCsvConfig extends CompressionConfig {
 
     public char getEscapeChar() {
         return escapeChar;
-    }
-
-    public boolean getIgnoreErrors() {
-        return ignoreErrors;
     }
 
     public boolean isIgnoreQuotations() {
