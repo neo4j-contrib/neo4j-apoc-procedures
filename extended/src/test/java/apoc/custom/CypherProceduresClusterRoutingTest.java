@@ -63,7 +63,7 @@ public class CypherProceduresClusterRoutingTest {
 
 
     @Test
-    @Ignore
+    @Ignore("De-ignore after that https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3998 is solved")
     public void testSetupAndDropCustomsWithUseSystemClause() {
 
         // create a custom procedure and function for each member

@@ -49,7 +49,6 @@ import static org.neo4j.driver.internal.util.Iterables.count;
  * @since 08.05.16
  */
 
-@Ignore
 public class CypherExtendedTest {
     public static final String IMPORT_DIR = "src/test/resources";
     @ClassRule
@@ -468,6 +467,7 @@ public class CypherExtendedTest {
     }
 
     @Test
+    @Ignore("Fails due to https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4015")
     public void testRunSchemaFileWithFailingStatement() {
         db.executeTransactionally("CREATE CONSTRAINT uniqueConstraint FOR (n:Person) REQUIRE n.name IS UNIQUE");
         String failingFile = "constraints.cypher";

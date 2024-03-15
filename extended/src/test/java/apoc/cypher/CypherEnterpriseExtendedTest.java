@@ -32,7 +32,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class CypherEnterpriseExtendedTest {
     private static final String CREATE_RETURNQUERY_NODES = "UNWIND range(0,3) as id \n" +
                                                            "CREATE (n:ReturnQuery {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
@@ -300,6 +299,7 @@ public class CypherEnterpriseExtendedTest {
     }
 
     @Test
+    @Ignore("De-ignore after that https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3998 is solved")
     public void testCypherMapParallel2WithResults() {
         // this test could cause flaky errors, 
         // so we need to run the query several times to make sure it always works
