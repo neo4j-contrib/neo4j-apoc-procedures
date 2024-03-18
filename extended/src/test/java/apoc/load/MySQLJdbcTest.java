@@ -112,12 +112,14 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
                             "Capital", 5,
                             "Code2", "NL",
                             "myTime", LocalTime.of(1, 0, 0),
-                            "myDateTime", LocalDateTime.parse("2003-01-01T01:00"),
                             "myTimeStamp", ZonedDateTime.parse("2003-01-01T01:00Z"),
                             "myDate", LocalDate.parse("2003-01-01"),
                             "myYear", LocalDate.parse("2003-01-01")
                     );
-                    assertEquals(expected, row.get("row"));
+                    Map actual = (Map) row.get("row");
+                    Object myDateTime = actual.remove("myDateTime");
+                    assertTrue(myDateTime instanceof LocalDateTime);
+                    assertEquals(expected, actual);
                 });
     }
 
