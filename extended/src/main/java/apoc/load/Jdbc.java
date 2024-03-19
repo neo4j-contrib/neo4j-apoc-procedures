@@ -15,8 +15,10 @@ import org.neo4j.procedure.Procedure;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -71,7 +73,7 @@ public class Jdbc {
         String url = getUrlOrKey(urlOrKey);
         String query = getSqlOrKey(tableOrSelect);
         try {
-            Connection connection = getConnection(url,loadJdbcConfig);
+            Connection connection = getConnection(url,loadJdbcConfig).get();
             // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
             connection.setAutoCommit(loadJdbcConfig.isAutoCommit());
             try {
@@ -112,7 +114,7 @@ public class Jdbc {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
-            Connection connection = getConnection(url,jdbcConfig);
+            Connection connection = getConnection(url,jdbcConfig).get();
             try {
                 PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 stmt.setFetchSize(5000);
@@ -212,6 +214,15 @@ public class Jdbc {
             if (value instanceof UUID || value instanceof BigInteger || value instanceof BigDecimal) {
                 return value.toString();
             }
+            ZoneId zoneId = config.getZoneId();
+            if (value instanceof LocalDateTime localDateTime) {
+                if (zoneId != null) {
+                    return localDateTime.atZone(zoneId)
+                            .withZoneSameInstant(ZoneId.systemDefault())
+                            .toLocalDateTime();
+                }
+                return value;
+            }
             if (Types.TIME == sqlType) {
                 return ((java.sql.Time)value).toLocalTime();
             }
@@ -219,18 +230,18 @@ public class Jdbc {
                 return OffsetTime.parse(value.toString());
             }
             if (Types.TIMESTAMP == sqlType) {
-                if (config.getZoneId() != null) {
+                if (zoneId != null) {
                     return ((java.sql.Timestamp)value).toInstant()
-                            .atZone(config.getZoneId())
+                            .atZone(zoneId)
                             .toOffsetDateTime();
                 } else {
                     return ((java.sql.Timestamp)value).toLocalDateTime();
                 }
             }
             if (Types.TIMESTAMP_WITH_TIMEZONE == sqlType) {
-                if (config.getZoneId() != null) {
+                if (zoneId != null) {
                     return ((java.sql.Timestamp)value).toInstant()
-                            .atZone(config.getZoneId())
+                            .atZone(zoneId)
                             .toOffsetDateTime();
                 } else {
                     return OffsetDateTime.parse(value.toString());
