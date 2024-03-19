@@ -79,9 +79,7 @@ public class Model {
             throws Exception {
         String url = getUrlOrKey(urlOrKey);
 
-        SchemaCrawlerOptionsBuilder optionsBuilder =
-                SchemaCrawlerOptionsBuilder.builder().withSchemaInfoLevel(SchemaInfoLevelBuilder.standard());
-        SchemaCrawlerOptions options = optionsBuilder.toOptions();
+        SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
 
         Catalog catalog = SchemaCrawlerUtility.getCatalog(getConnection(url, new LoadJdbcConfig(config)), options);
 

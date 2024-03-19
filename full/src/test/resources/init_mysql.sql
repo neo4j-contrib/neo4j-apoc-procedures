@@ -24,6 +24,11 @@ CREATE TABLE `country` (
   `HeadOfState` CHAR(60) DEFAULT NULL,
   `Capital` INT(11) DEFAULT NULL,
   `Code2` CHAR(2) NOT NULL DEFAULT '',
+  `myTime` TIME NOT NULL DEFAULT '0',
+  `myDateTime` DATETIME NOT NULL,
+  `myTimeStamp` TIMESTAMP NOT NULL,
+  `myDate` DATE NOT NULL,
+  `myYear` YEAR NOT NULL,
   PRIMARY KEY (`Code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -32,7 +37,13 @@ CREATE TABLE `country` (
 --
 -- ORDER BY:  `Code`
 
-INSERT INTO `country` VALUES ('NLD','Netherlands','Europe','Western Europe',41526.00,1581,15864000,78.3,371362.00,360478.00,'Nederland','Constitutional Monarchy','Beatrix',5,'NL');
+INSERT INTO `country` VALUES ('NLD','Netherlands','Europe','Western Europe',41526.00,1581,15864000,78.3,371362.00,360478.00,'Nederland','Constitutional Monarchy','Beatrix',5,'NL',
+TIME('01:00:00'),
+DATE('2003-01-01 01:00:00'),
+TIMESTAMP('2003-01-01 01:00:00'),
+DATE('2003-01-01 01:00:00'),
+YEAR('2003-01-01 01:00:00')
+);
 COMMIT;
 
 --
