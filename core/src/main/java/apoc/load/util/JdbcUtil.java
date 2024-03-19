@@ -18,6 +18,15 @@
  */
 package apoc.load.util;
 
+import us.fatehi.utility.datasource.DatabaseConnectionSource;
+import us.fatehi.utility.datasource.DatabaseConnectionSources;
+import us.fatehi.utility.datasource.MultiUseUserCredentials;
+
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.login.LoginContext;
 import apoc.util.Util;
 import java.net.URI;
 import java.security.PrivilegedActionException;
@@ -37,12 +46,9 @@ public class JdbcUtil {
 
     private JdbcUtil() {}
 
-    public static Connection getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
-        if (config.hasCredentials()) {
-            return createConnection(
-                    jdbcUrl,
-                    config.getCredentials().getUser(),
-                    config.getCredentials().getPassword());
+    public static DatabaseConnectionSource getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
+        if(config.hasCredentials()) {
+            return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
         } else {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
             String userInfo = uri.getUserInfo();
@@ -68,8 +74,7 @@ public class JdbcUtil {
             lc.login();
             Subject subject = lc.getSubject();
             try {
-                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>)
-                        () -> DriverManager.getConnection(jdbcUrl, userName, password));
+                return Subject.doAs(subject, (PrivilegedExceptionAction<DatabaseConnectionSource>) () -> DatabaseConnectionSources.newDatabaseConnectionSource(jdbcUrl, new MultiUseUserCredentials(userName, password)));
             } catch (PrivilegedActionException pae) {
                 throw pae.getException();
             }

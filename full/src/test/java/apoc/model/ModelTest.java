@@ -93,8 +93,8 @@ public class ModelTest {
                     assertEquals(0L, count.longValue());
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
-                    assertEquals(28, nodes.size());
-                    assertEquals(27, rels.size());
+                    assertEquals(33, nodes.size());
+                    assertEquals(32, rels.size());
 
                     // schema
                     Node schema = nodes.stream()
@@ -123,25 +123,11 @@ public class ModelTest {
                     List<Node> columns = nodes.stream()
                             .filter(node -> node.hasLabel(Label.label("Column")))
                             .collect(Collectors.toList());
-                    assertEquals(24, columns.size());
+                    assertEquals(29, columns.size());
 
                     List<String> countryNodes = filterColumnsByTableName(columns, "country");
-                    List<String> expectedCountryCols = Arrays.asList(
-                            "Code",
-                            "Name",
-                            "Continent",
-                            "Region",
-                            "SurfaceArea",
-                            "IndepYear",
-                            "Population",
-                            "LifeExpectancy",
-                            "GNP",
-                            "GNPOld",
-                            "LocalName",
-                            "GovernmentForm",
-                            "HeadOfState",
-                            "Capital",
-                            "Code2");
+                    List<String> expectedCountryCols = Arrays.asList("Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2",
+                            "myTime", "myDateTime", "myTimeStamp", "myDate", "myYear");
                     assertEquals(expectedCountryCols, countryNodes);
 
                     List<String> cityNodes = filterColumnsByTableName(columns, "city");
@@ -178,8 +164,8 @@ public class ModelTest {
                     tx.execute("MATCH (n) RETURN collect(distinct n) AS nodes").columnAs("nodes"));
             List<Relationship> rels = Iterators.single(tx.execute("MATCH ()-[r]-() RETURN collect(distinct r) AS rels")
                     .columnAs("rels"));
-            assertEquals(28, nodes.size());
-            assertEquals(27, rels.size());
+            assertEquals(33, nodes.size());
+            assertEquals(32, rels.size());
 
             // schema
             Node schema = nodes.stream()
@@ -206,25 +192,11 @@ public class ModelTest {
             List<Node> columns = nodes.stream()
                     .filter(node -> node.hasLabel(Label.label("Column")))
                     .collect(Collectors.toList());
-            assertEquals(24, columns.size());
+            assertEquals(29, columns.size());
 
             List<String> countryNodes = filterColumnsByTableName(columns, "country");
-            List<String> expectedCountryCols = Arrays.asList(
-                    "Code",
-                    "Name",
-                    "Continent",
-                    "Region",
-                    "SurfaceArea",
-                    "IndepYear",
-                    "Population",
-                    "LifeExpectancy",
-                    "GNP",
-                    "GNPOld",
-                    "LocalName",
-                    "GovernmentForm",
-                    "HeadOfState",
-                    "Capital",
-                    "Code2");
+            List<String> expectedCountryCols = Arrays.asList("Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2",
+                    "myTime", "myDateTime", "myTimeStamp", "myDate", "myYear");
             assertEquals(expectedCountryCols, countryNodes);
 
             List<String> cityNodes = filterColumnsByTableName(columns, "city");
