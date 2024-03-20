@@ -79,7 +79,7 @@ public class LoadCsv {
         String[] header = getHeader(csvIterator, config);
         boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch(m -> m.ignore);
         return StreamSupport.stream(new CSVSpliterator(csvIterator, header, url, config.getSkip(), config.getLimit(),
-                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors(), config.isIgnoreQuotations(), config.getQuoteChar(), config.isFailOnError()), false)
+                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.isIgnoreQuotations(), config.getQuoteChar(), config.isFailOnError()), false);
     }
 
     private static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), LoadCsvConfig.DEFAULT_ARRAY_SEP, false);
@@ -114,7 +114,7 @@ public class LoadCsv {
         private final String quoteChar;
         long lineNo;
 
-        public CSVSpliterator(Iterator<CSVRecord> csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreQuotations, char quoteChar, boolean failOnError) throws IOException, CsvValidationException {
+        public CSVSpliterator(Iterator<CSVRecord> csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreQuotations, char quoteChar, boolean failOnError) {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -145,9 +145,6 @@ public class LoadCsv {
                     return true;
                 }
                 return false;
-            } catch (IOException | CsvValidationException e) {
-                RuntimeException exception = new RuntimeException(message, e);
-                return skipOrFail(exception);
             } catch (ArrayIndexOutOfBoundsException e) {
                 String messageIdxOfBound = message + ERROR_WRONG_COL_SEPARATOR;
                 RuntimeException exception = new RuntimeException(messageIdxOfBound);
