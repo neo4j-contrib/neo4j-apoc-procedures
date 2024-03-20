@@ -74,7 +74,7 @@ Besides the file you can pass in a config map:
 | skip | none | skip result rows
 | limit | none | limit result rows
 | header | true | indicates if file has a header
-| sep | ',' | separator character or 'TAB'
+| sep | ',' | separator string or 'TAB'
 | quoteChar | '"' | the char to use for quoted elements
 | arraySep | ';' | array separator
 | ignore | [] | which columns to ignore
@@ -113,6 +113,38 @@ RETURN *;
 |===
 | lineNo | list | map
 | 1 | [12,["Tea","Milk"]] | {"age":12,"drinks":["Tea","Milk"]}
+|===
+
+
+Given the following csv:
+
+.testMultiCharSep.csv
+[source,csv]
+----
+nameSEPARage
+SelmaSEPAR8
+RanaSEPAR11
+SelinaSEPAR18
+
+----
+
+we can execute:
+
+[source,cypher]
+----
+CALL apoc.load.csv('testMultiCharSep.csv', {sep:'SEPAR'})
+YIELD lineNo, map, list
+RETURN *;
+----
+
+
+.Results
+[opts="header",cols="1,2,2"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9"]     | {name: "Selma", age: "9"}
+| 1      | ["Rana", "12"] | {name: "Rana", age: "12"}
+| 2      | ["Selina", "19"]   | {name: "Selina", age: "19"}
 |===
 
 == Transaction Batching

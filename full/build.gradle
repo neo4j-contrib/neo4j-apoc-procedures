@@ -151,7 +151,11 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.770' , withoutJacksons
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.770' , withoutJacksons
 
-    implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0', {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.17.0', withoutJacksons
     
@@ -183,6 +187,8 @@ dependencies {
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
+    testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
+    testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
