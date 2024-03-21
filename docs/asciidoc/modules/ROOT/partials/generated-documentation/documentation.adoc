@@ -35,6 +35,23 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 |label:procedure[]
 |===
 
+
+== xref::overview/apoc.coll/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a,1a']
+|===
+|xref::overview/apoc.coll/apoc.coll.avgDuration.adoc[apoc.coll.avgDuration icon:book[]]
+
+apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values
+|label:function[]
+
+|xref::overview/apoc.coll/apoc.coll.fillObject.adoc[apoc.coll.fillObject icon:book[]]
+
+apoc.coll.fillObject(item, count) - returns a list of equals items with the given size
+|label:function[]
+|===
+
+
 [discrete]
 == xref::overview/apoc.config/index.adoc[]
 
