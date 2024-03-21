@@ -109,7 +109,7 @@ public class Prompt {
         String schema = loadSchema(tx, conf);
         
         String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
-                FROM_CYPHER_PROMPT, "This database schema ", schema, conf);
+                FROM_CYPHER_PROMPT, "This database schema ", schema, conf, List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
     
