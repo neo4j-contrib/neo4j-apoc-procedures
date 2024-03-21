@@ -111,7 +111,7 @@ public class PromptIT {
                 CALL apoc.ml.fromCypher($query, {retries: $retries, apiKey: $apiKey})
                 """,
                 Map.of(
-                        "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m`",
+                        "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m",
                         "retries", 2L,
                         "apiKey", OPENAI_KEY
                 ),

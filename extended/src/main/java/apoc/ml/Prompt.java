@@ -99,7 +99,7 @@ public class Prompt {
     
     @Procedure(mode = Mode.READ)
     @Description("Takes a query in cypher and in natural language and returns the results in natural language")
-    public Stream<StringResult> fromCypher(@Name("question") String cypher,
+    public Stream<StringResult> fromCypher(@Name("cypher") String cypher,
                                          @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
         String schema = loadSchema(tx, conf);
         

@@ -327,7 +327,7 @@ RETURN m.title
 |===
 | name | description
 | question | The question in the natural language
-| conf | An optional configuration map, please check the next section
+| conf | An optional configuration map, please check the next section | no
 |===
 
 .Configuration map
@@ -441,7 +441,7 @@ RETURN DISTINCT a.name
 |===
 | name | description | mandatory
 | question | The question in the natural language | yes
-| conf | An optional configuration map, please check the next section
+| conf | An optional configuration map, please check the next section | no
 |===
 
 .Configuration map
@@ -453,6 +453,54 @@ RETURN DISTINCT a.name
 | model | The Open AI model | no, default `gpt-3.5-turbo`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
+
+.Results
+[%autowidth, opts=header]
+|===
+| name | description
+| value | the description of the dataset
+|===
+
+== Create a natural language query explanation from a cypher query
+
+This procedure `apoc.ml.fromCypher` takes a natural language question and transforms it into natural language query explanation.
+
+It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.cypher("MATCH (p:Person {name: "Tom Hanks"})-[:ACTED_IN]->(m:Movie) RETURN m", {}) yield value
+RETURN *
+----
+
+.Example response
+[opts="header"]
+|===
+| value
+| this database schema represents a simplified version of a common movie database model. the `movie` node represents a movie entity with attributes such as the year it was released, a tagline, and the movie title. the `person` node represents a person involved in the movie industry, with attributes for the person's year of birth and name. the relationship `directed` connects a `person` node to a `movie` node, indicating that the person directed the movie.
+in terms of domains, this schema can be related to the entertainment industry, specifically the movie industry. movies and people involved in creating those movies are fundamental entities in this domain. the `directed` relationship captures the directed-by relationship between a person and a movie. this type of model can be extended to include other relationships like `acted_in`, `produced`, `wrote`, etc., to capture more complex connections within the movie industry.
+overall, this graph database schema provides a simple yet powerful representation of entities and relationships in the movie domain, allowing for querying and analysis of connections within the industry.
+|===
+
+.Input Parameters
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| cypher | The question in the natural language | yes
+| conf | An optional configuration map, please check the next section | no
+|===
+
+.Configuration map
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| retries | The number of retries in case of API call failures | no, default `3`
+| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
+| model | The Open AI model | no, default `gpt-3.5-turbo`
+| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+|===
+
 
 .Results
 [%autowidth, opts=header]
