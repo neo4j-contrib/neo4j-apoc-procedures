@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertTrue;
 
 public class PromptIT {
 
@@ -50,7 +52,7 @@ public class PromptIT {
                 CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey})
                 """,
                 Map.of(
-                        "query", "What movies did Tom Hanks play in?",
+                        "query", "What movies has Tom Hanks acted in?",
                         "retries", 2L,
                         "apiKey", OPENAI_KEY
                 ),
@@ -100,6 +102,25 @@ public class PromptIT {
                                     .map(Object::toString)
                                     .filter(StringUtils::isNotEmpty))
                             .hasSize((int) numOfQueries);
+                });
+    }
+
+    @Test
+    public void testFromCypher() {
+        testCall(db, """
+                CALL apoc.ml.fromCypher($query, {retries: $retries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m",
+                        "retries", 2L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    String value = ( (String) r.get("value") ).toLowerCase();
+                    assertTrue("Current value is: " + value,
+                            value.contains("movie"));
+                    assertTrue("Current value is: " + value,
+                            value.contains("person") || value.contains("people") || value.contains("actor"));
                 });
     }
 
