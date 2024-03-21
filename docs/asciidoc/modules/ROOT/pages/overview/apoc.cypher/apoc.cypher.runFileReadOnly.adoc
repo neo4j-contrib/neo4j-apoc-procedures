@@ -1,7 +1,7 @@
 = apoc.cypher.runFileReadOnly
 :description: This section contains reference documentation for the apoc.cypher.runFileReadOnly procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 apoc.cypher.runFileReadOnly(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated - currently no schema operations

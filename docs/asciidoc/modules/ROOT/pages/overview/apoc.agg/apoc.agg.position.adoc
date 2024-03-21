@@ -1,7 +1,7 @@
 = apoc.agg.position
 :description: This section contains reference documentation for the apoc.agg.position function.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 [.emphasis]
 apoc.agg.position(element, value) - Returns index of the `element` that match the given `value`

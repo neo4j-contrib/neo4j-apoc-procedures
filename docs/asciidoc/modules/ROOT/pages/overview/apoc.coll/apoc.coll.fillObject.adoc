@@ -1,0 +1,27 @@
+
+= apoc.coll.fillObject
+:description: This section contains reference documentation for the apoc.coll.fillObject function.
+
+label:function[] label:apoc-full[]
+
+[.emphasis]
+apoc.coll.fillObject(item, size) - returns a list of equals items with the given size
+
+== Signature
+
+[source]
+----
+apoc.coll.fillObject(item = null :: ANY?, size = 0 :: LONG?) :: LIST OF ANY?
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|item|ANY? OF DURATION?|null
+|===
+
+[[usage-apoc.coll.fillObject]]
+== Usage Examples
+include::partial$usage/apoc.coll.fillObject.adoc[]
+

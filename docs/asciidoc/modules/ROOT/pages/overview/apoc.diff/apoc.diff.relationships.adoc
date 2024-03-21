@@ -1,7 +1,7 @@
 = apoc.diff.relationships
 :description: This section contains reference documentation for the apoc.diff.relationships function.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 [.emphasis]
 Returns a Map detailing the property differences between the two given relationships

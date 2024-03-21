@@ -181,6 +181,7 @@ apoc.uuid.setup
 apoc.uuid.show
 apoc.any.rebind
 apoc.coll.avgDuration
+apoc.coll.fillObject
 apoc.data.email
 apoc.node.rebind
 apoc.rel.rebind

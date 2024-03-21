@@ -1,0 +1,62 @@
+[source,cypher]
+----
+RETURN apoc.coll.fillObject() as value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| []
+|===
+
+
+[source,cypher]
+----
+RETURN apoc.coll.fillObject('abc',2) as value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| ['abc', 'abc']
+|===
+
+[source,cypher]
+----
+RETURN apoc.coll.fillObject(5,3) as value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [5, 5, 5]
+|===
+
+
+[source,cypher]
+----
+WITH [1,2,3] AS item RETURN apoc.coll.fillObject(item, 3) as value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [[1,2,3], [1,2,3], [1,2,3]]
+|===
+
+
+[source,cypher]
+----
+CREATE (node:Node {a: 1}) RETURN apoc.coll.fillObject(node, 2) as value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| [`(:Node {a: 1})`, `(:Node {a: 1})`]
+|===

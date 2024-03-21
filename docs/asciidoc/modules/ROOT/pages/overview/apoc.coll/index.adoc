@@ -103,6 +103,11 @@ apoc.coll.duplicatesWithCount(coll) - returns a list of duplicate items in the c
 apoc.coll.fill(item, count) - returns a list with the given count of items
 |label:function[]
 |label:apoc-core[]
+|xref::overview/apoc.coll/apoc.coll.fillObject.adoc[apoc.coll.fillObject icon:book[]]
+
+apoc.coll.fillObject(item, count) - returns a list of equals items with the given size
+|label:function[]
+|label:apoc-core[]
 |xref::overview/apoc.coll/apoc.coll.flatten.adoc[apoc.coll.flatten icon:book[]]
 
 apoc.coll.flatten(coll, [recursive]) - flattens list (nested if recursive is true)
