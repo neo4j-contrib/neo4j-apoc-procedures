@@ -1,5 +1,41 @@
 [
     {
+        "neo4j": "5.18.1",
+        "neo4jVersion": "5.18.1",
+        "apoc": "5.18.0",
+        "version": "5.18.0",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.18.0",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.18.0",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.18.0/apoc-5.18.0-extended.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.18.0/apoc-5.18.0-extended.jar",
+        "sha1": "e2d562c1b127344dd5f3b00708d77b5bf7876248",
+        "sha256": "89864c0007a053a535972796e6d23b27a91000d60ef1d8afe70122624eb8505d",
+        "md5": "b3c6a5751c90d3668dde3accec2eefd0",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "apoc.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "5.18.0",
+        "neo4jVersion": "5.18.0",
+        "apoc": "5.18.0",
+        "version": "5.18.0",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.18.0",
+        "homepageUrl": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.18.0",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.18.0/apoc-5.18.0-extended.jar",
+        "downloadUrl": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.18.0/apoc-5.18.0-extended.jar",
+        "sha1": "e2d562c1b127344dd5f3b00708d77b5bf7876248",
+        "sha256": "89864c0007a053a535972796e6d23b27a91000d60ef1d8afe70122624eb8505d",
+        "md5": "b3c6a5751c90d3668dde3accec2eefd0",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "apoc.*"
+            ]
+        }
+    },
+    {
         "neo4j": "5.17.0",
         "neo4jVersion": "5.17.0",
         "apoc": "5.17.1",
