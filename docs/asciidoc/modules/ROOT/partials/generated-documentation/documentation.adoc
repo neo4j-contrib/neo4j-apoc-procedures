@@ -809,6 +809,15 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 |label:procedure[]
 |===
 
+== xref::overview/apoc.temporal/index.adoc[]
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.temporal/apoc.temporal.overlap.adoc[apoc.temporal.overlap icon:book[]]
+
+|label:function[]
+|===
+
 == xref::overview/apoc.trigger/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']

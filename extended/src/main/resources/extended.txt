@@ -186,6 +186,7 @@ apoc.static.set
 apoc.systemdb.execute
 apoc.systemdb.export.metadata
 apoc.systemdb.graph
+apoc.temporal.overlap
 apoc.ttl.expire
 apoc.ttl.expireIn
 apoc.util.hashCode

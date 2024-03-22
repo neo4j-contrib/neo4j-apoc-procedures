@@ -1,0 +1,74 @@
+.adjacent spans with default config 
+[source,cypher]
+----
+RETURN apoc.temporal.overlap(
+    date("1999"),
+    date("2000"),
+    date("2000"),
+    date("2001"))
+AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| false
+|===
+
+
+.adjacent spans with config acceptAdjacentSpans: true
+[source,cypher]
+----
+RETURN apoc.temporal.overlap(
+    date("1999"),
+    date("2000"),
+    date("2000"),
+    date("2001"),
+    {acceptAdjacentSpans: true} )
+AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| true
+|===
+
+.duration spans
+[source,cypher]
+----
+RETURN apoc.temporal.overlap(
+    time("00:01"),
+    time("01:01"),
+    time("00:00"),
+    time("00:02") )
+AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| true
+|===
+
+
+.non-comparable spans
+[source,cypher]
+----
+RETURN apoc.temporal.overlap(
+    date("1998"),
+    date("1999"),
+    time("00:00"),
+    time("00:02") )
+AS value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| null
+|===
