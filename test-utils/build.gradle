@@ -21,17 +21,11 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    // The following dependencies needs to be excluded because they do not have licenses which we are allowed to include
-    def withoutLicenseViolations = {
-        exclude group: 'com.sun.codemodel'
-        exclude group: 'org.jline'
-    }
-
     api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.4.0', withoutServers
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers.andThen(withoutLicenseViolations)
-    api group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.4.0', withoutServers.andThen(withoutLicenseViolations)
+    api group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
+    api group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.4.0', withoutServers
 
     api group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.4.14'
     api group: 'org.jetbrains', name: 'annotations', version: "17.0.0"

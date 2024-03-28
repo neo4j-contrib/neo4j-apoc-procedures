@@ -640,6 +640,7 @@ Apache-2.0
 
 ------------------------------------------------------------------------------
 BSD-2-Clause
+  jline-3.22.0.jar
   jsch-0.1.55.jar
   stax2-api-4.2.1.jar
   zstd-jni-1.5.0-4.jar
@@ -774,6 +775,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
 Common Development and Distribution License Version 1.1
+  codemodel-2.6.jar
   jaxb-api-2.3.0.jar
   jaxb-impl-2.2.3-1.jar
   jersey-client-1.19.4.jar
