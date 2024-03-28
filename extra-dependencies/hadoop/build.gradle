@@ -38,10 +38,10 @@ def commonExclusions = {
 }
 
 dependencies {
-    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.3.6', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.4.0', commonExclusions
     // If updated check if the transitive dependency to javax.servlet.jsp:jsp-api:2.1 has also updated
     // and remove the manual licensing check for it in licenses-3rdparties.gradle
-    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.6', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', commonExclusions
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.23.1', commonExclusions
 }
 

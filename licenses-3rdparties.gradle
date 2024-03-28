@@ -118,6 +118,8 @@ downloadLicenses {
                     'javax.servlet.jsp:jsp-api:2.1' : license('Common Development and Distribution License Version 1.1', null),
                     'org.antlr:ST4:4.1' : license('BSD-3-Clause', null),
                     'org.gradle:gradle-tooling-api:6.1.1' : license('Apache-2.0', null),
+                    'org.jline:jline:3.22.0' : license('BSD-2-Clause', 'http://opensource.org/licenses/BSD-2-Clause'),
+                    'com.sun.codemodel:codemodel:2.6' : license('Common Development and Distribution License Version 1.1', null),
     ]
     aliases = allowList.collectEntries { lic ->
         def actual = license(lic.name, lic.url)
