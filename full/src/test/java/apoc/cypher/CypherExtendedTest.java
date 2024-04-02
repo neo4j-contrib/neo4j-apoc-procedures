@@ -227,6 +227,29 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void gemTest() {
+        db.executeTransactionally(
+                "UNWIND range(0,3) as id \n" + "CREATE (n:Result {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})");
+
+        testResult(
+                db,
+                "CALL apoc.cypher.runFile(\"gem.cypher\", {}) YIELD row, result RETURN result.n, labels(result.n) AS labels",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test
     public void testRunFileWithSchema() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('schema_create.cypher')", r -> {
             Map<String, Object> row = r.next();

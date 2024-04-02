@@ -341,7 +341,7 @@ public class CypherExtended {
             int row = 0;
             while (result.hasNext()) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
+                Map<String, Object> res = EntityUtil.anyUnbind(tx, result.next());
                 queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {

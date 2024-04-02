@@ -20,6 +20,7 @@ package apoc.full.it;
 
 import static apoc.cypher.CypherTestUtil.CREATE_RESULT_NODES;
 import static apoc.cypher.CypherTestUtil.CREATE_RETURNQUERY_NODES;
+import static apoc.cypher.CypherTestUtil.GEM_QUERIES;
 import static apoc.cypher.CypherTestUtil.SET_AND_RETURN_QUERIES;
 import static apoc.cypher.CypherTestUtil.SET_NODE;
 import static apoc.cypher.CypherTestUtil.SIMPLE_RETURN_QUERIES;
@@ -57,6 +58,7 @@ import org.neo4j.driver.types.Relationship;
 public class CypherEnterpriseExtendedTest {
     private static final String SET_RETURN_FILE = "set_and_return.cypher";
     private static final String MATCH_RETURN_FILE = "match_and_return.cypher";
+    private static final String GEM_FILE = "gem.cypher";
 
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
@@ -72,6 +74,7 @@ public class CypherEnterpriseExtendedTest {
         // create cypher files
         createContainerFile(SET_RETURN_FILE, SET_AND_RETURN_QUERIES);
         createContainerFile(MATCH_RETURN_FILE, SIMPLE_RETURN_QUERIES);
+        createContainerFile(GEM_FILE, GEM_QUERIES);
     }
 
     private static void createContainerFile(String fileName, String fileContent) {
@@ -116,6 +119,29 @@ public class CypherEnterpriseExtendedTest {
         Map<String, Object> params = Map.of("file", MATCH_RETURN_FILE);
 
         testRunProcedureWithSimpleReturnResults(session, query, params, true);
+    }
+
+    @Test
+    public void gemTestContainer() {
+        session.writeTransaction(session -> session.run(
+                "UNWIND range(0,3) as id \n" + "CREATE (n:Result {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})"));
+
+        testResult(
+                session,
+                "CALL apoc.cypher.runFile(\"gem.cypher\", {}) YIELD row, result RETURN result.n, labels(result.n) AS labels",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    row = r.next();
+                    System.out.println(row.get("labels"));
+                    assertEquals(false, r.hasNext());
+                });
     }
 
     @Test
