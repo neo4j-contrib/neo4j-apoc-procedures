@@ -1,5 +1,7 @@
 package apoc.redis;
 
+import apoc.redis.Redis;
+import apoc.redis.RedisConfig;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;

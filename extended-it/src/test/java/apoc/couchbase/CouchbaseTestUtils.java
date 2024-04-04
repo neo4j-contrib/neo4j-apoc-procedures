@@ -5,6 +5,7 @@ import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
@@ -25,7 +26,6 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.couchbase.client.java.ClusterOptions.clusterOptions;
 import static com.couchbase.client.java.query.QueryOptions.queryOptions;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -146,7 +146,7 @@ public class CouchbaseTestUtils {
                 Optional.of(couchbase.getBootstrapCarrierDirectPort()),
                 Optional.of(couchbase.getBootstrapHttpDirectPort())));
 
-        Cluster cluster = Cluster.connect(seedNodes, clusterOptions(USERNAME, PASSWORD).environment(environment));
+        Cluster cluster = Cluster.connect(seedNodes, ClusterOptions.clusterOptions(USERNAME, PASSWORD).environment(environment));
 
         boolean isFilled = fillDB(cluster);
         HOST = getUrl(couchbase);

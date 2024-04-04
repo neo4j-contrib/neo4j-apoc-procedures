@@ -1,5 +1,6 @@
-package apoc.systemdb;
+package apoc.neo4j.docker;
 
+import apoc.util.ExtendedITUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import org.apache.commons.io.FileUtils;
@@ -25,7 +26,7 @@ public class SystemDbEnterpriseTest {
 
     private static final String KEYSTORE_NAME_PKCS_12 = "keystore-name.pkcs12";
     // we put the keystore file in the import folder for simplicity (because it's bound during the creation of the container) 
-    private static final File KEYSTORE_FILE = new File("import", KEYSTORE_NAME_PKCS_12);
+    private static final File KEYSTORE_FILE = new File(ExtendedITUtil.EXTENDED_PATH + "import", KEYSTORE_NAME_PKCS_12);
     
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;

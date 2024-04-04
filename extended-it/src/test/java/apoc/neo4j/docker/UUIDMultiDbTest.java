@@ -1,4 +1,4 @@
-package apoc.uuid;
+package apoc.neo4j.docker;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.SystemDbTestUtil;

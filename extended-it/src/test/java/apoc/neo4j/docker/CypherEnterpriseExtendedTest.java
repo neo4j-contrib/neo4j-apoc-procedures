@@ -1,4 +1,4 @@
-package apoc.cypher;
+package apoc.neo4j.docker;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil.ApocPackage;
@@ -10,16 +10,15 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import org.neo4j.driver.Session;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Relationship;
 
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.importFolder;
