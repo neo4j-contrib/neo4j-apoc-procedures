@@ -1,0 +1,41 @@
+
+= apoc.util.hashCode
+:description: This section contains reference documentation for the apoc.util.hashCode function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.util.hashCode(value) - Returns the java.lang.Object#hashCode() of the value
+
+== Signature
+
+[source]
+----
+apoc.util.hashCode(value :: ANY?) :: (LONG?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|value|ANY?|null
+|===
+
+
+[[usage-apoc.util.hashCode]]
+== Usage Examples
+
+[source,cypher]
+----
+WITH rand() AS value
+RETURN apoc.util.hashCode(value) AS output;
+----
+
+.Results
+[opts="header"]
+|===
+| output
+| 1011991601
+|===
+
+
