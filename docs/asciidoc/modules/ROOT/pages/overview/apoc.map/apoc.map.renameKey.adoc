@@ -2,7 +2,7 @@
 = apoc.map.renameKey
 :description: This section contains reference documentation for the apoc.map.renameKey procedure.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 [.emphasis]
 Rename the given key(s) in the `MAP`.
