@@ -122,11 +122,70 @@ public class LoadCsvTest {
                 this::commonAssertionsLoadCsv);
     }
 
+
+    @Test
+    public void testLoadCsvWithQuote() {
+        String url = "testQuote.csv";
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
+                r -> {
+                    assertRow(r, 0L, "name", "Selma", "age", "8");
+                    assertRow(r, 1L, "name", "Rana", "age", "11");
+                    assertRow(r, 2L, "name", "Seli,na", "age", "18");
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadCsvWithQuoteAndIgnoreQuotations() {
+        String url = "testQuote.csv";
+        testResult(db, "CALL apoc.load.csv($url,{ignoreQuotations: true, results:['list']})", map("url",url), // 'file:test.csv'
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(List.of("Selma","8"), row.get("list"));
+
+                    row = r.next();
+                    assertEquals(List.of("Rana","11"), row.get("list"));
+
+                    row = r.next();
+                    assertEquals(List.of("Seli", "na", "18"), row.get("list"));
+
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadCsvWithMultiCharSeparator(){
+        String url = "testMultiCharSep.csv";
+        Map<String, Object> conf = map("results", List.of("map","list","stringMap","strings"),
+                "sep", "SEP");
+        testResult(db, "CALL apoc.load.csv($url, $conf)",
+                map("url",url, "conf", conf),
+                this::commonAssertionsLoadCsv);
+    }
+
     private void commonAssertionsLoadCsv(Result r) {
         assertRow(r, 0L, "name", "Selma", "age", "8");
         assertRow(r, 1L, "name", "Rana", "age", "11");
         assertRow(r, 2L, "name", "Selina", "age", "18");
         assertFalse(r.hasNext());
+    }
+
+    @Test
+    public void testLoadCsvWithNoneSeparator() {
+        String url = "test.csv";
+        testResult(db, "CALL apoc.load.csv($url, {sep:'NONE'})", map("url",url), // 'file:test.csv'
+                r -> {
+                    Object actualList = r.next().get("list");
+                    assertEquals(List.of("Selma,8"), actualList);
+
+                    actualList = r.next().get("list");
+                    assertEquals(List.of("Rana,11"), actualList);
+
+                    actualList = r.next().get("list");
+                    assertEquals(List.of("Selina,18"), actualList);
+
+                    assertFalse(r.hasNext());
+                });
     }
 
     /*
@@ -240,20 +299,13 @@ public class LoadCsvTest {
 
     @Test
     public void testLoadCsvEscape() {
-        String url = "test-escape.csv";
+        URL url = getUrlFileName("test-escape.csv");
         final List<String> results = List.of("map", "list", "stringMap", "strings");
-        testResult(db, "CALL apoc.load.csv($url, $config)", map("url", url, "config", map("results", results)), (r) -> {
-            assertRow(r, 0L, "name", "Naruto", "surname", "Uzumaki");
-            assertRow(r, 1L, "name", "Minato", "surname", "Namikaze");
-            assertFalse(r.hasNext());
-        });
-        testResult(
-                db,
-                "CALL apoc.load.csv($url,$config)",
-                map("url", url, "config", map("results", results, "escapeChar", "NONE")),
+        testResult(db, "CALL apoc.load.csv($url, $config)",
+                map("url", url.toString(), "config", map("results", results)),
                 (r) -> {
-                    assertRow(r, 0L, "name", "Narut\\o", "surname", "Uzu\\maki");
-                    assertRow(r, 1L, "name", "Minat\\o", "surname", "Nami\\kaze");
+                    assertRow(r, 0L,"name", "Narut\\o", "surname","Uzu\\maki");
+                    assertRow(r, 1L,"name", "Minat\\o", "surname","Nami\\kaze");
                     assertFalse(r.hasNext());
                 });
     }
