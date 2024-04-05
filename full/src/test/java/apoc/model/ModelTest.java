@@ -126,8 +126,27 @@ public class ModelTest {
                     assertEquals(29, columns.size());
 
                     List<String> countryNodes = filterColumnsByTableName(columns, "country");
-                    List<String> expectedCountryCols = Arrays.asList("Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2",
-                            "myTime", "myDateTime", "myTimeStamp", "myDate", "myYear");
+                    List<String> expectedCountryCols = Arrays.asList(
+                            "Code",
+                            "Name",
+                            "Continent",
+                            "Region",
+                            "SurfaceArea",
+                            "IndepYear",
+                            "Population",
+                            "LifeExpectancy",
+                            "GNP",
+                            "GNPOld",
+                            "LocalName",
+                            "GovernmentForm",
+                            "HeadOfState",
+                            "Capital",
+                            "Code2",
+                            "myTime",
+                            "myDateTime",
+                            "myTimeStamp",
+                            "myDate",
+                            "myYear");
                     assertEquals(expectedCountryCols, countryNodes);
 
                     List<String> cityNodes = filterColumnsByTableName(columns, "city");
@@ -195,8 +214,27 @@ public class ModelTest {
             assertEquals(29, columns.size());
 
             List<String> countryNodes = filterColumnsByTableName(columns, "country");
-            List<String> expectedCountryCols = Arrays.asList("Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2",
-                    "myTime", "myDateTime", "myTimeStamp", "myDate", "myYear");
+            List<String> expectedCountryCols = Arrays.asList(
+                    "Code",
+                    "Name",
+                    "Continent",
+                    "Region",
+                    "SurfaceArea",
+                    "IndepYear",
+                    "Population",
+                    "LifeExpectancy",
+                    "GNP",
+                    "GNPOld",
+                    "LocalName",
+                    "GovernmentForm",
+                    "HeadOfState",
+                    "Capital",
+                    "Code2",
+                    "myTime",
+                    "myDateTime",
+                    "myTimeStamp",
+                    "myDate",
+                    "myYear");
             assertEquals(expectedCountryCols, countryNodes);
 
             List<String> cityNodes = filterColumnsByTableName(columns, "city");

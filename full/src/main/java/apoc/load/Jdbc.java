@@ -281,7 +281,8 @@ public class Jdbc {
             ZoneId zoneId = config.getZoneId();
             if (Types.TIMESTAMP == sqlType) {
                 if (zoneId != null) {
-                    return ((java.sql.Timestamp)value).toInstant()
+                    return ((java.sql.Timestamp) value)
+                            .toInstant()
                             .atZone(zoneId)
                             .toOffsetDateTime();
                 } else {
@@ -290,7 +291,8 @@ public class Jdbc {
             }
             if (Types.TIMESTAMP_WITH_TIMEZONE == sqlType) {
                 if (zoneId != null) {
-                    return ((java.sql.Timestamp)value).toInstant()
+                    return ((java.sql.Timestamp) value)
+                            .toInstant()
                             .atZone(zoneId)
                             .toOffsetDateTime();
                 } else {
