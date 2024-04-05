@@ -2,4 +2,4 @@
 
 `apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value` - perform a DELETE operation on elastic search
 ¦label:procedure[]
-¦label:apoc-extended[]
+¦label:apoc-full[]

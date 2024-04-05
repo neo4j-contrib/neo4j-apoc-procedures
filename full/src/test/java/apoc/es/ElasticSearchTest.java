@@ -555,10 +555,14 @@ public class ElasticSearchTest {
                     assertEquals("Brazorf", actual);
                 });
 
-        TestUtil.testCall(db, "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true', {headers: $headers})", params, r -> {
-            Object result = extractValueFromResponse(r, "$.result");
-            assertEquals("deleted", result);
-        });
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true', {headers: $headers})",
+                params,
+                r -> {
+                    Object result = extractValueFromResponse(r, "$.result");
+                    assertEquals("deleted", result);
+                });
     }
 
     /**

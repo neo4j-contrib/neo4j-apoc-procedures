@@ -2,7 +2,7 @@
 = apoc.es.delete
 :description: This section contains reference documentation for the apoc.es.delete procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search
