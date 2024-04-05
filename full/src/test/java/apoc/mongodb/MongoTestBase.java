@@ -7,6 +7,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 import apoc.util.JsonUtil;
 import com.mongodb.client.MongoClient;
@@ -47,8 +48,6 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
-
-import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class MongoTestBase {
     enum MongoVersion {
@@ -105,12 +104,15 @@ public class MongoTestBase {
     @After
     public void after() {
         // the connections active before must be equal to the connections active after
-        assertEventually(() -> {
+        assertEventually(
+                () -> {
                     Map<String, Object> numConnectionsMap = getNumConnections(mongo, commands);
                     long numConnectionsAfter = (long) numConnectionsMap.get("current");
                     return numConnections == numConnectionsAfter;
                 },
-                v -> v, 30, TimeUnit.SECONDS);
+                v -> v,
+                30,
+                TimeUnit.SECONDS);
     }
 
     public static void createContainer(boolean withAuth, MongoVersion mongoVersion) {
