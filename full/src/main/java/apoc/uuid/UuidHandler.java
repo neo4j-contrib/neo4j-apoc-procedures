@@ -135,17 +135,22 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     private void checkAndRestoreUuidProperty(
-            Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty) {
-        checkAndRestoreUuidProperty(nodeProperties, label, uuidProperty, null);
+            Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty, TransactionData txData) {
+        checkAndRestoreUuidProperty(nodeProperties, label, uuidProperty, txData, null);
     }
 
     private void checkAndRestoreUuidProperty(
             Iterable<PropertyEntry<Node>> nodeProperties,
             String label,
             String uuidProperty,
+            TransactionData txData,
             Predicate<PropertyEntry<Node>> predicate) {
         if (nodeProperties.iterator().hasNext()) {
             nodeProperties.forEach(nodePropertyEntry -> {
+                Node entity = nodePropertyEntry.entity();
+                if (txData.isDeleted(entity)) {
+                    return;
+                }
                 if (predicate == null) {
                     if (nodePropertyEntry.entity().hasLabel(Label.label(label))
                             && nodePropertyEntry.key().equals(uuidProperty)) {
@@ -191,9 +196,10 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                         assignedNodeProperties,
                         label,
                         propertyName,
+                        txData,
                         (nodePropertyEntry) -> nodePropertyEntry.value() == null
                                 || nodePropertyEntry.value().equals(""));
-                checkAndRestoreUuidProperty(removedNodeProperties, label, propertyName);
+                checkAndRestoreUuidProperty(removedNodeProperties, label, propertyName, txData);
             } catch (Exception e) {
                 log.warn("Error executing uuid " + label + " in phase before", e);
             }
