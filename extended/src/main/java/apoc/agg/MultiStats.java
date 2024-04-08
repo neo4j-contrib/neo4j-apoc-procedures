@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static apoc.agg.AggregationUtil.updateAggregationValues;
+
 @Extended
 public class MultiStats {
 
@@ -44,22 +46,11 @@ public class MultiStats {
 
                             Map<String, Number> propMap = Objects.requireNonNullElseGet(propVal, HashMap::new);
 
-                            Number count = propMap.compute("count",
-                                    ((subKey, subVal) -> subVal == null ? 1 : subVal.longValue() + 1) );
+                            String countKey = "count";
+                            String sumKey = "sum";
+                            String avgKey = "avg";
 
-                            if (property instanceof Number numberProp) {
-                                Number sum = propMap.compute("sum",
-                                        ((subKey, subVal) -> {
-                                            if (subVal == null) return numberProp;
-                                            if (subVal instanceof Long long1 && numberProp instanceof Long long2) {
-                                                return long1 + long2;
-                                            }
-                                            return subVal.doubleValue() + numberProp.doubleValue();
-                                        }));
-                                
-                                propMap.compute("avg",
-                                        ((subKey, subVal) -> subVal == null ? numberProp.doubleValue() : sum.doubleValue() / count.doubleValue()  ));
-                            }
+                            updateAggregationValues(propMap, property, countKey, sumKey, avgKey);
 
                             return propMap;
                         });

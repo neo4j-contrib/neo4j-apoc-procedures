@@ -18,16 +18,20 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
 public class ExtendedTestUtil {
 
     public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
+        assertMapEquals(null, expected, actual);
+    }
+    
+    public static void assertMapEquals(String errMsg, Map<String, Object> expected, Map<String, Object> actual) {
         if (expected == null) {
             assertNull(actual);
         } else {
-            assertEquals(expected.keySet(), actual.keySet());
+            assertEquals(errMsg, expected.keySet(), actual.keySet());
 
             actual.forEach((key, value) -> {
                 if (value instanceof Map mapVal) {
-                    assertMapEquals((Map<String, Object>) expected.get(key), mapVal);
+                    assertMapEquals(errMsg, (Map<String, Object>) expected.get(key), mapVal);
                 } else {
-                    assertEquals(expected.get(key), value);
+                    assertEquals(errMsg, expected.get(key), value);
                 }
             });
         }

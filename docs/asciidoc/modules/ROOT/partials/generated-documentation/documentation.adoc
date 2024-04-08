@@ -29,6 +29,13 @@ Returns index of the `element` that match the given `predicate`
 
 apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
 |label:procedure[]
+
+|xref::overview/apoc.agg/apoc.agg.rollup.adoc[apoc.agg.rollup icon:book[]]
+
+apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys]) 
+
+Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ... `
+|label:procedure[]
 |===
 
 
