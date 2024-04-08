@@ -1,0 +1,5 @@
+¦xref::overview/apoc.es/apoc.es.delete.adoc[apoc.es.delete icon:book[]] +
+
+`apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value` - perform a DELETE operation on elastic search
+¦label:procedure[]
+¦label:apoc-full[]

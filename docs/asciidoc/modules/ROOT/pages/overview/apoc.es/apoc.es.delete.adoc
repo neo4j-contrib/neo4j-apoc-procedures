@@ -1,0 +1,42 @@
+
+= apoc.es.delete
+:description: This section contains reference documentation for the apoc.es.delete procedure.
+
+label:procedure[] label:apoc-full[]
+
+[.emphasis]
+apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search
+
+== Signature
+
+[source]
+----
+apoc.es.delete(host :: STRING?, index :: STRING?, type :: STRING?, id :: STRING?, query :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|host|STRING?|null
+|index|STRING?|null
+|type|STRING?|null
+|id|STRING?|null
+|query|ANY?|null
+|payload|ANY?|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+[[usage-apoc.es.delete]]
+== Usage Examples
+include::partial$usage/apoc.es.delete.adoc[]
+
+xref::database-integration/elasticsearch.adoc[More documentation of apoc.es.delete,role=more information]
+

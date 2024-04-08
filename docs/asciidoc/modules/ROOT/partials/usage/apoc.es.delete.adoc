@@ -1,0 +1,33 @@
+
+include::partial$usage/dataset-elastic.adoc[]
+
+We can delete the document with id `1`, by running the following query:
+
+[source,cypher]
+----
+CALL apoc.es.delete("localhost","bank","_doc","1");
+----
+
+.Results
+[opts="header"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "result": "deleted",
+  "_seq_no": 1000,
+  "_type": "_doc",
+  "_shards": {
+    "total": 2,
+    "failed": 0,
+    "successful": 1
+  },
+  "_version": 2,
+  "_id": "1",
+  "_index": "bank",
+  "_primary_term": 1
+}
+----
+|===

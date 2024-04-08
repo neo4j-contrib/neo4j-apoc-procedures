@@ -507,18 +507,10 @@ public class ElasticSearchTest {
             assertEquals("Brazorf", response);
         });
 
-        // TODO: forced the apoc.es.postRaw's HTTP method to be a DELETE, to remove the document and ensure isolation of
-        // tests.
-        //  Replace with `apoc.es.delete` when the issue
-        // https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2999 is implemented
-        TestUtil.testCall(
-                db,
-                "CALL apoc.es.postRaw($host, $suffixDelete, '', {headers: {method: 'DELETE'}}) yield value",
-                params,
-                r -> {
-                    Map expected = Util.map("acknowledged", true);
-                    assertEquals(expected, r.get("value"));
-                });
+        TestUtil.testCall(db, "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true')", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("deleted", result);
+        });
     }
 
     @Test
@@ -563,16 +555,13 @@ public class ElasticSearchTest {
                     assertEquals("Brazorf", actual);
                 });
 
-        // TODO: forced the apoc.es.postRaw's HTTP method to be a DELETE, to remove the document and ensure isolation of
-        // tests.
-        //  Replace with `apoc.es.delete` when the issue
-        // https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2999 is implemented
-        Map<String, Object> deleteHeaders = Util.merge(basicAuthHeader, Util.map("method", "DELETE"));
-        params.put("headers", deleteHeaders);
         TestUtil.testCall(
-                db, "CALL apoc.es.postRaw($host, $suffix, '', {headers: $headers}) yield value", params, r -> {
-                    Map expected = Util.map("acknowledged", true);
-                    assertEquals(expected, r.get("value"));
+                db,
+                "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true', {headers: $headers})",
+                params,
+                r -> {
+                    Object result = extractValueFromResponse(r, "$.result");
+                    assertEquals("deleted", result);
                 });
     }
 

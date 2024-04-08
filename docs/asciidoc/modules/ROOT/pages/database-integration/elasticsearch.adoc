@@ -19,6 +19,7 @@ include::example$generated-documentation/apoc.es.getRaw.adoc[]
 include::example$generated-documentation/apoc.es.postRaw.adoc[]
 include::example$generated-documentation/apoc.es.post.adoc[]
 include::example$generated-documentation/apoc.es.put.adoc[]
+include::example$generated-documentation/apoc.es.delete.adoc[]
 |===
 // end::elasticsearch[]
 
@@ -42,6 +43,11 @@ call apoc.es.get("localhost","tweets","users","1",null,null)
 [source,cypher]
 ----
 call apoc.es.stats("localhost")
+----
+
+[source,cypher]
+----
+call apoc.es.delete("localhost","indexName","typeName","idName")
 ----
 
 image::apoc.es.get.png[scaledwidth="100%"]
@@ -88,12 +94,12 @@ This example was tested on a Mac Book Pro with 16GB of RAM. Loading 20000 docume
 
 [source,cypher]
 ----
-call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value
+call apoc.es.post(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value
 
 // GET/PUT/POST url/index/type/id?query -d payload
 ----
 
-=== host or port parameter
+=== host-or-key parameter
 
 The parameter can be a direct host or url, or an entry to be lookup up in apoc.conf
 

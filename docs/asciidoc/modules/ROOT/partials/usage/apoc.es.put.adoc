@@ -1,5 +1,4 @@
-The examples in this section are based on an Elastic instance populated with the accounts.json sample dataset from the https://www.elastic.co/guide/en/elasticsearch/reference/current/getting-started-index.html[Getting Started with Elasticsearch^] guide.
-You can find instructions for setting this up at https://github.com/neo4j-examples/elastic-example[github.com/neo4j-examples/elastic-example^].
+include::partial$usage/dataset-elastic.adoc[]
 
 We can create a document with a `name` property of `John Doe` and document id of `2`, in the `customers` index, by running the following query:
 

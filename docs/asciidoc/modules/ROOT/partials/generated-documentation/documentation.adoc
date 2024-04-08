@@ -1204,37 +1204,41 @@ Query a virtualized resource by name and return virtual nodes linked using virtu
 | Qualified Name | Type | Release
 |xref::overview/apoc.es/apoc.es.get.adoc[apoc.es.get icon:book[]]
 
-apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a GET operation on elastic search
+apoc.es.get(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a GET operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.getRaw.adoc[apoc.es.getRaw icon:book[]]
 
-apoc.es.getRaw(host-or-port,path,payload-or-null,$config) yield value - perform a raw GET operation on elastic search
+apoc.es.getRaw(host-or-key,path,payload-or-null,$config) yield value - perform a raw GET operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.post.adoc[apoc.es.post icon:book[]]
 
-apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a POST operation on elastic search
+apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a POST operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.postRaw.adoc[apoc.es.postRaw icon:book[]]
 
-apoc.es.postRaw(host-or-port,path,payload-or-null,$config) yield value - perform a raw POST operation on elastic search
+apoc.es.postRaw(host-or-key,path,payload-or-null,$config) yield value - perform a raw POST operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.put.adoc[apoc.es.put icon:book[]]
 
-apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a PUT operation on elastic search
+apoc.es.put(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a PUT operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.query.adoc[apoc.es.query icon:book[]]
 
-apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a SEARCH operation on elastic search
+apoc.es.query(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a SEARCH operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |xref::overview/apoc.es/apoc.es.stats.adoc[apoc.es.stats icon:book[]]
 
-apoc.es.stats(host-url-Key,$config) - elastic search statistics
+apoc.es.stats(host-or-key,$config) - elastic search statistics
+|label:procedure[]
+|xref::overview/apoc.es/apoc.es.delete.adoc[apoc.es.delete icon:book[]]
+
+apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search
 |label:procedure[]
 |label:apoc-full[]
 |===
