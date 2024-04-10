@@ -517,22 +517,21 @@ public class ConvertJsonTest {
         try (Transaction tx = db.beginTx()) {
             Result result = tx.execute(query);
             var rows = result.stream().collect(Collectors.toList());
-            var expectedRow = "{" +
-                              "   \"tree\":{" +
-                              "      \"nodeName\":\"a\"," +
-                              "      \"r\":[" +
-                              "         {" +
-                              "            \"nodeName\":\"b\"," +
-                              "            \"r._id\":0," +
-                              "            \"_type\":\"B\"," +
-                              "            \"_id\":1," +
-                              "            \"r.relName\":\"r\"" +
-                              "         }" +
-                              "      ]," +
-                              "      \"_type\":\"A\"," +
-                              "      \"_id\":0" +
-                              "   }" +
-                              "}";
+            var expectedRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"r\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r._id\":0,"
+                    + "            \"_type\":\"B\","
+                    + "            \"_id\":1,"
+                    + "            \"r.relName\":\"r\""
+                    + "         }"
+                    + "      ],"
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0"
+                    + "   }"
+                    + "}";
             assertEquals(rows.size(), 1);
             assertEquals(parseJson(expectedRow), rows.get(0));
         } catch (Exception e) {
@@ -563,47 +562,45 @@ public class ConvertJsonTest {
             var rows = result.stream().collect(Collectors.toList());
 
             assertEquals(rows.size(), 2);
-            var expectedFirstRow = "{" +
-                                   "   \"tree\":{" +
-                                   "      \"nodeName\":\"a\"," +
-                                   "      \"_type\":\"A\"," +
-                                   "      \"_id\":0," +
-                                   "      \"r1\":[" +
-                                   "         {" +
-                                   "            \"nodeName\":\"b\"," +
-                                   "            \"r3\":[" +
-                                   "               {" +
-                                   "                  \"nodeName\":\"d\"," +
-                                   "                  \"r3._id\":2," +
-                                   "                  \"r3.relName\":\"r3\"," +
-                                   "                  \"_type\":\"D\"," +
-                                   "                  \"_id\":3" +
-                                   "               }" +
-                                   "            ]," +
-                                   "            \"_type\":\"B\"," +
-                                   "            \"r1._id\":0," +
-                                   "            \"_id\":1," +
-                                   "            \"r1.relName\":\"r1\"" +
-                                   "         }" +
-                                   "      ]" +
-                                   "   }" +
-                                   "}";
-            var expectedSecondRow = "{" +
-                                "   \"tree\":{" +
-                                "      \"nodeName\":\"c\"," +
-                                "      \"r2\":[" +
-                                "         {" +
-                                "            \"nodeName\":\"b\"," +
-                                "            \"r2._id\":1," +
-                                "            \"_type\":\"B\"," +
-                                "            \"r2.relName\":\"r2\"," +
-                                "            \"_id\":1" +
-                                "         }" +
-                                "      ]," +
-                                "      \"_type\":\"C\"," +
-                                "      \"_id\":2" +
-                                "   }" +
-                                "}";
+            var expectedFirstRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0,"
+                    + "      \"r1\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r3\":["
+                    + "               {"
+                    + "                  \"nodeName\":\"d\","
+                    + "                  \"r3._id\":2,"
+                    + "                  \"r3.relName\":\"r3\","
+                    + "                  \"_type\":\"D\","
+                    + "                  \"_id\":3"
+                    + "               }"
+                    + "            ],"
+                    + "            \"_type\":\"B\","
+                    + "            \"r1._id\":0,"
+                    + "            \"_id\":1,"
+                    + "            \"r1.relName\":\"r1\""
+                    + "         }"
+                    + "      ]"
+                    + "   }"
+                    + "}";
+            var expectedSecondRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"c\","
+                    + "      \"r2\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r2._id\":1,"
+                    + "            \"_type\":\"B\","
+                    + "            \"r2.relName\":\"r2\","
+                    + "            \"_id\":1"
+                    + "         }"
+                    + "      ],"
+                    + "      \"_type\":\"C\","
+                    + "      \"_id\":2"
+                    + "   }"
+                    + "}";
             assertEquals(parseJson(expectedFirstRow), rows.get(0));
             assertEquals(parseJson(expectedSecondRow), rows.get(1));
         } catch (Exception e) {
@@ -619,55 +616,53 @@ public class ConvertJsonTest {
                             |___|
                             r3:R3
         */
-        db.executeTransactionally("CREATE " +
-                                  "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'})," +
-                                  "(b)-[r2: R2 {relName: 'r2'}]->(c:C {nodeName: 'c'})," +
-                                  "(b)-[r3: R3 {relName: 'r3'}]->(b)");
+        db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'}),"
+                + "(b)-[r2: R2 {relName: 'r2'}]->(c:C {nodeName: 'c'}),"
+                + "(b)-[r3: R3 {relName: 'r3'}]->(b)");
 
         var query = "MATCH path = (n)-[r]->(m)\n"
-                    + "WITH COLLECT(path) AS paths\n"
-                    + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                    + "RETURN tree";
+                + "WITH COLLECT(path) AS paths\n"
+                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
             Result result = tx.execute(query);
             var rows = result.stream().collect(Collectors.toList());
 
             assertEquals(rows.size(), 1);
-            var expectedRow = "{" +
-                                     "   \"tree\":{" +
-                                     "      \"nodeName\":\"a\"," +
-                                     "      \"_type\":\"A\"," +
-                                     "      \"_id\":0," +
-                                     "      \"r1\":[" +
-                                     "         {" +
-                                     "            \"nodeName\":\"b\"," +
-                                     "            \"r2\":[" +
-                                     "               {" +
-                                     "                  \"nodeName\":\"c\"," +
-                                     "                  \"r2._id\":1," +
-                                     "                  \"_type\":\"C\"," +
-                                     "                  \"r2.relName\":\"r2\"," +
-                                     "                  \"_id\":2" +
-                                     "               }" +
-                                     "            ]," +
-                                     "            \"r3\":[" +
-                                     "               {" +
-                                     "                  \"nodeName\":\"b\"," +
-                                     "                  \"r3._id\":2," +
-                                     "                  \"r3.relName\":\"r3\"," +
-                                     "                  \"_type\":\"B\"," +
-                                     "                  \"_id\":1" +
-                                     "               }" +
-                                     "            ]," +
-                                     "            \"_type\":\"B\"," +
-                                     "            \"r1._id\":0," +
-                                     "            \"_id\":1," +
-                                     "            \"r1.relName\":\"r1\"" +
-                                     "         }" +
-                                     "      ]" +
-                                     "   }" +
-                                     "}";
+            var expectedRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0,"
+                    + "      \"r1\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r2\":["
+                    + "               {"
+                    + "                  \"nodeName\":\"c\","
+                    + "                  \"r2._id\":1,"
+                    + "                  \"_type\":\"C\","
+                    + "                  \"r2.relName\":\"r2\","
+                    + "                  \"_id\":2"
+                    + "               }"
+                    + "            ],"
+                    + "            \"r3\":["
+                    + "               {"
+                    + "                  \"nodeName\":\"b\","
+                    + "                  \"r3._id\":2,"
+                    + "                  \"r3.relName\":\"r3\","
+                    + "                  \"_type\":\"B\","
+                    + "                  \"_id\":1"
+                    + "               }"
+                    + "            ],"
+                    + "            \"_type\":\"B\","
+                    + "            \"r1._id\":0,"
+                    + "            \"_id\":1,"
+                    + "            \"r1.relName\":\"r1\""
+                    + "         }"
+                    + "      ]"
+                    + "   }"
+                    + "}";
             assertEquals(parseJson(expectedRow), rows.get(0));
         } catch (Exception e) {
             fail("Test failed with message " + e.getMessage());
@@ -679,43 +674,43 @@ public class ConvertJsonTest {
         /*          r1:R1         r2:R2
               a:A ---------> b:B --------> a
         */
-        db.executeTransactionally("CREATE (a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'})-[r2: R2 {relName: 'r2'}]->(a)");
+        db.executeTransactionally(
+                "CREATE (a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'})-[r2: R2 {relName: 'r2'}]->(a)");
 
         var query = "MATCH path = (n)-[r]->(m)\n"
-                    + "WITH COLLECT(path) AS paths\n"
-                    + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                    + "RETURN tree";
+                + "WITH COLLECT(path) AS paths\n"
+                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
             Result result = tx.execute(query);
             var rows = result.stream().collect(Collectors.toList());
 
             assertEquals(rows.size(), 1);
-            var expectedRow = "{" +
-                              "   \"tree\":{" +
-                              "      \"nodeName\":\"a\"," +
-                              "      \"_type\":\"A\"," +
-                              "      \"_id\":0," +
-                              "      \"r1\":[" +
-                              "         {" +
-                              "            \"nodeName\":\"b\"," +
-                              "            \"r2\":[" +
-                              "               {" +
-                              "                  \"nodeName\":\"a\"," +
-                              "                  \"r2._id\":1," +
-                              "                  \"_type\":\"A\"," +
-                              "                  \"r2.relName\":\"r2\"," +
-                              "                  \"_id\":0" +
-                              "               }" +
-                              "            ]," +
-                              "            \"_type\":\"B\"," +
-                              "            \"r1._id\":0," +
-                              "            \"_id\":1," +
-                              "            \"r1.relName\":\"r1\"" +
-                              "         }" +
-                              "      ]" +
-                              "   }" +
-                              "}";
+            var expectedRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0,"
+                    + "      \"r1\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r2\":["
+                    + "               {"
+                    + "                  \"nodeName\":\"a\","
+                    + "                  \"r2._id\":1,"
+                    + "                  \"_type\":\"A\","
+                    + "                  \"r2.relName\":\"r2\","
+                    + "                  \"_id\":0"
+                    + "               }"
+                    + "            ],"
+                    + "            \"_type\":\"B\","
+                    + "            \"r1._id\":0,"
+                    + "            \"_id\":1,"
+                    + "            \"r1.relName\":\"r1\""
+                    + "         }"
+                    + "      ]"
+                    + "   }"
+                    + "}";
             assertEquals(parseJson(expectedRow), rows.get(0));
         } catch (Exception e) {
             fail("Test failed with message " + e.getMessage());

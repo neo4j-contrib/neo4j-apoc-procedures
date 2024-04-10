@@ -187,7 +187,7 @@ public class Json {
         Map<String, List<String>> nodes = conf.getNodes();
         Map<String, List<String>> rels = conf.getRels();
         Set<Long> visitedInOtherPaths = new HashSet<>();
-        Set<Long> requiredStarts = new HashSet<>();
+        Set<Long> nodesToKeepInResult = new HashSet<>();
         Map<Long, Map<String, Object>> tree = new HashMap<>();
 
         Stream<Path> allPaths = paths.stream();
@@ -196,9 +196,10 @@ public class Json {
         }
         allPaths.forEach(path -> {
             Node rootNode = path.startNode();
+            Long rootNodeId = rootNode.getId();
             Iterator<Entity> currentPath = path.iterator();
-            if (!visitedInOtherPaths.contains(rootNode.getId())) {
-                requiredStarts.add(rootNode.getId());
+            if (!visitedInOtherPaths.contains(rootNodeId)) {
+                nodesToKeepInResult.add(rootNodeId);
             }
             while (currentPath.hasNext()) {
                 Node currentNode = (Node) currentPath.next();
@@ -207,6 +208,7 @@ public class Json {
                 if (currentPath.hasNext()) {
                     Relationship currentRel = (Relationship) currentPath.next();
                     Node nextNode = currentRel.getOtherNode(currentNode);
+                    Long nextNodeId = nextNode.getId();
                     String typeName = lowerCaseRels
                             ? currentRel.getType().name().toLowerCase()
                             : currentRel.getType().name();
@@ -216,25 +218,26 @@ public class Json {
                     // Check that this combination of rel and node doesn't already exist
                     List<Map<String, Object>> currentNodeRels = (List) nodeMap.get(typeName);
                     boolean alreadyProcessedRel = currentNodeRels.stream()
-                            .anyMatch(elem -> elem.get("_id").equals(nextNode.getId())
+                            .anyMatch(elem -> elem.get("_id").equals(nextNodeId)
                                     && elem.get(typeName + "._id").equals(currentRel.getId()));
                     if (!alreadyProcessedRel) {
-                        boolean nodeAlreadyVisited = tree.containsKey(nextNode.getId());
+                        boolean nodeAlreadyVisited = tree.containsKey(nextNodeId);
                         Map<String, Object> nextNodeMap = toMap(nextNode, nodes);
                         addRelProperties(nextNodeMap, typeName, currentRel, rels);
 
                         if (!nodeAlreadyVisited) {
-                            tree.put(nextNode.getId(), nextNodeMap);
+                            tree.put(nextNodeId, nextNodeMap);
                         }
 
-                        visitedInOtherPaths.add(nextNode.getId());
+                        visitedInOtherPaths.add(nextNodeId);
                         currentNodeRels.add(nextNodeMap);
                     }
                 }
             }
         });
 
-        var result = requiredStarts.stream().map(n -> tree.get(n)).map(MapResult::new);
+        var result =
+                nodesToKeepInResult.stream().map(nodeId -> tree.get(nodeId)).map(MapResult::new);
         return result;
     }
 
