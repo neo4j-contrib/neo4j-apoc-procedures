@@ -1,0 +1,11 @@
+= apoc.convert
+:description: This section contains reference documentation for the apoc.convert procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.convert/apoc.convert.toYaml.adoc[apoc.convert.toYaml icon:book[]]
+
+apoc.convert.toYaml(value, $config) - Serializes the given value to a YAML string
+|label:function[]
+|===

@@ -68,6 +68,18 @@ apoc.config.map \| Lists the Neo4j configuration as map
 |label:procedure[]
 |===
 
+
+== xref::overview/apoc.convert/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.convert/apoc.convert.toYaml.adoc[apoc.convert.toYaml icon:book[]]
+
+apoc.convert.toYaml(value, $config) - Serializes the given value to a YAML string
+|label:function[]
+|===
+
 == xref::overview/apoc.couchbase/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
