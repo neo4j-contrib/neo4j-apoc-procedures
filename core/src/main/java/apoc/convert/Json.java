@@ -186,49 +186,56 @@ public class Json {
         ConvertConfig conf = new ConvertConfig(config);
         Map<String, List<String>> nodes = conf.getNodes();
         Map<String, List<String>> rels = conf.getRels();
+        Set<Long> visitedInOtherPaths = new HashSet<>();
+        Set<Long> requiredStarts = new HashSet<>();
+        Map<Long, Map<String, Object>> tree = new HashMap<>();
 
-        Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
-
-        Stream<Path> stream = paths.stream();
+        Stream<Path> allPaths = paths.stream();
         if (conf.isSortPaths()) {
-            stream = stream.sorted(Comparator.comparingInt(Path::length).reversed());
+            allPaths = allPaths.sorted(Comparator.comparingInt(Path::length).reversed());
         }
-        stream.forEach(path -> {
-            Iterator<Entity> it = path.iterator();
-            while (it.hasNext()) {
-                Node n = (Node) it.next();
-                Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n, nodes));
-                if (it.hasNext()) {
-                    Relationship r = (Relationship) it.next();
-                    Node m = r.getOtherNode(n);
+        allPaths.forEach(path -> {
+            Node rootNode = path.startNode();
+            Iterator<Entity> currentPath = path.iterator();
+            if (!visitedInOtherPaths.contains(rootNode.getId())) {
+                requiredStarts.add(rootNode.getId());
+            }
+            while (currentPath.hasNext()) {
+                Node currentNode = (Node) currentPath.next();
+                Map<String, Object> nodeMap =
+                        tree.computeIfAbsent(currentNode.getId(), (id) -> toMap(currentNode, nodes));
+                if (currentPath.hasNext()) {
+                    Relationship currentRel = (Relationship) currentPath.next();
+                    Node nextNode = currentRel.getOtherNode(currentNode);
                     String typeName = lowerCaseRels
-                            ? r.getType().name().toLowerCase()
-                            : r.getType().name();
+                            ? currentRel.getType().name().toLowerCase()
+                            : currentRel.getType().name();
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
-                    if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
+                    if (!nodeMap.containsKey(typeName)) nodeMap.put(typeName, new ArrayList<>());
                     // Check that this combination of rel and node doesn't already exist
-                    List<Map<String, Object>> list = (List) nMap.get(typeName);
-                    Optional<Map<String, Object>> optMap = list.stream()
-                            .filter(elem -> elem.get("_id").equals(m.getId())
-                                    && elem.get(typeName + "._id").equals(r.getId()))
-                            .findFirst();
-                    if (!optMap.isPresent()) {
-                        Map<String, Object> mMap = toMap(m, nodes);
-                        mMap = addRelProperties(mMap, typeName, r, rels);
-                        maps.put(m.getId(), mMap);
-                        list.add(maps.get(m.getId()));
+                    List<Map<String, Object>> currentNodeRels = (List) nodeMap.get(typeName);
+                    boolean alreadyProcessedRel = currentNodeRels.stream()
+                            .anyMatch(elem -> elem.get("_id").equals(nextNode.getId())
+                                    && elem.get(typeName + "._id").equals(currentRel.getId()));
+                    if (!alreadyProcessedRel) {
+                        boolean nodeAlreadyVisited = tree.containsKey(nextNode.getId());
+                        Map<String, Object> nextNodeMap = toMap(nextNode, nodes);
+                        addRelProperties(nextNodeMap, typeName, currentRel, rels);
+
+                        if (!nodeAlreadyVisited) {
+                            tree.put(nextNode.getId(), nextNodeMap);
+                        }
+
+                        visitedInOtherPaths.add(nextNode.getId());
+                        currentNodeRels.add(nextNodeMap);
                     }
                 }
             }
         });
 
-        return paths.stream()
-                .map(Path::startNode)
-                .distinct()
-                .map(n -> maps.remove(n.getId()))
-                .map(m -> m == null ? Collections.<String, Object>emptyMap() : m)
-                .map(MapResult::new);
+        var result = requiredStarts.stream().map(n -> tree.get(n)).map(MapResult::new);
+        return result;
     }
 
     @UserFunction("apoc.convert.toSortedJsonMap")
