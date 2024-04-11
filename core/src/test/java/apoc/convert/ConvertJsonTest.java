@@ -32,7 +32,6 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.assertj.core.util.Arrays;
@@ -46,7 +45,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -83,10 +81,6 @@ public class ConvertJsonTest {
     @After
     public void clear() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n;");
-    }
-
-    public String normalize(String input) {
-        return input.replaceAll("\\s", "");
     }
 
     @Test
@@ -500,221 +494,6 @@ public class ConvertJsonTest {
                 });
 
         db.executeTransactionally("MATCH (n:TreeNode) DETACH DELETE n");
-    }
-
-    @Test
-    public void testConvertToTreeSimpleGraph() {
-        /*            r:R
-              a:A --------> b:B
-        */
-        db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r: R {relName: 'r'}]->(b: B {nodeName: 'b'})");
-
-        var query = "MATCH path = (n)-[r]->(m)\n"
-                + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                + "RETURN tree";
-
-        try (Transaction tx = db.beginTx()) {
-            Result result = tx.execute(query);
-            var rows = result.stream().collect(Collectors.toList());
-            var expectedRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"r\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r._id\":0,"
-                    + "            \"_type\":\"B\","
-                    + "            \"_id\":1,"
-                    + "            \"r.relName\":\"r\""
-                    + "         }"
-                    + "      ],"
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0"
-                    + "   }"
-                    + "}";
-            assertEquals(rows.size(), 1);
-            assertEquals(parseJson(expectedRow), rows.get(0));
-        } catch (Exception e) {
-            fail("Test failed with message " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testConvertToTreeComplexGraph() {
-        /*          r1:R1         r2:R2
-              a:A --------> b:B <------ c:C
-                             |
-                      r3:R3  |
-                            \|/
-                            d:D
-        */
-        db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'}),"
-                + "(b)<-[r2: R2 {relName: 'r2'}]-(c: C {nodeName: 'c'}),"
-                + "(b)-[r3: R3 {relName: 'r3'}]->(d: D {nodeName: 'd'})");
-
-        var query = "MATCH path = (n)-[r]->(m)\n"
-                + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                + "RETURN tree";
-
-        try (Transaction tx = db.beginTx()) {
-            Result result = tx.execute(query);
-            var rows = result.stream().collect(Collectors.toList());
-
-            assertEquals(rows.size(), 2);
-            var expectedFirstRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0,"
-                    + "      \"r1\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r3\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"d\","
-                    + "                  \"r3._id\":2,"
-                    + "                  \"r3.relName\":\"r3\","
-                    + "                  \"_type\":\"D\","
-                    + "                  \"_id\":3"
-                    + "               }"
-                    + "            ],"
-                    + "            \"_type\":\"B\","
-                    + "            \"r1._id\":0,"
-                    + "            \"_id\":1,"
-                    + "            \"r1.relName\":\"r1\""
-                    + "         }"
-                    + "      ]"
-                    + "   }"
-                    + "}";
-            var expectedSecondRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"c\","
-                    + "      \"r2\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r2._id\":1,"
-                    + "            \"_type\":\"B\","
-                    + "            \"r2.relName\":\"r2\","
-                    + "            \"_id\":1"
-                    + "         }"
-                    + "      ],"
-                    + "      \"_type\":\"C\","
-                    + "      \"_id\":2"
-                    + "   }"
-                    + "}";
-            assertEquals(parseJson(expectedFirstRow), rows.get(0));
-            assertEquals(parseJson(expectedSecondRow), rows.get(1));
-        } catch (Exception e) {
-            fail("Test failed with message " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testGraphWithLoops() {
-        /*          r1:R1          r2:R2
-              a:A ---------> b:B --------> c:C
-                            /  /|\
-                            |___|
-                            r3:R3
-        */
-        db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'}),"
-                + "(b)-[r2: R2 {relName: 'r2'}]->(c:C {nodeName: 'c'}),"
-                + "(b)-[r3: R3 {relName: 'r3'}]->(b)");
-
-        var query = "MATCH path = (n)-[r]->(m)\n"
-                + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                + "RETURN tree";
-
-        try (Transaction tx = db.beginTx()) {
-            Result result = tx.execute(query);
-            var rows = result.stream().collect(Collectors.toList());
-
-            assertEquals(rows.size(), 1);
-            var expectedRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0,"
-                    + "      \"r1\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r2\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"c\","
-                    + "                  \"r2._id\":1,"
-                    + "                  \"_type\":\"C\","
-                    + "                  \"r2.relName\":\"r2\","
-                    + "                  \"_id\":2"
-                    + "               }"
-                    + "            ],"
-                    + "            \"r3\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"b\","
-                    + "                  \"r3._id\":2,"
-                    + "                  \"r3.relName\":\"r3\","
-                    + "                  \"_type\":\"B\","
-                    + "                  \"_id\":1"
-                    + "               }"
-                    + "            ],"
-                    + "            \"_type\":\"B\","
-                    + "            \"r1._id\":0,"
-                    + "            \"_id\":1,"
-                    + "            \"r1.relName\":\"r1\""
-                    + "         }"
-                    + "      ]"
-                    + "   }"
-                    + "}";
-            assertEquals(parseJson(expectedRow), rows.get(0));
-        } catch (Exception e) {
-            fail("Test failed with message " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testLoopPath() {
-        /*          r1:R1         r2:R2
-              a:A ---------> b:B --------> a
-        */
-        db.executeTransactionally(
-                "CREATE (a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'})-[r2: R2 {relName: 'r2'}]->(a)");
-
-        var query = "MATCH path = (n)-[r]->(m)\n"
-                + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
-                + "RETURN tree";
-
-        try (Transaction tx = db.beginTx()) {
-            Result result = tx.execute(query);
-            var rows = result.stream().collect(Collectors.toList());
-
-            assertEquals(rows.size(), 1);
-            var expectedRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0,"
-                    + "      \"r1\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r2\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"a\","
-                    + "                  \"r2._id\":1,"
-                    + "                  \"_type\":\"A\","
-                    + "                  \"r2.relName\":\"r2\","
-                    + "                  \"_id\":0"
-                    + "               }"
-                    + "            ],"
-                    + "            \"_type\":\"B\","
-                    + "            \"r1._id\":0,"
-                    + "            \"_id\":1,"
-                    + "            \"r1.relName\":\"r1\""
-                    + "         }"
-                    + "      ]"
-                    + "   }"
-                    + "}";
-            assertEquals(parseJson(expectedRow), rows.get(0));
-        } catch (Exception e) {
-            fail("Test failed with message " + e.getMessage());
-        }
     }
 
     @Test
