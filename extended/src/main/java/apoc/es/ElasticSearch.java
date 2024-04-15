@@ -3,7 +3,6 @@ package apoc.es;
 import apoc.Extended;
 import apoc.load.LoadJsonUtils;
 import apoc.result.MapResult;
-import apoc.util.UrlResolver;
 import apoc.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
@@ -13,9 +12,6 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
