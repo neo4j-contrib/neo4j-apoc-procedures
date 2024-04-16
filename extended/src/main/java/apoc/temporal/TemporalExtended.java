@@ -2,8 +2,6 @@ package apoc.temporal;
 
 import apoc.Extended;
 import apoc.util.Util;
-import org.apache.commons.collections4.ComparatorUtils;
-import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.procedure.Context;
@@ -11,14 +9,10 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 import org.neo4j.values.AnyValue;
-import org.neo4j.values.AnyValues;
 import org.neo4j.values.Comparison;
-import org.neo4j.values.storable.Values;
 
 import java.util.Map;
-import java.util.Set;
 
-import static org.neo4j.values.AnyValues.COMPARATOR;
 import static org.neo4j.values.AnyValues.TERNARY_COMPARATOR;
 
 @Extended
