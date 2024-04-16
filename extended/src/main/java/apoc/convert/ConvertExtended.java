@@ -1,29 +1,18 @@
 package apoc.convert;
 
 import apoc.Extended;
-import apoc.export.util.DurationValueSerializer;
-import apoc.export.util.PointSerializer;
-import apoc.export.util.TemporalSerializer;
 import apoc.meta.Types;
 import apoc.util.MissingDependencyException;
 import apoc.util.collection.Iterables;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
-import org.neo4j.values.storable.DurationValue;
 
 import java.io.IOException;
-import java.time.temporal.Temporal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
