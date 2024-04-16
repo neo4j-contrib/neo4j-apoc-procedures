@@ -1,17 +1,12 @@
 package apoc.agg;
 
 import apoc.Extended;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.neo4j.graphdb.Entity;
-import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserAggregationFunction;
 import org.neo4j.procedure.UserAggregationResult;
 import org.neo4j.procedure.UserAggregationUpdate;
-import org.neo4j.values.AnyValue;
-import org.neo4j.values.storable.NumberValue;
-import org.neo4j.values.utils.ValueMath;
 
 import java.util.HashMap;
 import java.util.List;
