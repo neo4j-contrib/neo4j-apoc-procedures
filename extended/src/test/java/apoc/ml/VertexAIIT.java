@@ -27,8 +27,6 @@ import static apoc.ml.VertexAIHandler.RESOURCE_CONF_KEY;
 import static apoc.ml.VertexAIHandler.STREAM_RESOURCE;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static java.util.Collections.emptyMap;
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
