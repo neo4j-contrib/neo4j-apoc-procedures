@@ -13,7 +13,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.neo4j.values.storable.DurationValue;
 
 import java.util.Comparator;
 import java.util.Iterator;

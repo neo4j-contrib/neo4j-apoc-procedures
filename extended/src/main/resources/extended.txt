@@ -72,6 +72,8 @@ apoc.generate.ws
 apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
+apoc.graph.filterProperties
+apoc.graph.filterProperties
 apoc.import.arrow
 apoc.import.parquet
 apoc.load.csv
