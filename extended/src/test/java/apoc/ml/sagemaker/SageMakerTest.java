@@ -10,6 +10,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.mockserver.socket.PortFactory;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -38,6 +39,7 @@ public class SageMakerTest {
     private static final String COMPLETIONS = "completions";
     private static final String CHAT_COMPLETIONS = "chat/completions";
     private static final Pair<String, String> AUTH_HEADER = Pair.of("Authorization", "AWS V4 mocked");
+    private static final int PORT = PortFactory.findFreePort();
 
     private static ClientAndServer mockServer;
 
@@ -49,7 +51,7 @@ public class SageMakerTest {
         TestUtil.registerProcedure(db, SageMaker.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 
-        mockServer = startClientAndServer(1080);
+        mockServer = startClientAndServer(PORT);
 
         Stream.of(EMBEDDINGS, COMPLETIONS, CHAT_COMPLETIONS)
                 .forEach(SageMakerTest::setRequestResponse);
@@ -135,7 +137,7 @@ public class SageMakerTest {
 
     private static Map<String, Object> getParams(String path) {
         Map authHeader = Map.of(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
-        return Map.of("conf", Map.of(ENDPOINT_KEY, "http://localhost:1080/" + path,
+        return Map.of("conf", Map.of(ENDPOINT_KEY, "http://localhost:%s/%s".formatted( PORT, path),
                         HEADERS_KEY, authHeader)
         );
     }

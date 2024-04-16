@@ -9,6 +9,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.mockserver.socket.PortFactory;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -50,7 +51,7 @@ public class VertexAITest {
         TestUtil.registerProcedure(db, VertexAI.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 
-        mockServer = startClientAndServer(1080);
+        mockServer = startClientAndServer(PortFactory.findFreePort());
 
         var path = Paths.get(getUrlFileName(VERTEX_MOCK_FOLDER + EMBEDDINGS).toURI()).getParent().toUri();
         // {project} will be substituted by project parameter, 

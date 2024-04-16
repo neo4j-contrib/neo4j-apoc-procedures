@@ -56,7 +56,7 @@ dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
-    antlr "org.antlr:antlr4:4.7.2", {
+    antlr "org.antlr:antlr4:4.13.1", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
