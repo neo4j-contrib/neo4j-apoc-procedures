@@ -1,6 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
@@ -13,15 +14,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.VertexAIHandler.ENDPOINT_CONF_KEY;
 import static apoc.ml.VertexAIHandler.MODEL_CONF_KEY;
 import static apoc.ml.VertexAIHandler.PREDICT_RESOURCE;
 import static apoc.ml.VertexAIHandler.RESOURCE_CONF_KEY;
 import static apoc.ml.VertexAIHandler.STREAM_RESOURCE;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -64,6 +69,20 @@ public class VertexAIIT {
             assertEquals(768, embedding.size());
             assertEquals(true, embedding.stream().allMatch(d -> d instanceof Double));
         });
+    }
+
+    @Test
+    public void getEmbeddingNull() {
+        testResult(db, "CALL apoc.ml.vertexai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $project)",
+                parameters,
+                r -> {
+                    Set<String> actual = Iterators.asSet(r.columnAs("text"));
+
+                    Set<String> expected = new HashSet<>() {{
+                        add(null); add(null); add("Some Text"); add("Other Text");
+                    }};
+                    assertEquals(expected, actual);
+                });
     }
 
     @Test
@@ -208,5 +227,26 @@ public class VertexAIIT {
         String stringRow = row.toString();
         assertTrue(stringRow.toLowerCase().contains(expected),
                 "Actual result is: " + stringRow);
+    }
+
+    @Test
+    public void embeddingsNull() {
+        assertNullInputFails(db, "CALL apoc.ml.vertexai.embedding(null, $apiKey, $project)",
+                parameters
+        );
+    }
+    
+    @Test
+    public void completionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.vertexai.completion(null, $apiKey, $project)",
+                parameters
+        );
+    }
+
+    @Test
+    public void chatCompletionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.vertexai.chat(null, $apiKey, $project)",
+                parameters
+        );
     }
 }

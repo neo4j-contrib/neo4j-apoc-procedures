@@ -20,8 +20,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
 
 
 @Extended
@@ -94,16 +98,34 @@ public class VertexAI {
   ]
 }
     */
+
+        if (texts == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
+        
+        Map<Boolean, List<String>> collect = texts.stream()
+                .collect(Collectors.groupingBy(Objects::nonNull));
+
+        List<String> nonNullTexts = collect.get(true);
+        
         Object inputs = texts.stream().map(text -> Map.of("content", text)).toList();
         Stream<Object> resultStream = executeRequest(accessToken, project, configuration, "textembedding-gecko", inputs, List.of(), urlAccessChecker);
         AtomicInteger ai = new AtomicInteger();
-        return resultStream
+        Stream<EmbeddingResult> embeddingResultStream = resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
-                    Map<String,Object> embeddings = (Map<String, Object>) ((Map)m).get("embeddings");
+                    Map<String, Object> embeddings = (Map<String, Object>) ((Map) m).get("embeddings");
                     int index = ai.getAndIncrement();
-                    return new EmbeddingResult(index, texts.get(index), (List<Double>) embeddings.get("values"));
+                    return new EmbeddingResult(index, nonNullTexts.get(index), (List<Double>) embeddings.get("values"));
                 });
+        
+        List<String> nullTexts = collect.getOrDefault(false, List.of());
+        Stream<EmbeddingResult> nullResultStream = nullTexts.stream()
+                .map(text -> {
+                    // null text return index -1 to indicate that are not coming from `/embeddings` RestAPI
+                    return new EmbeddingResult(-1, text, List.of());
+                });
+        return Stream.concat(embeddingResultStream, nullResultStream);
     }
 
 
@@ -153,6 +175,10 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
   ]
 }
  */
+        if (prompt == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
+        
         Object input = List.of(Map.of("prompt",prompt));
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
         var resultStream = executeRequest(accessToken, project, configuration, "text-bison", input, parameterKeys, urlAccessChecker);
@@ -192,6 +218,9 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
                                             @Name(value = "context",defaultValue = "") String context,
                                             @Name(value = "examples", defaultValue = "[]") List<Map<String, Map<String,String>>> examples
                                             ) throws Exception {
+        if (messages == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         Object inputs = List.of(Map.of("context",context, "examples",examples, "messages", messages));
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
         return executeRequest(accessToken, project, configuration, "chat-bison", inputs, parameterKeys, urlAccessChecker)

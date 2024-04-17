@@ -17,6 +17,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.apache.commons.lang3.StringUtils;
 
+import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
 import static apoc.ml.aws.AWSConfig.JSON_PATH;
 import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
@@ -60,7 +61,9 @@ public class Bedrock {
     public Stream<MapResult> chatCompletion(
             @Name("messages") List<Map<String, Object>> messages,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-
+        if (messages == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         var config = new HashMap<>(configuration);
         config.putIfAbsent(MODEL, ANTHROPIC_CLAUDE_V2);
 
@@ -94,7 +97,9 @@ public class Bedrock {
     @Description("apoc.ml.bedrock.completion(prompt, $conf) - prompts the completion API")
     public Stream<MapResult> completion(@Name("prompt") String prompt,
                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-
+        if (prompt == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         var config = new HashMap<>(configuration);
         config.putIfAbsent(MODEL, JURASSIC_2_ULTRA);
         
@@ -109,6 +114,9 @@ public class Bedrock {
     @Description("apoc.ml.bedrock.embedding([texts], $configuration) - returns the embeddings for a given text")
     public Stream<Embedding> embedding(@Name(value = "texts") List<String> texts,
                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        if (texts == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         var config = new HashMap<>(configuration);
         config.putIfAbsent(MODEL, TITAN_EMBED_TEXT);
 
@@ -127,6 +135,9 @@ public class Bedrock {
     @Procedure("apoc.ml.bedrock.image")
     public Stream<Image> image(@Name(value = "body") Map<String, Object> body,
                                @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        if (body == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         configuration.putIfAbsent(MODEL, STABILITY_STABLE_DIFFUSION_XL);
         configuration.putIfAbsent(JSON_PATH, "$.artifacts[0]");
         

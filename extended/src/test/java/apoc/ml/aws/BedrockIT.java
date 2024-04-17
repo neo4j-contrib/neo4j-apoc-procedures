@@ -17,6 +17,7 @@ import java.util.Map;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
+import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.aws.AWSConfig.KEY_ID;
 import static apoc.ml.aws.AWSConfig.METHOD_KEY;
 import static apoc.ml.aws.AWSConfig.SECRET_KEY;
@@ -27,6 +28,7 @@ import static apoc.ml.aws.BedrockTestUtil.*;
 import static apoc.ml.aws.BedrockUtil.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -290,5 +292,33 @@ public class BedrockIT {
     private static void assertionsTitanEmbed(Map value) {
         assertNotNull(value.get("inputTextTokenCount"));
         assertNotNull(value.get("embedding"));
+    }
+
+    @Test
+    public void embeddingNull() {
+        assertNullInputFails(db, "CALL apoc.ml.bedrock.embedding(null)",
+                emptyMap()
+        );
+    }
+
+    @Test
+    public void completionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.bedrock.completion(null)",
+                emptyMap()
+        );
+    }
+
+    @Test
+    public void chatCompletionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.bedrock.chat(null)",
+                emptyMap()
+        );
+    }
+
+    @Test
+    public void imageNull() {
+        assertNullInputFails(db, "CALL apoc.ml.bedrock.image(null)",
+                emptyMap()
+        );
     }
 }

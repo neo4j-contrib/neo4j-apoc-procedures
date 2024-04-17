@@ -16,10 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
+import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
 
 
 @Extended
@@ -111,13 +114,30 @@ public class OpenAI {
       "model": "text-embedding-ada-002",
       "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
     */
-        Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data", apocConfig, urlAccessChecker);
-        return resultStream
+        if (texts == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
+        
+        Map<Boolean, List<String>> collect = texts.stream()
+                .collect(Collectors.groupingBy(Objects::nonNull));
+
+        List<String> nonNullTexts = collect.get(true);
+
+        Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", nonNullTexts, "$.data", apocConfig, urlAccessChecker);
+        Stream<EmbeddingResult> embeddingResultStream = resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
                     Long index = (Long) m.get("index");
-                    return new EmbeddingResult(index, texts.get(index.intValue()), (List<Double>) m.get("embedding"));
+                    return new EmbeddingResult(index, nonNullTexts.get(index.intValue()), (List<Double>) m.get("embedding"));
                 });
+
+        List<String> nullTexts = collect.getOrDefault(false, List.of());
+        Stream<EmbeddingResult> nullResultStream = nullTexts.stream()
+                .map(i -> {
+                    // null text return index -1 to indicate that are not coming from `/embeddings` RestAPI
+                    return new EmbeddingResult(-1, i, List.of());
+                });
+        return Stream.concat(embeddingResultStream, nullResultStream);
     }
 
 
@@ -132,6 +152,9 @@ public class OpenAI {
       "usage": { "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12 }
     }
     */
+        if (prompt == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         return executeRequest(apiKey, configuration, "completions", "gpt-3.5-turbo-instruct", "prompt", prompt, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
@@ -139,6 +162,9 @@ public class OpenAI {
     @Procedure("apoc.ml.openai.chat")
     @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        if (messages == null) {
+            throw new RuntimeException(ERROR_NULL_INPUT);
+        }
         return executeRequest(apiKey, configuration, "chat/completions", "gpt-3.5-turbo", "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create

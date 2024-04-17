@@ -22,8 +22,11 @@ import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.ml.aws.AWSConfig.REGION_KEY;
 import static apoc.ml.aws.SageMakerConfig.ENDPOINT_NAME_KEY;
+import static apoc.util.TestUtil.testCall;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 
@@ -158,6 +161,23 @@ public class SageMakerIT {
 
     private void assertEventually(Callable<Boolean> booleanCallable) {
         Assert.assertEventually(booleanCallable, val -> val, 30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void completionNull() {
+        testCall(db, "CALL apoc.ml.sagemaker.completion(null, $conf)",
+                Map.of("conf", emptyMap()),
+                (row) -> assertNull(row.get("value"))
+        );
+    }
+
+    @Test
+    public void chatCompletionNull() {
+        testCall(db,
+                "CALL apoc.ml.sagemaker.chat(null, $conf)",
+                Map.of("conf", emptyMap()),
+                (row) -> assertNull(row.get("value"))
+        );
     }
 
 }
