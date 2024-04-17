@@ -123,6 +123,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::virtual/nodes-collapse.adoc[]
     ** xref::virtual/virtual-graph.adoc[]
     ** xref::virtual/graph-grouping.adoc[]
+    ** xref:virtual/virtual-nodes-and-relationships.adoc[]
 
 * xref:virtual-resource/index.adoc[]
 

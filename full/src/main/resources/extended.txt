@@ -72,6 +72,8 @@ apoc.gephi.add
 apoc.get.nodes
 apoc.get.rels
 apoc.json.validate
+apoc.graph.filterProperties
+apoc.graph.filterProperties
 apoc.load.csv
 apoc.load.csvParams
 apoc.load.directory
