@@ -1,0 +1,23 @@
+---
+version: 3.7
+services:
+  neo4j:
+    image: neo4j:5.18.0-enterprise
+    environment:
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_AUTH: neo4j/password
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+    volumes:
+    - ./neo4j/plugins:/plugins
+    networks:
+    - my_net
+    ports:
+    - 7474:7474
+    - 7687:7687
+  postgres:
+    image: postgres:9.6.12
+    networks:
+    - my_net
+networks:
+  my_net:
+    driver: bridge
