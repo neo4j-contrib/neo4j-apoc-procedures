@@ -18,6 +18,7 @@
  */
 package apoc.load;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.BinaryTestUtil.fileToBinary;
 import static apoc.util.CompressionConfig.COMPRESSION;
 import static apoc.util.MapUtil.map;
@@ -28,6 +29,7 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone;
 
 import apoc.ApocSettings;
 import apoc.util.CompressionAlgo;
@@ -40,6 +42,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -832,8 +835,8 @@ public class LoadCsvTest {
             assertEquals(expected.keySet(), actual.keySet());
 
             actual.forEach((key, value) -> {
-                if (value instanceof Map mapVal) {
-                    assertMapEquals((Map<String, Object>) expected.get(key), mapVal);
+                if (value instanceof Map) {
+                    assertMapEquals((Map<String, Object>) expected.get(key), (Map) value);
                 } else {
                     assertEquals(expected.get(key), value);
                 }
