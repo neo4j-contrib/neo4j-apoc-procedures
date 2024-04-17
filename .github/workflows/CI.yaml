@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "5.19" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "5.19" ]
 
 env:
   DOCKER_ENTERPRISE_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
@@ -75,15 +75,6 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --init-script init.gradle
-
-      - name: Download neo4j dev docker container
-        if: matrix.project == 'extended-it'
-        run: |
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
-          wait
-          docker load --input ${ENTERPRISE_TAR}
-          docker load --input ${COMMUNITY_TAR}
 
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
