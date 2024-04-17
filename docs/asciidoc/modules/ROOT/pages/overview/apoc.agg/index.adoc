@@ -75,5 +75,11 @@ Returns index of the `element` that match the given `value`
 Returns index of the `element` that match the given `predicate`
 |label:procedure[]
 |label:apoc-full[]
+
+|xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
+
+apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
+|label:function[]
+|label:apoc-full[]
 |===
 
