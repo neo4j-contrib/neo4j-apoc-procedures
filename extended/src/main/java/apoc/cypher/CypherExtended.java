@@ -38,6 +38,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -262,22 +263,40 @@ public class CypherExtended {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction tx, String fileName) {
+    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, Transaction transaction, String fileName) {
         try {
             long time = System.currentTimeMillis();
             int row = 0;
-            while (result.hasNext()) {
+            AtomicBoolean closed = new AtomicBoolean(false);
+            while (isOpenAndHasNext(result, closed)) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(tx, result.next());
+                Map<String, Object> res = EntityUtil.anyRebind(transaction, result.next());
                 queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {
                 Map<String, Object> mapResult = toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row);
                 queue.put(new RowResult(-1, mapResult, fileName));
             }
+            if (closed.get()) {
+                queue.put(RowResult.TOMBSTONE);
+                return null;
+            }
             return row;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * If the transaction is closed, result.hasNext() will throw an error.
+     * In that case, we set closed = true, to put a RowResult.TOMBSTONE and terminate the iteration
+     */
+    private static boolean isOpenAndHasNext(Result result, AtomicBoolean closed) {
+        try {
+            return result.hasNext();
+        } catch (Exception e) {
+            closed.set(true);
+            return false;
         }
     }
 
@@ -397,12 +416,17 @@ public class CypherExtended {
         tx.execute("EXPLAIN " + statement).close();
         int queueCapacity = 100000;
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(queueCapacity);
+        ArrayBlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(queueCapacity);
+        ArrayBlockingQueue<Result> results = new ArrayBlockingQueue<>(queueCapacity);
         Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
         Util.inFuture(pools, () -> {
             long total = parallelPartitions
                     .map((List<Object> partition) -> {
-                        try (Transaction transaction = db.beginTx();
-                             Result result = transaction.execute(statement, parallelParams(params, "_", partition))) {
+                        Transaction transaction = db.beginTx();
+                        transactions.add(transaction);
+                        Result result = transaction.execute(statement, parallelParams(params, "_", partition));
+                        results.add(result);
+                        try {
                             return consumeResult(result, queue, false, transaction, null);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -411,9 +435,13 @@ public class CypherExtended {
             queue.put(RowResult.TOMBSTONE);
             return total;
         });
-        
+
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
-                .map(rowResult -> new MapResult(rowResult.result));
+                .map(rowResult -> new MapResult(rowResult.result))
+                .onClose(() -> {
+                    transactions.forEach(i -> Util.close(i));
+                    results.forEach(i -> Util.close(i));
+                });
     }
 
     public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
