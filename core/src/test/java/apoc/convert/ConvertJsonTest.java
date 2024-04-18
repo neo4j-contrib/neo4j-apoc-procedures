@@ -27,7 +27,6 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
-import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import java.util.List;
@@ -60,10 +59,6 @@ public class ConvertJsonTest {
     public static final List<Object> EXPECTED_PATH_WITH_NULLS =
             Arrays.asList(new Object[] {EXPECTED_COLUMNS_MAP, null, null, null});
     public static final List<String> EXPECTED_AS_PATH_LIST = List.of("$['columns']");
-
-    private Object parseJson(String json) {
-        return JsonUtil.parse(json, null, null);
-    }
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();

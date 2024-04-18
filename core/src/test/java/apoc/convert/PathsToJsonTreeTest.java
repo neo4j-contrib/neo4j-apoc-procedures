@@ -32,7 +32,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-public class ConvertPathsToTreeTest {
+public class PathsToJsonTreeTest {
     private Object parseJson(String json) {
         return JsonUtil.parse(json, null, null);
     }
@@ -60,11 +60,11 @@ public class ConvertPathsToTreeTest {
         /*            r:R
               a:A --------> b:B
         */
-        db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r: R {relName: 'r'}]->(b: B {nodeName: 'b'})");
+        db.executeTransactionally("CREATE (a: A {nodeName: 'a'})-[r: R {relName: 'r'}]->(b: B {nodeName: 'b'})");
 
         var query = "MATCH path = (n)-[r]->(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -99,7 +99,7 @@ public class ConvertPathsToTreeTest {
 
         var query = "MATCH path = (n)<-[r]-(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -139,7 +139,7 @@ public class ConvertPathsToTreeTest {
 
         var query = "MATCH path = (n)-[r]-(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -185,7 +185,7 @@ public class ConvertPathsToTreeTest {
         // but we only expect a tree starting in 'a'
         var query = "MATCH path = (n)-[r]-(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -224,7 +224,7 @@ public class ConvertPathsToTreeTest {
         // expect duplicated trees
         var query = "MATCH path = (n)-[r]-(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -263,135 +263,121 @@ public class ConvertPathsToTreeTest {
     @Test
     public void testToTreeComplexGraph() {
         /*          r1:R1         r2:R2
-              a:A --------> b:B <------ c:C
+              a:A --------> b:B ------> c:C
                              |
                       r3:R3  |
                             \|/
                             d:D
         */
         db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'}),"
-                + "(b)<-[r2: R2 {relName: 'r2'}]-(c: C {nodeName: 'c'}),"
+                + "(b)-[r2: R2 {relName: 'r2'}]->(c: C {nodeName: 'c'}),"
                 + "(b)-[r3: R3 {relName: 'r3'}]->(d: D {nodeName: 'd'})");
 
         var query = "MATCH path = (n)-[r]->(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
             Result result = tx.execute(query);
             var rows = result.stream().collect(Collectors.toList());
 
-            assertEquals(rows.size(), 2);
-            var expectedFirstRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0,"
-                    + "      \"r1\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r3\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"d\","
-                    + "                  \"r3._id\":2,"
-                    + "                  \"r3.relName\":\"r3\","
-                    + "                  \"_type\":\"D\","
-                    + "                  \"_id\":3"
-                    + "               }"
-                    + "            ],"
-                    + "            \"_type\":\"B\","
-                    + "            \"r1._id\":0,"
-                    + "            \"_id\":1,"
-                    + "            \"r1.relName\":\"r1\""
-                    + "         }"
-                    + "      ]"
-                    + "   }"
+            assertEquals(rows.size(), 1);
+            var expectedRow = "{" + "  \"tree\": {"
+                    + "    \"nodeName\": \"a\","
+                    + "    \"_type\": \"A\","
+                    + "    \"_id\": 0,"
+                    + "    \"r1\": ["
+                    + "      {"
+                    + "        \"nodeName\": \"b\","
+                    + "        \"r2\": ["
+                    + "          {"
+                    + "            \"nodeName\": \"c\","
+                    + "            \"r2._id\": 1,"
+                    + "            \"_type\": \"C\","
+                    + "            \"r2.relName\": \"r2\","
+                    + "            \"_id\": 2"
+                    + "          }"
+                    + "        ],"
+                    + "        \"r3\": ["
+                    + "          {"
+                    + "            \"nodeName\": \"d\","
+                    + "            \"r3._id\": 2,"
+                    + "            \"r3.relName\": \"r3\","
+                    + "            \"_type\": \"D\","
+                    + "            \"_id\": 3"
+                    + "          }"
+                    + "        ],"
+                    + "        \"_type\": \"B\","
+                    + "        \"r1._id\": 0,"
+                    + "        \"_id\": 1,"
+                    + "        \"r1.relName\": \"r1\""
+                    + "      }"
+                    + "    ]"
+                    + "  }"
                     + "}";
-            var expectedSecondRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"c\","
-                    + "      \"r2\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r2._id\":1,"
-                    + "            \"_type\":\"B\","
-                    + "            \"r2.relName\":\"r2\","
-                    + "            \"_id\":1"
-                    + "         }"
-                    + "      ],"
-                    + "      \"_type\":\"C\","
-                    + "      \"_id\":2"
-                    + "   }"
-                    + "}";
-            assertEquals(parseJson(expectedFirstRow), rows.get(0));
-            assertEquals(parseJson(expectedSecondRow), rows.get(1));
+            assertEquals(parseJson(expectedRow), rows.get(0));
         }
     }
 
     @Test
     public void testToTreeComplexGraphBidirectionalQuery() {
         /*          r1:R1         r2:R2
-              a:A --------> b:B <------ c:C
+              a:A --------> b:B -------> c:C
                              |
                       r3:R3  |
                             \|/
                             d:D
         */
         db.executeTransactionally("CREATE " + "(a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'}),"
-                + "(b)<-[r2: R2 {relName: 'r2'}]-(c: C {nodeName: 'c'}),"
+                + "(b)-[r2: R2 {relName: 'r2'}]->(c: C {nodeName: 'c'}),"
                 + "(b)-[r3: R3 {relName: 'r3'}]->(d: D {nodeName: 'd'})");
 
         // The query is bidirectional in this case, we don't expect duplicated paths
         var query = "MATCH path = (n)-[r]-(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
             Result result = tx.execute(query);
             var rows = result.stream().collect(Collectors.toList());
 
-            assertEquals(rows.size(), 2);
-            var expectedFirstRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"a\","
-                    + "      \"_type\":\"A\","
-                    + "      \"_id\":0,"
-                    + "      \"r1\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r3\":["
-                    + "               {"
-                    + "                  \"nodeName\":\"d\","
-                    + "                  \"r3._id\":2,"
-                    + "                  \"r3.relName\":\"r3\","
-                    + "                  \"_type\":\"D\","
-                    + "                  \"_id\":3"
-                    + "               }"
-                    + "            ],"
-                    + "            \"_type\":\"B\","
-                    + "            \"r1._id\":0,"
-                    + "            \"_id\":1,"
-                    + "            \"r1.relName\":\"r1\""
-                    + "         }"
-                    + "      ]"
-                    + "   }"
+            assertEquals(rows.size(), 1);
+            var expectedRow = "{" + "  \"tree\": {"
+                    + "    \"nodeName\": \"a\","
+                    + "    \"_type\": \"A\","
+                    + "    \"_id\": 0,"
+                    + "    \"r1\": ["
+                    + "      {"
+                    + "        \"nodeName\": \"b\","
+                    + "        \"r2\": ["
+                    + "          {"
+                    + "            \"nodeName\": \"c\","
+                    + "            \"r2._id\": 1,"
+                    + "            \"_type\": \"C\","
+                    + "            \"r2.relName\": \"r2\","
+                    + "            \"_id\": 2"
+                    + "          }"
+                    + "        ],"
+                    + "        \"r3\": ["
+                    + "          {"
+                    + "            \"nodeName\": \"d\","
+                    + "            \"r3._id\": 2,"
+                    + "            \"r3.relName\": \"r3\","
+                    + "            \"_type\": \"D\","
+                    + "            \"_id\": 3"
+                    + "          }"
+                    + "        ],"
+                    + "        \"_type\": \"B\","
+                    + "        \"r1._id\": 0,"
+                    + "        \"_id\": 1,"
+                    + "        \"r1.relName\": \"r1\""
+                    + "      }"
+                    + "    ]"
+                    + "  }"
                     + "}";
-            var expectedSecondRow = "{" + "   \"tree\":{"
-                    + "      \"nodeName\":\"c\","
-                    + "      \"r2\":["
-                    + "         {"
-                    + "            \"nodeName\":\"b\","
-                    + "            \"r2._id\":1,"
-                    + "            \"_type\":\"B\","
-                    + "            \"r2.relName\":\"r2\","
-                    + "            \"_id\":1"
-                    + "         }"
-                    + "      ],"
-                    + "      \"_type\":\"C\","
-                    + "      \"_id\":2"
-                    + "   }"
-                    + "}";
-            assertEquals(parseJson(expectedFirstRow), rows.get(0));
-            assertEquals(parseJson(expectedSecondRow), rows.get(1));
+            assertEquals(parseJson(expectedRow), rows.get(0));
         }
     }
 
@@ -409,7 +395,7 @@ public class ConvertPathsToTreeTest {
 
         var query = "MATCH path = (n)-[r]->(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {
@@ -455,6 +441,59 @@ public class ConvertPathsToTreeTest {
     }
 
     @Test
+    public void testIncomingRelationships() {
+        /*          r1:R1         r2:R2
+              a:A --------> b:B <------ c:C
+        */
+        db.executeTransactionally(
+                "CREATE (a: A {nodeName: 'a'})-[r1: R1 {relName: 'r1'}]->(b: B {nodeName: 'b'})<-[r2: R2 {relName: 'r2'}]-(c:C {nodeName: 'c'})");
+
+        var query = "MATCH path = (n)-[:R1]->(m)<-[:R2]-(o)\n"
+                + "WITH COLLECT(path) AS paths\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "RETURN tree";
+
+        try (Transaction tx = db.beginTx()) {
+            Result result = tx.execute(query);
+            var rows = result.stream().collect(Collectors.toList());
+
+            assertEquals(rows.size(), 2);
+            var expectedFirstRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0,"
+                    + "      \"r1\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"_type\":\"B\","
+                    + "            \"r1._id\":0,"
+                    + "            \"_id\":1,"
+                    + "            \"r1.relName\":\"r1\""
+                    + "         }"
+                    + "      ]"
+                    + "   }"
+                    + "}";
+            var expectedSecondRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"c\","
+                    + "      \"r2\":["
+                    + "         {"
+                    + "            \"nodeName\":\"b\","
+                    + "            \"r2._id\":1,"
+                    + "            \"_type\":\"B\","
+                    + "            \"r2.relName\":\"r2\","
+                    + "            \"_id\":1"
+                    + "         }"
+                    + "      ],"
+                    + "      \"_type\":\"C\","
+                    + "      \"_id\":2"
+                    + "   }"
+                    + "}";
+            assertEquals(parseJson(expectedFirstRow), rows.get(0));
+            assertEquals(parseJson(expectedSecondRow), rows.get(1));
+        }
+    }
+
+    @Test
     public void testToTreeMultiLabelFilters() {
         /*            r:R
               a:A:B -------> c:C
@@ -464,7 +503,7 @@ public class ConvertPathsToTreeTest {
 
         var query = "MATCH path = (n)-[r]->(m)\n"
                 + "WITH COLLECT(path) AS paths\n"
-                + "CALL apoc.convert.paths.toTree(paths, true, {nodes: { A: ['-nodeName'] } }) YIELD value AS tree\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {nodes: { A: ['-nodeName'] } }) YIELD value AS tree\n"
                 + "RETURN tree";
 
         try (Transaction tx = db.beginTx()) {

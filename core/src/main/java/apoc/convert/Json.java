@@ -174,7 +174,7 @@ public class Json {
         return JsonUtil.parse(value, path, List.class, pathOptions);
     }
 
-    @Procedure("apoc.convert.toTree")
+    @Procedure(value = "apoc.convert.toTree", deprecatedBy = "apoc.paths.toJsonTree")
     @Description(
             "apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
     // todo optinally provide root node
@@ -186,64 +186,54 @@ public class Json {
         ConvertConfig conf = new ConvertConfig(config);
         Map<String, List<String>> nodes = conf.getNodes();
         Map<String, List<String>> rels = conf.getRels();
-        Set<Long> visitedInOtherPaths = new HashSet<>();
-        Set<Long> nodesToKeepInResult = new HashSet<>();
-        Map<Long, Map<String, Object>> tree = new HashMap<>();
 
-        Stream<Path> allPaths = paths.stream();
+        Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
+
+        Stream<Path> stream = paths.stream();
         if (conf.isSortPaths()) {
-            allPaths = allPaths.sorted(Comparator.comparingInt(Path::length).reversed());
+            stream = stream.sorted(Comparator.comparingInt(Path::length).reversed());
         }
-        allPaths.forEach(path -> {
-            Node rootNode = path.startNode();
-            Long rootNodeId = rootNode.getId();
-            Iterator<Entity> currentPath = path.iterator();
-            if (!visitedInOtherPaths.contains(rootNodeId)) {
-                nodesToKeepInResult.add(rootNodeId);
-            }
-            while (currentPath.hasNext()) {
-                Node currentNode = (Node) currentPath.next();
-                Map<String, Object> nodeMap =
-                        tree.computeIfAbsent(currentNode.getId(), (id) -> toMap(currentNode, nodes));
-                if (currentPath.hasNext()) {
-                    Relationship currentRel = (Relationship) currentPath.next();
-                    Node nextNode = currentRel.getOtherNode(currentNode);
-                    Long nextNodeId = nextNode.getId();
+        stream.forEach(path -> {
+            Iterator<Entity> it = path.iterator();
+            while (it.hasNext()) {
+                Node n = (Node) it.next();
+                Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n, nodes));
+                if (it.hasNext()) {
+                    Relationship r = (Relationship) it.next();
+                    Node m = r.getOtherNode(n);
                     String typeName = lowerCaseRels
-                            ? currentRel.getType().name().toLowerCase()
-                            : currentRel.getType().name();
+                            ? r.getType().name().toLowerCase()
+                            : r.getType().name();
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
-                    if (!nodeMap.containsKey(typeName)) nodeMap.put(typeName, new ArrayList<>());
+                    if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
                     // Check that this combination of rel and node doesn't already exist
-                    List<Map<String, Object>> currentNodeRels = (List) nodeMap.get(typeName);
-                    boolean alreadyProcessedRel = currentNodeRels.stream()
-                            .anyMatch(elem -> elem.get("_id").equals(nextNodeId)
-                                    && elem.get(typeName + "._id").equals(currentRel.getId()));
-                    if (!alreadyProcessedRel) {
-                        boolean nodeAlreadyVisited = tree.containsKey(nextNodeId);
-                        Map<String, Object> nextNodeMap = toMap(nextNode, nodes);
-                        addRelProperties(nextNodeMap, typeName, currentRel, rels);
-
-                        if (!nodeAlreadyVisited) {
-                            tree.put(nextNodeId, nextNodeMap);
-                        }
-
-                        visitedInOtherPaths.add(nextNodeId);
-                        currentNodeRels.add(nextNodeMap);
+                    List<Map<String, Object>> list = (List) nMap.get(typeName);
+                    Optional<Map<String, Object>> optMap = list.stream()
+                            .filter(elem -> elem.get("_id").equals(m.getId())
+                                    && elem.get(typeName + "._id").equals(r.getId()))
+                            .findFirst();
+                    if (!optMap.isPresent()) {
+                        Map<String, Object> mMap = toMap(m, nodes);
+                        mMap = addRelProperties(mMap, typeName, r, rels);
+                        maps.put(m.getId(), mMap);
+                        list.add(maps.get(m.getId()));
                     }
                 }
             }
         });
 
-        var result =
-                nodesToKeepInResult.stream().map(nodeId -> tree.get(nodeId)).map(MapResult::new);
-        return result;
+        return paths.stream()
+                .map(Path::startNode)
+                .distinct()
+                .map(n -> maps.remove(n.getId()))
+                .map(m -> m == null ? Collections.<String, Object>emptyMap() : m)
+                .map(MapResult::new);
     }
 
-    @Procedure("apoc.convert.paths.toTree")
+    @Procedure("apoc.paths.toJsonTree")
     @Description(
-            "apoc.convert.paths.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
+            "apoc.paths.toJsonTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
     // todo optinally provide root node
     public Stream<MapResult> pathsToTree(
             @Name("paths") List<Path> paths,
