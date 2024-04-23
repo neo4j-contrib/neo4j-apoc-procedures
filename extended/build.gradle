@@ -111,9 +111,9 @@ dependencies {
 
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.1.0', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
     
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.3.5', {
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.4.0', {
         exclude group: 'com.amazonaws'
     }
 
@@ -125,7 +125,7 @@ dependencies {
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
     
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.3.5', {
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.4.0', {
         exclude group: 'com.amazonaws'
     }
 
