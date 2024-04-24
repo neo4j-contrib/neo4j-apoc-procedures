@@ -12,8 +12,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;

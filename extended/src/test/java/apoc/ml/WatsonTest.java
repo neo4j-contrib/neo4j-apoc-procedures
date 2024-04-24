@@ -1,5 +1,6 @@
 package apoc.ml;
 
+import apoc.ml.watson.Watson;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;

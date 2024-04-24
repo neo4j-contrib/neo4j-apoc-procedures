@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;

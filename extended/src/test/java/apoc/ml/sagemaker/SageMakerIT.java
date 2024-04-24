@@ -20,7 +20,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
-import static apoc.ml.aws.AWSConfig.REGION_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.aws.SageMakerConfig.ENDPOINT_NAME_KEY;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Collections.emptyMap;
@@ -40,7 +40,7 @@ public class SageMakerIT {
     
     private static final Map<String, Object> CONFIG = Map.of(ENDPOINT_NAME_KEY, ENDPOINT_GPT_2,
             HEADERS_KEY, Map.of("Content-Type", "application/x-text"),
-            REGION_KEY, "eu-central-1"
+            REGION_CONF_KEY, "eu-central-1"
     );
     
     private static final Map<String, Object> PARAMS =  Map.of("body", BODY,
@@ -97,7 +97,7 @@ public class SageMakerIT {
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.chat($messages, $conf)",
                         Map.of("messages", List.of(Map.of("role", "admin", "content", text)), "conf",
                                 Map.of(ENDPOINT_NAME_KEY, "Endpoint-Distilbart-xsum-1-1-1",
-                                        REGION_KEY, "us-east-1"
+                                        REGION_CONF_KEY, "us-east-1"
                                 )), r -> {
                             Map value = Iterators.single(r.columnAs("value"));
                             assertTrue(value.get("summary_text") instanceof String);
@@ -136,7 +136,7 @@ public class SageMakerIT {
         assertEventually(() -> {
             try {
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.embedding($texts, $conf)", 
-                        Map.of("texts", text, "conf", Map.of(REGION_KEY, "eu-central-1") ), r -> {
+                        Map.of("texts", text, "conf", Map.of(REGION_CONF_KEY, "eu-central-1") ), r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(text1, row.get("text"));
                     assertEquals(0L, row.get("index"));

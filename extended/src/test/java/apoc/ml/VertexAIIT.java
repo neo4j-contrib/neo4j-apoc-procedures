@@ -20,8 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
-import static apoc.ml.VertexAIHandler.ENDPOINT_CONF_KEY;
-import static apoc.ml.VertexAIHandler.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.VertexAIHandler.PREDICT_RESOURCE;
 import static apoc.ml.VertexAIHandler.RESOURCE_CONF_KEY;
 import static apoc.ml.VertexAIHandler.STREAM_RESOURCE;

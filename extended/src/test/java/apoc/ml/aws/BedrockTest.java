@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.ml.aws.AWSConfig.ENDPOINT_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.ml.aws.BedrockTestUtil.*;
 import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
@@ -137,7 +137,7 @@ public class BedrockTest {
     private static Map<String, Object> getParams(Map<String, Object> body, String path) {
         Map authHeader = Map.of(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
         return Map.of("body", body,
-                "conf", Map.of(ENDPOINT_KEY, "http://localhost:" + PORT + path,
+                "conf", Map.of(ENDPOINT_CONF_KEY, "http://localhost:" + PORT + path,
                         HEADERS_KEY, authHeader)
         );
     }

@@ -12,8 +12,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ml.OpenAI.API_TYPE_CONF_KEY;
-import static apoc.ml.OpenAI.API_VERSION_CONF_KEY;
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.CHAT_COMPLETION_QUERY;
 import static apoc.ml.OpenAITestResultUtils.COMPLETION_QUERY;
 import static apoc.ml.OpenAITestResultUtils.EMBEDDING_QUERY;

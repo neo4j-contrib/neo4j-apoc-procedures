@@ -6,6 +6,7 @@ import java.util.Map;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
+import static apoc.ml.MLUtil.*;
 
 public abstract class AWSConfig {
 
@@ -17,8 +18,6 @@ public abstract class AWSConfig {
     public static final String JSON_PATH = "jsonPath";
     public static final String SECRET_KEY = "secretKey";
     public static final String KEY_ID = "keyId";
-    public static final String REGION_KEY = "region";
-    public static final String ENDPOINT_KEY = "endpoint";
     public static final String METHOD_KEY = "method";
 
     private final String keyId;
@@ -37,7 +36,7 @@ public abstract class AWSConfig {
         this.keyId = apocConfig().getString(APOC_AWS_KEY_ID, (String) config.get(KEY_ID));
         this.secretKey = apocConfig().getString(APOC_AWS_SECRET_KEY, (String) config.get(SECRET_KEY));
         
-        this.region = (String) config.getOrDefault(REGION_KEY, "us-east-1");
+        this.region = (String) config.getOrDefault(REGION_CONF_KEY, "us-east-1");
         this.endpoint = getEndpoint(config, getDefaultEndpoint(config));
         
         this.method = (String) config.getOrDefault(METHOD_KEY, getDefaultMethod()); 
@@ -49,7 +48,7 @@ public abstract class AWSConfig {
 
     private String getEndpoint(Map<String, Object> config, String defaultEndpoint) {
         
-        String endpointConfig = (String) config.get(ENDPOINT_KEY);
+        String endpointConfig = (String) config.get(ENDPOINT_CONF_KEY);
         if (endpointConfig != null) {
             return endpointConfig;
         }
@@ -58,7 +57,7 @@ public abstract class AWSConfig {
         }
         String errMessage = String.format("An endpoint could not be retrieved.\n" +
                          "Explicit the %s config",
-                ENDPOINT_KEY);
+                ENDPOINT_CONF_KEY);
         throw new RuntimeException(errMessage);
     }
 
