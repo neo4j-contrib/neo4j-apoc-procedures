@@ -113,6 +113,7 @@ apoc.ml.cypher
 apoc.ml.fromCypher
 apoc.ml.fromQueries
 apoc.ml.query
+apoc.ml.rag
 apoc.ml.schema
 apoc.ml.mixedbread.custom
 apoc.ml.mixedbread.embedding
