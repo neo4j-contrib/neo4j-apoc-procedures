@@ -5,6 +5,7 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,6 +70,9 @@ public class OpenAI {
         Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(config::remove);
         
         switch (type) {
+            case MIXEDBREAD_CUSTOM -> {
+                // no payload manipulation, taken from the configuration as-is
+            }
             case HUGGINGFACE -> {
                 config.putIfAbsent("inputs", inputs);
                 jsonPath = "$[0]";
@@ -111,6 +117,17 @@ public class OpenAI {
       "model": "text-embedding-ada-002",
       "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
     */
+        return getEmbeddingResult(texts, apiKey, configuration, apocConfig, urlAccessChecker,
+                (map, text) -> {
+                    Long index = (Long) map.get("index");
+                    return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
+                }, 
+                m -> new EmbeddingResult(-1, m, List.of())
+        );
+    }
+
+    static <T> Stream<T> getEmbeddingResult(List<String> texts, String apiKey, Map<String, Object> configuration, ApocConfig apocConfig, URLAccessChecker urlAccessChecker,
+                                            BiFunction<Map, String, T> embeddingMapping, Function<String, T> nullMapping) throws JsonProcessingException, MalformedURLException {
         if (texts == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
@@ -121,19 +138,25 @@ public class OpenAI {
         List<String> nonNullTexts = collect.get(true);
 
         Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", nonNullTexts, "$.data", apocConfig, urlAccessChecker);
-        Stream<EmbeddingResult> embeddingResultStream = resultStream
+//        Function<Map<String, Object>, R> mapRFunction = m -> {
+//            Long index = (Long) m.get("index");
+//            return new EmbeddingResult(index, nonNullTexts.get(index.intValue()), m.get("embedding"));
+//        };
+        Stream<T> embeddingResultStream = resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
                     Long index = (Long) m.get("index");
-                    return new EmbeddingResult(index, nonNullTexts.get(index.intValue()), (List<Double>) m.get("embedding"));
+                    String text = nonNullTexts.get(index.intValue());
+                    return embeddingMapping.apply(m, text);
                 });
 
         List<String> nullTexts = collect.getOrDefault(false, List.of());
-        Stream<EmbeddingResult> nullResultStream = nullTexts.stream()
-                .map(i -> {
-                    // null text return index -1 to indicate that are not coming from `/embeddings` RestAPI
-                    return new EmbeddingResult(-1, i, List.of());
-                });
+//        Function<String, R> stringRFunction = i -> {
+//            // null text return index -1 to indicate that are not coming from `/embeddings` RestAPI
+//            return new EmbeddingResult(-1, i, List.of());
+//        };
+        Stream<T> nullResultStream = nullTexts.stream()
+                .map(nullMapping);
         return Stream.concat(embeddingResultStream, nullResultStream);
     }
 

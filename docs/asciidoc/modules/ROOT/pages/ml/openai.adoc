@@ -251,6 +251,7 @@ CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of
 ----
 
 
+
 == Query with natural language
 
 This procedure `apoc.ml.query` takes a question in natural language and returns the results of that query.

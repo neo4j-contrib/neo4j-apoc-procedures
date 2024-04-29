@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_AZURE_VERSION;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
+import static apoc.ml.MixedbreadAI.ERROR_MSG_MISSING_ENDPOINT;
+import static apoc.ml.MixedbreadAI.MIXEDBREAD_BASE_URL;
 import static apoc.ml.MLUtil.*;
 
 abstract class OpenAIRequestHandler {
@@ -27,8 +29,12 @@ abstract class OpenAIRequestHandler {
     public abstract void addApiKey(Map<String, Object> headers, String apiKey);
 
     public String getEndpoint(Map<String, Object> procConfig, ApocConfig apocConfig) {
-        return (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
-                apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL, getDefaultUrl())));
+        String url = (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
+                apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL)));
+        if (url == null) {
+            return getDefaultUrl();
+        }
+        return url;
     }
 
     public String getFullUrl(String method, Map<String, Object> procConfig, ApocConfig apocConfig) {
@@ -40,6 +46,8 @@ abstract class OpenAIRequestHandler {
     enum Type {
         AZURE(new Azure(null)),
         HUGGINGFACE(new OpenAi(null)),
+        MIXEDBREAD_EMBEDDING(new OpenAi(MIXEDBREAD_BASE_URL)),
+        MIXEDBREAD_CUSTOM(new Custom()),
         OPENAI(new OpenAi("https://api.openai.com/v1"));
 
         private final OpenAIRequestHandler handler;
@@ -83,6 +91,19 @@ abstract class OpenAIRequestHandler {
         @Override
         public void addApiKey(Map<String, Object> headers, String apiKey) {
             headers.put("Authorization", "Bearer " + apiKey);
+        }
+    }
+
+    static class Custom extends OpenAi {
+
+        public Custom() {
+            super(null);
+        }
+
+        @Override
+        public String getDefaultUrl() {
+            throw new RuntimeException(ERROR_MSG_MISSING_ENDPOINT);
+            
         }
     }
 }
