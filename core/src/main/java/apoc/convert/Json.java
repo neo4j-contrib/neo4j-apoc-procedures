@@ -233,7 +233,7 @@ public class Json {
 
     @Procedure("apoc.paths.toJsonTree")
     @Description(
-            "apoc.paths.toJsonTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
+            "apoc.paths.toJsonTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the graph as a tree by traversing outgoing relationships")
     // todo optinally provide root node
     public Stream<MapResult> pathsToTree(
             @Name("paths") List<Path> paths,
