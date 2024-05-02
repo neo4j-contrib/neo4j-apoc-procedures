@@ -31,7 +31,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class CypherEnterpriseExtendedTest {
     private static final String CREATE_RETURNQUERY_NODES = "UNWIND range(0,3) as id \n" +
                                                            "CREATE (n:ReturnQuery {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
