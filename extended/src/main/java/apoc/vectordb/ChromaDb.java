@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
@@ -29,6 +30,7 @@ import static apoc.vectordb.VectorDbUtil.getEndpoint;
 import static apoc.vectordb.VectorEmbedding.Type.CHROMA;
 import static apoc.vectordb.VectorEmbeddingConfig.*;
 
+@Extended
 public class ChromaDb {
 
     @Context

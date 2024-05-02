@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -24,5 +25,11 @@ public class UtilsExtendedTest {
         testCall(db, "RETURN apoc.util.hashCode(rand()) AS hashCode", 
                 r -> assertTrue(r.get("hashCode") instanceof Long)
         );
+    }
+
+    public static String checkEnvVar(String envKey) {
+        String value = System.getenv(envKey);
+        Assume.assumeNotNull("No %s environment configured".formatted(envKey), value);
+        return value;
     }
 }

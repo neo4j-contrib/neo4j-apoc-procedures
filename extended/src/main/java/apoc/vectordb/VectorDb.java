@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ObjectResult;
 import apoc.util.JsonUtil;
@@ -34,6 +35,7 @@ import static apoc.vectordb.VectorDbUtil.*;
 /**
  * Base class
  */
+@Extended
 public class VectorDb {
 
     @Context

@@ -20,6 +20,7 @@ import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static apoc.util.UtilsExtendedTest.checkEnvVar;
 import static apoc.vectordb.VectorEmbeddingConfig.EMBEDDING_KEY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -46,20 +47,13 @@ public class PineconeTest {
     
     @BeforeClass
     public static void setUp() throws Exception {
-        apiKey = extracted("PINECONE_KEY");
-        host = extracted("PINECONE_HOST");
-        size = extracted("PINECONE_DIMENSION");
-        namespace = extracted("PINECONE_NAMESPACE");
+        apiKey = checkEnvVar("PINECONE_KEY");
+        host = checkEnvVar("PINECONE_HOST");
+        size = checkEnvVar("PINECONE_DIMENSION");
+        namespace = checkEnvVar("PINECONE_NAMESPACE");
         
         TestUtil.registerProcedure(db, VectorDb.class);
     }
-
-    private static String extracted(String envKey) {
-        String size = System.getenv(envKey);
-        Assume.assumeNotNull("No %s environment configured".formatted(envKey), size);
-        return size;
-    }
-
 
     @Test
     public void callQueryEndpointViaCustomGetProc() {

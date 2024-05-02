@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
@@ -18,14 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbUtil.getEndpoint;
 import static apoc.vectordb.VectorEmbedding.Type.QDRANT;
-import static apoc.vectordb.VectorEmbeddingConfig.EMBEDDING_KEY;
 
+@Extended
 public class Qdrant {
 
     @Context
