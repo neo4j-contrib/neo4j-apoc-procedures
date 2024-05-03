@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import static apoc.util.ExtendedUtil.setProperties;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.vectordb.VectorDbUtil.*;
+import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 
 /**
  * Base class
@@ -56,7 +57,7 @@ public class VectorDb {
      *   [
      *      "idKey": "idValue",
      *      "scoreKey": 1,
-     *      "embeddingKey": [ ]
+     *      "vectorKey": [ ]
      *      "metadataKey": { .. },
      *      "textKey": "..."
      *   ],
@@ -75,7 +76,7 @@ public class VectorDb {
                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         getEndpoint(configuration, host);
-        VectorEmbeddingConfig restAPIConfig = new VectorEmbeddingConfig(configuration, Map.of(), Map.of());
+        VectorEmbeddingConfig restAPIConfig = new VectorEmbeddingConfig(configuration);//, Map.of(), Map.of());
         return getEmbeddingResultStream(restAPIConfig, procedureCallContext, urlAccessChecker, db, tx);
     }
 
@@ -95,46 +96,49 @@ public class VectorDb {
                                                                    Function<Object, Stream<Map>> objectMapper) throws Exception {
         List<String> fields = procedureCallContext.outputFields().toList();
 
-        boolean hasEmbedding = fields.contains("vector");
+        boolean hasVector = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
-        Stream<Object> resultStream = executeRequest(conf, urlAccessChecker);
+        Stream<Object> resultStream = executeRequest(conf.getApiConfig(), urlAccessChecker);
 
         VectorMappingConfig mapping = conf.getMapping();
 
         return resultStream
                 .flatMap(objectMapper)
-                .map(m -> {
-                    Object id = m.get(conf.getIdKey());
-                    List<Double> embedding = hasEmbedding ? (List<Double>) m.get(conf.getVectorKey()) : null;
-                    Map<String, Object> metadata = hasMetadata ? (Map<String, Object>) m.get(conf.getMetadataKey()) : null;
-                    // in case of get operation, e.g. http://localhost:52798/collections/{coll_name}/points with Qdrant db,
-                    // score is not present
-                    Double score = Util.toDouble(m.get(conf.getScoreKey()));
-                    String text = (String) m.get(conf.getTextKey());
-
-                    handleMapping(tx, db, mapping, metadata, embedding);
-                    return new EmbeddingResult(id, score, embedding, metadata, text);
-                });
+                .map(m -> getEmbeddingResult(conf, db, tx, hasVector, hasMetadata, mapping, m));
     }
 
-    private static void handleMapping(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metadata, List<Double> embedding) {
+    public static EmbeddingResult getEmbeddingResult(VectorEmbeddingConfig conf, GraphDatabaseService db, Transaction tx, boolean hasEmbedding, boolean hasMetadata, VectorMappingConfig mapping, Map m) {
+        Object id = conf.isAllResults() ? m.get(conf.getIdKey()) : null;
+        List<Double> embedding = hasEmbedding ? (List<Double>) m.get(conf.getVectorKey()) : null;
+        Map<String, Object> metadata = hasMetadata ? (Map<String, Object>) m.get(conf.getMetadataKey()) : null;
+        // in case of get operation, e.g. http://localhost:52798/collections/{coll_name}/points with Qdrant db,
+        // score is not present
+        Double score = Util.toDouble(m.get(conf.getScoreKey()));
+        String text = conf.isAllResults() ? (String) m.get(conf.getTextKey()) : null;
+
+        Entity entity = handleMapping(tx, db, mapping, metadata, embedding);
+        if (entity != null) entity = Util.rebind(tx, entity);
+        return new EmbeddingResult(id, score, embedding, metadata, text, entity);
+    }
+
+    private static Entity handleMapping(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metadata, List<Double> embedding) {
         if (mapping.getProp() == null) {
-            return;
+            return null;
         }
         if (MapUtils.isEmpty(metadata)) {
             throw new RuntimeException("To use mapping config, the metadata should not be empty. Make sure you execute `YIELD metadata` on the procedure");
         }
         Map<String, Object> metaProps = new HashMap<>(metadata);
         if (mapping.getLabel() != null) {
-            handleMappingNode(tx, db, mapping, metaProps, embedding);
+            return handleMappingNode(tx, db, mapping, metaProps, embedding);
         } else if (mapping.getType() != null) {
-            handleMappingRel(tx, db, mapping, metaProps, embedding);
+            return handleMappingRel(tx, db, mapping, metaProps, embedding);
         } else {
             throw new RuntimeException("Mapping conf has to contain either label or type key");
         }
     }
 
-    private static void handleMappingNode(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
+    private static Entity handleMappingNode(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
         String query = "CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE n.%s IS UNIQUE"
                 .formatted(mapping.getLabel(), mapping.getProp());
         db.executeTransactionally(query);
@@ -146,6 +150,7 @@ public class VectorDb {
                 node = transaction.findNode(Label.label(mapping.getLabel()), mapping.getProp(), propValue);
                 if (node == null && mapping.isCreate()) {
                     node = transaction.createNode(Label.label(mapping.getLabel()));
+                    node.setProperty(mapping.getProp(), propValue);
                 }
                 if (node != null) {
                     setProperties(node, metaProps);
@@ -153,16 +158,15 @@ public class VectorDb {
                 transaction.commit();
             }
 
-            String indexQuery = "CREATE VECTOR INDEX IF NOT EXISTS FOR (n:%s) ON (n.%s) OPTIONS {indexConfig: {`vector.dimensions`: %s, `vector.similarity_function`: '%s'}}";
             String setVectorQuery = "CALL db.create.setNodeVectorProperty($entity, $key, $vector)";
-            setVectorProp(tx, db, mapping, embedding, node, indexQuery, setVectorQuery);
-
+            setVectorProp(tx, db, mapping, embedding, node, setVectorQuery);
+            return node;
         } catch (MultipleFoundException e) {
             throw new RuntimeException("Multiple nodes found");
         }
     }
 
-    private static void handleMappingRel(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
+    private static Entity handleMappingRel(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
         try {
             String query = "CREATE CONSTRAINT IF NOT EXISTS FOR ()-[r:%s]-() REQUIRE (r.%s) IS UNIQUE"
                     .formatted(mapping.getType(), mapping.getProp());
@@ -175,34 +179,30 @@ public class VectorDb {
                 rel = transaction.findRelationship(RelationshipType.withName(mapping.getType()), mapping.getProp(), propValue);
                 if (rel != null) {
                     setProperties(rel, metaProps);
+//                    rel.setProperty(mapping.getProp(), propValue);
                 }
                 transaction.commit();
             }
 
-            String indexQuery ="CREATE VECTOR INDEX IF NOT EXISTS FOR ()-[r:%s]-() ON (r.%s) OPTIONS {indexConfig: {`vector.dimensions`: %s, `vector.similarity_function`: '%s'}}";
             String setVectorQuery = "CALL db.create.setRelationshipVectorProperty($entity, $key, $vector)";
-            setVectorProp(tx, db, mapping, embedding, rel, indexQuery, setVectorQuery);
-
+            setVectorProp(tx, db, mapping, embedding, rel, setVectorQuery);
+            return rel;
         } catch (MultipleFoundException e) {
             throw new RuntimeException("Multiple relationships found");
         }
     }
 
-    private static <T extends Entity> void setVectorProp(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, List<Double> embedding, T entity, String indexQuery, String setVectorQuery) {
+    private static <T extends Entity> void setVectorProp(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, List<Double> embedding, T entity, String setVectorQuery) {
         if (entity == null || mapping.getEmbeddingProp() == null) {
             return;
         }
 
         if (embedding == null) {
-            throw new RuntimeException("The embedding value is null. Make sure you execute `YIELD embedding` on the procedure");
+            String embeddingErrMsg = "The embedding value is null. Make sure you execute `YIELD embedding` on the procedure and you configured `%s: true`"
+                    .formatted(ALL_RESULTS_KEY);
+            throw new RuntimeException(embeddingErrMsg);
         }
 
-        String labelOrType = entity instanceof Node
-                ? mapping.getLabel()
-                : mapping.getType();
-        String vectorIndex = indexQuery
-                .formatted(labelOrType, mapping.getEmbeddingProp(), embedding.size(), mapping.getSimilarity());
-        db.executeTransactionally(vectorIndex);
         db.executeTransactionally(setVectorQuery,
                 Map.of("entity", Util.rebind(tx, entity), "key", mapping.getEmbeddingProp(), "vector", embedding));
     }
@@ -221,7 +221,15 @@ public class VectorDb {
 
     public static Stream<Object> executeRequest(RestAPIConfig apiConfig, URLAccessChecker urlAccessChecker) throws Exception {
         Map<String, Object> headers = apiConfig.getHeaders();
-        String body = OBJECT_MAPPER.writeValueAsString(apiConfig.getBody());
-        return JsonUtil.loadJson(apiConfig.getEndpoint(), headers, body, apiConfig.getJsonPath(), true, List.of(), urlAccessChecker);
+        Map<String, Object> configBody = apiConfig.getBody();
+        String body = configBody == null
+                ? null
+                : OBJECT_MAPPER.writeValueAsString(configBody);
+        
+        String endpoint = apiConfig.getEndpoint();
+        if (endpoint == null) {
+            throw new RuntimeException("Endpoint must be specified");
+        }
+        return JsonUtil.loadJson(endpoint, headers, body, apiConfig.getJsonPath(), true, List.of(), urlAccessChecker);
     }
 }

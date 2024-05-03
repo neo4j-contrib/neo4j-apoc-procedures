@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,5 +20,42 @@ public class VectorDbUtil {
     /**
      * Result of `apoc.vectordb.*.get` and `apoc.vectordb.*.query` procedures
      */
-    public record EmbeddingResult(Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text) {}
+//    public record EmbeddingResult(
+//            Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text, Entity entity) {}
+
+
+    public static class EmbeddingResult {
+
+        public final Object id;
+        public final Double score;
+        public final List<Double> vector;
+        public final Map<String, Object> metadata;
+        public final String text;
+        // we cannot declare entity with class Entity, 
+        // as an error  `cannot be converted to a Neo4j type: Don't know how to map `org.neo4j.graphdb.Entity` to the Neo4j Type` would be thrown
+        public final Object entity;
+
+        public EmbeddingResult(Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text, Object entity) {
+            this.id = id;
+            this.score = score;
+            this.vector = vector;
+            this.metadata = metadata;
+            this.text = text;
+            this.entity = entity;
+        }
+    }
+    
+//    public static class NodeEmbeddingResult extends EmbeddingResult<Node> {
+//        public NodeEmbeddingResult(Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text, Node entity) {
+//            super(id, score, vector, metadata, text, entity);
+//        }
+//    }
+//
+//    public static class RelEmbeddingResult extends EmbeddingResult<Relationship> {
+//
+//        public RelEmbeddingResult(Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text, Relationship entity) {
+//            super(id, score, vector, metadata, text, entity);
+//        }
+//    }
+
 }

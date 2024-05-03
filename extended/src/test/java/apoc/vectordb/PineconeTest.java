@@ -1,7 +1,6 @@
 package apoc.vectordb;
 
 import apoc.util.TestUtil;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -21,7 +20,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static apoc.util.UtilsExtendedTest.checkEnvVar;
-import static apoc.vectordb.VectorEmbeddingConfig.EMBEDDING_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -59,7 +58,7 @@ public class PineconeTest {
     public void callQueryEndpointViaCustomGetProc() {
 
         Map<String, Object> conf = getConf();
-        conf.put(EMBEDDING_KEY, "values");
+        conf.put(VECTOR_KEY, "values");
 
         testResult(db, "CALL apoc.vectordb.custom.get($host, $conf)",
                 map("host", host + "/query", "conf", conf),

@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.ml.RestAPIConfig.*;
 import static apoc.util.ExtendedUtil.listOfMapToMapOfLists;
 import static apoc.util.MapUtil.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
-import static apoc.vectordb.VectorDbUtil.getEndpoint;
+import static apoc.vectordb.VectorDbUtil.*;
 import static apoc.vectordb.VectorEmbedding.Type.CHROMA;
 import static apoc.vectordb.VectorEmbeddingConfig.*;
 
@@ -46,7 +47,7 @@ public class ChromaDb {
     public URLAccessChecker urlAccessChecker;
 
     @Procedure("apoc.vectordb.chroma.createCollection")
-    @Description("apoc.vectordb.chroma.createCollection")
+    @Description("apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config)")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
                                     @Name("collection") String collection,
                                     @Name("similarity") String similarity,
@@ -130,14 +131,14 @@ public class ChromaDb {
         getEndpoint(config, endpoint);
 
         VectorEmbeddingConfig apiConfig = CHROMA.get().fromGet(config, procedureCallContext, getStringIds(ids));
-        return executeRequest(apiConfig, urlAccessChecker)
+        return executeRequest(apiConfig.getApiConfig(), urlAccessChecker)
                 .map(v -> (List) v)
                 .map(ListResult::new);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.get", mode = Mode.SCHEMA)
     @Description("apoc.vectordb.chroma.get()")
-    public Stream<VectorDbUtil.EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -154,7 +155,7 @@ public class ChromaDb {
 
     @Procedure(value = "apoc.vectordb.chroma.query", mode = Mode.SCHEMA)
     @Description("apoc.vectordb.chroma.query()")
-    public Stream<VectorDbUtil.EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
@@ -167,7 +168,7 @@ public class ChromaDb {
         String endpoint = "%s/api/v1/collections/%s/query".formatted(qdrantUrl, collection);
         getEndpoint(config, endpoint);
 
-        VectorEmbeddingConfig apiConfig = CHROMA.get().fromQuery(config, procedureCallContext, vector, filter, limit);
+        VectorEmbeddingConfig apiConfig = CHROMA.get().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx,
                 v -> listOfListsToMap((Map) v).stream());
     }

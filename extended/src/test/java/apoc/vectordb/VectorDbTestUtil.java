@@ -1,6 +1,7 @@
 package apoc.vectordb;
 
 import apoc.util.collection.Iterables;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
@@ -9,7 +10,6 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.graphdb.schema.IndexType;
 
 import java.util.List;
 import java.util.Map;
@@ -30,15 +30,31 @@ public class VectorDbTestUtil {
         }
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
+
+    public static void assertBerlinResult(Map row, boolean withEntity) {
+        assertBerlinResult(row, "1", withEntity);
+    }
     
-    public static void assertBerlinVector(Map row) {
+    public static void assertBerlinResult(Map row, String id, boolean withEntity) {
         assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
-        assertEquals("1", row.get("id").toString());
+        assertEquals(id, row.get("id").toString());
+        if (withEntity) {
+            Map<String, Object> props = ((Entity) row.get("entity")).getAllProperties();
+            assertBerlinProperties(props);
+        }
     }
 
-    public static void assertLondonVector(Map row) {
+    public static void assertLondonResult(Map row, boolean withEntity) {
+        assertLondonResult(row, "2", withEntity);
+    }
+
+    public static void assertLondonResult(Map row, String id, boolean withEntity) {
         assertEquals(Map.of("city", "London", "foo", "two"), row.get("metadata"));
-        assertEquals("2", row.get("id").toString());
+        assertEquals(id, row.get("id").toString());
+        if (withEntity) {
+            Map<String, Object> props = ((Entity) row.get("entity")).getAllProperties();
+            assertLondonProperties(props);
+        }
     }
     
     public static void assertOtherNodesCreated(GraphDatabaseService db) {
@@ -56,13 +72,6 @@ public class VectorDbTestUtil {
 
     public static void assertIndexNodesCreated(GraphDatabaseService db) {
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.stream(tx.schema().getIndexes())
-                    .filter(i -> i.getIndexType().equals(IndexType.VECTOR))
-                    .toList();
-            assertEquals(1, indexes.size());
-            assertEquals(List.of(Label.label("Test")), indexes.get(0).getLabels());
-            assertEquals(List.of("vect"), indexes.get(0).getPropertyKeys());
-
             List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(1, constraints.size());
             assertEquals(Label.label("Test"), constraints.get(0).getLabel());
@@ -72,13 +81,6 @@ public class VectorDbTestUtil {
 
     public static void assertRelsAndIndexesCreated(GraphDatabaseService db) {
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.stream(tx.schema().getIndexes())
-                    .filter(i -> i.getIndexType().equals(IndexType.VECTOR))
-                    .toList();
-            assertEquals(1, indexes.size());
-            assertEquals(List.of(RelationshipType.withName("TEST")), indexes.get(0).getRelationshipTypes());
-            assertEquals(List.of("vect"), indexes.get(0).getPropertyKeys());
-
             List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(1, constraints.size());
             assertEquals(RelationshipType.withName("TEST"), constraints.get(0).getRelationshipType());
@@ -90,20 +92,26 @@ public class VectorDbTestUtil {
     }
 
     public static void vectorEntityAssertions(Result r, boolean isNew) {
-        ResourceIterator<Map> props = r.columnAs("props");
-        Map next = props.next();
-        assertEquals("Berlin", next.get("city"));
-        if (!isNew) {
-            assertEquals("one", next.get("myId"));
-        }
-        assertTrue(next.get("vect") instanceof float[]);
-        next = props.next();
-        assertEquals("London", next.get("city"));
-        if (!isNew) {
-            assertEquals("two", next.get("myId"));
-        }
-        assertTrue(next.get("vect") instanceof float[]);
+        ResourceIterator<Map> propsIterator = r.columnAs("props");
+        assertBerlinProperties(propsIterator.next()/*, isNew*/);
+        assertLondonProperties(propsIterator.next()/*, isNew*/);
 
-        assertFalse(props.hasNext());
+        assertFalse(propsIterator.hasNext());
+    }
+
+    private static void assertLondonProperties(Map props/*, boolean isNew*/) {
+        assertEquals("London", props.get("city"));
+//        if (!isNew) {
+            assertEquals("two", props.get("myId"));
+//        }
+        assertTrue(props.get("vect") instanceof float[]);
+    }
+
+    private static void assertBerlinProperties(Map props/*, boolean isNew*/) {
+        assertEquals("Berlin", props.get("city"));
+//        if (!isNew) {
+            assertEquals("one", props.get("myId"));
+//        }
+        assertTrue(props.get("vect") instanceof float[]);
     }
 }

@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 
 public class VectorMappingConfig {
-    private final Object id;
+    private final String id;
     private final String prop;
 
     private final String label;
@@ -20,7 +20,7 @@ public class VectorMappingConfig {
         if (mapping == null) {
             mapping = Collections.emptyMap();
         }
-        this.id = mapping.get("id");
+        this.id = (String) mapping.get("id");
         this.prop = (String) mapping.get("prop");
 
         this.label = (String) mapping.get("label");
@@ -32,7 +32,7 @@ public class VectorMappingConfig {
         this.create = Util.toBoolean(mapping.get("create"));
     }
 
-    public Object getId() {
+    public String getId() {
         return id;
     }
 

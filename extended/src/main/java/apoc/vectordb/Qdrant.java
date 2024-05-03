@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
-import static apoc.vectordb.VectorDbUtil.getEndpoint;
+import static apoc.vectordb.VectorDbUtil.*;
 import static apoc.vectordb.VectorEmbedding.Type.QDRANT;
 
 @Extended
@@ -60,7 +60,7 @@ public class Qdrant {
         ));
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v)
+                .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
     
@@ -80,7 +80,7 @@ public class Qdrant {
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
         return executeRequest(restAPIConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v)
+                .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
     
@@ -110,7 +110,7 @@ public class Qdrant {
         Map<String, Object> additionalBodies = Map.of("points", point);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v)
+                .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
     
@@ -132,13 +132,13 @@ public class Qdrant {
         Map<String, Object> additionalBodies = Map.of("points", ids);
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v)
+                .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.get", mode = Mode.SCHEMA)
     @Description("apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $config)")
-    public Stream<VectorDbUtil.EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -154,7 +154,7 @@ public class Qdrant {
 
     @Procedure(value = "apoc.vectordb.qdrant.query", mode = Mode.SCHEMA)
     @Description("apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $config)")
-    public Stream<VectorDbUtil.EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
@@ -167,7 +167,7 @@ public class Qdrant {
         String endpoint = "%s/collections/%s/points/search".formatted(qdrantUrl, collection);
         getEndpoint(config, endpoint);
 
-        VectorEmbeddingConfig apiConfig = QDRANT.get().fromQuery(config, procedureCallContext, vector, filter, limit);
+        VectorEmbeddingConfig apiConfig = QDRANT.get().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx);
     }
 

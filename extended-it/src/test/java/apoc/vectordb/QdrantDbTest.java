@@ -15,17 +15,19 @@ import java.util.Map;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.vectordb.VectorDbTestUtil.assertBerlinVector;
-import static apoc.vectordb.VectorDbTestUtil.assertLondonVector;
+import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
+import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertOtherNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.vectorEntityAssertions;
+import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class QdrantDbTest {
 
@@ -78,15 +80,27 @@ public class QdrantDbTest {
     public void before() {
         dropAndDeleteAll(db);
     }
-
+    
     @Test
-    public void getEmbeddings() {
-        testResult(db, "CALL apoc.vectordb.qdrant.get($host, 'test_collection', [1]) ",
-                Map.of("host", HOST),
+    public void getVectors() {
+        testResult(db, "CALL apoc.vectordb.qdrant.get($host, 'test_collection', [1], $conf) ",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, false);
                     assertNotNull(row.get("vector"));
+                });
+    }
+    
+    @Test
+    public void getVectorsWithoutVectorResult() {
+        testResult(db, "CALL apoc.vectordb.qdrant.get($host, 'test_collection', [1]) ",
+                map("host", HOST),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
                 });
     }
 
@@ -106,7 +120,7 @@ public class QdrantDbTest {
                 });
         
         testCall(db, "CALL apoc.vectordb.qdrant.delete($host, 'test_collection', [3, 4]) ",
-                Map.of("host", HOST),
+                map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("ok", value.get("status"));
@@ -114,74 +128,94 @@ public class QdrantDbTest {
     }
 
     @Test
-    public void getEmbedding() {
-        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5)",
-                Map.of("host", HOST, "conf", emptyMap()),
+    public void queryVectors() {
+        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, false);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, false);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
     }
 
     @Test
-    public void getEmbeddingWithYield() {
-        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5) YIELD metadata, id",
-                Map.of("host", HOST, "conf", emptyMap()),
+    public void queryVectorsWithoutVectorResult() {
+        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5)",
+                map("host", HOST, "conf", emptyMap()),
                 r -> {
-                    assertBerlinVector(r.next());
-                    assertLondonVector(r.next());
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
+                    assertNotNull(row.get("score"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
+
+                    row = r.next();
+                    assertEquals(Map.of("city", "London", "foo", "two"), row.get("metadata"));
+                    assertNotNull(row.get("score"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
                 });
     }
 
     @Test
-    public void getEmbeddingWithFilter() {
+    public void queryVectorsWithYield() {
+        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf) YIELD metadata, id",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true)),
+                r -> {
+                    assertBerlinResult(r.next(), false);
+                    assertLondonResult(r.next(), false);
+                });
+    }
+
+    @Test
+    public void queryVectorsWithFilter() {
         testResult(db, """
                         CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], 
                         { must: 
                             [ { key: "city", match: { value: "London" } } ] 
                         }, 
-                        5) YIELD metadata, id""",
-                Map.of("host", HOST, "conf", emptyMap()),
+                        5, $conf) YIELD metadata, id""",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
-                    assertLondonVector(r.next());
+                    assertLondonResult(r.next(), false);
                 });
     }
 
     @Test
-    public void getEmbeddingWithLimit() {
+    public void queryVectorsWithLimit() {
         testResult(db, """
-                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1) YIELD metadata, id""",
-                Map.of("host", HOST, "conf", emptyMap()),
+                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
-                    assertBerlinVector(r.next());
+                    assertBerlinResult(r.next(), false);
                 });
     }
 
     @Test
-    public void getEmbeddingWithCreateIndex() {
+    public void queryVectorsWithCreateIndex() {
 
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect", 
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect", 
                 "label", "Test", 
                 "prop", "myId", 
                 "id", "foo",
                 "create", true));
         testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "conf", conf),
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
@@ -192,41 +226,42 @@ public class QdrantDbTest {
                 r -> vectorEntityAssertions(r, true));
 
         testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "conf", conf),
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
 
-        assertOtherNodesCreated(db);
+        assertNodesCreated(db, true);
     }
 
     @Test
-    public void getEmbeddingWithCreateIndexUsingExistingNode() {
+    public void queryVectorsWithCreateIndexUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect",
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect",
                 "label", "Test",
                 "prop", "myId",
                 "id", "foo"));
         testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "conf", conf),
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
@@ -235,24 +270,25 @@ public class QdrantDbTest {
     }
 
     @Test
-    public void getEmbeddingWithCreateRelIndex() {
+    public void queryVectorsWithCreateRelIndex() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
         
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect",
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect",
                 "type", "TEST",
                 "prop", "myId",
                 "id", "foo"));
         testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "conf", conf),
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });

@@ -232,5 +232,11 @@ apoc.vectordb.qdrant.upsert
 apoc.vectordb.qdrant.delete
 apoc.vectordb.qdrant.get
 apoc.vectordb.qdrant.query
+apoc.vectordb.weaviate.createCollection
+apoc.vectordb.weaviate.deleteCollection
+apoc.vectordb.weaviate.upsert
+apoc.vectordb.weaviate.delete
+apoc.vectordb.weaviate.get
+apoc.vectordb.weaviate.query
 apoc.vectordb.custom.get
 apoc.vectordb.custom

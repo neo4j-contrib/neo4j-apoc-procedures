@@ -1,6 +1,7 @@
 package apoc.vectordb;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -17,12 +18,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.vectordb.VectorDbTestUtil.assertBerlinVector;
-import static apoc.vectordb.VectorDbTestUtil.assertLondonVector;
+import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
+import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertOtherNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
@@ -79,16 +81,28 @@ public class ChromaDbTest {
     public void before() {
         dropAndDeleteAll(db);
     }
-
+    
     @Test
-    public void getEmbeddings() {
-        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1']) ",
-                Map.of("host", HOST, "collection", collId.get()),
+    public void getVectors() {
+        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1'], $conf) ",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, false);
                     assertNotNull(row.get("vector"));
                     assertEquals("ajeje", row.get("text"));
+                });
+    }
+
+    @Test
+    public void getVectorsWithoutVectorResult() {
+        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1'])",
+                map("host", HOST, "collection", collId.get()),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
                 });
     }
     
@@ -106,7 +120,7 @@ public class ChromaDbTest {
                 });
 
         testCall(db, "CALL apoc.vectordb.chroma.delete($host, $collection, [3]) ",
-                Map.of("host", HOST, "collection", collId.get()),
+                map("host", HOST, "collection", collId.get()),
                 r -> {
                     assertEquals(List.of("3"), r.get("value"));
                 });
@@ -114,80 +128,101 @@ public class ChromaDbTest {
 
     @Test
     public void createAndDeleteVector() {
-        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1']) ",
-                Map.of("host", HOST, "collection", collId.get()),
+        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1'], $conf) ",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, false);
                     assertNotNull(row.get("vector"));
                 });
     }
 
     @Test
-    public void getEmbedding() {
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5)",
-                Map.of("host", HOST, "collection", collId.get(), "conf", emptyMap()),
+    public void queryVectors() {
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, false);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, false);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
     }
-
+    
     @Test
-    public void getEmbeddingWithYield() {
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5) YIELD metadata, id",
-                Map.of("host", HOST, "collection", collId.get(), "conf", emptyMap()),
+    public void queryVectorsWithoutVectorResult() {
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5) " +
+                       " YIELD score, vector, id, metadata, entity RETURN * ORDER BY id",
+                map("host", HOST, "collection", collId.get()),
                 r -> {
-                    assertBerlinVector(r.next());
-                    assertLondonVector(r.next());
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
+                    assertNotNull(row.get("score"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
+
+                    row = r.next();
+                    assertEquals(Map.of("city", "London", "foo", "two"), row.get("metadata"));
+                    assertNotNull(row.get("score"));
+                    assertNull(row.get("vector"));
+                    assertNull(row.get("id"));
                 });
     }
 
     @Test
-    public void getEmbeddingWithFilter() {
+    public void queryVectorsWithYield() {
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf) YIELD metadata, id",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
+                r -> {
+                    assertBerlinResult(r.next(), false);
+                    assertLondonResult(r.next(), false);
+                });
+    }
+
+    @Test
+    public void queryVectorsWithFilter() {
         testResult(db, """
-                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {city: 'London'}, 5) YIELD metadata, id""",
-                Map.of("host", HOST, "collection", collId.get(), "conf", emptyMap()),
+                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {city: 'London'}, 5, $conf) YIELD metadata, id""",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
-                    assertLondonVector(r.next());
+                    assertLondonResult(r.next(), false);
                 });
     }
 
     @Test
-    public void getEmbeddingWithLimit() {
+    public void queryVectorsWithLimit() {
         testResult(db, """
-                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 1) YIELD metadata, id""",
-                Map.of("host", HOST, "collection", collId.get(), "conf", emptyMap()),
+                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+                map("host", HOST, "collection", collId.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
-                    assertBerlinVector(r.next());
+                    assertBerlinResult(r.next(), false);
                 });
     }
 
     @Test
-    public void getEmbeddingWithCreateIndex() {
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect",
+    public void queryVectorsWithCreateIndex() {
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect",
                 "label", "Test",
                 "prop", "myId",
                 "id", "foo",
                 "create", true));
         
         testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "collection", collId.get(), "conf", conf),
+                map("host", HOST, "collection", collId.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
@@ -196,42 +231,43 @@ public class ChromaDbTest {
 
 
         testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.22, 0.11, 0.99, 0.17], {}, 5, $conf) " +
-                       "   YIELD score, vector, id, metadata RETURN * ORDER BY id",
-                Map.of("host", HOST, "collection", collId.get(), "conf", conf),
+                       "   YIELD score, vector, id, metadata, entity RETURN * ORDER BY id",
+                map("host", HOST, "collection", collId.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
 
-        assertOtherNodesCreated(db);
+        assertNodesCreated(db, true);
     }
 
     @Test
-    public void getEmbeddingWithCreateIndexUsingExistingNode() {
+    public void queryVectorsWithCreateIndexUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect",
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect",
                 "label", "Test",
                 "prop", "myId",
                 "id", "foo"));
         testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "collection", collId.get(), "conf", conf),
+                map("host", HOST, "collection", collId.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
@@ -240,25 +276,26 @@ public class ChromaDbTest {
     }
 
     @Test
-    public void getEmbeddingWithCreateRelIndex() {
+    public void queryVectorsWithCreateRelIndex() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
-        Map<String, Object> conf = Map.of(MAPPING_KEY, Map.of("embeddingProp", "vect",
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map("embeddingProp", "vect",
                 "type", "TEST",
                 "prop", "myId",
                 "id", "foo",
                 "create", true));
         testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                Map.of("host", HOST, "collection", collId.get(), "conf", conf),
+                map("host", HOST, "collection", collId.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
-                    assertBerlinVector(row);
+                    assertBerlinResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
 
                     row = r.next();
-                    assertLondonVector(row);
+                    assertLondonResult(row, true);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
                 });
