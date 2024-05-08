@@ -216,10 +216,10 @@ public class WeaviateTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
 
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
-                r -> vectorEntityAssertions(r, true));
+                VectorDbTestUtil::vectorEntityAssertions);
 
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, entity RETURN * ORDER BY id",
@@ -236,7 +236,7 @@ public class WeaviateTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
     }
 
     @Test
@@ -265,7 +265,7 @@ public class WeaviateTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, false);
+        assertNodesCreated(db);
     }
 
     @Test

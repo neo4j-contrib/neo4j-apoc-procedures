@@ -179,7 +179,6 @@ public class VectorDb {
                 rel = transaction.findRelationship(RelationshipType.withName(mapping.getType()), mapping.getProp(), propValue);
                 if (rel != null) {
                     setProperties(rel, metaProps);
-//                    rel.setProperty(mapping.getProp(), propValue);
                 }
                 transaction.commit();
             }

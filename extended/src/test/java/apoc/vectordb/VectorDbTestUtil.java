@@ -14,7 +14,6 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -56,18 +55,12 @@ public class VectorDbTestUtil {
             assertLondonProperties(props);
         }
     }
-    
-    public static void assertOtherNodesCreated(GraphDatabaseService db) {
-        assertIndexNodesCreated(db);
 
-        testCallCount(db, "MATCH (n:Test) RETURN n", 4);
-    }
-
-    public static void assertNodesCreated(GraphDatabaseService db, boolean isNew) {
+    public static void assertNodesCreated(GraphDatabaseService db) {
         assertIndexNodesCreated(db);
 
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
-                r -> vectorEntityAssertions(r, isNew));
+                VectorDbTestUtil::vectorEntityAssertions);
     }
 
     public static void assertIndexNodesCreated(GraphDatabaseService db) {
@@ -88,30 +81,26 @@ public class VectorDbTestUtil {
         }
 
         testResult(db, "MATCH (:Start)-[r:TEST]->(:End) RETURN properties(r) AS props ORDER BY r.myId",
-                r -> vectorEntityAssertions(r, false));
+                VectorDbTestUtil::vectorEntityAssertions);
     }
 
-    public static void vectorEntityAssertions(Result r, boolean isNew) {
+    public static void vectorEntityAssertions(Result r) {
         ResourceIterator<Map> propsIterator = r.columnAs("props");
-        assertBerlinProperties(propsIterator.next()/*, isNew*/);
-        assertLondonProperties(propsIterator.next()/*, isNew*/);
+        assertBerlinProperties(propsIterator.next());
+        assertLondonProperties(propsIterator.next());
 
         assertFalse(propsIterator.hasNext());
     }
 
-    private static void assertLondonProperties(Map props/*, boolean isNew*/) {
+    private static void assertLondonProperties(Map props) {
         assertEquals("London", props.get("city"));
-//        if (!isNew) {
-            assertEquals("two", props.get("myId"));
-//        }
+        assertEquals("two", props.get("myId"));
         assertTrue(props.get("vect") instanceof float[]);
     }
 
-    private static void assertBerlinProperties(Map props/*, boolean isNew*/) {
+    private static void assertBerlinProperties(Map props) {
         assertEquals("Berlin", props.get("city"));
-//        if (!isNew) {
-            assertEquals("one", props.get("myId"));
-//        }
+        assertEquals("one", props.get("myId"));
         assertTrue(props.get("vect") instanceof float[]);
     }
 }

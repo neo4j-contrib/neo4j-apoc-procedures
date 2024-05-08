@@ -18,10 +18,8 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertOtherNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
-import static apoc.vectordb.VectorDbTestUtil.vectorEntityAssertions;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static java.util.Collections.emptyMap;
@@ -220,10 +218,10 @@ public class QdrantDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
 
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
-                r -> vectorEntityAssertions(r, true));
+                VectorDbTestUtil::vectorEntityAssertions);
 
         testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
@@ -239,7 +237,7 @@ public class QdrantDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
     }
 
     @Test
@@ -266,7 +264,7 @@ public class QdrantDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, false);
+        assertNodesCreated(db);
     }
 
     @Test

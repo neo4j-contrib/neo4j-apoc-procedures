@@ -82,7 +82,6 @@ public interface VectorEmbedding {
             additionalBodies.put("with_payload", fields.contains("metadata"));
             additionalBodies.put("with_vectors", fields.contains("vector") && conf.isAllResults());
 
-//            return new VectorEmbeddingConfig(config, Map.of(), additionalBodies);
             return populateApiBodyRequest(conf, additionalBodies);
         }
     }
@@ -186,12 +185,11 @@ public interface VectorEmbedding {
             return populateApiBodyRequest(vectorEmbeddingConfig, additionalBodies);
         }
 
-        private static VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config/*,
-                                                                      Map<String, Object> additionalBodies*/) {
+        private static VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config) {
             config.putIfAbsent(VECTOR_KEY, "vector");
             config.putIfAbsent(METADATA_KEY, "properties");
             
-            return new VectorEmbeddingConfig(config/*, Map.of(), additionalBodies*/);
+            return new VectorEmbeddingConfig(config);
         }
     }
 
@@ -203,6 +201,6 @@ public interface VectorEmbedding {
         Map<String, Object> body = apiConfig.getBody();
         if (body != null) additionalBodies.forEach(body::putIfAbsent);
         apiConfig.setBody(body);
-        return config;///*, Map.of(), additionalBodies*/);
+        return config;
     }
 }

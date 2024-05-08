@@ -1,7 +1,6 @@
 package apoc.vectordb;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -21,12 +20,10 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertOtherNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -227,7 +224,7 @@ public class ChromaDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
 
 
         testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.22, 0.11, 0.99, 0.17], {}, 5, $conf) " +
@@ -245,7 +242,7 @@ public class ChromaDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, true);
+        assertNodesCreated(db);
     }
 
     @Test
@@ -272,7 +269,7 @@ public class ChromaDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertNodesCreated(db, false);
+        assertNodesCreated(db);
     }
 
     @Test
