@@ -137,9 +137,10 @@ public class PromptIT {
                 ),
                 (r) -> {
                     String value = ( (String) r.get("value") ).toLowerCase();
-                    assertTrue("Current value is: " + value,
+                    String message = "Current value is: " + value;
+                    assertTrue(message,
                             value.contains("movie"));
-                    assertTrue("Current value is: " + value,
+                    assertTrue(message,
                             value.contains("person") || value.contains("people") || value.contains("actor"));
                 });
     }
