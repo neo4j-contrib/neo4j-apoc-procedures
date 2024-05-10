@@ -106,10 +106,17 @@ public class Prompt {
     @Description("Takes a query in cypher and in natural language and returns the results in natural language")
     public Stream<StringResult> fromCypher(@Name("cypher") String cypher,
                                          @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
-        String schema = loadSchema(tx, conf);
+        String schemaAndCypher = """
+                %s
+                while the cypher query is:
+                %s
+                """.formatted(
+                loadSchema(tx, conf), 
+                cypher
+        );
         
         String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
-                FROM_CYPHER_PROMPT, "This database schema ", schema, conf, List.of());
+                FROM_CYPHER_PROMPT, "This database schema ", schemaAndCypher, conf, List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
     
