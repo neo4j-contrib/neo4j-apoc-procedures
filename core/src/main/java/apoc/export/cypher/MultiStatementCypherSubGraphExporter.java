@@ -117,10 +117,11 @@ public class MultiStatementCypherSubGraphExporter {
         reporter.done();
     }
 
-    public void exportOnlySchema(ExportFileManager cypherFileManager, ExportConfig config) {
+    public void exportOnlySchema(ExportFileManager cypherFileManager, Reporter reporter, ExportConfig config) {
         PrintWriter schemaWriter = cypherFileManager.getPrintWriter("schema");
         exportSchema(schemaWriter, config);
         schemaWriter.close();
+        reporter.done();
     }
 
     // ---- Nodes ----
