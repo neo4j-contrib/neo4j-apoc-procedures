@@ -6,6 +6,15 @@ plugins {
     id "com.diffplug.spotless" version "6.7.2"
 }
 
+ext {
+    // Move to gradle.properties (but versions.json generation build depends on this right now)
+    neo4jVersion = '4.4.34'
+    publicDir =  "${project.rootDir}"
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
+    neo4jDockerVersion = project.hasProperty("neo4jDockerVersionOverride") ? project.getProperty("neo4jDockerVersionOverride") : neo4jVersion
+    testContainersVersion = '1.17.6'
+}
+
 subprojects {
     apply plugin: "com.diffplug.spotless"
     apply plugin: 'java-library'
@@ -27,7 +36,6 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '4.4.0.28'
     base {
         archivesName = 'apoc'
     }
@@ -88,8 +96,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-enterprise-debian' : 'neo4j:4.4.34-enterprise-debian',
-                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerVersionOverride") ? 'neo4j:' + project.getProperty("neo4jDockerVersionOverride") + '-debian': 'neo4j:4.4.34-debian'
+                'neo4jDockerImage' : "neo4j:${neo4jDockerVersion}-enterprise-debian",
+                'neo4jCommunityDockerImage': "neo4j:${neo4jDockerVersion}-debian"
 
         maxHeapSize = "5G"
         forkEvery = 50
@@ -122,7 +130,6 @@ subprojects {
         apt
     }
 
-
     compileJava {
         options.annotationProcessorPath = configurations.apt
         options.compilerArgs += ["-AIgnoreContextWarnings"]
@@ -132,11 +139,3 @@ subprojects {
 
 apply from: "licenses-3rdparties.gradle"
 
-ext {
-    publicDir =  "${project.rootDir}"
-    // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "4.4.34"
-    // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.17.6'
-}
