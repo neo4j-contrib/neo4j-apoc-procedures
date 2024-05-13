@@ -201,7 +201,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.4.15.jar
+  reactor-core-3.6.5.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
@@ -3096,7 +3096,6 @@ Public Domain, per Creative Commons CC0
   jersey-container-servlet-2.34.jar
   jersey-container-servlet-core-2.34.jar
   jersey-hk2-2.34.jar
-  reactive-streams-1.0.3.jar
 ------------------------------------------------------------------------------
 
 Creative Commons Legal Code
