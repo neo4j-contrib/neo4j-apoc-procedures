@@ -1,43 +1,6 @@
 package apoc.util;
 
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
-import static apoc.util.Util.getAllQueryProcs;
-
-import java.math.BigInteger;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalAccessor;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-
 import apoc.util.collection.Iterators;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.exceptions.Neo4jException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,14 +20,29 @@ import org.neo4j.values.storable.LocalTimeValue;
 import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
-import org.neo4j.values.storable.DateTimeValue;
-import org.neo4j.values.storable.DateValue;
-import org.neo4j.values.storable.DurationValue;
-import org.neo4j.values.storable.LocalDateTimeValue;
-import org.neo4j.values.storable.LocalTimeValue;
-import org.neo4j.values.storable.PointValue;
-import org.neo4j.values.storable.TimeValue;
-import org.neo4j.values.storable.Values;
+
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAccessor;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
+import static apoc.util.Util.getAllQueryProcs;
 
 public class ExtendedUtil
 {
@@ -117,6 +95,39 @@ public class ExtendedUtil
             return ((Map<String, Object>) object).entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, e -> toValidValue(e.getValue(), field, mapping)));
         }
+        return getNeo4jValue(object);
+    }
+
+    public static <T> Object toValidYamlValue(Object object, String field, Map<String, Object> mapping, boolean start) {
+        Object fieldName = field == null ? null : mapping.get(field);
+
+        if (fieldName == null) {
+            fieldName = start ? mapping.get("_") : null;
+        }
+
+        if (object instanceof Collection) {
+            return ((Collection<?>) object).stream()
+                    .map(i -> toValidYamlValue(i, field, mapping, start))
+                    .collect(Collectors.toList())
+                    .toArray(i -> new Object[] {});
+        }
+        if (object instanceof Map) {
+            return ((Map<String, Object>) object).entrySet().stream()
+                    .collect(
+                            HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
+                            (mapAccumulator, entry) ->
+                                    mapAccumulator.put(entry.getKey(), toValidYamlValue(entry.getValue(), entry.getKey(), mapping, false)),
+                            HashMap::putAll);
+        }
+
+        if (object != null && fieldName != null) {
+            return convertValue(object.toString(), fieldName.toString());
+        }
+
+        return getNeo4jValue(object);
+    }
+
+    private static Object getNeo4jValue(Object object) {
         try {
             // we test if is a valid Neo4j type
             Values.of(object);
