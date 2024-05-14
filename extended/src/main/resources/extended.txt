@@ -111,6 +111,7 @@ apoc.ml.bedrock.image
 apoc.ml.bedrock.list
 apoc.ml.cypher
 apoc.ml.fromCypher
+apoc.ml.fromQueries
 apoc.ml.query
 apoc.ml.schema
 apoc.ml.openai.chat
