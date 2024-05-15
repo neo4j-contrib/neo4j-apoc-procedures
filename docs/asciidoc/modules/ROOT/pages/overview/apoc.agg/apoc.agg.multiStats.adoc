@@ -22,7 +22,7 @@ apoc.agg.multiStats(value :: NODE | RELATIONSHIP, keys :: LIST OF STRING) :: (MA
 |===
 
 
-[[usage-apoc.data.email]]
+[[usage-apoc.agg.multiStats]]
 == Usage Examples
 
 Given this dataset:

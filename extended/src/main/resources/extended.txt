@@ -1,6 +1,7 @@
 apoc.agg.position
 apoc.agg.row
 apoc.agg.multiStats
+apoc.agg.rollup
 apoc.algo.aStarWithPoint
 apoc.bolt.execute
 apoc.bolt.load
