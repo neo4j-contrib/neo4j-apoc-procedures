@@ -112,10 +112,6 @@ dependencies {
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
-    
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.4.0', {
-        exclude group: 'com.amazonaws'
-    }
 
     compileOnly group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.16.1'
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
@@ -124,11 +120,6 @@ dependencies {
     testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.16.1'
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
-    
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.4.0', {
-        exclude group: 'com.amazonaws'
-    }
-
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
     testImplementation project(':test-utils')

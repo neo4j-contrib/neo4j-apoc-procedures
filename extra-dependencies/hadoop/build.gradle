@@ -35,9 +35,6 @@ dependencies {
     implementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', commonExclusions
     implementation group: 'org.apache.parquet', name: 'parquet-column', version: '1.13.1', commonExclusions
     implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.4.0', commonExclusions
-    implementation group: 'org.apache.hadoop', name: 'hadoop-aws', version: '3.4.0', commonExclusions.andThen {
-        exclude group: 'com.amazonaws'
-    }
 }
 
 
