@@ -2,46 +2,75 @@ package apoc.nlp.aws
 
 import apoc.result.MapResult
 import apoc.util.JsonUtil
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.auth.*
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesRequest
-import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
-import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesRequest
-import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
-import com.amazonaws.services.comprehend.model.BatchDetectSentimentRequest
-import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
+import com.amazonaws.services.comprehend.model.*
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 
 class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient {
-    private val apiKey = config["key"].toString()
-    private val apiSecret = config["secret"].toString()
+    companion object  {
+        val missingCredentialError = """
+                Error during AWS credentials retrieving.
+                Make sure the key ID and the Secret Key are defined via `key` and `secret` parameters 
+                or via one of these ways: https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html:
+                """
+    }
+    private val apiKey = config["key"]?.toString()
+    private val apiSecret = config["secret"]?.toString()
+    private val apiSessionToken = config["token"].toString()
     private val region = config.getOrDefault("region", "us-east-1").toString()
     private val language = config.getOrDefault("language", "en").toString()
     private val nodeProperty = config.getOrDefault("nodeProperty", "text").toString()
 
     private val awsClient = AmazonComprehendClientBuilder.standard()
-            .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(apiKey, apiSecret)))
+            .withCredentials(awsStaticCredentialsProvider())
             .withRegion(region)
             .build()
 
-     override fun entities(data: List<Node>, batchId: Int): BatchDetectEntitiesResult? {
-         val convertedData = convertInput(data)
-         val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
-         return awsClient.batchDetectEntities(batch)
+    private fun awsStaticCredentialsProvider(): AWSCredentialsProvider {
+        return if (!apiKey.isNullOrEmpty() && !apiSecret.isNullOrEmpty()) {
+            AWSStaticCredentialsProvider(getAwsBasicCredentials())
+        } else {
+            DefaultAWSCredentialsProviderChain()
+        }
+    }
+
+    private fun getAwsBasicCredentials() = if (apiSessionToken.isEmpty()) { 
+        BasicAWSCredentials(apiKey, apiSecret) 
+    } else { 
+        BasicSessionCredentials(apiKey, apiSecret, apiSessionToken) 
+    }
+
+
+    override fun entities(data: List<Node>, batchId: Int): BatchDetectEntitiesResult? {
+        try {
+             val convertedData = convertInput(data)
+             val batch = BatchDetectEntitiesRequest().withTextList(convertedData).withLanguageCode(language)
+             return awsClient.batchDetectEntities(batch)
+        } catch (e: Exception) {
+            throw RuntimeException(missingCredentialError + e)
+        }
     }
 
     override fun keyPhrases(data: List<Node>, batchId: Int): BatchDetectKeyPhrasesResult? {
-        val convertedData = convertInput(data)
-        val batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData).withLanguageCode(language)
-        return awsClient.batchDetectKeyPhrases(batch)
+        try {
+            val convertedData = convertInput(data)
+            val batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData).withLanguageCode(language)
+            return awsClient.batchDetectKeyPhrases(batch)
+        } catch (e: Exception) {
+            throw RuntimeException(missingCredentialError + e)
+        }
     }
 
     override fun sentiment(data: List<Node>, batchId: Int): BatchDetectSentimentResult? {
-        val convertedData = convertInput(data)
-        val batch = BatchDetectSentimentRequest().withTextList(convertedData).withLanguageCode(language)
-        return awsClient.batchDetectSentiment(batch)
+        try {
+            val convertedData = convertInput(data)
+            val batch = BatchDetectSentimentRequest().withTextList(convertedData).withLanguageCode(language)
+            return awsClient.batchDetectSentiment(batch)
+        } catch (e: Exception) {
+            throw RuntimeException(missingCredentialError + e)
+        }
     }
 
     fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
