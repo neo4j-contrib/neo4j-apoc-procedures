@@ -8,6 +8,7 @@ apoc.bolt.load.fromLocal
 apoc.config.list
 apoc.config.map
 apoc.convert.toYaml
+apoc.convert.fromYaml
 apoc.couchbase.append
 apoc.couchbase.exists
 apoc.couchbase.get

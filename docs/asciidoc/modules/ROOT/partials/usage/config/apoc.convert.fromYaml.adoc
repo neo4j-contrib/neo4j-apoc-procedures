@@ -1,0 +1,17 @@
+The procedure support the following config parameters:
+
+.Config parameters
+[opts=header, cols="1,1,1,5"]
+|===
+| name | type | default | description
+| disable | list of strings | empty list | To disable one or more configurations, enabled by default, of the library used under the hood.
+    See https://www.javadoc.io/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/latest/com/fasterxml/jackson/dataformat/yaml/YAMLGenerator.Feature.html[here].
+| enable | list of strings | empty list | To enable one or more configurations of the library used under the hood.
+    See https://www.javadoc.io/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/latest/com/fasterxml/jackson/dataformat/yaml/YAMLGenerator.Feature.html[here].
+| mapping | map of strings | empty map | to map complex YAMLs.
+
+In order to read complex types not supported by FasterXML Jackson, like Long...
+we can use the mapping config to convert to the desired data type.
+For example, if we have a YAML `a: 42 b: foo` , we can define a map `{mapping: {a: "Long"} }`
+
+|===

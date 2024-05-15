@@ -16,7 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static apoc.convert.ConvertExtendedUtil.MAPPING_KEY;
 import static apoc.convert.ConvertExtendedUtil.getYamlFactory;
+import static apoc.convert.ConvertExtendedUtil.parse;
+import static apoc.util.ExtendedUtil.toValidYamlValue;
 import static apoc.util.Util.labelStrings;
 import static apoc.util.Util.map;
 
@@ -38,6 +41,18 @@ public class ConvertExtended {
             throw new MissingDependencyException(YAML_MISSING_DEPS_ERROR);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + "value" + " to yaml", e);
+        }
+    }
+
+    @UserFunction("apoc.convert.fromYaml")
+    @Description("apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value")
+    public Object fromYaml(@Name("value") String value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+        try {
+            Object parse = parse(value, config);
+            var mappingConf = (Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of());
+            return toValidYamlValue(parse, null, mappingConf, true);
+        } catch (NoClassDefFoundError e) {
+            throw new MissingDependencyException(YAML_MISSING_DEPS_ERROR);
         }
     }
 
