@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,10 +87,15 @@ public class ExtendedUtil
 
         if (object instanceof Collection) {
             // if there isn't a mapping config, we convert the list to a String[]
-            return ((Collection<?>) object).stream()
+            List<Object> list = ((Collection<?>) object).stream()
                     .map(i -> toValidValue(i, field, mapping))
-                    .collect(Collectors.toList())
-                    .toArray(new String[0]);
+                    .collect(Collectors.toList());
+
+            try {
+                return list.toArray(new String[0]);
+            } catch (ArrayStoreException e) {
+                return list.toArray(new Object[0]);
+            }
         }
         if (object instanceof Map) {
             return ((Map<String, Object>) object).entrySet().stream()
