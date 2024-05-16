@@ -11,3 +11,4 @@ This section includes:
 * xref::ml/openai.adoc[]
 * xref::ml/bedrock.adoc[]
 * xref::ml/watsonai.adoc[]
+* xref::ml/mixedbread.adoc[]
