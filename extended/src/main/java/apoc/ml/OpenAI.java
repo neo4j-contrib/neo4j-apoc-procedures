@@ -137,10 +137,6 @@ public class OpenAI {
         List<String> nonNullTexts = collect.get(true);
 
         Stream<Object> resultStream = executeRequest(apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", nonNullTexts, "$.data", apocConfig, urlAccessChecker);
-//        Function<Map<String, Object>, R> mapRFunction = m -> {
-//            Long index = (Long) m.get("index");
-//            return new EmbeddingResult(index, nonNullTexts.get(index.intValue()), m.get("embedding"));
-//        };
         Stream<T> embeddingResultStream = resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
@@ -150,10 +146,6 @@ public class OpenAI {
                 });
 
         List<String> nullTexts = collect.getOrDefault(false, List.of());
-//        Function<String, R> stringRFunction = i -> {
-//            // null text return index -1 to indicate that are not coming from `/embeddings` RestAPI
-//            return new EmbeddingResult(-1, i, List.of());
-//        };
         Stream<T> nullResultStream = nullTexts.stream()
                 .map(nullMapping);
         return Stream.concat(embeddingResultStream, nullResultStream);

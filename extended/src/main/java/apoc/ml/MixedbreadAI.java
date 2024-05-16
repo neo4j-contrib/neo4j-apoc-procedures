@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.OpenAI.API_TYPE_CONF_KEY;
 import static apoc.ml.OpenAI.APOC_ML_OPENAI_URL;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
 
 public class MixedbreadAI {
     
