@@ -63,9 +63,11 @@ public class Prompt {
     static final String FROM_CYPHER_PROMPT = """
             You are an expert in the Neo4j graph query language Cypher.
             Given a graph database schema of entities (nodes) with labels and attributes and
-            relationships with start- and end-node, relationship-type, direction and properties,
-            you are able to develop graph database query that express a user question as a read only matching Cypher statements,
+            relationships with start-node and end-node, relationship-type, direction and properties,
+            and given a read only matching Cypher query statement,
+            you are able to explain the Cypher query statement in plain language,
             providing useful details of each entity.
+            Do not explain, apologize or provide additional detail about the schema, otherwise people will come to harm.
             """;
 
 
@@ -116,7 +118,7 @@ public class Prompt {
         );
         
         String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
-                FROM_CYPHER_PROMPT, "This database schema ", schemaAndCypher, conf, List.of());
+                FROM_CYPHER_PROMPT, "This is the Cypher query statement explanation: \n", schemaAndCypher, conf, List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
     
