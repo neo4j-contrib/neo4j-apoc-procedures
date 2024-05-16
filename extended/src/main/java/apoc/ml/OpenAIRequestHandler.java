@@ -10,8 +10,7 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_AZURE_VERSION;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_URL;
-import static apoc.ml.OpenAI.API_VERSION_CONF_KEY;
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 
 abstract class OpenAIRequestHandler {
 

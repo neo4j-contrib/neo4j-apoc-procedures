@@ -22,18 +22,15 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
-import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
+import static apoc.ml.MLUtil.*;
 
 
 @Extended
 public class OpenAI {
     public static final String API_TYPE_CONF_KEY = "apiType";
     public static final String APIKEY_CONF_KEY = "apiKey";
-    public static final String ENDPOINT_CONF_KEY = "endpoint";
-    public static final String API_VERSION_CONF_KEY = "apiVersion";
     public static final String JSON_PATH_CONF_KEY = "jsonPath";
     public static final String PATH_CONF_KEY = "path";
-    public static final String MODEL_CONF_KEY = "model";
 
     @Context
     public ApocConfig apocConfig;

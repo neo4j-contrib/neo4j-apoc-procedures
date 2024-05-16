@@ -13,8 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static apoc.ml.OpenAI.API_TYPE_CONF_KEY;
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAI.PATH_CONF_KEY;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;

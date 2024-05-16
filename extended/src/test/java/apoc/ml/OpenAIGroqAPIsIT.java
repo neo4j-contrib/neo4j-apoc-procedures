@@ -10,8 +10,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.CHAT_COMPLETION_QUERY;
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.util.TestUtil.testCall;

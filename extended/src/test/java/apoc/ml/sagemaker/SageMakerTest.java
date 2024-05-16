@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.ml.aws.AWSConfig.ENDPOINT_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
@@ -137,7 +137,7 @@ public class SageMakerTest {
 
     private static Map<String, Object> getParams(String path) {
         Map authHeader = Map.of(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
-        return Map.of("conf", Map.of(ENDPOINT_KEY, "http://localhost:%s/%s".formatted( PORT, path),
+        return Map.of("conf", Map.of(ENDPOINT_CONF_KEY, "http://localhost:%s/%s".formatted( PORT, path),
                         HEADERS_KEY, authHeader)
         );
     }

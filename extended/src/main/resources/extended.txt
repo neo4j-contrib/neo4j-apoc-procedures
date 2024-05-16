@@ -128,6 +128,7 @@ apoc.ml.vertexai.embedding
 apoc.ml.vertexai.stream
 apoc.ml.watson.chat
 apoc.ml.watson.completion
+apoc.ml.watson.embedding
 apoc.model.jdbc
 apoc.mongo.aggregate
 apoc.mongo.count

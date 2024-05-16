@@ -8,12 +8,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import static apoc.ExtendedApocConfig.APOC_ML_VERTEXAI_URL;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.VertexAI.getParameters;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public abstract class VertexAIHandler {
-    public static final String ENDPOINT_CONF_KEY = "endpoint";
-    public static final String MODEL_CONF_KEY = "model";
     public static final String RESOURCE_CONF_KEY = "resource";
     
     public static final String STREAM_RESOURCE = "streamGenerateContent";
