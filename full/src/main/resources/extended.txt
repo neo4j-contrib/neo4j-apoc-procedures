@@ -102,6 +102,8 @@ apoc.ml.fromCypher
 apoc.ml.fromQueries
 apoc.ml.query
 apoc.ml.schema
+apoc.ml.mixedbread.custom
+apoc.ml.mixedbread.embedding
 apoc.ml.openai.chat
 apoc.ml.openai.completion
 apoc.ml.openai.embedding
