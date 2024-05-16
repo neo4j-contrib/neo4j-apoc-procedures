@@ -510,3 +510,81 @@ overall, this graph database schema provides a simple yet powerful representatio
 | name | description
 | value | the description of the dataset
 |===
+
+
+== Create explanation of the subgraph from a set of queries
+
+This procedure `apoc.ml.fromQueries` returns an explanation, in natural language, of the given set of queries.
+
+It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.fromQueries(['MATCH (n:Movie) RETURN n', 'MATCH (n:Person) RETURN n'], 
+    {apiKey: <apiKey>}) 
+YIELD value
+RETURN *
+----
+
+.Example response
+[source, bash]
+----
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| "The database represents movies and people, like in a movie database or social network.
+    There are no defined relationships between nodes, allowing flexibility for future connections.
+    The Movie node includes properties like title, tagline, and release year." |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row
+----
+
+.Query call with path
+[source,cypher]
+----
+CALL apoc.ml.fromQueries(['MATCH (n:Movie) RETURN n', 'MATCH p=(n:Movie)--() RETURN p'], 
+    {apiKey: <apiKey>}) 
+YIELD value
+RETURN *
+----
+
+.Example response
+[source, bash]
+----
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| "models relationships in the movie industry, connecting :Person nodes to :Movie nodes. 
+    It represents actors, directors, writers, producers, and reviewers connected to movies they are involved with.
+    Similar to a social network graph but specialized for the entertainment industry.
+    Each relationship type corresponds to common roles in movie production and reviewing.
+    Allows for querying and analyzing connections and collaborations within the movie business." |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row
+----
+
+
+.Input Parameters
+[%autowidth, opts=header]
+|===
+| name | description
+| queries | The list of queries
+| conf | An optional configuration map, please check the next section
+|===
+
+.Configuration map
+[%autowidth, opts=header]
+|===
+| name | description | mandatory
+| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
+| model | The Open AI model | no, default `gpt-3.5-turbo`
+| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+| name | description
+| value | the description of the dataset
+|===

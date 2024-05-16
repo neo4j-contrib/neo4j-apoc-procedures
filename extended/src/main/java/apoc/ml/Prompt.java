@@ -234,18 +234,29 @@ public class Prompt {
         return result;
     }
 
+    private final static String SCHEMA_FROM_META_DATA = """
+            \nWITH label, elementType,
+                 apoc.text.join(collect(case when NOT type = "RELATIONSHIP" then property+": "+type else null end),", ") AS properties,   
+                 collect(case when type = "RELATIONSHIP" AND elementType = "node" then "(:" + label + ")-[:" + property + "]->(:" + toString(other[0]) + ")" else null end) as patterns
+            with  elementType as type,
+            apoc.text.join(collect(":"+label+" {"+properties+"}"),"\\n") as entities, apoc.text.join(apoc.coll.flatten(collect(coalesce(patterns,[]))),"\\n") as patterns
+            return collect(case type when "relationship" then entities end)[0] as relationships,
+            collect(case type when "node" then entities end)[0] as nodes,
+            collect(case type when "node" then patterns end)[0] as patterns
+            """;
+
     private final static String SCHEMA_QUERY = """
             call apoc.meta.data({maxRels: 10, sample: coalesce($sample, (count{()}/1000)+1)})
             YIELD label, other, elementType, type, property
-            WITH label, elementType,\s
-                 apoc.text.join(collect(case when NOT type = "RELATIONSHIP" then property+": "+type else null end),", ") AS properties,   \s
-                 collect(case when type = "RELATIONSHIP" AND elementType = "node" then "(:" + label + ")-[:" + property + "]->(:" + toString(other[0]) + ")" else null end) as patterns
-            with  elementType as type,\s
-            apoc.text.join(collect(":"+label+" {"+properties+"}"),"\\n") as entities, apoc.text.join(apoc.coll.flatten(collect(coalesce(patterns,[]))),"\\n") as patterns
-            return collect(case type when "relationship" then entities end)[0] as relationships,\s
-            collect(case type when "node" then entities end)[0] as nodes,\s
-            collect(case type when "node" then patterns end)[0] as patterns\s
-            """;
+            """ + SCHEMA_FROM_META_DATA;
+    
+    private final static String GRAPH_QUERY = """
+            UNWIND $queries AS query
+            CALL apoc.meta.data.of(query, {maxRels: 10, sample: $sample})
+            YIELD label, other, elementType, type, property
+            WITH DISTINCT label, other, elementType, type, property
+            """ + SCHEMA_FROM_META_DATA;
+    
     private final static String SCHEMA_PROMPT = """
                 nodes:
                 %s
@@ -254,6 +265,27 @@ public class Prompt {
                 patterns:
                 %s
             """;
+
+
+    @Procedure
+    public Stream<StringResult> fromQueries(@Name(value = "queries") List<String> queries, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
+        String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
+                EXPLAIN_SCHEMA_PROMPT, "This database schema ", loadSchemaQueries(tx, queries, conf), conf, List.of());
+        return Stream.of(new StringResult(schemaExplanation));
+    }
+    
+    private String loadSchemaQueries(Transaction tx, List<String> queries, Map<String, Object> conf) {
+        
+        Map<String, Object> params = Map.of(
+                "sample", conf.getOrDefault("sample", 1000L),
+                "queries", queries
+        );
+
+        return tx.execute(GRAPH_QUERY, params)
+                .stream()
+                .map(m -> SCHEMA_PROMPT.formatted(m.get("nodes"), m.get("relationships"), m.get("patterns")))
+                .collect(Collectors.joining("\n"));
+    }
 
     private String loadSchema(Transaction tx, Map<String, Object> conf) {
         Map<String, Object> params = new HashMap<>();
