@@ -1,0 +1,144 @@
+
+== Chroma
+
+The list and the signature procedures are consistent with the Qdrant ones:
+
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config) |
+    Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+| apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $config) | 
+    Deletes a collection with the name specified in the 2nd parameter
+| apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $config) | 
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+| apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $config) | 
+    Delete the vectors with the specified `ids`.
+| apoc.vectordb.chroma.get(hostOrKey, collection, ids, $config) | 
+    Get the vectors with the specified `ids`.
+| apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.chroma.<key>.host=myHost`.
+
+=== Examples
+
+.Create a collection (it leverages https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.createCollection($host, 'test_collection', 'Cosine', 4, {<optional config>})
+----
+
+
+.Delete a collection (it leverages https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.deleteCollection($host, '<collection_id>', {<optional config>})
+----
+
+
+.Upsert vectors (it leverages https://docs.trychroma.com/usage-guide#adding-data-to-a-collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.upsert($host, '<collection_id>',
+    [
+        {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}, text: 'ajeje'},
+        {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}, text: 'brazorf'}
+    ],
+    {<optional config>})
+----
+
+
+.Get vectors (it leverages https://docs.trychroma.com/usage-guide#querying-a-collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.get($host, '<collection_id>', ['1','2'], {<optional config>}), text
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| ...
+|===
+
+
+.Get vectors with `{allResults: true}`
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.get($host, '<collection_id>', ['1','2'], {<optional config>}), text
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf | null
+| ...
+|===
+
+
+.Query vectors (it leverages https://docs.trychroma.com/usage-guide#querying-a-collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.query($host, 
+    '<collection_id>', 
+    [0.2, 0.1, 0.9, 0.7], 
+    {city: 'London'}, 
+    5, 
+    {allResults: true, <optional config>}), text
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf
+| ...
+|===
+
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
+so that we do not return the other values that we do not need.
+====
+
+
+In the same way as other procedures, we can define a mapping, to auto-create one/multiple nodes and relationships,
+by leveraging the vector metadata. For example:
+
+.Query vectors
+[source,cypher]
+----
+CALL apoc.vectordb.chrome.query($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    }), text
+----
+
+
+
+.Delete vectors (it leverages https://docs.trychroma.com/usage-guide#deleting-data-from-a-collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.delete($host, '<collection_id>', [1,2], {<optional config>})
+----
+

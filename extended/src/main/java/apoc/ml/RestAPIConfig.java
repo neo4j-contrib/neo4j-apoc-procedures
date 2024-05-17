@@ -12,6 +12,11 @@ public class RestAPIConfig {
     public static final String ENDPOINT_KEY = "endpoint";
     public static final String JSON_PATH_KEY = "jsonPath";
     public static final String BODY_KEY = "body";
+    public static final String BASE_URL_KEY = "baseUrl";
+    
+    // used internally to handle multiple endpoints, like in `apoc.vectordb.weaviate.get`
+    // the config documented is the `endpoint` one
+    private final String baseUrl;
     
     private Map<String, Object> headers;
     private Map body;
@@ -32,6 +37,7 @@ public class RestAPIConfig {
         this.headers = populateHeaders(config, additionalHeaders, httpMethod);
 
         this.endpoint = (String) config.get(ENDPOINT_KEY);
+        this.baseUrl = (String) config.get(BASE_URL_KEY);
 
         this.jsonPath = (String) config.get(JSON_PATH_KEY);
         this.body = populateBody(config, additionalBodies);
@@ -66,6 +72,10 @@ public class RestAPIConfig {
 
     public String getEndpoint() {
         return endpoint;
+    }
+    
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     public String getJsonPath() {

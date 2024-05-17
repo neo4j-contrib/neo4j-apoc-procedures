@@ -240,3 +240,4 @@ apoc.vectordb.weaviate.get
 apoc.vectordb.weaviate.query
 apoc.vectordb.custom.get
 apoc.vectordb.custom
+apoc.vectordb.store

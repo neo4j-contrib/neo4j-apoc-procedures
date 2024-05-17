@@ -13,23 +13,7 @@ import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.vectordb.VectorEmbeddingConfig.*;
 
-public interface VectorEmbedding {
-
-    enum Type {
-        CHROMA(new ChromaEmbeddingType()),
-        QDRANT(new QdrantEmbeddingType()),
-        WEAVIATE(new WeaviateEmbeddingType());
-
-        private final VectorEmbedding embedding;
-
-        Type(VectorEmbedding embedding) {
-            this.embedding = embedding;
-        }
-
-        public VectorEmbedding get() {
-            return embedding;
-        }
-    }
+public interface VectorEmbeddingHandler {
 
     <T> VectorEmbeddingConfig fromGet(Map<String, Object> config,
                                       ProcedureCallContext procedureCallContext,
@@ -46,7 +30,7 @@ public interface VectorEmbedding {
     // -- implementations
     //
     
-    class QdrantEmbeddingType implements VectorEmbedding {
+    class QdrantEmbeddingHandler implements VectorEmbeddingHandler {
 
         @Override
         public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
@@ -86,7 +70,7 @@ public interface VectorEmbedding {
         }
     }
     
-    class ChromaEmbeddingType implements VectorEmbedding {
+    class ChromaEmbeddingHandler implements VectorEmbeddingHandler {
 
         @Override
         public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config,
@@ -144,7 +128,7 @@ public interface VectorEmbedding {
         }
     }
 
-    class WeaviateEmbeddingType implements VectorEmbedding {
+    class WeaviateEmbeddingHandler implements VectorEmbeddingHandler {
 
         @Override
         public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {

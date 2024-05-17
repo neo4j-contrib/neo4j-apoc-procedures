@@ -17,7 +17,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -28,7 +27,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorEmbedding.Type.CHROMA;
+import static apoc.vectordb.VectorDbUtil.VectorDbHandler.Type.CHROMA;
 import static apoc.vectordb.VectorEmbeddingConfig.*;
 
 @Extended
@@ -47,17 +46,14 @@ public class ChromaDb {
     public URLAccessChecker urlAccessChecker;
 
     @Procedure("apoc.vectordb.chroma.createCollection")
-    @Description("apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config)")
+    @Description("apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
                                     @Name("collection") String collection,
                                     @Name("similarity") String similarity,
                                     @Name("size") Long size,
                                     @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections".formatted(qdrantUrl);
-        getEndpoint(config, endpoint);
+        String url = "%s/api/v1/collections";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
         Map<String, Object> metadata = Map.of("hnsw:space", similarity,
@@ -70,16 +66,13 @@ public class ChromaDb {
     }
 
     @Procedure("apoc.vectordb.chroma.deleteCollection")
-    @Description("apoc.vectordb.chroma.deleteCollection")
+    @Description("apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection, 
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections/%s".formatted(qdrantUrl, collection);
-        getEndpoint(config, endpoint);
+        String url = "%s/api/v1/collections/%s";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
@@ -89,17 +82,14 @@ public class ChromaDb {
     }
 
     @Procedure("apoc.vectordb.chroma.upsert")
-    @Description("apoc.vectordb.chroma.upsert")
+    @Description("apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
     public Stream<MapResult> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections/%s/upsert".formatted(qdrantUrl, collection);
-        getEndpoint(config, endpoint);
+        String url = "%s/api/v1/collections/%s/upsert";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         
         Map<String, String> mapKeys = Map.of("id", "ids",
                 "vector", "embeddings",
@@ -117,44 +107,38 @@ public class ChromaDb {
                 .map(v -> (Map<String,Object>)v)
                 .map(MapResult::new);
     }
-    
+
     @Procedure(value = "apoc.vectordb.chroma.delete", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.delete()")
+    @Description("apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
     public Stream<ListResult> delete(@Name("hostOrKey") String hostOrKey,
                                      @Name("collection") String collection,
                                      @Name("ids") List<Object> ids,
                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
+        String url = "%s/api/v1/collections/%s/delete";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections/%s/delete".formatted(qdrantUrl, collection);
-        getEndpoint(config, endpoint);
-
-        VectorEmbeddingConfig apiConfig = CHROMA.get().fromGet(config, procedureCallContext, getStringIds(ids));
+        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
         return executeRequest(apiConfig.getApiConfig(), urlAccessChecker)
                 .map(v -> (List) v)
                 .map(ListResult::new);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.get", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.get()")
+    @Description("apoc.vectordb.chroma.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
+        String url = "%s/api/v1/collections/%s/get";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections/%s/get".formatted(qdrantUrl, collection);
-        getEndpoint(config, endpoint);
-
-        VectorEmbeddingConfig apiConfig = CHROMA.get().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromGet(config, procedureCallContext, ids);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx,
                 v -> listToMap((Map) v).stream());
     }
 
     @Procedure(value = "apoc.vectordb.chroma.query", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.query()")
+    @Description("apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
@@ -162,15 +146,16 @@ public class ChromaDb {
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        var config = new HashMap<>(configuration);
+        String url = "%s/api/v1/collections/%s/query";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        String qdrantUrl = getChromaUrl(hostOrKey);
-        String endpoint = "%s/api/v1/collections/%s/query".formatted(qdrantUrl, collection);
-        getEndpoint(config, endpoint);
-
-        VectorEmbeddingConfig apiConfig = CHROMA.get().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx,
                 v -> listOfListsToMap((Map) v).stream());
+    }
+
+    private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, CHROMA.get());
     }
 
     private static List<Map> listOfListsToMap(Map startMap) {
@@ -233,7 +218,4 @@ public class ChromaDb {
         return ids.stream().map(Object::toString).toList();
     }
 
-    protected String getChromaUrl(String hostOrKey) {
-        return new UrlResolver("http", "localhost", 8000).getUrl("chroma", hostOrKey);
-    }
 }

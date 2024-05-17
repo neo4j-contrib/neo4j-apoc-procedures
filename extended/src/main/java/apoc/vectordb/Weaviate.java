@@ -26,7 +26,7 @@ import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResult;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorEmbedding.Type.WEAVIATE;
+import static apoc.vectordb.VectorDbUtil.VectorDbHandler.Type.WEAVIATE;
 
 @Extended
 public class Weaviate {
@@ -50,11 +50,7 @@ public class Weaviate {
                                               @Name("similarity") String similarity,
                                               @Name("size") Long size,
                                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
-        String endpoint =  weaviateUrl + "/schema";
-        getEndpoint(config, endpoint);
+        var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
         config.putIfAbsent(METHOD_KEY, "POST");
 
         Map<String, Object> additionalBodies = Map.of("class", collection,
@@ -68,18 +64,13 @@ public class Weaviate {
                 .map(MapResult::new);
     }
 
-
     @Procedure("apoc.vectordb.weaviate.deleteCollection")
     @Description("apoc.vectordb.weaviate.deleteCollection")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
-        String endpoint = "%s/schema/%s".formatted(weaviateUrl, collection);
-        getEndpoint(config, endpoint);
+        var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema/%s");
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
@@ -96,12 +87,7 @@ public class Weaviate {
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-
-        var config = new HashMap<>(configuration);
-        
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
-        String endpoint = "%s/objects".formatted(weaviateUrl);
-        getEndpoint(config, endpoint);
+        var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/objects");
         config.putIfAbsent(METHOD_KEY, "POST");
 
         Map<String, Object> body = new HashMap<>();
@@ -124,7 +110,6 @@ public class Weaviate {
                 })
                 .map(v -> (Map<String, Object>) v)
                 .map(MapResult::new);
-
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.delete", mode = Mode.SCHEMA)
@@ -133,21 +118,17 @@ public class Weaviate {
                                      @Name("collection") String collection,
                                      @Name("ids") List<Object> ids,
                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-        
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
+        var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, map(), map());
 
         List<Object> objects = ids.stream()
                 .peek(id -> {
-                    String endpoint = "%s/objects/%s/%s".formatted(weaviateUrl, collection, id);
+                    String endpoint = "%s/objects/%s/%s".formatted(restAPIConfig.getBaseUrl(), collection, id);
                     restAPIConfig.setEndpoint(endpoint);
                     try {
-                        Stream<Object> objectStream = executeRequest(restAPIConfig, urlAccessChecker);
-                        List<Object> objects1 = objectStream.toList();
-                        System.out.println("objects1 = " + objects1);
+                        executeRequest(restAPIConfig, urlAccessChecker);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -162,9 +143,7 @@ public class Weaviate {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
-
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
 
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
@@ -174,7 +153,7 @@ public class Weaviate {
         config.putIfAbsent(METHOD_KEY, null);
 
         List<String> fields = procedureCallContext.outputFields().toList();
-        VectorEmbeddingConfig conf = WEAVIATE.get().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig conf = WEAVIATE.get().getEmbedding().fromGet(config, procedureCallContext, ids);
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
         VectorMappingConfig mapping = conf.getMapping();
@@ -183,7 +162,7 @@ public class Weaviate {
         
         return ids.stream()
                 .flatMap(id -> {
-                    String endpoint = "%s/objects/%s/%s".formatted(weaviateUrl, collection, id) + suffix;
+                    String endpoint = "%s/objects/%s/%s".formatted(conf.getApiConfig().getBaseUrl(), collection, id) + suffix;
                     conf.getApiConfig().setEndpoint(endpoint);
                     try {
                         return executeRequest(conf.getApiConfig(), urlAccessChecker)
@@ -195,7 +174,6 @@ public class Weaviate {
                 });
     }
 
-
     @Procedure(value = "apoc.vectordb.weaviate.query", mode = Mode.SCHEMA)
     @Description("apoc.vectordb.weaviate.query()")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
@@ -204,13 +182,9 @@ public class Weaviate {
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        var config = new HashMap<>(configuration);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
-        String weaviateUrl = getWeaviateUrl(hostOrKey);
-        String endpoint = "%s/graphql".formatted(weaviateUrl);
-        getEndpoint(config, endpoint);
-
-        VectorEmbeddingConfig conf = WEAVIATE.get().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig conf = WEAVIATE.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, db, tx, 
                 v -> {
                     Object getValue = ((Map<String, Map>) v).get("data").get("Get");
@@ -230,6 +204,9 @@ public class Weaviate {
         );
     }
 
+    private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, WEAVIATE.get());
+    }
 
     protected String getWeaviateUrl(String hostOrKey) {
         String baseUrl = new UrlResolver("http", "localhost", 8000)
