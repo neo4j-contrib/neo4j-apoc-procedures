@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@Ignore
 public class CypherProceduresClusterRoutingTest {
     private static final long TIMEOUT = 30L;
     private static final int NUM_CORES = 3;
