@@ -9,6 +9,7 @@ import java.util.Map;
 import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.MapUtil.map;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
 
@@ -35,9 +36,9 @@ public class WeaviateHandler implements VectorDbHandler {
     static class WeaviateEmbeddingHandler implements VectorEmbeddingHandler {
 
         @Override
-        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
+        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
             config.putIfAbsent(BODY_KEY, null);
-            return VectorEmbeddingHandler.populateApiBodyRequest(getVectorEmbeddingConfig(config), Map.of());
+            return populateApiBodyRequest(getVectorEmbeddingConfig(config), Map.of());
         }
 
         @Override
@@ -46,7 +47,7 @@ public class WeaviateHandler implements VectorDbHandler {
             config.putIfAbsent(METHOD_KEY, "POST");
             VectorEmbeddingConfig vectorEmbeddingConfig = getVectorEmbeddingConfig(config);
 
-            List list = (List) config.get("fields");
+            List list = (List) config.get(FIELDS_KEY);
             if (list == null) {
                 throw new RuntimeException("You have to define `field` list of parameter to be returned");
             }
@@ -70,7 +71,7 @@ public class WeaviateHandler implements VectorDbHandler {
 
             Map<String, Object> additionalBodies = map("query", query);
 
-            return VectorEmbeddingHandler.populateApiBodyRequest(vectorEmbeddingConfig, additionalBodies);
+            return populateApiBodyRequest(vectorEmbeddingConfig, additionalBodies);
         }
 
         private static VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config) {

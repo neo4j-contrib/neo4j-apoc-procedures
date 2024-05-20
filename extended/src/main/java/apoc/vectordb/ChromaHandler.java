@@ -31,7 +31,8 @@ public class ChromaHandler implements VectorDbHandler {
         @Override
         public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config,
                                                  ProcedureCallContext procedureCallContext,
-                                                 List<T> ids) {
+                                                 List<T> ids,
+                                                 String collection) {
 
             List<String> fields = procedureCallContext.outputFields().toList();
 
@@ -61,7 +62,7 @@ public class ChromaHandler implements VectorDbHandler {
 
         // "include": [metadatas, embeddings, ...] return the metadata/embeddings/... if included in the list
         // therefore is the RestAPI itself that doesn't return the data if `YIELD ` has not metadata/embedding  
-        private static VectorEmbeddingConfig getVectorEmbeddingConfig(VectorEmbeddingConfig config,
+        private VectorEmbeddingConfig getVectorEmbeddingConfig(VectorEmbeddingConfig config,
                                                                       List<String> fields,
                                                                       Map<String, Object> additionalBodies) {
             ArrayList<String> include = new ArrayList<>();
@@ -80,7 +81,7 @@ public class ChromaHandler implements VectorDbHandler {
 
             additionalBodies.put("include", include);
 
-            return VectorEmbeddingHandler.populateApiBodyRequest(config, additionalBodies);
+            return populateApiBodyRequest(config, additionalBodies);
         }
     }
 

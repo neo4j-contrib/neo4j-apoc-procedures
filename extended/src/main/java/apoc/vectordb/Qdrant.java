@@ -151,7 +151,7 @@ public class Qdrant {
             checkMappingConf(configuration, "apoc.vectordb.qdrant.getAndUpdate");
         }
         
-        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
     }
 

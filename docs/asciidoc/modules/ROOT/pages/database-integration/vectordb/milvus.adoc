@@ -1,0 +1,199 @@
+
+== Milvus
+
+Here is a list of all available Milvus procedures:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $config) |
+    Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+| apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $config) | 
+    Deletes a collection with the name specified in the 2nd parameter
+| apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $config) | 
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+| apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $config) | 
+    Delete the vectors with the specified `ids`.
+| apoc.vectordb.milvus.get(hostOrKey, collection, ids, $config) | 
+    Get the vectors with the specified `ids`.
+| apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.milvus.<key>.host=myHost`.
+With hostOrKey=null, the default host is 'http://localhost:19530'.
+
+=== Examples
+
+Here is a list of example using a local installation using th default port `19531`.
+
+
+.Create a collection (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Collection%20(v2)/Create.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.createCollection('http://localhost:19531', 'test_collection', 'COSINE', 4, {<optional config>})
+----
+
+
+.Delete a collection (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Collection%20(v2)/Drop.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.deleteCollection('http://localhost:19531', 'test_collection', {<optional config>})
+----
+
+
+.Upsert vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Upsert.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.upsert('http://localhost:19531', 'test_collection',
+    [
+        {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+        {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+    ],
+    {<optional config>})
+----
+
+
+.Get vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Get.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.get('http://localhost:19531', 'test_collection', [1,2], {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| ...
+|===
+
+.Get vectors with `{allResults: true}`
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.get('http://localhost:19531', 'test_collection', [1,2], {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+.Query vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Query.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.query('http://localhost:19531', 
+    'test_collection', 
+    [0.2, 0.1, 0.9, 0.7], 
+    { must: 
+        [ { key: "city", match: { value: "London" } } ]
+    }, 
+    5, 
+    {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+
+We can define a mapping, to auto-create one/multiple nodes and relationships, by leveraging the vector metadata.
+
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    })
+----
+
+which populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
+which will be returned in the `entity` column result.
+
+
+Or else, we can create a node if not exists, via `create: true`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            create: true,
+            embeddingProp: "vect", 
+            label: "Test", 
+            prop: "myId", 
+            id: "foo"
+        }
+    })
+----
+
+which creates and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingProp: "vect", 
+            type: "TEST", 
+            prop: "myId", 
+            id: "foo" 
+        }
+    })
+----
+
+which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
+which will be returned in the `entity` column result.
+
+[NOTE]
+====
+We can use mapping with `apoc.vectordb.milvus.getAndUpdate` procedure as well
+====
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the `apoc.vectordb.milvus.query*` and the `apoc.vectordb.milvus.get*` procedures.
+
+For example, by executing a `CALL apoc.vectordb.milvus.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
+so that we do not return the other values that we do not need.
+====
+
+
+
+.Delete vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Delete.md[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.delete('http://localhost:19531', 'test_collection', [1,2], {<optional config>})
+----
