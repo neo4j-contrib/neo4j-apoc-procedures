@@ -4,7 +4,6 @@ import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
-import apoc.util.UrlResolver;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -26,8 +25,8 @@ import static apoc.util.ExtendedUtil.listOfMapToMapOfLists;
 import static apoc.util.MapUtil.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
+import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorDbUtil.VectorDbHandler.Type.CHROMA;
 import static apoc.vectordb.VectorEmbeddingConfig.*;
 
 @Extended
@@ -133,7 +132,7 @@ public class ChromaDb {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromGet(config, procedureCallContext, ids);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx,
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> listToMap((Map) v).stream());
     }
 
@@ -150,7 +149,7 @@ public class ChromaDb {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx,
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> listOfListsToMap((Map) v).stream());
     }
 

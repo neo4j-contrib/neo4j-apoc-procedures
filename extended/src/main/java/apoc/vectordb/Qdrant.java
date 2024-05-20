@@ -3,7 +3,6 @@ package apoc.vectordb;
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.MapResult;
-import apoc.util.UrlResolver;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -22,8 +21,8 @@ import java.util.stream.Stream;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
+import static apoc.vectordb.VectorDbHandler.Type.QDRANT;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorDbUtil.VectorDbHandler.Type.QDRANT;
 
 @Extended
 public class Qdrant {
@@ -135,7 +134,7 @@ public class Qdrant {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig apiConfig = QDRANT.get().getEmbedding().fromGet(config, procedureCallContext, ids);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.query", mode = Mode.SCHEMA)
@@ -151,7 +150,7 @@ public class Qdrant {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig apiConfig = QDRANT.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, db, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
     }
 
     private Map<String, Object> getVectorDbInfo(

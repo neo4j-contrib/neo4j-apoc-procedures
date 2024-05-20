@@ -25,8 +25,8 @@ import static apoc.util.Util.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResult;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
+import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorDbUtil.VectorDbHandler.Type.WEAVIATE;
 
 @Extended
 public class Weaviate {
@@ -167,7 +167,7 @@ public class Weaviate {
                     try {
                         return executeRequest(conf.getApiConfig(), urlAccessChecker)
                                 .map(v -> (Map) v)
-                                .map(m -> getEmbeddingResult(conf, db, tx, hasEmbedding, hasMetadata, mapping, m));
+                                .map(m -> getEmbeddingResult(conf, tx, hasEmbedding, hasMetadata, mapping, m));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -185,7 +185,7 @@ public class Weaviate {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
         VectorEmbeddingConfig conf = WEAVIATE.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, db, tx, 
+        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx, 
                 v -> {
                     Object getValue = ((Map<String, Map>) v).get("data").get("Get");
                     Object collectionValue = ((Map) getValue).get(collection);

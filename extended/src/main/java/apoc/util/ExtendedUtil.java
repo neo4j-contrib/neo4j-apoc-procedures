@@ -323,9 +323,8 @@ public class ExtendedUtil
                 list.add(item);
                 return list;
             }
-            List list = (List) v;
-            list.add(v);
-            return list;
+            v.add(item);
+            return v;
         });
     }
             

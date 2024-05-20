@@ -1,17 +1,10 @@
 package apoc.vectordb;
 
-import apoc.util.collection.Iterables;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.schema.ConstraintDefinition;
-import org.neo4j.graphdb.schema.IndexDefinition;
 
-import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testResult;
@@ -25,11 +18,6 @@ public class VectorDbTestUtil {
     enum EntityType { NODE, REL, FALSE }
     
     public static void dropAndDeleteAll(GraphDatabaseService db) {
-        try (Transaction tx = db.beginTx()) {
-            tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
-            tx.schema().getIndexes().forEach(IndexDefinition::drop);
-            tx.commit();
-        }
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
@@ -62,29 +50,11 @@ public class VectorDbTestUtil {
     }
 
     public static void assertNodesCreated(GraphDatabaseService db) {
-        assertIndexNodesCreated(db);
-
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
                 VectorDbTestUtil::vectorEntityAssertions);
     }
 
-    public static void assertIndexNodesCreated(GraphDatabaseService db) {
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
-            assertEquals(1, constraints.size());
-            assertEquals(Label.label("Test"), constraints.get(0).getLabel());
-            assertEquals(List.of("myId"), constraints.get(0).getPropertyKeys());
-        }
-    }
-
-    public static void assertRelsAndIndexesCreated(GraphDatabaseService db) {
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
-            assertEquals(1, constraints.size());
-            assertEquals(RelationshipType.withName("TEST"), constraints.get(0).getRelationshipType());
-            assertEquals(List.of("myId"), constraints.get(0).getPropertyKeys());
-        }
-
+    public static void assertRelsCreated(GraphDatabaseService db) {
         testResult(db, "MATCH (:Start)-[r:TEST]->(:End) RETURN properties(r) AS props ORDER BY r.myId",
                 VectorDbTestUtil::vectorEntityAssertions);
     }

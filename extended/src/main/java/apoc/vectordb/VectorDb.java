@@ -81,22 +81,20 @@ public class VectorDb {
                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         getEndpoint(configuration, host);
-        VectorEmbeddingConfig restAPIConfig = new VectorEmbeddingConfig(configuration);//, Map.of(), Map.of());
-        return getEmbeddingResultStream(restAPIConfig, procedureCallContext, urlAccessChecker, db, tx);
+        VectorEmbeddingConfig restAPIConfig = new VectorEmbeddingConfig(configuration);
+        return getEmbeddingResultStream(restAPIConfig, procedureCallContext, urlAccessChecker, tx);
     }
 
     public static Stream<EmbeddingResult> getEmbeddingResultStream(VectorEmbeddingConfig conf,
                                                                    ProcedureCallContext procedureCallContext,
                                                                    URLAccessChecker urlAccessChecker,
-                                                                   GraphDatabaseService db,
                                                                    Transaction tx) throws Exception {
-        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, db, tx, v -> ((List<Map>) v).stream());
+        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx, v -> ((List<Map>) v).stream());
     }
     
     public static Stream<EmbeddingResult> getEmbeddingResultStream(VectorEmbeddingConfig conf,
                                                                    ProcedureCallContext procedureCallContext,
                                                                    URLAccessChecker urlAccessChecker,
-                                                                   GraphDatabaseService db,
                                                                    Transaction tx,
                                                                    Function<Object, Stream<Map>> objectMapper) throws Exception {
         List<String> fields = procedureCallContext.outputFields().toList();
@@ -109,10 +107,10 @@ public class VectorDb {
 
         return resultStream
                 .flatMap(objectMapper)
-                .map(m -> getEmbeddingResult(conf, db, tx, hasVector, hasMetadata, mapping, m));
+                .map(m -> getEmbeddingResult(conf, tx, hasVector, hasMetadata, mapping, m));
     }
 
-    public static EmbeddingResult getEmbeddingResult(VectorEmbeddingConfig conf, GraphDatabaseService db, Transaction tx, boolean hasEmbedding, boolean hasMetadata, VectorMappingConfig mapping, Map m) {
+    public static EmbeddingResult getEmbeddingResult(VectorEmbeddingConfig conf, Transaction tx, boolean hasEmbedding, boolean hasMetadata, VectorMappingConfig mapping, Map m) {
         Object id = conf.isAllResults() ? m.get(conf.getIdKey()) : null;
         List<Double> embedding = hasEmbedding ? (List<Double>) m.get(conf.getVectorKey()) : null;
         Map<String, Object> metadata = hasMetadata ? (Map<String, Object>) m.get(conf.getMetadataKey()) : null;
@@ -121,7 +119,7 @@ public class VectorDb {
         Double score = Util.toDouble(m.get(conf.getScoreKey()));
         String text = conf.isAllResults() ? (String) m.get(conf.getTextKey()) : null;
 
-        Entity entity = handleMapping(tx, db, mapping, metadata, embedding);
+        Entity entity = handleMapping(tx, mapping, metadata, embedding);
         if (entity != null) entity = Util.rebind(tx, entity);
         return new EmbeddingResult(id, score, embedding, metadata, text, 
                 mapping.getLabel() == null ? null : (Node) entity,
@@ -129,7 +127,7 @@ public class VectorDb {
         );
     }
 
-    private static Entity handleMapping(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metadata, List<Double> embedding) {
+    private static Entity handleMapping(Transaction tx, VectorMappingConfig mapping, Map<String, Object> metadata, List<Double> embedding) {
         if (mapping.getProp() == null) {
             return null;
         }
@@ -138,33 +136,26 @@ public class VectorDb {
         }
         Map<String, Object> metaProps = new HashMap<>(metadata);
         if (mapping.getLabel() != null) {
-            return handleMappingNode(tx, db, mapping, metaProps, embedding);
+            return handleMappingNode(tx, mapping, metaProps, embedding);
         } else if (mapping.getType() != null) {
-            return handleMappingRel(tx, db, mapping, metaProps, embedding);
+            return handleMappingRel(tx, mapping, metaProps, embedding);
         } else {
             throw new RuntimeException("Mapping conf has to contain either label or type key");
         }
     }
 
-    private static Entity handleMappingNode(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
-        String query = "CREATE CONSTRAINT IF NOT EXISTS FOR (n:%s) REQUIRE n.%s IS UNIQUE"
-                .formatted(mapping.getLabel(), mapping.getProp());
-        db.executeTransactionally(query);
-
+    private static Entity handleMappingNode(Transaction transaction, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
         try {
             Node node;
-            try (Transaction transaction = db.beginTx()) {
-                Object propValue = metaProps.get(mapping.getId());
-                node = transaction.findNode(Label.label(mapping.getLabel()), mapping.getProp(), propValue);
-                if (node == null && mapping.isCreate()) {
-                    node = transaction.createNode(Label.label(mapping.getLabel()));
-                    node.setProperty(mapping.getProp(), propValue);
-                }
-                if (node != null) {
-                    setProperties(node, metaProps);
-                    setVectorProp(tx, db, mapping, embedding, node/*, setVectorQuery*/);
-                }
-                transaction.commit();
+            Object propValue = metaProps.get(mapping.getId());
+            node = transaction.findNode(Label.label(mapping.getLabel()), mapping.getProp(), propValue);
+            if (node == null && mapping.isCreate()) {
+                node = transaction.createNode(Label.label(mapping.getLabel()));
+                node.setProperty(mapping.getProp(), propValue);
+            }
+            if (node != null) {
+                setProperties(node, metaProps);
+                setVectorProp(mapping, embedding, node);
             }
 
             return node;
@@ -173,22 +164,15 @@ public class VectorDb {
         }
     }
 
-    private static Entity handleMappingRel(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
+    private static Entity handleMappingRel(Transaction transaction, VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding) {
         try {
-            String query = "CREATE CONSTRAINT IF NOT EXISTS FOR ()-[r:%s]-() REQUIRE (r.%s) IS UNIQUE"
-                    .formatted(mapping.getType(), mapping.getProp());
-            db.executeTransactionally(query);
-
             // in this case we cannot auto-create the rel, since we should have to define start and end node as well
             Relationship rel;
-            try (Transaction transaction = db.beginTx()) {
-                Object propValue = metaProps.get(mapping.getId());
-                rel = transaction.findRelationship(RelationshipType.withName(mapping.getType()), mapping.getProp(), propValue);
-                if (rel != null) {
-                    setProperties(rel, metaProps);
-                    setVectorProp(tx, db, mapping, embedding, rel/*, setVectorQuery*/);
-                }
-                transaction.commit();
+            Object propValue = metaProps.get(mapping.getId());
+            rel = transaction.findRelationship(RelationshipType.withName(mapping.getType()), mapping.getProp(), propValue);
+            if (rel != null) {
+                setProperties(rel, metaProps);
+                setVectorProp(mapping, embedding, rel);
             }
 
             return rel;
@@ -197,7 +181,7 @@ public class VectorDb {
         }
     }
 
-    private static <T extends Entity> void setVectorProp(Transaction tx, GraphDatabaseService db, VectorMappingConfig mapping, List<Double> embedding, T entity/*, String setVectorQuery*/) {
+    private static <T extends Entity> void setVectorProp(VectorMappingConfig mapping, List<Double> embedding, T entity) {
         if (mapping.getEmbeddingProp() == null) {
             return;
         }

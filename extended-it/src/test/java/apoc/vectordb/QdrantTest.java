@@ -17,13 +17,14 @@ import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.vectordb.VectorDbHandler.Type.QDRANT;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
@@ -235,7 +236,7 @@ public class QdrantTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndex() {
+    public void queryVectorsWithCreateNode() {
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
@@ -281,7 +282,7 @@ public class QdrantTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndexUsingExistingNode() {
+    public void queryVectorsWithCreateNodeUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
@@ -310,7 +311,7 @@ public class QdrantTest {
     }
 
     @Test
-    public void queryVectorsWithCreateRelIndex() {
+    public void queryVectorsWithCreateRel() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
         
@@ -334,13 +335,13 @@ public class QdrantTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertRelsAndIndexesCreated(db);
+        assertRelsCreated(db);
     }
 
     @Test
     public void queryVectorsWithSystemDbStorage() {
         db.executeTransactionally("CALL apoc.vectordb.store($vectorName, $host, $credential, $mapping)", 
-                map("vectorName", VectorDbUtil.VectorDbHandler.Type.QDRANT.toString(),
+                map("vectorName", QDRANT.toString(),
                         "host", "http://" + HOST,
                         "credential", ADMIN_KEY,
                         "mapping", map("embeddingProp", "vect",

@@ -21,6 +21,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbTestUtil.*;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
@@ -225,7 +226,7 @@ public class WeaviateTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndex() {
+    public void queryVectorsWithCreateNode() {
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
                 "fields", FIELDS,
@@ -274,7 +275,7 @@ public class WeaviateTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndexUsingExistingNode() {
+    public void queryVectorsWithCreateNodeUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
@@ -304,7 +305,7 @@ public class WeaviateTest {
     }
 
     @Test
-    public void queryVectorsWithCreateRelIndex() {
+    public void queryVectorsWithCreateRel() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
@@ -330,11 +331,11 @@ public class WeaviateTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertRelsAndIndexesCreated(db);
+        assertRelsCreated(db);
     }
 
     @Test
-    public void queryVectorsWithCreateRelIndexWithoutVectorResult() {
+    public void queryVectorsWithCreateRelWithoutVectorResult() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
@@ -370,7 +371,7 @@ public class WeaviateTest {
     @Test
     public void queryVectorsWithSystemDbStorage() {
         db.executeTransactionally("CALL apoc.vectordb.store($vectorName, $host, $credential, $mapping)",
-                map("vectorName", VectorDbUtil.VectorDbHandler.Type.WEAVIATE.toString(),
+                map("vectorName", WEAVIATE.toString(),
                         "host", "http://" + HOST + "/v1",
                         "credential", ADMIN_KEY,
                         "mapping", map("embeddingProp", "vect",

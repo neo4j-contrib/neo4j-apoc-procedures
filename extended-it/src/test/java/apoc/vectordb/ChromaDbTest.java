@@ -17,10 +17,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertRelsAndIndexesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
@@ -203,7 +204,7 @@ public class ChromaDbTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndex() {
+    public void queryVectorsWithCreateNode() {
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
                 MAPPING_KEY, map("embeddingProp", "vect",
                 "label", "Test",
@@ -246,7 +247,7 @@ public class ChromaDbTest {
     }
 
     @Test
-    public void queryVectorsWithCreateIndexUsingExistingNode() {
+    public void queryVectorsWithCreateNodeUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
@@ -273,7 +274,7 @@ public class ChromaDbTest {
     }
 
     @Test
-    public void queryVectorsWithCreateRelIndex() {
+    public void queryVectorsWithCreateRel() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
@@ -297,13 +298,13 @@ public class ChromaDbTest {
                     assertNotNull(row.get("vector"));
                 });
 
-        assertRelsAndIndexesCreated(db);
+        assertRelsCreated(db);
     }
 
     @Test
     public void queryVectorsWithSystemDbStorage() {
         db.executeTransactionally("CALL apoc.vectordb.store($vectorName, $host, $credential, $mapping)",
-                map("vectorName", VectorDbUtil.VectorDbHandler.Type.CHROMA.toString(),
+                map("vectorName", CHROMA.toString(),
                         "host", "http://" + HOST,
                         "credential", null,
                         "mapping", map("embeddingProp", "vect",
