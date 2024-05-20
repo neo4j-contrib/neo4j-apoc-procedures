@@ -6,13 +6,17 @@ package apoc.util;
  */
 public class UrlResolver {
     private final String defaultScheme;
-    private final int defaultPort;
+    private final Integer defaultPort;
     private final String defaultUrl;
 
-    public UrlResolver(String defaultScheme, String defaultHost, int defaultPort) {
+    public UrlResolver(String defaultScheme, String defaultHost, Integer defaultPort) {
         this.defaultScheme = defaultScheme;
         this.defaultPort = defaultPort;
-        this.defaultUrl = defaultScheme + "://" + defaultHost + ":" + defaultPort;
+        String url = defaultScheme + "://" + defaultHost;
+        if (defaultPort != null) {
+            url += ":" + defaultPort;
+        }
+        this.defaultUrl = url;
     }
 
     public String getUrl(String prefix, String hostOrKey) {

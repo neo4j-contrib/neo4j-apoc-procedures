@@ -33,7 +33,7 @@ public class QdrantHandler implements VectorDbHandler {
     static class QdrantEmbeddingHandler implements VectorEmbeddingHandler {
 
         @Override
-        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
+        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
             List<String> fields = procedureCallContext.outputFields().toList();
             config.putIfAbsent(METHOD_KEY, "POST");
 
@@ -57,7 +57,7 @@ public class QdrantHandler implements VectorDbHandler {
 
         // "with_payload": <boolean> and "with_vectors": <boolean> return the metadata and vector, if true
         // therefore is the RestAPI itself that doesn't return the data if `YIELD ` has not metadata/embedding  
-        private static VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config, List<String> fields, Map<String, Object> additionalBodies) {
+        private VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config, List<String> fields, Map<String, Object> additionalBodies) {
             config.putIfAbsent(VECTOR_KEY, "vector");
             config.putIfAbsent(METADATA_KEY, "payload");
             config.putIfAbsent(JSON_PATH_KEY, "result");
@@ -66,7 +66,7 @@ public class QdrantHandler implements VectorDbHandler {
             additionalBodies.put("with_payload", fields.contains("metadata"));
             additionalBodies.put("with_vectors", fields.contains("vector") && conf.isAllResults());
 
-            return VectorEmbeddingHandler.populateApiBodyRequest(conf, additionalBodies);
+            return populateApiBodyRequest(conf, additionalBodies);
         }
     }
 }

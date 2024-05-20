@@ -117,7 +117,7 @@ public class ChromaDb {
         String url = "%s/api/v1/collections/%s/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids), collection);
         return executeRequest(apiConfig.getApiConfig(), urlAccessChecker)
                 .map(v -> (List) v)
                 .map(ListResult::new);
@@ -149,7 +149,7 @@ public class ChromaDb {
             checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
         }
 
-        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> listToMap((Map) v).stream());
     }

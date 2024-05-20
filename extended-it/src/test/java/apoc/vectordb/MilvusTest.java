@@ -1,6 +1,5 @@
 package apoc.vectordb;
 
-import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.assertj.core.api.Assertions;
@@ -13,16 +12,15 @@ import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
+import org.testcontainers.milvus.MilvusContainer;
 
+import java.util.List;
 import java.util.Map;
 
-import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.UtilsExtendedTest.checkEnvVar;
-import static apoc.vectordb.VectorDbHandler.Type.PINECONE;
+import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
@@ -33,21 +31,27 @@ import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static apoc.vectordb.VectorMappingConfig.*;
+import static apoc.vectordb.VectorMappingConfig.CREATE_KEY;
+import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
+import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
+import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
+import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
+import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
-public class PineconeTest {
-    private static String API_KEY;
-    private static String HOST;
+
+public class MilvusTest {
+    private static final List<String> FIELDS = List.of("city", "foo");
+    private static final MilvusContainer MILVUS_CONTAINER = new MilvusContainer("milvusdb/milvus:v2.4.0");
     
-    private static final String collName = "test-collection";
+    private static String HOST;
 
     @ClassRule
     public static TemporaryFolder storeDir = new TemporaryFolder();
@@ -56,135 +60,98 @@ public class PineconeTest {
     private static GraphDatabaseService db;
     private static DatabaseManagementService databaseManagementService;
 
-    private static Map<String, Object> ADMIN_AUTHORIZATION;
-    private static Map<String, Object> ADMIN_HEADER_CONF;
-
     @BeforeClass
     public static void setUp() throws Exception {
         databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
                 .build();
         db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
-
-        API_KEY = checkEnvVar("PINECONE_KEY");
-        HOST = checkEnvVar("PINECONE_HOST");
-
-        TestUtil.registerProcedure(db, VectorDb.class, Pinecone.class);
-
-        ADMIN_AUTHORIZATION = map("Api-Key", API_KEY);
-        ADMIN_HEADER_CONF  = map(HEADERS_KEY, ADMIN_AUTHORIZATION);
         
-        testCall(db, "CALL apoc.vectordb.pinecone.createCollection($host, $coll, 'cosine', 4, $conf)",
-                map("host", null, "coll", collName,
-                        "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION, 
-                                    "body", map("spec", map("serverless", map("cloud", "aws", "region", "us-east-1")) )
-                        )
-                ),
+        MILVUS_CONTAINER.start();
+
+        HOST = MILVUS_CONTAINER.getEndpoint();
+        TestUtil.registerProcedure(db, Milvus.class, VectorDb.class);
+
+        testCall(db, "CALL apoc.vectordb.milvus.createCollection($host, 'test_collection', 'COSINE', 4)",
+                map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
-                    assertEquals(map("ready", false, "state", "Initializing"), value.get("status"));
+                    assertEquals(200L, value.get("code"));
                 });
 
         testCall(db, """
-                        CALL apoc.vectordb.pinecone.upsert($host, $coll,
+                        CALL apoc.vectordb.milvus.upsert($host, 'test_collection',
                         [
-                            {id: '1', vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
-                            {id: '2', vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
-                        ],
-                        $conf)
+                            {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+                            {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+                        ])
                         """,
-                map("host", "https://test-collection-ilx67g5.svc.aped-4627-b74a.pinecone.io",
-                        "coll", collName,
-                        "conf", ADMIN_HEADER_CONF),
+                map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
-                    assertEquals(2L, value.get("upsertedCount"));
+                    assertEquals(200L, value.get("code"));
                 });
-        
-        // the upsert takes a while
-        Util.sleep(5000);
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        Util.sleep(2000);
-        
-        testCallEmpty(db, "CALL apoc.vectordb.pinecone.deleteCollection($host, $coll, $conf)",
-                map("host", "", "coll", collName, "conf", ADMIN_HEADER_CONF));
+        testCall(db, "CALL apoc.vectordb.milvus.deleteCollection($host, 'test_collection')",
+                map("host", HOST),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
 
         databaseManagementService.shutdown();
+        MILVUS_CONTAINER.stop();
     }
-
+    
     @Before
     public void before() {
         dropAndDeleteAll(db);
     }
 
     @Test
-    public void getVectors() {
-        testResult(db, "CALL apoc.vectordb.pinecone.get($host, $coll, ['1', '2'], $conf) " +
-                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "coll", collName,
-                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
-                ),
-                r -> {
-                    Map<String, Object> row = r.next();
-                    assertBerlinResult(row, FALSE);
-                    assertNotNull(row.get("vector"));
-                    
-                    row = r.next();
-                    assertLondonResult(row, FALSE);
-                    assertNotNull(row.get("vector"));
-                    
-                    assertFalse(r.hasNext());
-                });
-    }
-    
-    @Test
     public void getVectorsWithoutVectorResult() {
-        testResult(db, "CALL apoc.vectordb.pinecone.get($host, $coll, ['1'], $conf) ",
-                map("host", HOST, "coll", collName, "conf", ADMIN_HEADER_CONF),
+        testResult(db, "CALL apoc.vectordb.milvus.get($host, 'test_collection', [1], $conf) ",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
                     assertNull(row.get("vector"));
                     assertNull(row.get("id"));
-
-                    assertFalse(r.hasNext());
                 });
     }
 
     @Test
     public void deleteVector() {
         testCall(db, """
-                        CALL apoc.vectordb.pinecone.upsert($host, $coll,
+                        CALL apoc.vectordb.milvus.upsert($host, 'test_collection',
                         [
-                            {id: '3', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
-                            {id: '4', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ],
-                        $conf)
+                            {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
+                            {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
+                        ])
                         """,
-                map("host", HOST, "coll", collName, "conf", ADMIN_HEADER_CONF),
+                map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
-                    assertEquals(2L, value.get("upsertedCount"));
+                    assertEquals(200L, value.get("code"));
                 });
-
-        // the upsert takes a while
-        Util.sleep(5000);
-
-        testCall(db, "CALL apoc.vectordb.pinecone.delete($host, $coll, ['3', '4'], $conf) ",
-                map("host", HOST, "coll", collName, "conf", ADMIN_HEADER_CONF),
+        
+        testCall(db, "CALL apoc.vectordb.milvus.delete($host, 'test_collection', [3, 4]) ",
+                map("host", HOST),
                 r -> {
-                    assertEquals(Map.of(), r.get("value"));
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
                 });
+        
+        Util.sleep(2000);
     }
 
     @Test
     public void queryVectors() {
-        testResult(db, "CALL apoc.vectordb.pinecone.query($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, 
-                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, FALSE);
@@ -200,8 +167,8 @@ public class PineconeTest {
 
     @Test
     public void queryVectorsWithoutVectorResult() {
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION)),
+        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -219,10 +186,9 @@ public class PineconeTest {
 
     @Test
     public void queryVectorsWithYield() {
-        testResult(db, "CALL apoc.vectordb.pinecone.query($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf) YIELD metadata, id",
+        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) YIELD metadata, id",
                 map("host", HOST,
-                        "coll", collName,
-                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                        "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
                 r -> {
                     assertBerlinResult(r.next(), FALSE);
@@ -233,12 +199,11 @@ public class PineconeTest {
     @Test
     public void queryVectorsWithFilter() {
         testResult(db, """
-                        CALL apoc.vectordb.pinecone.query($host, $coll, [0.2, 0.1, 0.9, 0.7],
-                        { city: { `$eq`: "London" } },
+                        CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],
+                        'city == "London"',
                         5, $conf) YIELD metadata, id""",
                 map("host", HOST,
-                        "coll", collName,
-                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                        "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
                 r -> {
                     assertLondonResult(r.next(), FALSE);
@@ -248,10 +213,9 @@ public class PineconeTest {
     @Test
     public void queryVectorsWithLimit() {
         testResult(db, """
-                        CALL apoc.vectordb.pinecone.query($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+                        CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id""",
                 map("host", HOST,
-                        "coll", collName,
-                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                        "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
                 r -> {
                     assertBerlinResult(r.next(), FALSE);
@@ -260,15 +224,17 @@ public class PineconeTest {
 
     @Test
     public void queryVectorsWithCreateNode() {
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                HEADERS_KEY, ADMIN_AUTHORIZATION,
+
+        Map<String, Object> conf = map(FIELDS_KEY, FIELDS,
+                ALL_RESULTS_KEY, true,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true));
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, "conf", conf),
+                        CREATE_KEY, true)
+        );
+        testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -286,8 +252,8 @@ public class PineconeTest {
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
                 VectorDbTestUtil::vectorEntityAssertions);
 
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, "conf", conf),
+        testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -297,6 +263,34 @@ public class PineconeTest {
                     row = r.next();
                     assertLondonResult(row, NODE);
                     assertNotNull(row.get("score"));
+                    assertNotNull(row.get("vector"));
+                });
+
+        assertNodesCreated(db);
+    }
+
+    @Test
+    public void getVectorsWithCreateNodeUsingExistingNode() {
+
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                FIELDS_KEY, FIELDS,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId",
+                        METADATA_KEY, "foo"));
+
+        testResult(db, "CALL apoc.vectordb.milvus.getAndUpdate($host, 'test_collection', [1, 2], $conf) " +
+                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertBerlinResult(row, NODE);
+                    assertNotNull(row.get("vector"));
+
+                    row = r.next();
+                    assertLondonResult(row, NODE);
                     assertNotNull(row.get("vector"));
                 });
 
@@ -308,15 +302,15 @@ public class PineconeTest {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                HEADERS_KEY, ADMIN_AUTHORIZATION,
+        Map<String, Object> conf = map(FIELDS_KEY, FIELDS,
+                ALL_RESULTS_KEY, true,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
-                        NODE_LABEL, "Test",
-                        ENTITY_KEY, "myId",
-                        METADATA_KEY, "foo"));
-
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, "conf", conf),
+                NODE_LABEL, "Test",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo"));
+        
+        testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -330,64 +324,21 @@ public class PineconeTest {
                 });
 
         assertNodesCreated(db);
-    }
-    
-    @Test
-    public void getVectorsWithCreateNodeUsingExistingNode() {
-
-        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
-
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
-                HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
-                        NODE_LABEL, "Test",
-                        ENTITY_KEY, "myId",
-                        METADATA_KEY, "foo"));
-
-        testResult(db, "CALL apoc.vectordb.pinecone.getAndUpdate($host, 'TestCollection', [1, 2], $conf) " +
-                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                Util.map("host", HOST, "coll", collName, "conf", conf),
-                r -> {
-                    Map<String, Object> row = r.next();
-                    assertBerlinResult(row, NODE);
-                    assertNotNull(row.get("vector"));
-
-                    row = r.next();
-                    assertLondonResult(row, NODE);
-                    assertNotNull(row.get("vector"));
-                });
-
-        assertNodesCreated(db);
-    }
-
-    @Test
-    public void getReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect"));
-
-        try {
-            testCall(db, "CALL apoc.vectordb.pinecone.get($host, 'TestCollection', [1, 2], $conf)",
-                    Util.map("host", HOST, "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
     }
 
     @Test
     public void queryVectorsWithCreateRel() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
-
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                HEADERS_KEY, ADMIN_AUTHORIZATION,
+        
+        Map<String, Object> conf = map(FIELDS_KEY, FIELDS,
+                ALL_RESULTS_KEY, true,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
-                        REL_TYPE, "TEST",
-                        ENTITY_KEY, "myId",
-                        METADATA_KEY, "foo"));
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "coll", collName, "conf", conf),
+                REL_TYPE, "TEST",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo"));
+        testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, REL);
@@ -404,20 +355,34 @@ public class PineconeTest {
     }
 
     @Test
+    public void queryReadOnlyVectorsWithMapping() {
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+
+        try {
+            testCall(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                    map("host", HOST, "conf", conf),
+                    r -> fail()
+            );
+        } catch (RuntimeException e) {
+            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
+        }
+    }
+
+    @Test
     public void queryVectorsWithSystemDbStorage() {
-        String keyConfig = "pinecone-config-foo";
+        String keyConfig = "milvus-config-foo";
         Map<String, Object> mapping = map(EMBEDDING_KEY, "vect",
                 NODE_LABEL, "Test",
                 ENTITY_KEY, "myId",
                 METADATA_KEY, "foo");
-
-        sysDb.executeTransactionally("CALL apoc.vectordb.configure($vectorName, $keyConfig, $databaseName, $conf)",
-                map("vectorName", PINECONE.toString(),
+        
+        sysDb.executeTransactionally("CALL apoc.vectordb.configure($vectorName, $keyConfig, $databaseName, $conf)", 
+                map("vectorName", MILVUS.toString(),
                         "keyConfig", keyConfig,
                         "databaseName", DEFAULT_DATABASE_NAME,
                         "conf", map(
                                 "host", HOST,
-                                "credentials", API_KEY,
                                 "mapping", mapping
                         )
                 )
@@ -425,8 +390,8 @@ public class PineconeTest {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", keyConfig, "coll", collName, "conf", map(ALL_RESULTS_KEY, true)),
+        testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", keyConfig, "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -441,4 +406,5 @@ public class PineconeTest {
 
         assertNodesCreated(db);
     }
+
 }
