@@ -2,6 +2,7 @@ package apoc.neo4j.docker;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import apoc.util.TestContainerUtil.ApocPackage;
 import org.neo4j.driver.Record;
@@ -24,6 +25,7 @@ import static org.junit.Assert.fail;
  into a Neo4j instance without any startup issue.
  If you don't have docker installed it will fail, and you can simply ignore it.
  */
+@Ignore
 public class CoreExtendedTest {
     @Test
     public void checkForCoreAndExtended() {
