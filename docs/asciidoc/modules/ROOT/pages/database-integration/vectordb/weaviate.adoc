@@ -1,29 +1,43 @@
 
 == Weaviate
 
-Here is a list of all available Qdrant procedures:
+Here is a list of all available Weaviate procedures, 
+note that the list and the signature procedures are consistent with the others, like the Qdrant ones:
 
 [opts=header, cols="1, 3"]
 |===
 | name | description
 | apoc.vectordb.weaviate.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+    The default endpoint is `<hostOrKey param>/schema`.
 | apoc.vectordb.weaviate.deleteCollection(hostOrKey, collection, $config) | 
-    Deletes a collection with the name specified in the 2nd parameter
+    Deletes a collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/schema/<collection param>`.
 | apoc.vectordb.weaviate.upsert(hostOrKey, collection, vectors, $config) | 
-    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}].
+    The default endpoint is `<hostOrKey param>/objects`.
 | apoc.vectordb.weaviate.delete(hostOrKey, collection, ids, $config) | 
-    Delete the vectors with the specified `ids`.
+    Deletes the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/schema`.
 | apoc.vectordb.weaviate.get(hostOrKey, collection, ids, $config) | 
-    Get the vectors with the specified `ids`.
+    Gets the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/schema`.
 | apoc.vectordb.weaviate.query(hostOrKey, collection, vector, filter, limit, $config) | 
-    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
-    Note that, besides the common config parameters, this procedure requires a `field: [listOfProperty]` config, to define which properties are to be retrieved from GraphQL running under-the-hood 
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter.
+    Note that, besides the common config parameters, this procedure requires a `field: [listOfProperty]` config, to define which properties are to be retrieved from GraphQL running under-the-hood.
+    The default endpoint is `<hostOrKey param>/graphql`. 
+| apoc.vectordb.weaviate.getAndUpdate(hostOrKey, collection, ids, $config) | 
+    Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/schema`.
+| apoc.vectordb.weaviate.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    Note that, besides the common config parameters, this procedure requires a `field: [listOfProperty]` config, to define which properties are to be retrieved from GraphQL running under-the-hood.
+    The default endpoint is `<hostOrKey param>/graphql`.
+| apoc.vectordb.weaviate.info(keyConfig) | Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('WEAVIATE', keyConfig, ...)`
 |===
 
 where the 1st parameter can be a key defined by the apoc config `apoc.weaviate.<key>.host=myHost`.
-
-
+With hostOrKey=null, the default is 'http://localhost:8080/v1'.
 
 === Examples
 
@@ -120,7 +134,7 @@ CALL apoc.vectordb.weaviate.query($host,
 |===
 
 
-We can define a mapping, to auto-create one/multiple nodes and relationships, by leveraging the vector metadata.
+We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
 
 For example, if we have created 2 vectors with the above upsert procedures,
 we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
@@ -134,10 +148,10 @@ CALL apoc.vectordb.weaviate.query($host, 'test_collection',
     5, 
     { fields: ["city", "foo"],
       mapping: {
-        embeddingProp: "vect", 
-        label: "Test", 
-        prop: "myId", 
-        id: "foo" 
+        embeddingKey: "vect", 
+        nodeLabel: "Test", 
+        entityKey: "myId", 
+        metadataKey: "foo" 
       }
     })
 ----
@@ -158,10 +172,10 @@ CALL apoc.vectordb.weaviate.query($host, 'test_collection',
     { fields: ["city", "foo"],
       mapping: {
         create: true,
-        embeddingProp: "vect", 
-        label: "Test", 
-        prop: "myId", 
-        id: "foo"
+        embeddingKey: "vect", 
+        nodeLabel: "Test", 
+        entityKey: "myId", 
+        metadataKey: "foo"
       }
     })
 ----
@@ -179,10 +193,10 @@ CALL apoc.vectordb.weaviate.query($host, 'test_collection',
     5, 
     { fields: ["city", "foo"],
       mapping: {
-        embeddingProp: "vect", 
-        type: "TEST", 
-        prop: "myId", 
-        id: "foo" 
+        embeddingKey: "vect", 
+        relType: "TEST", 
+        entityKey: "myId", 
+        metadataKey: "foo" 
       }
     })
 ----
@@ -194,7 +208,7 @@ which will be returned in the `entity` column result.
 
 [NOTE]
 ====
-To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.weaviate.query and the `apoc.vectordb.qdrant.get` procedures.
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.weaviate.query and the `apoc.vectordb.weaviate.get` procedures.
 
 For example, by executing a `CALL apoc.vectordb.weaviate.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
 so that we do not return the other values that we do not need.

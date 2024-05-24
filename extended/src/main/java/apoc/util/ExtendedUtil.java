@@ -327,5 +327,15 @@ public class ExtendedUtil
             return v;
         });
     }
+    
+    public static float[] listOfNumbersToFloatArray(List<? extends Number> embedding) {
+        float[] floats = new float[embedding.size()];
+        int i = 0;
+        for (var item: embedding) {
+            floats[i] = item.floatValue();
+            i++;
+        }
+        return floats;
+    }
             
 }

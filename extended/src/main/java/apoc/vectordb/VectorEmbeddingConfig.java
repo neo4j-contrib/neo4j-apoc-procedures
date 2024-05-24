@@ -6,6 +6,7 @@ import apoc.util.Util;
 import java.util.Map;
 
 public class VectorEmbeddingConfig {
+    public static final String FIELDS_KEY = "fields";
     public static final String VECTOR_KEY = "vectorKey";
     public static final String METADATA_KEY = "metadataKey";
     public static final String SCORE_KEY = "scoreKey";

@@ -1,27 +1,41 @@
 
-== Chroma
+== ChromaDB
 
-The list and the signature procedures are consistent with the Qdrant ones:
-
+Here is a list of all available ChromaDB procedures,
+note that the list and the signature procedures are consistent with the others, like the Qdrant ones:
 
 [opts=header, cols="1, 3"]
 |===
 | name | description
 | apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+    The default endpoint is `<hostOrKey param>/api/v1/collections`.
 | apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $config) | 
-    Deletes a collection with the name specified in the 2nd parameter
+    Deletes a collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>`.
 | apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $config) | 
-    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}].
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/upsert`.
 | apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $config) | 
-    Delete the vectors with the specified `ids`.
+    Deletes the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/delete`.
 | apoc.vectordb.chroma.get(hostOrKey, collection, ids, $config) | 
-    Get the vectors with the specified `ids`.
+    Gets the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/get`.
 | apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $config) | 
-    Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/query`.
+| apoc.vectordb.chroma.getAndUpdate(hostOrKey, collection, ids, $config) | 
+    Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/get`.
+| apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/api/v1/collections/<collection param>/query`.
+| apoc.vectordb.chroma.info(keyConfig) | Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('CHROMA', keyConfig, ...)`
 |===
 
 where the 1st parameter can be a key defined by the apoc config `apoc.chroma.<key>.host=myHost`.
+With hostOrKey=null, the default is 'http://localhost:8000'.
 
 === Examples
 
@@ -109,29 +123,29 @@ CALL apoc.vectordb.chroma.query($host,
 
 [NOTE]
 ====
-To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
 For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
 so that we do not return the other values that we do not need.
 ====
 
 
-In the same way as other procedures, we can define a mapping, to auto-create one/multiple nodes and relationships,
+In the same way as other procedures, we can define a mapping, to fetch the associated nodes and relationships and optionally create them,
 by leveraging the vector metadata. For example:
 
 .Query vectors
 [source,cypher]
 ----
-CALL apoc.vectordb.chrome.query($host, '<collection_id>',
+CALL apoc.vectordb.chroma.query($host, '<collection_id>',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
     { mapping: {
-            embeddingProp: "vect", 
-            label: "Test", 
-            prop: "myId", 
-            id: "foo" 
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
         }
-    }), text
+    })
 ----
 
 

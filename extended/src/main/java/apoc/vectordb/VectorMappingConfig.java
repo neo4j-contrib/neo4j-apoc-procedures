@@ -1,71 +1,63 @@
 package apoc.vectordb;
 
 import apoc.util.Util;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Map;
 
 public class VectorMappingConfig {
-    public static final String ID_KEY = "id";
-    public static final String PROP_KEY = "prop";
-    public static final String LABEL_KEY = "label";
-    public static final String TYPE_KEY = "type";
-    public static final String EMBEDDING_PROP_KEY = "embeddingProp";
+    public static final String METADATA_KEY = "metadataKey";
+    public static final String ENTITY_KEY = "entityKey";
+    public static final String NODE_LABEL = "nodeLabel";
+    public static final String REL_TYPE = "relType";
+    public static final String EMBEDDING_KEY = "embeddingKey";
     public static final String SIMILARITY_KEY = "similarity";
     public static final String CREATE_KEY = "create";
 
-    private final String id;
-    private final String prop;
+    private final String metadataKey;
+    private final String entityKey;
 
-    private final String label;
-    private final String type;
-    private final String embeddingProp;
+    private final String nodeLabel;
+    private final String relType;
+    private final String embeddingKey;
     private final String similarity;
 
     private final boolean create;
 
     public VectorMappingConfig(Map<String, Object> mapping) {
         if (mapping == null) {
-            mapping = getMappingConf();
+            mapping = Collections.emptyMap();
         }
-        this.id = (String) mapping.get(ID_KEY);
-        this.prop = (String) mapping.get(PROP_KEY);
+        this.metadataKey = (String) mapping.get(METADATA_KEY);
+        this.entityKey = (String) mapping.get(ENTITY_KEY);
 
-        this.label = (String) mapping.get(LABEL_KEY);
-        this.type = (String) mapping.get(TYPE_KEY);
-        this.embeddingProp = (String) mapping.get(EMBEDDING_PROP_KEY);
+        this.nodeLabel = (String) mapping.get(NODE_LABEL);
+        this.relType = (String) mapping.get(REL_TYPE);
+        this.embeddingKey = (String) mapping.get(EMBEDDING_KEY);
 
         this.similarity = (String) mapping.getOrDefault(SIMILARITY_KEY, "cosine");
 
         this.create = Util.toBoolean(mapping.get(CREATE_KEY));
     }
 
-    @NotNull
-    private static Map<String, Object> getMappingConf() {
-        Map<String, Object> mapping;
-        mapping = Collections.emptyMap();
-        return mapping;
+    public String getMetadataKey() {
+        return metadataKey;
     }
 
-    public String getId() {
-        return id;
+    public String getEntityKey() {
+        return entityKey;
     }
 
-    public String getProp() {
-        return prop;
+    public String getNodeLabel() {
+        return nodeLabel;
     }
 
-    public String getLabel() {
-        return label;
+    public String getRelType() {
+        return relType;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getEmbeddingProp() {
-        return embeddingProp;
+    public String getEmbeddingKey() {
+        return embeddingKey;
     }
 
     public boolean isCreate() {

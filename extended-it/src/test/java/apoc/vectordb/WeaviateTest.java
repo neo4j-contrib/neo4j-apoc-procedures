@@ -2,15 +2,18 @@ package apoc.vectordb;
 
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.weaviate.WeaviateContainer;
 
 import java.util.List;
@@ -24,14 +27,18 @@ import static apoc.util.Util.map;
 import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbTestUtil.*;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
+import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorMappingConfig.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 
 public class WeaviateTest {
@@ -58,10 +65,19 @@ public class WeaviateTest {
     private static String HOST;
     
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+
+    private static GraphDatabaseService sysDb;
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService databaseManagementService;
 
     @BeforeClass
     public static void setUp() throws Exception {
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
+                .build();
+        db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
+        sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
+        
         WEAVIATE_CONTAINER.start();
         HOST = WEAVIATE_CONTAINER.getHttpHostAddress();
 
@@ -110,6 +126,9 @@ public class WeaviateTest {
         testCallEmpty(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, 'TestCollection', $conf)",
                 MapUtil.map("host", HOST, "conf", ADMIN_HEADER_CONF)
         );
+
+        WEAVIATE_CONTAINER.stop();
+        databaseManagementService.shutdown();
     }
 
     @Before
@@ -231,12 +250,13 @@ public class WeaviateTest {
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
                 "fields", FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "label", "Test",
-                "prop", "myId",
-                "id", "foo",
-                "create", true));
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                    NODE_LABEL, "Test",
+                    ENTITY_KEY, "myId",
+                    METADATA_KEY, "foo",
+                    CREATE_KEY, true)
+        );
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        "YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -256,7 +276,7 @@ public class WeaviateTest {
         testResult(db, "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
                 VectorDbTestUtil::vectorEntityAssertions);
 
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -282,11 +302,11 @@ public class WeaviateTest {
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
                 "fields", FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "label", "Test",
-                "prop", "myId",
-                "id", "foo"));
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                NODE_LABEL, "Test",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo"));
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -303,6 +323,48 @@ public class WeaviateTest {
 
         assertNodesCreated(db);
     }
+    
+    @Test
+    public void getVectorsWithCreateNodeUsingExistingNode() {
+
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+
+        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, ADMIN_AUTHORIZATION,
+                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId",
+                        METADATA_KEY, "foo"));
+
+        testResult(db, "CALL apoc.vectordb.weaviate.getAndUpdate($host, 'TestCollection', [$id1, $id2], $conf)",
+                map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertBerlinResult(row, ID_1, NODE);
+                    assertNotNull(row.get("vector"));
+
+                    row = r.next();
+                    assertLondonResult(row,  ID_2, NODE);
+                    assertNotNull(row.get("vector"));
+                });
+
+        assertNodesCreated(db);
+    }
+
+    @Test
+    public void getReadOnlyVectorsWithMapping() {
+        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect"));
+
+        try {
+            testCall(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [1, 2], $conf)",
+                    map("host", HOST, "conf", conf),
+                    r -> fail()
+            );
+        } catch (RuntimeException e) {
+            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
+        }
+    }
 
     @Test
     public void queryVectorsWithCreateRel() {
@@ -312,11 +374,11 @@ public class WeaviateTest {
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
                 "fields", FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "type", "TEST",
-                "prop", "myId",
-                "id", "foo"));
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                REL_TYPE, "TEST",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo"));
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -335,16 +397,32 @@ public class WeaviateTest {
     }
 
     @Test
+    public void queryReadOnlyVectorsWithMapping() {
+        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect"));
+
+        try {
+            testCall(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                    MapUtil.map("host", HOST, "conf", conf),
+                    r -> fail()
+            );
+        } catch (RuntimeException e) {
+            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
+        }
+    }
+
+    @Test
     public void queryVectorsWithCreateRelWithoutVectorResult() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map("fields", FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, map("type", "TEST",
-                "prop", "myId",
-                "id", "foo"));
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                MAPPING_KEY, map(REL_TYPE, "TEST",
+                    ENTITY_KEY, "myId",
+                    METADATA_KEY, "foo")
+        );
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -370,20 +448,28 @@ public class WeaviateTest {
 
     @Test
     public void queryVectorsWithSystemDbStorage() {
-        db.executeTransactionally("CALL apoc.vectordb.store($vectorName, $host, $credential, $mapping)",
+        String keyConfig = "weaviate-config-foo";
+        String baseUrl = "http://" + HOST + "/v1";
+        Map<String, String> mapping = map(EMBEDDING_KEY, "vect",
+                NODE_LABEL, "Test",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo");
+        sysDb.executeTransactionally("CALL apoc.vectordb.configure($vectorName, $keyConfig, $databaseName, $conf)",
                 map("vectorName", WEAVIATE.toString(),
-                        "host", "http://" + HOST + "/v1",
-                        "credential", ADMIN_KEY,
-                        "mapping", map("embeddingProp", "vect",
-                                "label", "Test",
-                                "prop", "myId",
-                                "id", "foo"))
+                        "keyConfig", keyConfig,
+                        "databaseName", DEFAULT_DATABASE_NAME,
+                        "conf", map(
+                                "host", baseUrl,
+                                "credentials", ADMIN_KEY,
+                                "mapping", mapping
+                        )
+                )
         );
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
-                map("host", null,
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", keyConfig,
                         "conf", map("fields", FIELDS, ALL_RESULTS_KEY, true)
                 ),
                 r -> {
@@ -399,5 +485,24 @@ public class WeaviateTest {
                 });
 
         assertNodesCreated(db);
+
+        // -- info procedure
+        testCall(db, "CALL apoc.vectordb.weaviate.info($keyConfig)", 
+                map("keyConfig", keyConfig),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(map("Authorization", "Bearer jane-secret-key"), value.get("headers"));
+                    assertEquals(baseUrl, value.get("baseUrl"));
+                    assertEquals(mapping, value.get("mapping"));
+                });
+    }
+
+    @Test
+    public void emptyInfoProcedure() {
+        testCall(db, "CALL apoc.vectordb.weaviate.info('baseUrl')",
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals("http://baseUrl:8000/v1", value.get("baseUrl"));
+                });
     }
 }

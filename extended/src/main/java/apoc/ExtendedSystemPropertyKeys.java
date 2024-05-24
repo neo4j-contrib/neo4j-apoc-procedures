@@ -28,5 +28,6 @@ public enum ExtendedSystemPropertyKeys
     
     // vector db
     host,
-    credentials
+    credentials,
+    name,
 }

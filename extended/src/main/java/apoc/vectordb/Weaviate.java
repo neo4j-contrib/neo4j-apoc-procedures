@@ -30,7 +30,8 @@ import static apoc.vectordb.VectorDbUtil.*;
 
 @Extended
 public class Weaviate {
-
+    public static final VectorDbHandler DB_HANDLER = WEAVIATE.get();
+    
     @Context
     public ProcedureCallContext procedureCallContext;
 
@@ -44,7 +45,7 @@ public class Weaviate {
     public URLAccessChecker urlAccessChecker;
 
     @Procedure("apoc.vectordb.weaviate.createCollection")
-    @Description("apoc.vectordb.weaviate.createCollection(hostOrKey, collection, similarity, size, $config)")
+    @Description("apoc.vectordb.weaviate.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
                                               @Name("collection") String collection,
                                               @Name("similarity") String similarity,
@@ -65,7 +66,7 @@ public class Weaviate {
     }
 
     @Procedure("apoc.vectordb.weaviate.deleteCollection")
-    @Description("apoc.vectordb.weaviate.deleteCollection")
+    @Description("apoc.vectordb.weaviate.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -81,7 +82,7 @@ public class Weaviate {
 
 
     @Procedure("apoc.vectordb.weaviate.upsert")
-    @Description("apoc.vectordb.weaviate.upsert")
+    @Description("apoc.vectordb.weaviate.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
     public Stream<MapResult> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -112,8 +113,8 @@ public class Weaviate {
                 .map(MapResult::new);
     }
 
-    @Procedure(value = "apoc.vectordb.weaviate.delete", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.weaviate.delete()")
+    @Procedure(value = "apoc.vectordb.weaviate.delete")
+    @Description("apoc.vectordb.weaviate.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
     public Stream<ListResult> delete(@Name("hostOrKey") String hostOrKey,
                                      @Name("collection") String collection,
                                      @Name("ids") List<Object> ids,
@@ -137,14 +138,31 @@ public class Weaviate {
         return Stream.of(new ListResult(objects));
     }
 
-    @Procedure(value = "apoc.vectordb.weaviate.get", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.weaviate.get()")
-    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    @Procedure(value = "apoc.vectordb.weaviate.getAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.weaviate.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`")
+    public Stream<EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
-                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        return getCommon(hostOrKey, collection, ids, configuration, false);
+    }
+
+    @Procedure(value = "apoc.vectordb.weaviate.get")
+    @Description("apoc.vectordb.weaviate.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`")
+    public Stream<EmbeddingResult> get(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("ids") List<Object> ids,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+        return getCommon(hostOrKey, collection, ids, configuration, true);
+    }
+
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
 
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
+        }
+        
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
          * Since with `method: GET` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
@@ -153,13 +171,13 @@ public class Weaviate {
         config.putIfAbsent(METHOD_KEY, null);
 
         List<String> fields = procedureCallContext.outputFields().toList();
-        VectorEmbeddingConfig conf = WEAVIATE.get().getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
         VectorMappingConfig mapping = conf.getMapping();
-        
+
         String suffix = hasEmbedding ? "?include=vector" : "";
-        
+
         return ids.stream()
                 .flatMap(id -> {
                     String endpoint = "%s/objects/%s/%s".formatted(conf.getApiConfig().getBaseUrl(), collection, id) + suffix;
@@ -174,18 +192,39 @@ public class Weaviate {
                 });
     }
 
-    @Procedure(value = "apoc.vectordb.weaviate.query", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.weaviate.query()")
+    @Procedure(value = "apoc.vectordb.weaviate.query")
+    @Description("apoc.vectordb.weaviate.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+    }
+
+
+    @Procedure(value = "apoc.vectordb.weaviate.queryAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.weaviate.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter")
+    public Stream<EmbeddingResult> queryAndUpdate(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name(value = "vector", defaultValue = "[]") List<Double> vector,
+                                                      @Name(value = "filter", defaultValue = "null") Object filter,
+                                                      @Name(value = "limit", defaultValue = "10") long limit,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+    }
+
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
-        VectorEmbeddingConfig conf = WEAVIATE.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx, 
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
+        }
+
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Object getValue = ((Map<String, Map>) v).get("data").get("Get");
                     Object collectionValue = ((Map) getValue).get(collection);
@@ -204,8 +243,15 @@ public class Weaviate {
         );
     }
 
+    @Procedure(value = "apoc.vectordb.weaviate.info", mode = Mode.WRITE)
+    @Description("apoc.vectordb.weaviate.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('WEAVIATE', keyConfig, ...)`")
+    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
+        return getInfoProcCommon(keyConfig, DB_HANDLER);
+    }
+
+
     private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, WEAVIATE.get());
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }
 
     protected String getWeaviateUrl(String hostOrKey) {

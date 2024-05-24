@@ -26,7 +26,8 @@ import static apoc.vectordb.VectorDbUtil.*;
 
 @Extended
 public class Qdrant {
-
+    public static final VectorDbHandler DB_HANDLER = QDRANT.get();
+    
     @Context
     public ProcedureCallContext procedureCallContext;
 
@@ -106,7 +107,7 @@ public class Qdrant {
     }
     
     @Procedure("apoc.vectordb.qdrant.delete")
-    @Description("apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
+    @Description("apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
     public Stream<MapResult> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -124,37 +125,78 @@ public class Qdrant {
                 .map(MapResult::new);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.get", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
-    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    @Procedure(value = "apoc.vectordb.qdrant.get")
+    @Description("apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`")
+    public Stream<EmbeddingResult> get(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return getCommon(hostOrKey, collection, ids, configuration, true);
+    }
+
+    @Procedure(value = "apoc.vectordb.qdrant.getAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.qdrant.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
+    public Stream<EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("ids") List<Object> ids,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return getCommon(hostOrKey, collection, ids, configuration, false);
+    }
+
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) throws Exception {
         String url = "%s/collections/%s/points";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig = QDRANT.get().getEmbedding().fromGet(config, procedureCallContext, ids);
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.qdrant.getAndUpdate");
+        }
+        
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.query", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    @Procedure(value = "apoc.vectordb.qdrant.query")
+    @Description("apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+    }
+
+    @Procedure(value = "apoc.vectordb.qdrant.queryAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities")
+    public Stream<EmbeddingResult> queryAndUpdate(@Name("hostOrKey") String hostOrKey,
+                                                  @Name("collection") String collection,
+                                                  @Name(value = "vector", defaultValue = "[]") List<Double> vector,
+                                                  @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
+                                                  @Name(value = "limit", defaultValue = "10") long limit,
+                                                  @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+    }
+
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
         String url = "%s/collections/%s/points/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig = QDRANT.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.qdrant.queryAndUpdate");
+        }
+        
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
+    }
+
+    @Procedure(value = "apoc.vectordb.qdrant.info", mode = Mode.WRITE)
+    @Description("apoc.vectordb.qdrant.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('QDRANT', keyConfig, ...)`")
+    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
+        return getInfoProcCommon(keyConfig, DB_HANDLER);
     }
 
     private Map<String, Object> getVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, QDRANT.get());
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }
 }

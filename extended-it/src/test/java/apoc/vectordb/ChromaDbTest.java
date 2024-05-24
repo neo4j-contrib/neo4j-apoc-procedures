@@ -1,13 +1,17 @@
 package apoc.vectordb;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.chromadb.ChromaDBContainer;
 
 import java.util.List;
@@ -24,23 +28,37 @@ import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
+import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorMappingConfig.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class ChromaDbTest {
     private static final AtomicReference<String> COLL_ID = new AtomicReference<>();
     private static final ChromaDBContainer CHROMA_CONTAINER = new ChromaDBContainer("chromadb/chroma:0.4.25.dev137");
 
     private static String HOST;
-    
+
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+
+    private static GraphDatabaseService sysDb;
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService databaseManagementService;
 
     @BeforeClass
     public static void setUp() throws Exception {
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath())
+                .build();
+        db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
+        sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
+        
         CHROMA_CONTAINER.start();
 
         HOST = "localhost:" + CHROMA_CONTAINER.getMappedPort(8000);
@@ -74,6 +92,9 @@ public class ChromaDbTest {
                     Map value = (Map) r.get("value");
                     assertNull(value);
                 });
+
+        databaseManagementService.shutdown();
+        CHROMA_CONTAINER.stop();
     }
 
     @Before
@@ -206,13 +227,14 @@ public class ChromaDbTest {
     @Test
     public void queryVectorsWithCreateNode() {
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "label", "Test",
-                "prop", "myId",
-                "id", "foo",
-                "create", true));
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                    NODE_LABEL, "Test",
+                    ENTITY_KEY, "myId",
+                    METADATA_KEY, "foo",
+                    CREATE_KEY, true)
+        );
         
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+        testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
@@ -228,7 +250,7 @@ public class ChromaDbTest {
 
         assertNodesCreated(db);
 
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.22, 0.11, 0.99, 0.17], {}, 5, $conf) " +
+        testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.22, 0.11, 0.99, 0.17], {}, 5, $conf) " +
                        "   YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
                 r -> {
@@ -247,16 +269,57 @@ public class ChromaDbTest {
     }
 
     @Test
+    public void getVectorsWithCreateNodeUsingExistingNode() {
+
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId",
+                        METADATA_KEY, "foo"));
+
+        testResult(db, "CALL apoc.vectordb.chroma.getAndUpdate($host, $collection, ['1', '2'], $conf)",
+                map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertBerlinResult(row, NODE);
+                    assertNotNull(row.get("vector"));
+
+                    row = r.next();
+                    assertLondonResult(row, NODE);
+                    assertNotNull(row.get("vector"));
+                });
+
+        assertNodesCreated(db);
+    }
+
+    @Test
+    public void getReadOnlyVectorsWithMapping() {
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+
+        try {
+            testCall(db, "CALL apoc.vectordb.chroma.get($host, $collection, [1, 2], $conf)",
+                    map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
+                    r -> fail()
+            );
+        } catch (RuntimeException e) {
+            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
+        }
+    }
+    
+    @Test
     public void queryVectorsWithCreateNodeUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "label", "Test",
-                "prop", "myId",
-                "id", "foo"));
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId",
+                        METADATA_KEY, "foo"));
+        testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
@@ -274,17 +337,32 @@ public class ChromaDbTest {
     }
 
     @Test
+    public void queryReadOnlyVectorsWithMapping() {
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+        
+        try {
+            testCall(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                    map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
+                    r -> fail()
+            );
+        } catch (RuntimeException e) {
+            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
+        }
+    }
+
+    @Test
     public void queryVectorsWithCreateRel() {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map("embeddingProp", "vect",
-                "type", "TEST",
-                "prop", "myId",
-                "id", "foo",
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                REL_TYPE, "TEST",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo",
                 "create", true));
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+        testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
@@ -303,20 +381,28 @@ public class ChromaDbTest {
 
     @Test
     public void queryVectorsWithSystemDbStorage() {
-        db.executeTransactionally("CALL apoc.vectordb.store($vectorName, $host, $credential, $mapping)",
+        String keyConfig = "chroma-config-foo";
+        String baseUrl = "http://" + HOST;
+        Map<String, Object> mapping = map(EMBEDDING_KEY, "vect",
+                NODE_LABEL, "Test",
+                ENTITY_KEY, "myId",
+                METADATA_KEY, "foo");
+        sysDb.executeTransactionally("CALL apoc.vectordb.configure($vectorName, $keyConfig, $databaseName, $conf)",
                 map("vectorName", CHROMA.toString(),
-                        "host", "http://" + HOST,
-                        "credential", null,
-                        "mapping", map("embeddingProp", "vect",
-                                "label", "Test",
-                                "prop", "myId",
-                                "id", "foo"))
+                        "keyConfig", keyConfig,
+                        "databaseName", DEFAULT_DATABASE_NAME,
+                        "conf", map(
+                                "host", baseUrl,
+                                "credentials", null,
+                                "mapping", mapping
+                        )
+                )
         );
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", null, "collection", COLL_ID.get(), "conf", map(ALL_RESULTS_KEY, true)),
+        testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", keyConfig, "collection", COLL_ID.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -330,5 +416,24 @@ public class ChromaDbTest {
                 });
 
         assertNodesCreated(db);
+
+        // -- info procedure
+        testCall(db, "CALL apoc.vectordb.chroma.info($keyConfig)",
+                Util.map("keyConfig", keyConfig),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertNull(value.get("headers"));
+                    assertEquals(baseUrl, value.get("baseUrl"));
+                    assertEquals(mapping, value.get("mapping"));
+                });
+    }
+
+    @Test
+    public void emptyInfoProcedure() {
+        testCall(db, "CALL apoc.vectordb.chroma.info('baseUrl')",
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals("http://baseUrl:8000", value.get("baseUrl"));
+                });
     }
 }

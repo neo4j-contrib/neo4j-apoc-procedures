@@ -31,6 +31,7 @@ import static apoc.vectordb.VectorEmbeddingConfig.*;
 
 @Extended
 public class ChromaDb {
+    public static final VectorDbHandler DB_HANDLER = CHROMA.get();
 
     @Context
     public ProcedureCallContext procedureCallContext;
@@ -107,8 +108,8 @@ public class ChromaDb {
                 .map(MapResult::new);
     }
 
-    @Procedure(value = "apoc.vectordb.chroma.delete", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
+    @Procedure(value = "apoc.vectordb.chroma.delete")
+    @Description("apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
     public Stream<ListResult> delete(@Name("hostOrKey") String hostOrKey,
                                      @Name("collection") String collection,
                                      @Name("ids") List<Object> ids,
@@ -116,45 +117,86 @@ public class ChromaDb {
         String url = "%s/api/v1/collections/%s/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
         return executeRequest(apiConfig.getApiConfig(), urlAccessChecker)
                 .map(v -> (List) v)
                 .map(ListResult::new);
     }
 
-    @Procedure(value = "apoc.vectordb.chroma.get", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
-    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+    @Procedure(value = "apoc.vectordb.chroma.get")
+    @Description("apoc.vectordb.chroma.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`")
+    public Stream<EmbeddingResult> get(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return getCommon(hostOrKey, collection, ids, configuration, true);
+    }
+
+    @Procedure(value = "apoc.vectordb.chroma.getAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.chroma.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
+    public Stream<EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("ids") List<Object> ids,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return getCommon(hostOrKey, collection, ids, configuration, false);
+    }
+
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) throws Exception {
         String url = "%s/api/v1/collections/%s/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromGet(config, procedureCallContext, ids);
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
+        }
+
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> listToMap((Map) v).stream());
     }
 
-    @Procedure(value = "apoc.vectordb.chroma.query", mode = Mode.SCHEMA)
-    @Description("apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    @Procedure(value = "apoc.vectordb.chroma.query")
+    @Description("apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
+                                         @Name("collection") String collection,
+                                         @Name(value = "vector", defaultValue = "[]") List<Double> vector,
+                                         @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
+                                         @Name(value = "limit", defaultValue = "10") long limit,
+                                         @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+    }
+
+    @Procedure(value = "apoc.vectordb.chroma.queryAndUpdate", mode = Mode.WRITE)
+    @Description("apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities")
+    public Stream<EmbeddingResult> queryAndUpdate(@Name("hostOrKey") String hostOrKey,
                                                       @Name("collection") String collection,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+    }
 
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
         String url = "%s/api/v1/collections/%s/query";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        
+        if (readOnly) {
+            checkMappingConf(configuration, "apoc.vectordb.chroma.queryAndUpdate");
+        }
 
-        VectorEmbeddingConfig apiConfig = CHROMA.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> listOfListsToMap((Map) v).stream());
     }
 
+    @Procedure(value = "apoc.vectordb.chroma.info", mode = Mode.WRITE)
+    @Description("apoc.vectordb.chroma.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('CHROMA', keyConfig, ...)`")
+    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
+        return getInfoProcCommon(keyConfig, DB_HANDLER);
+    }
+
     private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, CHROMA.get());
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }
 
     private static List<Map> listOfListsToMap(Map startMap) {

@@ -1,7 +1,10 @@
 
 == Custom (i.e. other vector databases)
 
-Here is a list of all available Qdrant procedures:
+We can also interface with other db vectors that do not (yet) have dedicated procedures.
+For example, with https://docs.pinecone.io/guides/getting-started/overview[Pinecone], as we will see later.
+
+Here is a list of all available custom procedures:
 
 [opts=header, cols="1, 3"]
 |===
