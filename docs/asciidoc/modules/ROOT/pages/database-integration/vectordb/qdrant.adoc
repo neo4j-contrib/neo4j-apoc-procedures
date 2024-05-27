@@ -132,7 +132,7 @@ we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {m
 
 [source,cypher]
 ----
-CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+CALL apoc.vectordb.qdrant.queryAndUpdate($hostOrKey, 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -153,7 +153,7 @@ Or else, we can create a node if not exists, via `create: true`:
 
 [source,cypher]
 ----
-CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+CALL apoc.vectordb.qdrant.queryAndUpdate($hostOrKey, 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -174,7 +174,7 @@ Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'
 
 [source,cypher]
 ----
-CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+CALL apoc.vectordb.qdrant.queryAndUpdate($hostOrKey, 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -191,10 +191,14 @@ which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin
 and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
 which will be returned in the `entity` column result.
 
+[NOTE]
+====
+We can use mapping with `apoc.vectordb.qdrant.getAndUpdate` procedure as well
+====
 
 [NOTE]
 ====
-To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+To optimize performances, we can choose what to `YIELD` with the `apoc.vectordb.qdrant.query*` and the `apoc.vectordb.qdrant.get*` procedures.
 
 For example, by executing a `CALL apoc.vectordb.qdrant.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
 so that we do not return the other values that we do not need.
