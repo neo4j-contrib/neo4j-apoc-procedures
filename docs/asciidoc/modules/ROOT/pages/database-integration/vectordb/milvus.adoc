@@ -8,16 +8,28 @@ Here is a list of all available Milvus procedures:
 | name | description
 | apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/collections/create`.
 | apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $config) | 
-    Deletes a collection with the name specified in the 2nd parameter
+    Deletes a collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/collections/drop`.
 | apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $config) | 
-    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}].
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/upsert`.
 | apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $config) | 
     Delete the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/delete`.
 | apoc.vectordb.milvus.get(hostOrKey, collection, ids, $config) | 
     Get the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/get`.
 | apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $config) | 
     Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/search`.
+| apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $config) | 
+    Get the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/get`, and optionally creates/updates neo4j entities.
+| apoc.vectordb.milvus.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/v2/vectordb/entities/search`.
 |===
 
 where the 1st parameter can be a key defined by the apoc config `apoc.milvus.<key>.host=myHost`.
@@ -118,7 +130,7 @@ we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {m
 
 [source,cypher]
 ----
-CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -139,7 +151,7 @@ Or else, we can create a node if not exists, via `create: true`:
 
 [source,cypher]
 ----
-CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -160,7 +172,7 @@ Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'
 
 [source,cypher]
 ----
-CALL apoc.vectordb.milvus.query('http://localhost:19531', 'test_collection',
+CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collection',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 

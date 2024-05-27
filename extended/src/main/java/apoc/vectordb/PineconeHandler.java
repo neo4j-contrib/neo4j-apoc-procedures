@@ -57,10 +57,6 @@ public class PineconeHandler implements VectorDbHandler {
             List<String> fields = procedureCallContext.outputFields().toList();
             
             config.put(BODY_KEY, null);
-            Map<String, Object> headers = (Map<String, Object>) config.getOrDefault(HEADERS_KEY, new HashMap<>());
-            headers.remove(METHOD_KEY);
-            headers.remove("content-type");
-            config.put(HEADERS_KEY, headers);
 
             String endpoint = (String) config.get(ENDPOINT_KEY);
             if (!endpoint.contains("ids=")) {
@@ -81,7 +77,6 @@ public class PineconeHandler implements VectorDbHandler {
         public VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<Double> vector, Object filter, long limit, String collection) {
             List<String> fields = procedureCallContext.outputFields().toList();
 
-            config.putIfAbsent(METHOD_KEY, "POST");
             Map<String, Object> additionalBodies = map("vector", vector,
                     "filter", filter,
                     "topK", limit);

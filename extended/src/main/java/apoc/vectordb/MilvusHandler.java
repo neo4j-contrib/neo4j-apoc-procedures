@@ -15,7 +15,8 @@ public class MilvusHandler implements VectorDbHandler {
 
     @Override
     public String getUrl(String hostOrKey) {
-        return new UrlResolver("http", "localhost", 19530).getUrl("milvus", hostOrKey);
+        String url = new UrlResolver("http", "localhost", 19530).getUrl("milvus", hostOrKey);
+        return url + "/v2/vectordb";
     }
 
     @Override

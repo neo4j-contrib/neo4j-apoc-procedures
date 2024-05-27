@@ -382,7 +382,7 @@ public class MilvusTest {
                         "keyConfig", keyConfig,
                         "databaseName", DEFAULT_DATABASE_NAME,
                         "conf", map(
-                                "host", HOST,
+                                "host", HOST + "/v2/vectordb",
                                 "mapping", mapping
                         )
                 )

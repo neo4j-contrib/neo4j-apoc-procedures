@@ -25,10 +25,10 @@ Here is a list of all available Pinecone procedures:
     Get the vectors with the specified `ids`.
     The default endpoint is `<hostOrKey param>/vectors/fetch`.
 | apoc.vectordb.pinecone.query(hostOrKey, index, vector, filter, limit, $config) | 
-    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter.
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
     The default endpoint is `<hostOrKey param>/query`.
 | apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, index, vector, filter, limit, $config) | 
-    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter.
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
     The default endpoint is `<hostOrKey param>/query`.
 |===
 

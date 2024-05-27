@@ -27,7 +27,8 @@ import static apoc.vectordb.VectorDbUtil.getCommonVectorDbInfo;
 
 @Extended
 public class Pinecone {
-
+    public static final VectorDbHandler DB_HANDLER = PINECONE.get();
+    
     @Context
     public ProcedureCallContext procedureCallContext;
 
@@ -152,7 +153,7 @@ public class Pinecone {
             checkMappingConf(configuration, "apoc.vectordb.pinecone.getAndUpdate");
         }
         
-        VectorEmbeddingConfig apiConfig = PINECONE.get().getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Object vectors = ((Map) v).get("vectors");
@@ -191,7 +192,7 @@ public class Pinecone {
             checkMappingConf(configuration, "apoc.vectordb.pinecone.queryAndUpdate");
         }
 
-        VectorEmbeddingConfig apiConfig = PINECONE.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Map map = (Map) v;
@@ -202,6 +203,6 @@ public class Pinecone {
 
     private Map<String, Object> getVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, PINECONE.get());
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }
 }

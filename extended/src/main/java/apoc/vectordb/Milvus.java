@@ -26,7 +26,8 @@ import static apoc.vectordb.VectorDbUtil.*;
 
 @Extended
 public class Milvus {
-
+    public static final VectorDbHandler DB_HANDLER = MILVUS.get();
+    
     @Context
     public ProcedureCallContext procedureCallContext;
 
@@ -46,7 +47,7 @@ public class Milvus {
                                               @Name("similarity") String similarity,
                                               @Name("size") Long size,
                                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        String url = "%s/v2/vectordb/collections/create";
+        String url = "%s/collections/create";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
@@ -67,7 +68,7 @@ public class Milvus {
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        String url = "%s/v2/vectordb/collections/drop";
+        String url = "%s/collections/drop";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
         Map<String, Object> additionalBodies = Map.of("collectionName", collection);
@@ -86,7 +87,7 @@ public class Milvus {
             @Name("vectors") List<Map<String, Object>> vectors,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        String url = "%s/v2/vectordb/entities/upsert";
+        String url = "%s/entities/upsert";
 
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
@@ -114,12 +115,11 @@ public class Milvus {
             @Name("vectors") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        String url = "%s/v2/vectordb/entities/delete";
+        String url = "%s/entities/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
         String filter = "id in " + ids;
-        System.out.println("filter = " + filter);
         Map<String, Object> additionalBodies = Map.of("collectionName", collection, "filter", filter);
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig, urlAccessChecker)
@@ -137,7 +137,7 @@ public class Milvus {
     }
 
     @Procedure(value = "apoc.vectordb.milvus.getAndUpdate", mode = Mode.WRITE)
-    @Description("apoc.vectordb.qdrant.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
+    @Description("apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
     public Stream<EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
                                                 @Name("collection") String collection,
                                                 @Name("ids") List<Object> ids,
@@ -146,14 +146,14 @@ public class Milvus {
     }
 
     private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) throws Exception {
-        String url = "%s/v2/vectordb/entities/get";
+        String url = "%s/entities/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         if (readOnly) {
             checkMappingConf(configuration, "apoc.vectordb.milvus.getAndUpdate");
         }
 
-        VectorEmbeddingConfig apiConfig = MILVUS.get().getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> getMapStream((Map) v));
     }
@@ -199,20 +199,20 @@ public class Milvus {
     }
 
     private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
-        String url = "%s/v2/vectordb/entities/search";
+        String url = "%s/entities/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         if (readOnly) {
             checkMappingConf(configuration, "apoc.vectordb.milvus.queryAndUpdate");
         }
         
-        VectorEmbeddingConfig apiConfig = MILVUS.get().getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
                 v -> getMapStream((Map) v));
     }
 
     private Map<String, Object> getVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, MILVUS.get());
+        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }
 }
