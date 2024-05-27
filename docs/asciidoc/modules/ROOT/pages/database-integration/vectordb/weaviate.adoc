@@ -33,7 +33,6 @@ note that the list and the signature procedures are consistent with the others, 
     Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
     Note that, besides the common config parameters, this procedure requires a `field: [listOfProperty]` config, to define which properties are to be retrieved from GraphQL running under-the-hood.
     The default endpoint is `<hostOrKey param>/graphql`.
-| apoc.vectordb.weaviate.info(keyConfig) | Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('WEAVIATE', keyConfig, ...)`
 |===
 
 where the 1st parameter can be a key defined by the apoc config `apoc.weaviate.<key>.host=myHost`.

@@ -3,7 +3,6 @@ package apoc.vectordb;
 
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
-import apoc.result.MapResult;
 import apoc.util.Util;
 import org.apache.commons.collections.MapUtils;
 import org.neo4j.graphdb.Label;
@@ -13,7 +12,6 @@ import org.neo4j.graphdb.Relationship;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
@@ -73,13 +71,6 @@ public class VectorDbUtil {
         getEndpoint(config, endpoint);
 
         return config;
-    }
-    
-    public static Stream<MapResult> getInfoProcCommon(String hostOrKey, VectorDbHandler handler) {
-        Map<String, Object> info = getCommonVectorDbInfo(hostOrKey, "", Map.of(), "%s", handler);
-        // endpoint is equivalent to baseUrl config
-        info.remove("endpoint");
-        return Stream.of(new MapResult(info));
     }
 
     private static String getUrl(String hostOrKey, VectorDbHandler handler, Map<String, Object> props) {

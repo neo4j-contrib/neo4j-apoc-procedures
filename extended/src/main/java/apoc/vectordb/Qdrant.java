@@ -189,12 +189,6 @@ public class Qdrant {
         return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.info", mode = Mode.WRITE)
-    @Description("apoc.vectordb.qdrant.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('QDRANT', keyConfig, ...)`")
-    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
-        return getInfoProcCommon(keyConfig, DB_HANDLER);
-    }
-
     private Map<String, Object> getVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
         return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);

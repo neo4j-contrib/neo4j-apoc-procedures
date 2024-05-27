@@ -189,12 +189,6 @@ public class ChromaDb {
                 v -> listOfListsToMap((Map) v).stream());
     }
 
-    @Procedure(value = "apoc.vectordb.chroma.info", mode = Mode.WRITE)
-    @Description("apoc.vectordb.chroma.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('CHROMA', keyConfig, ...)`")
-    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
-        return getInfoProcCommon(keyConfig, DB_HANDLER);
-    }
-
     private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
         return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
     }

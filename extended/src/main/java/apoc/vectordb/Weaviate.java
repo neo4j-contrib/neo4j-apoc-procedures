@@ -243,12 +243,6 @@ public class Weaviate {
         );
     }
 
-    @Procedure(value = "apoc.vectordb.weaviate.info", mode = Mode.WRITE)
-    @Description("apoc.vectordb.weaviate.info(keyConfig) - Given the `keyConfig` returns the current configuration, created with the `apoc.vectordb.configure('WEAVIATE', keyConfig, ...)`")
-    public Stream<MapResult> info(@Name("keyConfig") String keyConfig) throws Exception {
-        return getInfoProcCommon(keyConfig, DB_HANDLER);
-    }
-
 
     private Map<String, Object> getVectorDbInfo(String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
         return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);

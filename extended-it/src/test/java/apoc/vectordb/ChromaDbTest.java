@@ -416,24 +416,5 @@ public class ChromaDbTest {
                 });
 
         assertNodesCreated(db);
-
-        // -- info procedure
-        testCall(db, "CALL apoc.vectordb.chroma.info($keyConfig)",
-                Util.map("keyConfig", keyConfig),
-                r -> {
-                    Map value = (Map) r.get("value");
-                    assertNull(value.get("headers"));
-                    assertEquals(baseUrl, value.get("baseUrl"));
-                    assertEquals(mapping, value.get("mapping"));
-                });
-    }
-
-    @Test
-    public void emptyInfoProcedure() {
-        testCall(db, "CALL apoc.vectordb.chroma.info('baseUrl')",
-                r -> {
-                    Map value = (Map) r.get("value");
-                    assertEquals("http://baseUrl:8000", value.get("baseUrl"));
-                });
     }
 }

@@ -46,7 +46,7 @@ Besides the above config, the `apoc.vectordb.<type>.get` and the `apoc.vectordb.
 
 See the following pages for more details on specific vector db procedures
 
-- xref:./qdrand.adoc[Qdrant]
+- xref:./qdrant.adoc[Qdrant]
 - xref:./chroma.adoc[ChromaDB]
 - xref:./weaviate.adoc[Weaviate]
 
@@ -106,32 +106,3 @@ CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], 
 })
 ---- 
 
-We can get the current configuration by executing the following procedure:
-
-[source,cypher]
-----
-CALL apoc.vectordb.qdrant.info('qdrant-config-test')
----- 
-
-.Example results
-[opts="header"]
-|===
-| value
-| {endpoint: '', 
-    headers: {Authorization: 'Bearer <apiKey>'}, 
-    mapping: {embeddingKey: "vect", nodeLabel: "Test", entityKey: "myId", metadataKey: "foo"}
-}
-|===
-
-
-which, in case of configuration key not found, just returns the baseUrl, for example:
-[source,cypher]
-----
-CALL apoc.vectordb.qdrant.info('qdrant-config-test')
----- 
-.Example results
-[opts="header"]
-|===
-| value
-| {endpoint: 'http://qdrant-config-test:6333'}
-|===
