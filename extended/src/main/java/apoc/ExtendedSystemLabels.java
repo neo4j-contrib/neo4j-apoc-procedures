@@ -10,5 +10,6 @@ public enum ExtendedSystemLabels  implements Label
     Function,
     ApocUuid,
     ApocUuidMeta,
-    DataVirtualizationCatalog
+    DataVirtualizationCatalog,
+    VectorDb
 }

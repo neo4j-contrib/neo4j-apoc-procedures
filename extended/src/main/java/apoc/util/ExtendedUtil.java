@@ -30,6 +30,7 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -287,4 +288,54 @@ public class ExtendedUtil
             retryRunnable(maxRetries, retry, consumer);
         }
     }
+
+    public static void setProperties(Entity entity, Map<String, Object> props) {
+        for (var entry: props.entrySet()) {
+            entity.setProperty(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Transform a list like: [ {key1: valueFoo1, key2: valueFoo2}, {key1: valueBar1, key2: valueBar2} ]
+     * to a map like: { keyNew1: [valueFoo1, valueBar1], keyNew2: [valueFoo2, valueBar2] },
+     * 
+     * where mapKeys is e.g. {key1: keyNew1, key2: keyNew2}
+     */
+    public static Map<Object, List> listOfMapToMapOfLists(Map mapKeys, List<Map<String, Object>> vectors) {
+        Map<Object, List> additionalBodies = new HashMap();
+        for (var vector: vectors) {
+            mapKeys.forEach((from, to) -> {
+                mapEntryToList(additionalBodies, vector, from, to);
+            });
+        }
+        return additionalBodies;
+    }
+
+    private static void mapEntryToList(Map<Object, List> map, Map<String, Object> vector, Object keyFrom, Object keyTo) {
+        Object item = vector.get(keyFrom);
+        if (item == null) {
+            return;
+        }
+        
+        map.compute(keyTo, (k, v) -> {
+            if (v == null) {
+                List<Object> list = new ArrayList<>();
+                list.add(item);
+                return list;
+            }
+            v.add(item);
+            return v;
+        });
+    }
+    
+    public static float[] listOfNumbersToFloatArray(List<? extends Number> embedding) {
+        float[] floats = new float[embedding.size()];
+        int i = 0;
+        for (var item: embedding) {
+            floats[i] = item.floatValue();
+            i++;
+        }
+        return floats;
+    }
+            
 }
