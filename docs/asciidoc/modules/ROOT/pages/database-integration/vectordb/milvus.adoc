@@ -135,10 +135,10 @@ CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collect
     {},
     5, 
     { mapping: {
-            embeddingProp: "vect", 
-            label: "Test", 
-            prop: "myId", 
-            id: "foo" 
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
         }
     })
 ----
@@ -157,10 +157,10 @@ CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collect
     5, 
     { mapping: {
             create: true,
-            embeddingProp: "vect", 
-            label: "Test", 
-            prop: "myId", 
-            id: "foo"
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
         }
     })
 ----
@@ -177,10 +177,10 @@ CALL apoc.vectordb.milvus.queryAndUpdate('http://localhost:19531', 'test_collect
     {},
     5, 
     { mapping: {
-            embeddingProp: "vect", 
-            type: "TEST", 
-            prop: "myId", 
-            id: "foo" 
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
         }
     })
 ----

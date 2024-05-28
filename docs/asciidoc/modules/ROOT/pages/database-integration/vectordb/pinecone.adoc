@@ -22,10 +22,10 @@ Here is a list of all available Pinecone procedures:
     Get the vectors with the specified `ids`.
     The default endpoint is `<hostOrKey param>/vectors/fetch`.
 | apoc.vectordb.pinecone.getAndUpdate(hostOrKey, index, ids, $config) | 
-    Get the vectors with the specified `ids`.
+    Get the vectors with the specified `ids`, and optionally creates/updates neo4j entities.
     The default endpoint is `<hostOrKey param>/vectors/fetch`.
 | apoc.vectordb.pinecone.query(hostOrKey, index, vector, filter, limit, $config) | 
-    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter.
     The default endpoint is `<hostOrKey param>/query`.
 | apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, index, vector, filter, limit, $config) | 
     Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
@@ -149,10 +149,10 @@ CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
     {},
     5, 
     { mapping: {
-            embeddingProp: "vect", 
-            label: "Test", 
-            prop: "myId", 
-            id: "foo" 
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
         }
     })
 ----
@@ -171,10 +171,10 @@ CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
     5, 
     { mapping: {
             create: true,
-            embeddingProp: "vect", 
-            label: "Test", 
-            prop: "myId", 
-            id: "foo"
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
         }
     })
 ----
@@ -191,10 +191,10 @@ CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
     {},
     5, 
     { mapping: {
-            embeddingProp: "vect", 
-            type: "TEST", 
-            prop: "myId", 
-            id: "foo" 
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
         }
     })
 ----
