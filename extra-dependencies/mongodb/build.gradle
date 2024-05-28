@@ -17,7 +17,7 @@ jar {
 }
 
 dependencies {
-    implementation 'org.mongodb:mongodb-driver:3.2.2', commonExclusions
+    implementation 'org.mongodb:mongodb-driver-sync:4.11.1', commonExclusions
 }
 
 
