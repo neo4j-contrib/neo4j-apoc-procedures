@@ -131,14 +131,15 @@ For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata
 so that we do not return the other values that we do not need.
 ====
 
+We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
 
-In the same way as other procedures, we can define a mapping, to fetch the associated nodes and relationships and optionally create them,
-by leveraging the vector metadata. For example:
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
 
 .Query vectors
 [source,cypher]
 ----
-CALL apoc.vectordb.chroma.query($host, '<collection_id>',
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -151,6 +152,52 @@ CALL apoc.vectordb.chroma.query($host, '<collection_id>',
     })
 ----
 
+which populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
+which will be returned in the `entity` column result.
+
+
+
+Or else, we can create a node if not exists, via `create: true`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            create: true,
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
+        }
+    })
+----
+
+which creates and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
+which will be returned in the `entity` column result.
 
 
 .Delete vectors (it leverages https://docs.trychroma.com/usage-guide#deleting-data-from-a-collection[this API])
