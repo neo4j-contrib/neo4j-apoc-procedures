@@ -2,6 +2,7 @@ package apoc.full.it.vectordb;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -31,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -245,7 +247,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, FALSE);
@@ -265,7 +267,7 @@ public class WeaviateTest {
                 db,
                 "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) "
                         + " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", map("fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -291,7 +293,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                     assertLondonResult(r.next(), ID_2, FALSE);
@@ -309,7 +311,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), ID_2, FALSE);
                 });
@@ -324,7 +326,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                 });
@@ -336,7 +338,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -350,8 +352,8 @@ public class WeaviateTest {
                         "myId",
                         METADATA_KEY,
                         "foo",
-                        CREATE_KEY,
-                        true));
+                        MODE_KEY,
+                        MappingMode.CREATE_IF_MISSING.toString()));
         testResult(
                 db,
                 "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) "
@@ -404,7 +406,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -484,7 +486,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -532,7 +534,7 @@ public class WeaviateTest {
                 "CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,

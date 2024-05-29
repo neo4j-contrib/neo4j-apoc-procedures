@@ -34,7 +34,7 @@ public class QdrantHandler implements VectorDbHandler {
 
         @Override
         public <T> VectorEmbeddingConfig fromGet(
-                Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
+                Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
             List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
             config.putIfAbsent(METHOD_KEY, "POST");
 

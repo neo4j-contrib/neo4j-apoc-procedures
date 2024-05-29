@@ -182,7 +182,7 @@ public class Weaviate {
         config.putIfAbsent(METHOD_KEY, null);
 
         List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
         VectorMappingConfig mapping = conf.getMapping();
