@@ -3061,6 +3061,7 @@ MIT
   jnr-x86asm-1.0.2.jar
   jsoup-1.15.3.jar
   localstack-1.17.6.jar
+  milvus-1.19.7.jar
   mockito-core-3.12.4.jar
   mssql-jdbc-6.2.1.jre7.jar
   mysql-1.17.6.jar

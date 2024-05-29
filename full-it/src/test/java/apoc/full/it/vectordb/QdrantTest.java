@@ -360,7 +360,8 @@ public class QdrantTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true));
+                        MODE_KEY,
+                        MappingMode.CREATE_IF_MISSING.toString()));
         testResult(
                 db,
                 "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",

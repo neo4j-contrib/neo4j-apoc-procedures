@@ -3,7 +3,7 @@ package apoc.vectordb;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
-import static apoc.vectordb.VectorDbHandler.Type.QDRANT;
+import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
 import static apoc.vectordb.VectorDbUtil.*;
 
 import apoc.Extended;
@@ -24,8 +24,8 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 @Extended
-public class Qdrant {
-    public static final VectorDbHandler DB_HANDLER = QDRANT.get();
+public class Milvus {
+    public static final VectorDbHandler DB_HANDLER = MILVUS.get();
 
     @Context
     public ProcedureCallContext procedureCallContext;
@@ -36,9 +36,9 @@ public class Qdrant {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure("apoc.vectordb.qdrant.createCollection")
+    @Procedure("apoc.vectordb.milvus.createCollection")
     @Description(
-            "apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
+            "apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -46,39 +46,37 @@ public class Qdrant {
             @Name("size") Long size,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        String url = "%s/collections/%s";
+        String url = "%s/collections/create";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-        config.putIfAbsent(METHOD_KEY, "PUT");
+        config.putIfAbsent(METHOD_KEY, "POST");
 
-        Map<String, Object> additionalBodies = Map.of(
-                "vectors",
-                Map.of(
-                        "size", size,
-                        "distance", similarity));
+        Map<String, Object> additionalBodies =
+                Map.of("collectionName", collection, "dimension", size, "metricType", similarity);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
-    @Procedure("apoc.vectordb.qdrant.deleteCollection")
+    @Procedure("apoc.vectordb.milvus.deleteCollection")
     @Description(
-            "apoc.vectordb.qdrant.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
+            "apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
 
-        String url = "%s/collections/%s";
+        String url = "%s/collections/drop";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-        config.putIfAbsent(METHOD_KEY, "DELETE");
+        config.putIfAbsent(METHOD_KEY, "POST");
+        Map<String, Object> additionalBodies = Map.of("collectionName", collection);
 
-        RestAPIConfig restAPIConfig = new RestAPIConfig(config);
+        RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
-    @Procedure("apoc.vectordb.qdrant.upsert")
+    @Procedure("apoc.vectordb.milvus.upsert")
     @Description(
-            "apoc.vectordb.qdrant.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
+            "apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
     public Stream<MapResult> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -86,27 +84,26 @@ public class Qdrant {
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
 
-        String url = "%s/collections/%s/points";
+        String url = "%s/entities/upsert";
 
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-        config.putIfAbsent(METHOD_KEY, "PUT");
+        config.putIfAbsent(METHOD_KEY, "POST");
 
-        List<Map<String, Object>> point = vectors.stream()
+        List<Map<String, Object>> data = vectors.stream()
                 .map(i -> {
                     Map<String, Object> map = new HashMap<>(i);
-                    map.putIfAbsent("vector", map.remove("vector"));
-                    map.putIfAbsent("payload", map.remove("metadata"));
+                    map.putAll((Map) map.remove("metadata"));
                     return map;
                 })
                 .collect(Collectors.toList());
-        Map<String, Object> additionalBodies = Map.of("points", point);
+        Map<String, Object> additionalBodies = Map.of("data", data, "collectionName", collection);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
-    @Procedure("apoc.vectordb.qdrant.delete")
+    @Procedure("apoc.vectordb.milvus.delete")
     @Description(
-            "apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
+            "apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
     public Stream<MapResult> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -114,18 +111,19 @@ public class Qdrant {
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
 
-        String url = "%s/collections/%s/points/delete";
+        String url = "%s/entities/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
-        Map<String, Object> additionalBodies = Map.of("points", ids);
+        String filter = "id in " + ids;
+        Map<String, Object> additionalBodies = Map.of("collectionName", collection, "filter", filter);
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.get")
+    @Procedure(value = "apoc.vectordb.milvus.get", mode = Mode.WRITE)
     @Description(
-            "apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`")
+            "apoc.vectordb.milvus.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
     public Stream<EmbeddingResult> get(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -135,9 +133,9 @@ public class Qdrant {
         return getCommon(hostOrKey, collection, ids, configuration, true);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.getAndUpdate", mode = Mode.WRITE)
+    @Procedure(value = "apoc.vectordb.milvus.getAndUpdate", mode = Mode.WRITE)
     @Description(
-            "apoc.vectordb.qdrant.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
+            "apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
     public Stream<EmbeddingResult> getAndUpdate(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
@@ -150,65 +148,82 @@ public class Qdrant {
     private Stream<EmbeddingResult> getCommon(
             String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly)
             throws Exception {
-        String url = "%s/collections/%s/points";
+        String url = "%s/entities/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.qdrant.getAndUpdate");
+            checkMappingConf(configuration, "apoc.vectordb.milvus.getAndUpdate");
         }
 
         VectorEmbeddingConfig apiConfig =
                 DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx, v -> getMapStream((Map) v));
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.query")
+    @Procedure(value = "apoc.vectordb.milvus.query")
     @Description(
-            "apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter")
+            "apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> query(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "vector", defaultValue = "[]") List<Double> vector,
-            @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
+            @Name(value = "filter", defaultValue = "null") Object filter,
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
+
         return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
     }
 
-    @Procedure(value = "apoc.vectordb.qdrant.queryAndUpdate", mode = Mode.WRITE)
+    @Procedure(value = "apoc.vectordb.milvus.queryAndUpdate", mode = Mode.WRITE)
     @Description(
-            "apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities")
+            "apoc.vectordb.milvus.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
     public Stream<EmbeddingResult> queryAndUpdate(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "vector", defaultValue = "[]") List<Double> vector,
-            @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
+            @Name(value = "filter", defaultValue = "null") Object filter,
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
+
         return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+    }
+
+    private Stream<Map> getMapStream(Map v) {
+        var data = v.get("data");
+
+        return ((List<Map>) data).stream().map(i -> {
+            var metadata = new HashMap<>(i);
+            metadata.remove("id");
+            metadata.remove("vector");
+            metadata.remove("distance");
+
+            i.put("metadata", metadata);
+
+            return i;
+        });
     }
 
     private Stream<EmbeddingResult> queryCommon(
             String hostOrKey,
             String collection,
             List<Double> vector,
-            Map<String, Object> filter,
+            Object filter,
             long limit,
             Map<String, Object> configuration,
             boolean readOnly)
             throws Exception {
-        String url = "%s/collections/%s/points/search";
+        String url = "%s/entities/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.qdrant.queryAndUpdate");
+            checkMappingConf(configuration, "apoc.vectordb.milvus.queryAndUpdate");
         }
 
         VectorEmbeddingConfig apiConfig =
                 DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx, v -> getMapStream((Map) v));
     }
 
     private Map<String, Object> getVectorDbInfo(

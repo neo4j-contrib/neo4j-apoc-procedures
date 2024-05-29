@@ -16,7 +16,6 @@ import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
@@ -284,8 +283,8 @@ public class ChromaDbTest {
                         "myId",
                         METADATA_KEY,
                         "foo",
-                        CREATE_KEY,
-                        true));
+                        MODE_KEY,
+                        MappingMode.CREATE_IF_MISSING.toString()));
 
         testResult(
                 db,
