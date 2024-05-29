@@ -119,17 +119,6 @@ CALL apoc.vectordb.chroma.queryAndUpdate($host,
 | ...
 |===
 
-[NOTE]
-====
-We can use mapping with `apoc.vectordb.chroma.getAndUpdate` procedure as well
-====
-
-[NOTE]
-====
-To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
-For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
-so that we do not return the other values that we do not need.
-====
 
 We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
 
@@ -199,6 +188,17 @@ which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin
 and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
 which will be returned in the `entity` column result.
 
+[NOTE]
+====
+We can use mapping with `apoc.vectordb.chroma.get*` procedures as well
+====
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
+For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
+so that we do not return the other values that we do not need.
+====
 
 .Delete vectors (it leverages https://docs.trychroma.com/usage-guide#deleting-data-from-a-collection[this API])
 [source,cypher]

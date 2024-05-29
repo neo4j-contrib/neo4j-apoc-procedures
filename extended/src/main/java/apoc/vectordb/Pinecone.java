@@ -22,7 +22,6 @@ import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.PINECONE;
-import static apoc.vectordb.VectorDbUtil.checkMappingConf;
 import static apoc.vectordb.VectorDbUtil.getCommonVectorDbInfo;
 
 @Extended
@@ -133,7 +132,7 @@ public class Pinecone {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        return getCommon(hostOrKey, collection, ids, configuration, false);
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.getAndUpdate", mode = Mode.WRITE)
@@ -142,18 +141,16 @@ public class Pinecone {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        return getCommon(hostOrKey, collection, ids, configuration, true);
     }
 
-    private Stream<VectorDbUtil.EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) throws Exception {
+    private Stream<VectorDbUtil.EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean updateMode) throws Exception {
         String url = "%s/vectors/fetch";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.pinecone.getAndUpdate");
-        }
         
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        conf.getMapping().setUpdateMode(updateMode);
+        
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Object vectors = ((Map) v).get("vectors");
@@ -170,7 +167,7 @@ public class Pinecone {
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.queryAndUpdate", mode = Mode.WRITE)
@@ -181,18 +178,16 @@ public class Pinecone {
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
     }
 
-    private Stream<VectorDbUtil.EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
+    private Stream<VectorDbUtil.EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration, boolean updateMode) throws Exception {
         String url = "%s/query";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.pinecone.queryAndUpdate");
-        }
-
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        conf.getMapping().setUpdateMode(updateMode);
+        
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Map map = (Map) v;

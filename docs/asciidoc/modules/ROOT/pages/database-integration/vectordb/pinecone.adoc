@@ -203,9 +203,28 @@ which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin
 and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
 which will be returned in the `entity` column result.
 
+
+We can also use mapping for `apoc.vectordb.pinecone.query` procedure, to search for nodes/rels fitting label/type and metadataKey, without making updates.
+For example, with the previous relationships, we can execute the following procedure, which just return the relationships in the column `rel`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.query($host, 'test-index',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
 [NOTE]
 ====
-We can use mapping with `apoc.vectordb.pinecone.getAndUpdate` procedure as well
+We can use mapping with `apoc.vectordb.pinecone.get*` procedures as well
 ====
 
 [NOTE]

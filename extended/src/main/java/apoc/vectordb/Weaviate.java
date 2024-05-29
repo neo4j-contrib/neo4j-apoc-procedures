@@ -144,7 +144,7 @@ public class Weaviate {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        return getCommon(hostOrKey, collection, ids, configuration, true);
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.get")
@@ -153,15 +153,12 @@ public class Weaviate {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        return getCommon(hostOrKey, collection, ids, configuration, false);
     }
 
-    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) {
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean updateMode) {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
-
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
-        }
+        
         
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
@@ -172,6 +169,8 @@ public class Weaviate {
 
         List<String> fields = procedureCallContext.outputFields().toList();
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        conf.getMapping().setUpdateMode(updateMode);
+        
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
         VectorMappingConfig mapping = conf.getMapping();
@@ -200,8 +199,7 @@ public class Weaviate {
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
     }
 
 
@@ -213,17 +211,15 @@ public class Weaviate {
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
     }
 
-    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean updateMode) throws Exception {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
-        }
-
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        conf.getMapping().setUpdateMode(updateMode);
+        
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
                     Object getValue = ((Map<String, Map>) v).get("data").get("Get");

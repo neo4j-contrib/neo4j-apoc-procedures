@@ -80,11 +80,4 @@ public class VectorDbUtil {
         return (String) props.get(ExtendedSystemPropertyKeys.host.name());
     }
 
-    public static void checkMappingConf(Map<String, Object> configuration, String procName) {
-        if (configuration.containsKey(MAPPING_KEY)) {
-            throw new RuntimeException(ERROR_READONLY_MAPPING + "\n" +
-                                       "Try the equivalent procedure, which is the " + procName);
-        }
-    }
-
 }

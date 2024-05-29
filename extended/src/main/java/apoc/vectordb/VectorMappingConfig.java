@@ -23,6 +23,7 @@ public class VectorMappingConfig {
     private final String similarity;
 
     private final boolean create;
+    private boolean updateMode = false;
 
     public VectorMappingConfig(Map<String, Object> mapping) {
         if (mapping == null) {
@@ -66,5 +67,13 @@ public class VectorMappingConfig {
 
     public String getSimilarity() {
         return similarity;
+    }
+
+    public boolean isUpdateMode() {
+        return updateMode;
+    }
+
+    public void setUpdateMode(boolean updateMode) {
+        this.updateMode = updateMode;
     }
 }

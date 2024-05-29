@@ -152,15 +152,16 @@ public class VectorDb {
             Node node;
             Object propValue = metaProps.get(mapping.getMetadataKey());
             node = transaction.findNode(Label.label(mapping.getNodeLabel()), mapping.getEntityKey(), propValue);
-            if (node == null && mapping.isCreate()) {
-                node = transaction.createNode(Label.label(mapping.getNodeLabel()));
-                node.setProperty(mapping.getEntityKey(), propValue);
+            if (mapping.isUpdateMode()) {
+                if (node == null && mapping.isCreate()) {
+                    node = transaction.createNode(Label.label(mapping.getNodeLabel()));
+                    node.setProperty(mapping.getEntityKey(), propValue);
+                }
+                if (node != null) {
+                    setProperties(node, metaProps);
+                    setVectorProp(mapping, embedding, node);
+                }
             }
-            if (node != null) {
-                setProperties(node, metaProps);
-                setVectorProp(mapping, embedding, node);
-            }
-
             return node;
         } catch (MultipleFoundException e) {
             throw new RuntimeException("Multiple nodes found");
@@ -173,7 +174,7 @@ public class VectorDb {
             Relationship rel;
             Object propValue = metaProps.get(mapping.getMetadataKey());
             rel = transaction.findRelationship(RelationshipType.withName(mapping.getRelType()), mapping.getEntityKey(), propValue);
-            if (rel != null) {
+            if (mapping.isUpdateMode() && rel != null) {
                 setProperties(rel, metaProps);
                 setVectorProp(mapping, embedding, rel);
             }

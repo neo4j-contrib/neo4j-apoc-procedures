@@ -353,24 +353,28 @@ public class WeaviateTest {
         assertNodesCreated(db);
     }
 
+
     @Test
     public void getReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
 
-        try {
-            testCall(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [1, 2], $conf)",
-                    map("host", HOST, "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, MapUtil.map(
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1, $id2], $conf) " +
+                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "node")
+        );
     }
 
     @Test
     public void queryVectorsWithCreateRel() {
-
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
@@ -400,17 +404,22 @@ public class WeaviateTest {
 
     @Test
     public void queryReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
-        try {
-            testCall(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                    MapUtil.map("host", HOST, "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+                FIELDS_KEY, FIELDS,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, MapUtil.map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                       " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
+                MapUtil.map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel")
+        );
     }
 
     @Test

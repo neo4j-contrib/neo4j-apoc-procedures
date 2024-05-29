@@ -133,7 +133,7 @@ public class Milvus {
                                          @Name("collection") String collection,
                                          @Name("ids") List<Object> ids,
                                          @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        return getCommon(hostOrKey, collection, ids, configuration, false);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.getAndUpdate", mode = Mode.WRITE)
@@ -142,18 +142,15 @@ public class Milvus {
                                                 @Name("collection") String collection,
                                                 @Name("ids") List<Object> ids,
                                                 @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        return getCommon(hostOrKey, collection, ids, configuration, true);
     }
 
-    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly) throws Exception {
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean updateMode) throws Exception {
         String url = "%s/entities/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.milvus.getAndUpdate");
-        }
-
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        conf.getMapping().setUpdateMode(updateMode);
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> getMapStream((Map) v));
     }
@@ -167,7 +164,7 @@ public class Milvus {
                                          @Name(value = "limit", defaultValue = "10") long limit,
                                          @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.queryAndUpdate", mode = Mode.WRITE)
@@ -179,7 +176,7 @@ public class Milvus {
                                          @Name(value = "limit", defaultValue = "10") long limit,
                                          @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
     }
 
     private Stream<Map> getMapStream(Map v) {
@@ -198,16 +195,14 @@ public class Milvus {
                 });
     }
 
-    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean readOnly) throws Exception {
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean updateMode) throws Exception {
         String url = "%s/entities/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.milvus.queryAndUpdate");
-        }
         
-        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        conf.getMapping().setUpdateMode(updateMode);
+        
+        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> getMapStream((Map) v));
     }
 

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -25,6 +26,7 @@ import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
@@ -294,19 +296,22 @@ public class ChromaDbTest {
         assertNodesCreated(db);
     }
 
+
     @Test
     public void getReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
 
-        try {
-            testCall(db, "CALL apoc.vectordb.chroma.get($host, $collection, [1, 2], $conf)",
-                    map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(NODE_LABEL, "Test",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, ['1', '2'], $conf) " +
+                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "node")
+        );
     }
     
     @Test
@@ -338,17 +343,19 @@ public class ChromaDbTest {
 
     @Test
     public void queryReadOnlyVectorsWithMapping() {
+        db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
+
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
-        
-        try {
-            testCall(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                    map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+                MAPPING_KEY, map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", HOST, "collection", COLL_ID.get(), "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel")
+        );
     }
 
     @Test
