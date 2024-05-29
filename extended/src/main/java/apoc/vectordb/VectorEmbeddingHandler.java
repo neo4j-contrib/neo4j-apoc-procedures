@@ -12,7 +12,8 @@ public interface VectorEmbeddingHandler {
 
     <T> VectorEmbeddingConfig fromGet(Map<String, Object> config,
                                       ProcedureCallContext procedureCallContext,
-                                      List<T> ids);
+                                      List<T> ids,
+                                      String collection);
 
     VectorEmbeddingConfig fromQuery(Map<String, Object> config,
                                     ProcedureCallContext procedureCallContext,
@@ -21,9 +22,7 @@ public interface VectorEmbeddingHandler {
                                     long limit,
                                     String collection);
 
-   
-
-    static VectorEmbeddingConfig populateApiBodyRequest(VectorEmbeddingConfig config,
+    default VectorEmbeddingConfig populateApiBodyRequest(VectorEmbeddingConfig config,
                                                         Map<String, Object> additionalBodies) {
 
         RestAPIConfig apiConfig = config.getApiConfig();

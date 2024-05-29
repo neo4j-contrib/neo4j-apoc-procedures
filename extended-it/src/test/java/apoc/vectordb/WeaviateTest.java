@@ -29,6 +29,7 @@ import static apoc.vectordb.VectorDbTestUtil.*;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -177,7 +179,7 @@ public class WeaviateTest {
     public void queryVectors() {
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata RETURN * ORDER BY id",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, FALSE);
@@ -195,7 +197,7 @@ public class WeaviateTest {
     public void queryVectorsWithoutVectorResult() {
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", map( "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map( FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -215,7 +217,7 @@ public class WeaviateTest {
     public void queryVectorsWithYield() {
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        "YIELD metadata, id RETURN * ORDER BY id",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                     assertLondonResult(r.next(), ID_2, FALSE);
@@ -228,7 +230,7 @@ public class WeaviateTest {
                         CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7],
                         '{operator: Equal, valueString: "London", path: ["city"]}',
                         5, $conf) YIELD metadata, id RETURN * ORDER BY id""",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), ID_2, FALSE);
                 });
@@ -238,7 +240,7 @@ public class WeaviateTest {
     public void queryVectorsWithLimit() {
         testResult(db, """
                         CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id RETURN * ORDER BY id""",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                 });
@@ -248,7 +250,7 @@ public class WeaviateTest {
     public void queryVectorsWithCreateNode() {
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
-                "fields", FIELDS,
+                FIELDS_KEY, FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
                     NODE_LABEL, "Test",
@@ -300,7 +302,7 @@ public class WeaviateTest {
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
-                "fields", FIELDS,
+                FIELDS_KEY, FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
                 NODE_LABEL, "Test",
@@ -372,7 +374,7 @@ public class WeaviateTest {
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true, 
-                "fields", FIELDS,
+                FIELDS_KEY, FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
                 REL_TYPE, "TEST",
@@ -416,7 +418,7 @@ public class WeaviateTest {
 
         db.executeTransactionally("CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
-        Map<String, Object> conf = map("fields", FIELDS,
+        Map<String, Object> conf = map(FIELDS_KEY, FIELDS,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
                 MAPPING_KEY, map(REL_TYPE, "TEST",
                     ENTITY_KEY, "myId",
@@ -470,7 +472,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
                 map("host", keyConfig,
-                        "conf", map("fields", FIELDS, ALL_RESULTS_KEY, true)
+                        "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
                 r -> {
                     Map<String, Object> row = r.next();

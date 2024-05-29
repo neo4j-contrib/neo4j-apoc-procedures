@@ -53,6 +53,7 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'qdrant', version: '1.19.7'
     testImplementation group: 'org.testcontainers', name: 'chromadb', version: '1.19.7'
     testImplementation group: 'org.testcontainers', name: 'weaviate', version: '1.19.7'
+    testImplementation group: 'org.testcontainers', name: 'milvus', version: '1.19.7'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
