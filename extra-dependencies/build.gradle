@@ -45,6 +45,7 @@ ext {
         exclude group: 'org.slf4j', module: 'slf4j-api'
 
         // jackson
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
 
