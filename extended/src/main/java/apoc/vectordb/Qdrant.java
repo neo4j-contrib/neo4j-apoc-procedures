@@ -131,7 +131,8 @@ public class Qdrant {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        setReadOnlyMappingMode(configuration);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.getAndUpdate", mode = Mode.WRITE)
@@ -140,15 +141,14 @@ public class Qdrant {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
-    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean updateMode) throws Exception {
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/%s/points";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
-        conf.getMapping().setUpdateMode(updateMode);
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx);
     }
@@ -161,7 +161,8 @@ public class Qdrant {
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        setReadOnlyMappingMode(configuration);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.queryAndUpdate", mode = Mode.WRITE)
@@ -172,15 +173,14 @@ public class Qdrant {
                                                   @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                   @Name(value = "limit", defaultValue = "10") long limit,
                                                   @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
-    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration, boolean updateMode) throws Exception {
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/%s/points/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        conf.getMapping().setUpdateMode(updateMode);
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx);
     }

@@ -17,6 +17,8 @@ import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MappingMode.READ_ONLY;
 
 public class VectorDbUtil {
 
@@ -80,4 +82,8 @@ public class VectorDbUtil {
         return (String) props.get(ExtendedSystemPropertyKeys.host.name());
     }
 
+    public static void setReadOnlyMappingMode(Map<String, Object> configuration) {
+        Map<String, Object> mappingConf = (Map<String, Object>) configuration.getOrDefault(MAPPING_KEY, new HashMap<>());
+        mappingConf.put(MODE_KEY, READ_ONLY.toString());
+    }
 }

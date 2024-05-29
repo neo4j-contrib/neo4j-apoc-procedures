@@ -1,8 +1,6 @@
 package apoc.vectordb;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -18,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -30,7 +27,6 @@ import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResult
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
-import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
@@ -233,7 +229,8 @@ public class ChromaDbTest {
                     NODE_LABEL, "Test",
                     ENTITY_KEY, "myId",
                     METADATA_KEY, "foo",
-                    CREATE_KEY, true)
+                    MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
+                )
         );
         
         testResult(db, "CALL apoc.vectordb.chroma.queryAndUpdate($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",

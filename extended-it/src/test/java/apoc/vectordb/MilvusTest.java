@@ -32,16 +32,16 @@ import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static apoc.vectordb.VectorMappingConfig.CREATE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
 import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
 import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
 import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
+import static apoc.vectordb.VectorMappingConfig.MappingMode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -230,7 +230,8 @@ public class MilvusTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true)
+                        MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
+                )
         );
         testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
                 map("host", HOST, "conf", conf),

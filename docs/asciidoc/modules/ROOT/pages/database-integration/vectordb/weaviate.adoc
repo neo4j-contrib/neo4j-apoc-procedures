@@ -160,7 +160,7 @@ and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
 which will be returned in the `entity` column result.
 
 
-Or else, we can create a node if not exists, via `create: true`:
+We can also set the mapping configuration `mode` to `CREATE_IF_MISSING` (which creates nodes if not exist), `READ_ONLY` (to search for nodes/rels, without making updates) or `UPDATE_EXISTING` (default behavior):
 
 [source,cypher]
 ----
@@ -170,7 +170,7 @@ CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'test_collection',
     5, 
     { fields: ["city", "foo"],
       mapping: {
-        create: true,
+        mode: "CREATE_IF_MISSING",
         embeddingKey: "vect", 
         nodeLabel: "Test", 
         entityKey: "myId", 
@@ -205,7 +205,9 @@ and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
 which will be returned in the `entity` column result.
 
 
-We can also use mapping for `apoc.vectordb.weaviate.query` procedure, to search for nodes/rels fitting label/type and metadataKey, without making updates.
+We can also use mapping for `apoc.vectordb.weaviate.query` procedure, to search for nodes/rels fitting label/type and metadataKey, without making updates
+(i.e. equivalent to `*.queryOrUpdate` procedure with mapping config having `mode: "READ_ONLY"`).
+
 For example, with the previous relationships, we can execute the following procedure, which just return the relationships in the column `rel`:
 
 [source,cypher]

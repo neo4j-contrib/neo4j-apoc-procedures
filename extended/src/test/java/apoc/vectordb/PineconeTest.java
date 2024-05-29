@@ -268,7 +268,9 @@ public class PineconeTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true));
+                        MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
+                )
+        );
         testResult(db, "CALL apoc.vectordb.pinecone.queryAndUpdate($host, $coll, [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "coll", collName, "conf", conf),
                 r -> {

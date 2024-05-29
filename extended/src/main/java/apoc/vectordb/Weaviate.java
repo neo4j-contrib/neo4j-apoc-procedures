@@ -144,7 +144,7 @@ public class Weaviate {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.get")
@@ -153,10 +153,11 @@ public class Weaviate {
                                                       @Name("collection") String collection,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        setReadOnlyMappingMode(configuration);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
-    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean updateMode) {
+    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
         
         
@@ -169,7 +170,6 @@ public class Weaviate {
 
         List<String> fields = procedureCallContext.outputFields().toList();
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
-        conf.getMapping().setUpdateMode(updateMode);
         
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
@@ -199,7 +199,8 @@ public class Weaviate {
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        setReadOnlyMappingMode(configuration);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
 
@@ -211,14 +212,13 @@ public class Weaviate {
                                                       @Name(value = "filter", defaultValue = "null") Object filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
-    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration, boolean updateMode) throws Exception {
+    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration) throws Exception {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        conf.getMapping().setUpdateMode(updateMode);
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {

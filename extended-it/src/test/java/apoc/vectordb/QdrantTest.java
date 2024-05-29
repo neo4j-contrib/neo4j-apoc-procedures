@@ -9,9 +9,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.qdrant.QdrantContainer;
 
@@ -265,7 +263,8 @@ public class QdrantTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true)
+                        MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
+                )
         );
         testResult(db, "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
