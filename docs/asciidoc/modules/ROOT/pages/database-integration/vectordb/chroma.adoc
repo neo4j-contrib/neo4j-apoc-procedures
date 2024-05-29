@@ -119,26 +119,16 @@ CALL apoc.vectordb.chroma.queryAndUpdate($host,
 | ...
 |===
 
-[NOTE]
-====
-We can use mapping with `apoc.vectordb.chroma.getAndUpdate` procedure as well
-====
 
-[NOTE]
-====
-To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
-For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
-so that we do not return the other values that we do not need.
-====
+We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
 
-
-In the same way as other procedures, we can define a mapping, to fetch the associated nodes and relationships and optionally create them,
-by leveraging the vector metadata. For example:
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
 
 .Query vectors
 [source,cypher]
 ----
-CALL apoc.vectordb.chroma.query($host, '<collection_id>',
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
     [0.2, 0.1, 0.9, 0.7],
     {},
     5, 
@@ -151,7 +141,85 @@ CALL apoc.vectordb.chroma.query($host, '<collection_id>',
     })
 ----
 
+which populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
+which will be returned in the `entity` column result.
 
+
+
+We can also set the mapping configuration `mode` to `CREATE_IF_MISSING` (which creates nodes if not exist), `READ_ONLY` (to search for nodes/rels, without making updates) or `UPDATE_EXISTING` (default behavior):
+
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            mode: "CREATE_IF_MISSING",
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
+        }
+    })
+----
+
+which creates and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.queryAndUpdate($host, '<collection_id>',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
+which will be returned in the `entity` column result.
+
+
+We can also use mapping for `apoc.vectordb.chroma.query` procedure, to search for nodes/rels fitting label/type and metadataKey, without making updates
+(i.e. equivalent to `*.queryOrUpdate` procedure with mapping config having `mode: "READ_ONLY"`).
+
+For example, with the previous relationships, we can execute the following procedure, which just return the relationships in the column `rel`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.weaviate.query($host, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { fields: ["city", "foo"],
+      mapping: {
+        relType: "TEST", 
+        entityKey: "myId", 
+        metadataKey: "foo" 
+      }
+    })
+----
+
+[NOTE]
+====
+We can use mapping with `apoc.vectordb.chroma.get*` procedures as well
+====
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
+For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
+so that we do not return the other values that we do not need.
+====
 
 .Delete vectors (it leverages https://docs.trychroma.com/usage-guide#deleting-data-from-a-collection[this API])
 [source,cypher]

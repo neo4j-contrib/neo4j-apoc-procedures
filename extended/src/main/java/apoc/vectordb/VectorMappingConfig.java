@@ -1,18 +1,20 @@
 package apoc.vectordb;
 
-import apoc.util.Util;
-
 import java.util.Collections;
 import java.util.Map;
 
 public class VectorMappingConfig {
+    enum MappingMode {
+        READ_ONLY, UPDATE_EXISTING, CREATE_IF_MISSING
+    }
+    
     public static final String METADATA_KEY = "metadataKey";
     public static final String ENTITY_KEY = "entityKey";
     public static final String NODE_LABEL = "nodeLabel";
     public static final String REL_TYPE = "relType";
     public static final String EMBEDDING_KEY = "embeddingKey";
     public static final String SIMILARITY_KEY = "similarity";
-    public static final String CREATE_KEY = "create";
+    public static final String MODE_KEY = "mode";
 
     private final String metadataKey;
     private final String entityKey;
@@ -22,7 +24,7 @@ public class VectorMappingConfig {
     private final String embeddingKey;
     private final String similarity;
 
-    private final boolean create;
+    private MappingMode mode;
 
     public VectorMappingConfig(Map<String, Object> mapping) {
         if (mapping == null) {
@@ -37,7 +39,8 @@ public class VectorMappingConfig {
 
         this.similarity = (String) mapping.getOrDefault(SIMILARITY_KEY, "cosine");
 
-        this.create = Util.toBoolean(mapping.get(CREATE_KEY));
+        String modeValue = (String) mapping.getOrDefault(MODE_KEY, MappingMode.UPDATE_EXISTING.toString() );
+        this.mode = MappingMode.valueOf( modeValue.toUpperCase() );
     }
 
     public String getMetadataKey() {
@@ -60,11 +63,11 @@ public class VectorMappingConfig {
         return embeddingKey;
     }
 
-    public boolean isCreate() {
-        return create;
-    }
-
     public String getSimilarity() {
         return similarity;
+    }
+
+    public MappingMode getMode() {
+        return mode;
     }
 }
