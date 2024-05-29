@@ -6,9 +6,14 @@ import apoc.result.StringResult;
 import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -30,7 +35,8 @@ import java.util.stream.Stream;
 
 @Extended
 public class Prompt {
-
+    public static final String API_KEY_CONF = "apiKey";
+    
     @Context
     public Transaction tx;
     @Context
@@ -44,7 +50,101 @@ public class Prompt {
     @Context
     public URLAccessChecker urlAccessChecker;
 
+    
+    @Procedure(mode = Mode.READ)
+    @Description("Takes a query in cypher and in natural language and returns the results in natural language")
+    public Stream<StringResult> rag(@Name("paths") Object paths,
+                                    @Name("attributes") List<String> attributes,
+                                    @Name("question") String question,
+                                    @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws Exception {
+
+        RagConfig config = new RagConfig(conf);
+
+        String[] arrayAttrs = attributes.toArray(String[]::new);
+        
+        StringBuilder context = new StringBuilder();
+
+        // -- Retrieve
+        if (paths instanceof List pathList) {
+            
+            for (var listItem : pathList) {
+                // -- Augment
+                augment(config, arrayAttrs, context, listItem);
+            }
+            
+        } else if (paths instanceof String queryOrIndex) {
+            config.getEmbeddings()
+                    .getQuery(queryOrIndex, question, tx, config)
+                    .forEachRemaining(row -> row
+                            .values()
+                            // -- Augment
+                            .forEach( val -> augment(config, arrayAttrs, context, val) )
+                    );
+        } else {
+            throw new RuntimeException("The first parameter must be a List or a String");
+        }
+        
+        // - Generate
+        String contextPrompt = """
+                                
+                ---- Start context ----
+                %s
+                ---- End context ----
+                """.formatted(context);
+        
+        String prompt = config.getBasePrompt() + contextPrompt;
+
+        String result = prompt("\nQuestion:" + question, 
+                prompt, 
+                null, 
+                null,
+                conf,
+                List.of()
+        );
+        return Stream.of(new StringResult(result));
+    }
+
+    private void augment(RagConfig config, String[] objects, StringBuilder context, Object listItem) {
+        if (listItem instanceof Path p) {
+            for (Entity entity : p) {
+                augmentEntity(config, objects, context, entity);
+            }
+        } else if (listItem instanceof Entity e) {
+            augmentEntity(config, objects, context, e);
+        } else {
+            throw new RuntimeException("The list `%s` must have node/type/path items".formatted(listItem));
+        }
+    }
+
+    private void augmentEntity(RagConfig config, String[] objects, StringBuilder context, Entity entity) {
+        Map<String, Object> props = entity.getProperties(objects);
+        if (config.isGetLabelTypes()) {
+            String labelsOrType = entity instanceof Node node
+                    ? Util.joinLabels(node.getLabels(), ",")
+                    : ((Relationship) entity).getType().name();
+            labelsOrType = WordUtils.capitalize(labelsOrType, '_');
+            props.put("context description", labelsOrType);
+        }
+        String obj = props.entrySet().stream()
+                .filter(i -> i.getValue() != null)
+                .map(i -> i.getKey() + ": " + i.getValue() + "\n")
+                .collect(Collectors.joining("\n---\n"));
+        context.append(obj);
+    }
+
     public static final String BACKTICKS = "```";
+    
+    public static final String UNKNOWN_ANSWER = "Sorry, I don't know";
+    static final String RAG_BASE_PROMPT = """
+            You are a customer service agent that helps a customer with answering questions about a service.
+            Use the following context to answer the `user question` at the end. Make sure not to make any changes to the context if possible when prepare answers so as to provide accurate responses.
+            If you don't know the answer, just say `%s`, don't try to make up an answer.
+            
+            ---- Start context ----
+            %s
+            ---- End context ----
+            """;
+    
     public static final String EXPLAIN_SCHEMA_PROMPT = """
             You are an expert in the Neo4j graph database and graph data modeling and have experience in a wide variety of business domains.
             Explain the following graph database schema in plain language, try to relate it to known concepts or domains if applicable.
@@ -69,7 +169,6 @@ public class Prompt {
             providing useful details of each entity.
             Do not explain, apologize or provide additional detail about the schema, otherwise people will come to harm.
             """;
-
 
     public class PromptMapResult {
         public final Map<String, Object> value;
@@ -212,7 +311,7 @@ public class Prompt {
 
         prompt.addAll(otherPrompts);
         
-        String apiKey = (String) conf.get("apiKey");
+        String apiKey = (String) conf.get(API_KEY_CONF);
         String model = (String) conf.getOrDefault("model", "gpt-3.5-turbo");
         String result = OpenAI.executeRequest(apiKey, Map.of(), "chat/completions",
                         model, "messages", prompt, "$", apocConfig, urlAccessChecker)
