@@ -59,7 +59,7 @@ public class ChromaDbTest {
         
         CHROMA_CONTAINER.start();
 
-        HOST = "localhost:" + CHROMA_CONTAINER.getMappedPort(8000);
+        HOST =  CHROMA_CONTAINER.getEndpoint();
         TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class);
         
         testCall(db, "CALL apoc.vectordb.chroma.createCollection($host, 'test_collection', 'cosine', 4)",
@@ -386,7 +386,7 @@ public class ChromaDbTest {
     @Test
     public void queryVectorsWithSystemDbStorage() {
         String keyConfig = "chroma-config-foo";
-        String baseUrl = "http://" + HOST;
+        String baseUrl = HOST;
         Map<String, Object> mapping = map(EMBEDDING_KEY, "vect",
                 NODE_LABEL, "Test",
                 ENTITY_KEY, "myId",
