@@ -25,20 +25,13 @@ import static apoc.util.Util.map;
 
 @Extended
 public class ConvertExtended {
-    private static final String YAML_MISSING_DEPS_ERROR = """
-            Cannot find the Yaml client jar.
-            Please put the apoc-yaml-dependencies-5.x.x-all.jar into plugin folder.
-            See the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.convert/apoc.convert.toYaml/#yaml-dependencies""";
 
-    
     @UserFunction("apoc.convert.toYaml")
     @Description("apoc.convert.toYaml(value, $config) - Serializes the given value to a YAML string")
     public String toYaml(@Name("value") Object value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         Object result = writeYamlResult(value);
         try {
             return getYamlFactory(result, config);
-        } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(YAML_MISSING_DEPS_ERROR);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + "value" + " to yaml", e);
         }
@@ -47,13 +40,9 @@ public class ConvertExtended {
     @UserFunction("apoc.convert.fromYaml")
     @Description("apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value")
     public Object fromYaml(@Name("value") String value, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        try {
-            Object parse = parse(value, config);
-            var mappingConf = (Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of());
-            return toValidYamlValue(parse, null, mappingConf, true);
-        } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(YAML_MISSING_DEPS_ERROR);
-        }
+        Object parse = parse(value, config);
+        var mappingConf = (Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of());
+        return toValidYamlValue(parse, null, mappingConf, true);
     }
 
     /**

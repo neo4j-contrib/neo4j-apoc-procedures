@@ -69,6 +69,7 @@ dependencies {
     }
 
     def withoutJacksons = {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
@@ -83,6 +84,7 @@ dependencies {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
     implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.17.0', withoutJacksons
 
     // These will be dependencies not packaged with the .jar
     // They need to be provided either through the database or in an extra .jar
@@ -113,11 +115,9 @@ dependencies {
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
 
-    compileOnly group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.17.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
-    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.17.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
