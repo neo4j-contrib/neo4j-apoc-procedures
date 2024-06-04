@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.custom.CypherProcedureTestUtil.QUERY_CREATE;
+import static apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED;
 import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
 import static apoc.util.MapUtil.map;
@@ -57,7 +57,10 @@ public class CypherProceduresStorageTest {
             final int refreshTime = 3000;
             // start db with apoc.conf: `apoc.custom.procedures.refresh=<time>`
             dbms = startDbWithApocConfigs(STORE_DIR,
-                    Map.of(CUSTOM_PROCEDURES_REFRESH, refreshTime)
+                    Map.of(
+                            CUSTOM_PROCEDURES_REFRESH, refreshTime,
+                            APOC_KAFKA_ENABLED, "true"
+                    )
             );
             greaterThanRefreshTime = refreshTime + 500;
         } catch (IOException e) {

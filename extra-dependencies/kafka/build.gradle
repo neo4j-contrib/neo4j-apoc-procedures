@@ -1,0 +1,31 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+archivesBaseName = 'apoc-kafka-dependencies'
+description = """APOC Kafka Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+def kafkaVersion = "2.4.0"
+def jacksonVersion = "2.17.2"
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0', commonExclusions
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion, commonExclusions
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion, commonExclusions
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2', commonExclusions
+    implementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion, commonExclusions
+    implementation group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711', commonExclusions
+    implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2', commonExclusions
+    implementation group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711', commonExclusions
+}

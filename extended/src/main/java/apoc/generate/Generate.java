@@ -70,7 +70,7 @@ public class Generate {
     @Procedure(name = "apoc.generate.simple",mode = Mode.WRITE)
     @Description("apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution")
     public void simple(@Name("degrees") List<Long> degrees, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
-        if (degrees == null) degrees = Arrays.asList(2L, 2L, 2L, 2L);
+        if (degrees == null) degrees = java.util.Arrays.asList(2L, 2L, 2L, 2L);
 
         List<Integer> intDegrees = degrees.stream().map(Long::intValue).collect(Collectors.toList());
 
