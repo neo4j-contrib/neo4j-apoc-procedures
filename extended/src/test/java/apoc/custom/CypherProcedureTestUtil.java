@@ -9,6 +9,7 @@ import org.neo4j.graphdb.QueryExecutionException;
 import java.io.IOException;
 import java.util.Map;
 
+import static apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED;
 import static apoc.custom.CypherProceduresHandler.*;
 import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
 import static apoc.util.SystemDbTestUtil.PROCEDURE_DEFAULT_REFRESH;
@@ -20,7 +21,10 @@ public class CypherProcedureTestUtil {
     public final static String QUERY_CREATE = "RETURN $input1 + $input2 as answer";
     public static DatabaseManagementService startDbWithCustomApocConfigs(TemporaryFolder storeDir) throws IOException {
         return startDbWithApocConfigs(storeDir,
-                Map.of(CUSTOM_PROCEDURES_REFRESH, PROCEDURE_DEFAULT_REFRESH)
+                Map.of(
+                        CUSTOM_PROCEDURES_REFRESH, PROCEDURE_DEFAULT_REFRESH,
+                        APOC_KAFKA_ENABLED, "true"
+                )
         );
     }
 

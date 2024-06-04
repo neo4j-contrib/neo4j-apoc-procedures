@@ -12,12 +12,18 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.Lifecycle;
+import org.neo4j.logging.Log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED;
 
 @ServiceProvider
 public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
@@ -37,31 +43,55 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
         );
         cypherProcedureHandlers.put(db, cypherProcedureHandler);
 
-        return Map.of(
+        Map<String, Lifecycle> serviceMap = new HashMap<>();
+        serviceMap.put("ttl", new TTLLifeCycle(dependencies.scheduler(),
+                db,
+                TTLConfig.ttlConfig(),
+                dependencies.log().getUserLog(TTLLifeCycle.class)));
 
-                "ttl", new TTLLifeCycle(dependencies.scheduler(),
-                        db,
-                        TTLConfig.ttlConfig(),
-                        dependencies.log().getUserLog(TTLLifeCycle.class)),
+        serviceMap.put("uuid", new UuidHandler(db,
+                dependencies.databaseManagementService(),
+                dependencies.log().getUserLog(Uuid.class),
+                dependencies.apocConfig(),
+                dependencies.scheduler(),
+                dependencies.pools()));
 
-                "uuid", new UuidHandler(db,
-                        dependencies.databaseManagementService(),
-                        dependencies.log().getUserLog(Uuid.class),
-                        dependencies.apocConfig(),
-                        dependencies.scheduler(),
-                        dependencies.pools()),
+        serviceMap.put("directory", new LoadDirectoryHandler(db,
+                dependencies.log().getUserLog(LoadDirectory.class),
+                dependencies.pools()));
 
-                "directory", new LoadDirectoryHandler(db,
-                        dependencies.log().getUserLog(LoadDirectory.class),
-                        dependencies.pools()),
+        serviceMap.put("cypherProcedures", cypherProcedureHandler);
 
-                "cypherProcedures", cypherProcedureHandler
-        );
+        if (dependencies.apocConfig().getBoolean(APOC_KAFKA_ENABLED)) {
+            try {
+                Class<?> kafkaHandlerClass = Class.forName("apoc.kafka.KafkaHandler");
+                Lifecycle kafkaHandler = (Lifecycle) kafkaHandlerClass
+                        .getConstructor(GraphDatabaseAPI.class, Log.class)
+                        .newInstance(db, dependencies.log().getUserLog(kafkaHandlerClass));
+
+                serviceMap.put("kafkaHandler", kafkaHandler);
+            } catch (Exception e) {
+                dependencies.log().getUserLog(ExtendedApocGlobalComponents.class)
+                        .warn("""
+                    Cannot find the Kafka extra jar.
+                    Please put the apoc-kafka-dependencies-5.x.x-all.jar into plugin folder.
+                    See the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.kakfa""");
+            }
+        }
+
+        return serviceMap;
+
     }
 
     @Override
     public Collection<Class> getContextClasses() {
-        return List.of(CypherProceduresHandler.class, UuidHandler.class, LoadDirectoryHandler.class);
+        List<Class> contextClasses = new ArrayList<>(
+                Arrays.asList(CypherProceduresHandler.class, UuidHandler.class, LoadDirectoryHandler.class)
+        );
+        try {
+            contextClasses.add(Class.forName("apoc.kafka.KafkaHandler"));
+        } catch (ClassNotFoundException ignored) {}
+        return contextClasses;
     }
 
     @Override
