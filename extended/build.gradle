@@ -26,7 +26,7 @@ jar {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17
 }
 
 generateGrammarSource {
@@ -61,6 +61,10 @@ dependencies {
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
     }
+
+    def kotlinVersion = "1.6.0"
+    def kafkaVersion = "2.4.0"
+    def jacksonVersion = "2.17.2"
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
@@ -105,7 +109,10 @@ dependencies {
     }
     compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
+    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
@@ -118,6 +125,12 @@ dependencies {
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
+    compileOnly group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2'
+    compileOnly group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
+    compileOnly group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711'
+    compileOnly group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2'
+
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.16.1'
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
@@ -145,6 +158,16 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
+    testImplementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2'
+//    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlinVersion
+//    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit5', version: kotlinVersion
+
+    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: '1.6.0'
+
+    testImplementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
+    testImplementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2'
+    testImplementation group: 'org.testcontainers', name: 'kafka', version: testContainersVersion
+    testImplementation group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
