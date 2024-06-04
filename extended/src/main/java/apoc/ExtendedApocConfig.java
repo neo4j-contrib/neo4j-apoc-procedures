@@ -44,6 +44,7 @@ public class ExtendedApocConfig extends LifecycleAdapter
     public static final String APOC_ML_WATSON_URL = "apoc.ml.watson.url";
     public static final String APOC_AWS_KEY_ID = "apoc.aws.key.id";
     public static final String APOC_AWS_SECRET_KEY = "apoc.aws.secret.key";
+    public static final String APOC_KAFKA_ENABLED = "apoc.kafka.enabled";
     public enum UuidFormatType { hex, base64 }
 
     // These were earlier added via the Neo4j config using the ApocSettings.java class
@@ -72,6 +73,25 @@ public class ExtendedApocConfig extends LifecycleAdapter
     private boolean initialized = false;
 
     public static final String CONFIG_DIR = "config-dir=";
+
+    private static final String CONF_DIR_ARG = "config-dir=";
+    private static final String SOURCE_ENABLED = "apoc.kafka.source.enabled";
+    private static final boolean SOURCE_ENABLED_VALUE = true;
+    private static final String PROCEDURES_ENABLED = "apoc.kafka.procedures.enabled";
+    private static final boolean PROCEDURES_ENABLED_VALUE = true;
+    private static final String SINK_ENABLED = "apoc.kafka.sink.enabled";
+    private static final boolean SINK_ENABLED_VALUE = false;
+    private static final String CHECK_APOC_TIMEOUT = "apoc.kafka.check.apoc.timeout";
+    private static final String CHECK_APOC_INTERVAL = "apoc.kafka.check.apoc.interval";
+    private static final String CLUSTER_ONLY = "apoc.kafka.cluster.only";
+    private static final String CHECK_WRITEABLE_INSTANCE_INTERVAL = "apoc.kafka.check.writeable.instance.interval";
+    private static final String SYSTEM_DB_WAIT_TIMEOUT = "apoc.kafka.systemdb.wait.timeout";
+    private static final long SYSTEM_DB_WAIT_TIMEOUT_VALUE = 10000L;
+    private static final String POLL_INTERVAL = "apoc.kafka.sink.poll.interval";
+    private static final String INSTANCE_WAIT_TIMEOUT = "apoc.kafka.wait.timeout";
+    private static final long INSTANCE_WAIT_TIMEOUT_VALUE = 120000L;
+    private static final int DEFAULT_TRIGGER_PERIOD = 10000;
+    private static final String DEFAULT_PATH = ".";
 
     public ExtendedApocConfig(LogService log, GlobalProcedures globalProceduresRegistry, String defaultConfigPath) {
         this.log = log.getInternalLog(ApocConfig.class);

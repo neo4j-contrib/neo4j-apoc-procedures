@@ -145,6 +145,30 @@ public class ExtendedTestUtil {
         }
     }
 
+    public static Object readValue(String json) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T readValue(byte[] json, Class<T> clazz) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object readValue(byte[] json) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static String getLogFileContent() {
         try {
             File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
