@@ -220,11 +220,53 @@ public class Prompt {
                 FROM_CYPHER_PROMPT, "This is the Cypher query statement explanation: \n", schemaAndCypher, conf, List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
+
+    /*
+    TODO, issue https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4001 
+     - 1. aggiustare la procedura di sotto
+     - 2. creare test in PromptIT, facendolo partire con "Modify run configuration", mettendo la variabile d'ambiente OPENAI_KEY=<mettereOpenAIKey, semmai chiedere a Michele o Roberto se non ce l'hai>
+     - 3. aggiungere la documentazione in openai.adoc alla fine di tutto
     
+     */
+    public record TopKResult(
+            Double score, Node node, Relationship rel) {}
+    
+    
+    @Procedure(name = "apoc.ml.topK", mode = Mode.READ)
+    public Stream<TopKResult> topK(@Name("question") String question, @Name("topK") String topK, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+        String entityType = (String) conf.getOrDefault("entityType", "node");
+        if (entityType.equals("node")) {
+            // TODO 
+            /*
+            1. eseguire questa query e tornare node e score
+                // Get text embedding for the question
+                CALL apoc.ml.openai.embedding([$question],NULL , {})
+                YIELD index, text, embedding
+                // Search for similar embeddings via vector index
+                WITH text, embedding
+                CALL db.index.vector.queryNodes($vector_index, $topK, embedding) YIELD node, score
+                RETURN node, score;
+                
+                
+             2. tornare il risultato mettendolo in Stream.of( new TopKResult(score, node, null) )
+             */
+            
+        } else {
+            // TODO
+            // 1. simile alla query di sopra ma con CALL db.index.vector.queryRelationships($vector_index, $topK, embedding) YIELD relationship, score
+            //      invece di queryNodes(..)
+
+            // 2. tornare il risultato mettendolo in Stream.of( new TopKResult(score, null, rel) )
+        }
+    }
+
+
+
 
     @Procedure(mode = Mode.READ)
     public Stream<PromptMapResult> query(@Name("question") String question,
                                          @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
+
         String schema = loadSchema(tx, conf);
         String query = "";
         long retries = (long) conf.getOrDefault("retries", 3L);
