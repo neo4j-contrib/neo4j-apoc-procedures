@@ -4,6 +4,8 @@ import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
+
+import java.net.URISyntaxException;
 import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +16,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -97,7 +100,7 @@ public class LoadHtml {
         }
     }
 
-    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException {
+    private InputStream getHtmlInputStream(String url, Map<String, String> query, LoadHtmlConfig config) throws IOException, URISyntaxException, URLAccessValidationError {
 
         final boolean isHeadless = config.isHeadless();
         final boolean isAcceptInsecureCerts = config.isAcceptInsecureCerts();
