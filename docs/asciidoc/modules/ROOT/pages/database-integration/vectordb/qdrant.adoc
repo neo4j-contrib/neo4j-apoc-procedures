@@ -1,5 +1,5 @@
 
-== Qdrant
+= Qdrant
 
 Here is a list of all available Qdrant procedures,
 note that the list and the signature procedures are consistent with the others, like the ChromaDB ones:
@@ -37,7 +37,7 @@ where the 1st parameter can be a key defined by the apoc config `apoc.qdrant.<ke
 With hostOrKey=null, the default is 'http://localhost:6333'.
 
 
-=== Examples
+== Examples
 
 .Create a collection (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/create_collection[this API])
 [source,cypher]
