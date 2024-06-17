@@ -1,4 +1,5 @@
-== Milvus
+
+= Milvus
 
 Here is a list of all available Milvus procedures:
 
@@ -34,7 +35,7 @@ Here is a list of all available Milvus procedures:
 where the 1st parameter can be a key defined by the apoc config `apoc.milvus.<key>.host=myHost`.
 With hostOrKey=null, the default host is 'http://localhost:19530'.
 
-=== Examples
+== Examples
 
 Here is a list of example using a local installation using th default port `19531`.
 
