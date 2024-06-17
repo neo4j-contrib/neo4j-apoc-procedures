@@ -1,5 +1,4 @@
-
-== Weaviate
+= Weaviate
 
 Here is a list of all available Weaviate procedures, 
 note that the list and the signature procedures are consistent with the others, like the Qdrant ones:
