@@ -1,4 +1,3 @@
-
 = Weaviate
 
 Here is a list of all available Weaviate procedures, 
