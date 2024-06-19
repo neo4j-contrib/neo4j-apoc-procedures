@@ -41,10 +41,10 @@ Apache-2.0
   accessors-smart-2.5.0.jar
   annotations-17.0.0.jar
   apiguardian-api-1.1.0.jar
-  arrow-format-12.0.1.jar
-  arrow-memory-core-12.0.1.jar
-  arrow-memory-netty-12.0.1.jar
-  arrow-vector-12.0.1.jar
+  arrow-format-15.0.0.jar
+  arrow-memory-core-15.0.0.jar
+  arrow-memory-netty-15.0.0.jar
+  arrow-vector-15.0.0.jar
   assertj-core-3.18.1.jar
   audience-annotations-0.12.0.jar
   avro-1.9.2.jar
@@ -84,7 +84,7 @@ Apache-2.0
   ehcache-3.3.1.jar
   error_prone_annotations-2.18.0.jar
   failureaccess-1.0.1.jar
-  flatbuffers-java-1.12.0.jar
+  flatbuffers-java-23.5.26.jar
   fst-2.50.jar
   geronimo-jcache_1.0_spec-1.0-alpha-1.jar
   gson-2.9.0.jar
@@ -126,15 +126,20 @@ Apache-2.0
   jPowerShell-3.0.jar
   jProcesses-1.6.5.jar
   jackson-annotations-2.15.2.jar
+  jackson-annotations-2.16.0.jar
   jackson-core-2.15.2.jar
+  jackson-core-2.16.0.jar
   jackson-databind-2.15.2.jar
-  jackson-dataformat-cbor-2.15.2.jar
-  jackson-dataformat-csv-2.15.2.jar
-  jackson-datatype-jsr310-2.15.1.jar
-  jackson-datatype-jsr310-2.15.2.jar
+  jackson-databind-2.16.0.jar
+  jackson-dataformat-cbor-2.16.0.jar
+  jackson-dataformat-csv-2.16.0.jar
+  jackson-datatype-jsr310-2.16.0.jar
   jackson-jaxrs-base-2.15.2.jar
+  jackson-jaxrs-base-2.16.0.jar
   jackson-jaxrs-json-provider-2.15.2.jar
+  jackson-jaxrs-json-provider-2.16.0.jar
   jackson-module-jaxb-annotations-2.15.2.jar
+  jackson-module-jaxb-annotations-2.16.0.jar
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   javapoet-1.13.0.jar
@@ -190,11 +195,11 @@ Apache-2.0
   mercator_2.12-0.2.1.jar
   metrics-core-3.2.4.jar
   netty-all-4.1.100.Final.jar
-  netty-buffer-4.1.100.Final.jar
-  netty-codec-4.1.100.Final.jar
+  netty-buffer-4.1.111.Final.jar
+  netty-codec-4.1.111.Final.jar
   netty-codec-dns-4.1.100.Final.jar
   netty-codec-haproxy-4.1.100.Final.jar
-  netty-codec-http-4.1.100.Final.jar
+  netty-codec-http-4.1.111.Final.jar
   netty-codec-http2-4.1.100.Final.jar
   netty-codec-memcache-4.1.100.Final.jar
   netty-codec-mqtt-4.1.100.Final.jar
@@ -203,24 +208,24 @@ Apache-2.0
   netty-codec-socks-4.1.100.Final.jar
   netty-codec-stomp-4.1.100.Final.jar
   netty-codec-xml-4.1.100.Final.jar
-  netty-common-4.1.100.Final.jar
-  netty-handler-4.1.100.Final.jar
+  netty-common-4.1.111.Final.jar
+  netty-handler-4.1.111.Final.jar
   netty-handler-proxy-4.1.100.Final.jar
   netty-handler-ssl-ocsp-4.1.100.Final.jar
-  netty-resolver-4.1.100.Final.jar
+  netty-resolver-4.1.111.Final.jar
   netty-resolver-dns-4.1.100.Final.jar
   netty-resolver-dns-classes-macos-4.1.100.Final.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-x86_64.jar
-  netty-transport-4.1.100.Final.jar
-  netty-transport-classes-epoll-4.1.100.Final.jar
+  netty-transport-4.1.111.Final.jar
+  netty-transport-classes-epoll-4.1.111.Final.jar
   netty-transport-classes-kqueue-4.1.100.Final.jar
-  netty-transport-native-epoll-4.1.100.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.100.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.100.Final.jar
+  netty-transport-native-epoll-4.1.111.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.111.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.111.Final.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.100.Final.jar
+  netty-transport-native-unix-common-4.1.111.Final.jar
   netty-transport-rxtx-4.1.100.Final.jar
   netty-transport-sctp-4.1.100.Final.jar
   netty-transport-udt-4.1.100.Final.jar
@@ -231,7 +236,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.5.jar
+  reactor-core-3.6.6.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
@@ -317,7 +322,9 @@ Common Public License - v 1.0
 Eclipse Distribution License - v 1.0
   FastInfoset-1.2.16.jar
   eclipse-collections-10.4.0.jar
+  eclipse-collections-11.1.0.jar
   eclipse-collections-api-10.4.0.jar
+  eclipse-collections-api-11.1.0.jar
   istack-commons-runtime-3.0.8.jar
   jakarta.activation-api-1.2.1.jar
   jakarta.activation-api-1.2.2.jar
@@ -350,7 +357,9 @@ Eclipse Public License - Version 1.0
 
 Eclipse Public License - v 1.0
   eclipse-collections-10.4.0.jar
+  eclipse-collections-11.1.0.jar
   eclipse-collections-api-10.4.0.jar
+  eclipse-collections-api-11.1.0.jar
   junit-4.13.2.jar
   schemacrawler-15.04.01.jar
 
@@ -459,6 +468,7 @@ MIT
   reactive-streams-1.0.4.jar
   slf4j-api-1.7.36.jar
   slf4j-api-2.0.11.jar
+  slf4j-api-2.0.9.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar
   testcontainers-1.17.6.jar
