@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
-import org.apache.commons.collections4.CollectionUtils;
+import apoc.util.CollectionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
