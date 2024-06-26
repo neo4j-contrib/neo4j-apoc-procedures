@@ -68,6 +68,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref:ml/bedrock.adoc[]
     ** xref:ml/watsonai.adoc[]
     ** xref:ml/mixedbread.adoc[]
+    ** xref:ml/genai.adoc[]
+    ** xref:ml/rag.adoc[]
 
 * xref:background-operations/index.adoc[]
     ** xref::background-operations/apoc-load-directory-async.adoc[]
