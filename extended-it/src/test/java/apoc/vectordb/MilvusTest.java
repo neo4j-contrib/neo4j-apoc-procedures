@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.ml.Prompt;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
@@ -16,6 +17,8 @@ import org.testcontainers.milvus.MilvusContainer;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ml.Prompt.API_KEY_CONF;
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -29,16 +32,18 @@ import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
+import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
 import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
 import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MappingMode;
 import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
 import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
-import static apoc.vectordb.VectorMappingConfig.MappingMode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -49,6 +54,8 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 public class MilvusTest {
     private static final List<String> FIELDS = List.of("city", "foo");
     private static final MilvusContainer MILVUS_CONTAINER = new MilvusContainer("milvusdb/milvus:v2.4.0");
+    private static final String READONLY_KEY = "my_readonly_api_key";
+    private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
     
     private static String HOST;
 
@@ -69,7 +76,7 @@ public class MilvusTest {
         MILVUS_CONTAINER.start();
 
         HOST = MILVUS_CONTAINER.getEndpoint();
-        TestUtil.registerProcedure(db, Milvus.class, VectorDb.class);
+        TestUtil.registerProcedure(db, Milvus.class, VectorDb.class, Prompt.class);
 
         testCall(db, "CALL apoc.vectordb.milvus.createCollection($host, 'test_collection', 'COSINE', 4)",
                 map("host", HOST),
@@ -427,6 +434,36 @@ public class MilvusTest {
                 });
 
         assertNodesCreated(db);
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = ragSetup(db);
+
+        Map<String, Object> conf = map(
+                FIELDS_KEY, FIELDS,
+                ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, map(NODE_LABEL, "Rag",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db,
+                """
+                    CALL apoc.vectordb.milvus.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector
+                    WITH collect(node) as paths
+                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
+                    RETURN value
+                    """
+                ,
+                map(
+                        "host", HOST,
+                        "conf", conf,
+                        "confPrompt", map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")
+                ),
+                VectorDbTestUtil::assertRagWithVectors);
     }
 
 }

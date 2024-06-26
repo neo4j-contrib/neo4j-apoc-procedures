@@ -3,6 +3,7 @@ package apoc.vectordb;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -13,9 +14,12 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.qdrant.QdrantContainer;
 
+import java.util.List;
 import java.util.Map;
 
+import apoc.ml.Prompt;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -35,9 +39,9 @@ import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.*;
 
@@ -72,7 +76,7 @@ public class QdrantTest {
         QDRANT_CONTAINER.start();
 
         HOST = "localhost:" + QDRANT_CONTAINER.getMappedPort(6333);
-        TestUtil.registerProcedure(db, Qdrant.class, VectorDb.class);
+        TestUtil.registerProcedure(db, Qdrant.class, VectorDb.class, Prompt.class);
 
         testCall(db, "CALL apoc.vectordb.qdrant.createCollection($host, 'test_collection', 'Cosine', 4, $conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
@@ -174,6 +178,41 @@ public class QdrantTest {
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("ok", value.get("status"));
+                });
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = System.getenv("OPENAI_KEY");;
+        Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
+
+        db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, map(NODE_LABEL, "Rag",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db,
+                """
+                    CALL apoc.vectordb.qdrant.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector
+                    WITH collect(node) as paths
+                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
+                    RETURN value
+                     """
+                ,
+                map(
+                        "host", HOST,
+                        "conf", conf,
+                        "confPrompt", map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")
+                ),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Object value = row.get("value");
+                    assertTrue("The actual value is: " + value, value.toString().contains("Berlin"));
                 });
     }
 
@@ -463,5 +502,5 @@ public class QdrantTest {
 
         assertNodesCreated(db);
     }
-
+    
 }

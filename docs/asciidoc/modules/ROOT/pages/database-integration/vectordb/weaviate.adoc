@@ -1,4 +1,3 @@
-
 == Weaviate
 
 Here is a list of all available Weaviate procedures, 
@@ -240,7 +239,15 @@ For example, by executing a `CALL apoc.vectordb.weaviate.query(...) YIELD metada
 so that we do not return the other values that we do not need.
 ====
 
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
 
+[source,cypher]
+----
+CALL apoc.vectordb.weaviate.getAndUpdate($host, $collection, [<id1>, <id2>], $conf) YIELD score, node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
 
 .Delete vectors (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/objects/delete/objects/\{className\}/\{id\}[this API])
 [source,cypher]

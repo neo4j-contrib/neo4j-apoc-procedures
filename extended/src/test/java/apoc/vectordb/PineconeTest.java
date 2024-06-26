@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.ml.Prompt;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -13,8 +14,10 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
+import java.util.List;
 import java.util.Map;
 
+import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -31,6 +34,7 @@ import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
@@ -67,7 +71,7 @@ public class PineconeTest {
         db = databaseManagementService.database(DEFAULT_DATABASE_NAME);
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
 
-        TestUtil.registerProcedure(db, VectorDb.class, Pinecone.class);
+        TestUtil.registerProcedure(db, VectorDb.class, Pinecone.class, Prompt.class);
 
         ADMIN_AUTHORIZATION = map("Api-Key", API_KEY);
         ADMIN_HEADER_CONF  = map(HEADERS_KEY, ADMIN_AUTHORIZATION);
@@ -465,5 +469,34 @@ public class PineconeTest {
                 });
 
         assertNodesCreated(db);
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = ragSetup(db);
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, ADMIN_AUTHORIZATION,
+                MAPPING_KEY, map(NODE_LABEL, "Rag",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db,
+                """
+                    CALL apoc.vectordb.pinecone.getAndUpdate($host, $collection, ['1', '2'], $conf) YIELD node, metadata, id, vector
+                    WITH collect(node) as paths
+                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
+                    RETURN value
+                    """
+                ,
+                map(
+                        "host", HOST,
+                        "conf", conf,
+                        "collection", collName,
+                        "confPrompt", map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")
+                ),
+                VectorDbTestUtil::assertRagWithVectors);
     }
 }
