@@ -9,3 +9,5 @@ This section includes:
 
 * xref::ml/openai.adoc[]
 * xref::ml/mixedbread.adoc[]
+* xref::ml/genai.adoc[]
+* xref::ml/rag.adoc[]
