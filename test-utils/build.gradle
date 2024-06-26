@@ -42,6 +42,6 @@ dependencies {
     api group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     api group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
     api group: 'org.testcontainers', name: 'localstack', version: testContainersVersion
-    api group: 'org.apache.arrow', name: 'arrow-vector', version: '12.0.1'
-    api group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '12.0.1'
+    api group: 'org.apache.arrow', name: 'arrow-vector', version: '15.0.0'
+    api group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '15.0.0'
 }
