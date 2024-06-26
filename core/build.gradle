@@ -144,11 +144,11 @@ dependencies {
         exclude group: 'io.netty', module: 'netty-buffer'
     }
 
-    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '15.0.0', arrowExclusions
-    implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '15.0.0', arrowExclusions
+    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '16.1.0', arrowExclusions
+    implementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '16.1.0', arrowExclusions
 
-    testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '15.0.0'
-    testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '15.0.0'
+    testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '16.1.0'
+    testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '16.1.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
