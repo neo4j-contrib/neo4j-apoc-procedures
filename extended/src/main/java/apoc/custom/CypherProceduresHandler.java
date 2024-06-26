@@ -243,7 +243,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
         QualifiedName name = signature.name();
         try {
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures()
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures().stream()
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
                 // we deregister and remove possible homonyms signatures overridden/overloaded
