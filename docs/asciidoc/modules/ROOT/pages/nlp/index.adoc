@@ -20,3 +20,48 @@ This section includes:
 //include::gcp.adoc[]
 //include::aws.adoc[]
 //include::azure.adoc[]
+
+Neo4j offers powerful querying capabilities for structured data, but a lot of the world’s data exists in text documents. NLP techniques can help to extract the latent structure in these documents. This structure could be as simple as nodes representing tokens in a sentence or as complicated as nodes representing entities extracted using a named entity recognition algorithm.
+
+== Why NLP?
+
+Extracting structure from text documents and storing it in a graph enables several different use cases, including:
+
+* Content based recommendations
+* Natural Language search
+* Document similarity
+
+
+=== apoc.nlp.* procedures
+
+It contains procedures that call the Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure Natural Language APIs, and create a graph based on the results returned.
+
+These procedures support entity extraction, key phrase extraction, sentiment analysis, and document classification.
+
+.Related Articles
+* https://markhneedham.com/blog/2020/05/05/quick-graph-building-entity-graph-twin4j-apoc-nlp/[QuickGraph #7: An entity graph of TWIN4j using APOC NLP^]
+* https://towardsdatascience.com/nlp-and-graphs-go-hand-in-hand-with-neo4j-and-apoc-e57f59f46845[NLP goes hand in hand with graphs^]
+
+[#developer-guides]
+== Developer Guides
+
+The following guides show how to solve various NLP related problems:
+
+* xref:nlp/entity-extraction.adoc[Entity Extraction with APOC NLP]
+* xref:nlp/build-knowledge-graph-nlp-ontologies.adoc[Build a Knowledge Graph with NLP and Ontologies]
+
+== Other approaches
+
+For the sake of completeness, we report other possible NLP approaches.
+
+Hume is a graph-powered Insights Engine made by GraphAware, a Neo4j partner.
+It can be used to build a knowledge graph that will help surface previously buried and undetected relevance in your organization.
+
+https://graphaware.com/products/hume/[Learn more about GraphAware Hume, role="button feature-box_button"].
+
+Other approaches to NLP analysis, using Python libraries and Cypher, are described in the following articles:
+
+* https://www.slideshare.net/lyonwj/natural-language-processing-with-graph-databases-and-neo4j[Natural Language Processing with Graph Databases and Neo4j^]
+* https://www.lyonwj.com/2015/06/16/nlp-with-neo4j/[Natural Language Processing With Neo4j - Mining Paradigmatic Word Associations^]
+* https://medium.com/neo4j/using-nlp-in-neo4j-ac40bc92196f[Neo4j: Natural Language Processing (NLP) in Cypher^]
+* https://www.youtube.com/watch?v=mTCqQ2e08Q8[Neo4j Online Meetup #15: Natural Language Understanding with Python and Neo4j^]

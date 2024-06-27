@@ -1,0 +1,373 @@
+= Entity Extraction with APOC NLP
+
+[#intro-to-entity-extraction]
+== Intro to Entity Extraction
+
+Entity Extraction takes unstructured text and returns a list of named entities contained within that text.
+
+AWS, GCP, and Azure each provide NLP APIs, which are wrapped by the xref::nlp/index.adoc[apoc.nlp] procedures.
+
+[#tools-used]
+== Tools Used
+
+This guide uses the following tools and versions:
+
+[opts="header"]
+|===
+| Tool | Version
+| https://neo4j.com/download/[Neo4j^] | 4.2.0
+| APOC + NLP Dependencies | 4.2.0.0
+|===
+
+[#prerequisites]
+== Prerequisites
+
+Before we start using the APOC NLP procedures, there are some prerequisites that we need to setup.
+
+[#install-dependencies]
+=== Install Dependencies
+
+The APOC NLP procedures have dependencies on Kotlin and client libraries that are not included in the APOC Library.
+
+These dependencies are included in the `apoc-nlp-dependencies-<version>.jar`, which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases[releases page^].
+Once that file is downloaded, it should be placed in the plugins directory and the Neo4j Server restarted.
+
+[#setup-api-key]
+=== Setting up API Key
+
+Now we need to set up an API key for the cloud platform that we want to use.
+
+See the xref::nlp/aws.adoc#nlp-aws-api-key[aws], xref::nlp/gcp.adoc#nlp-gcp-api-key[gcp] or xref::nlp/azure.adoc#nlp-azure-api-key[azure] pages, 
+to check how to do it.
+
+
+[#import-text-documents]
+== Import text documents
+
+We're going to import some text documents from the https://www.theguardian.com/football/rss[Guardian Football RSS feed^].
+We can use the https://neo4j.com/labs/apoc/4.1/import/xml/[`apoc.load.xml`^] for this, as shown in the following query:
+
+----
+CALL apoc.load.xml("https://www.theguardian.com/football/rss", "rss/channel/item")
+YIELD value
+WITH [child in value._children WHERE child._type = "title" | child._text][0] AS title,
+     [child in value._children WHERE child._type = "link" | child._text][0] AS guid,
+     apoc.text.regreplace(
+       [child in value._children WHERE child._type = "description" | child._text][0],
+       '<[^>]*>',
+       ' '
+     ) AS body,
+     [child in value._children WHERE child._type = "category" | child._text] AS categories
+MERGE (a:Article {id: guid})
+SET a.body = body, a.title = title
+WITH a, categories
+CALL {
+  WITH a, categories
+  UNWIND categories AS category
+  MERGE (c:Category {name: category})
+  MERGE (a)-[:IN_CATEGORY]->(c)
+  RETURN count(*) AS categoryCount
+}
+RETURN a.id AS articleId, a.title AS title, categoryCount;
+----
+
+We can see a Neo4j Browser visualization of the imported graph in the diagram below:
+
+.Guardian football graph
+image::https://dist.neo4j.com/wp-content/uploads/20201130092104/graph-35.svg[]
+
+
+[#build-entity-graph]
+== Building an entity graph
+
+Now we're going to build our entity graph.
+We're going to use a combination of `apoc.periodic.iterate` and the cloud specific streaming procedures to:
+
+* Extract entities for each article, filtering for specific entity types
+* Create a node for each entity
+* Create a relationship from each entity to the article
+
+We can do this with the following query:
+
+[.tabs]
+
+.AWS
+--
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (a:Article) WHERE not(exists(a.processed)) RETURN a",
+  "CALL apoc.nlp.aws.entities.stream([item in $_batch | item.a], {
+          key: $awsApiKey,
+          secret: $awsApiSecret,
+          nodeProperty: 'body'
+   })
+   YIELD node AS a, value
+   SET a.processed = true
+   WITH a, value
+   UNWIND value.entities AS entity
+   WITH a, entity
+   WHERE entity.type IN ['COMMERCIAL_ITEM', 'PERSON', 'ORGANIZATION', 'LOCATION', 'EVENT']
+
+   CALL apoc.merge.node(
+     ['Entity', apoc.text.capitalize(toLower(entity.type))],
+     {name: entity.text}, {}, {}
+   )
+   YIELD node AS e
+   MERGE (a)-[entityRel:AWS_ENTITY]->(e)
+   SET entityRel.score = entity.score
+   RETURN count(*)",
+  { batchMode: "BATCH_SINGLE",
+    batchSize: 25,
+    params: {awsApiKey: $awsApiKey, awsApiSecret: $awsApiSecret}}
+)
+YIELD batches, total, timeTaken, committedOperations, errorMessages, batch, operations
+RETURN batches, total, timeTaken, committedOperations, errorMessages, batch, operations;
+----
+
+.Results
+[opts="header"]
+|===
+| batches | total | timeTaken | committedOperations |  errorMessages | batch                                           | operations
+| 3       | 59    | 2         | 59                   | {}            | {total: 3, committed: 3, failed: 0, errors: {}} | {total: 59, committed: 59, failed: 0, errors: {}}
+|===
+--
+
+.GCP
+--
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (a:Article) WHERE not(exists(a.processed)) RETURN a",
+  "CALL apoc.nlp.gcp.entities.stream([item in $_batch | item.a], {
+          key: $gcpApiKey,
+          nodeProperty: 'body'
+   })
+   YIELD node AS a, value
+   SET a.processed = true
+   WITH a, value
+   UNWIND value.entities AS entity
+   WITH a, entity
+   WHERE entity.type IN ['PERSON', 'LOCATION', 'ORGANIZATION', 'EVENT']
+
+   CALL apoc.merge.node(
+     ['Entity', apoc.text.capitalize(toLower(entity.type))],
+     {name: entity.name}, {}, {}
+   )
+   YIELD node AS e
+   MERGE (a)-[entityRel:GCP_ENTITY]->(e)
+   SET entityRel.score = entity.score
+   RETURN count(*)",
+  { batchMode: "BATCH_SINGLE",
+    batchSize: 25,
+    params: {gcpApiKey: $gcpApiKey}}
+)
+YIELD batches, total, timeTaken, committedOperations, errorMessages, batch, operations
+RETURN batches, total, timeTaken, committedOperations, errorMessages, batch, operations;
+----
+
+.Results
+[opts="header"]
+|===
+| batches | total | timeTaken | committedOperations |  errorMessages | batch                                           | operations
+| 3       | 59    | 46        | 59                  | {}            | {total: 3, committed: 3, failed: 0, errors: {}} | {total: 59, committed: 59, failed: 0, errors: {}}
+|===
+--
+
+.Azure
+--
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (a:Article) WHERE not(exists(a.processed)) RETURN a",
+  "CALL apoc.nlp.azure.entities.stream([item in $_batch | item.a], {
+          key: $azureApiKey,
+          url: $azureApiUrl,
+          nodeProperty: 'body'
+   })
+   YIELD node AS a, value
+   SET a.processed = true
+   WITH a, value
+   UNWIND value.entities AS entity
+   WITH a, entity
+   WHERE entity.type IN ['Person', 'Organization', 'Location', 'Event']
+
+   CALL apoc.merge.node(
+     ['Entity', apoc.text.capitalize(toLower(entity.type))],
+     {name: entity.name}, {}, {}
+   )
+   YIELD node AS e
+   MERGE (a)-[entityRel:AZURE_ENTITY]->(e)
+   SET entityRel.score = entity.score
+   RETURN count(*)",
+  { batchMode: "BATCH_SINGLE",
+    batchSize: 25,
+    params: {azureApiUrl: $azureApiUrl, azureApiKey: $azureApiKey}}
+)
+YIELD batches, total, timeTaken, committedOperations, errorMessages, batch, operations
+RETURN batches, total, timeTaken, committedOperations, errorMessages, batch, operations;
+----
+
+.Results
+[opts="header"]
+|===
+| batches | total | timeTaken | committedOperations |  errorMessages | batch                                           | operations
+| 3       | 59    | 3         | 59                  | {}            | {total: 3, committed: 3, failed: 0, errors: {}} | {total: 59, committed: 59, failed: 0, errors: {}}
+|===
+--
+
+[#querying-entity-graph]
+== Querying the entity graph
+
+Now that we've got the entities, it's time to querying the entity graph.
+Let's start by returning the entities for each article, as shown in the following query:
+
+[.tabs]
+.AWS
+--
+[source,cypher]
+----
+MATCH (a:Article)
+RETURN a.title AS title, [(a)-[:AWS_ENTITY]->(entity) | entity.name] AS entities
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| title                                                                                        | entities
+| "Manchester United's Edinson Cavani apologises for 'racist' Instagram post"                  | ["Cavani", "FA", "Edinson Cavani", "Southampton", "Manchester United", "Football Association"]
+| "The need for concussion substitutes – Football Weekly"                                      | ["Faye Carruthers", "Soundcloud", "Mixcloud", "Arsenal", "Barry Glendenning", "Facebook", "Ewan Murray", "Raúl Jiménez", "Podcasts", "Wolves", "David Luiz", "Twitter", "Acast", "Stitcher", "Southampton", "Audioboom", "Manchester United", "Max Rushden", "Lars Sivertsen"]
+| "Lennon the fall guy for Celtic's failure to build on domestic dominance"                    | ["Rangers", "Leicester City", "Brendan Rodgers", "County", "Celtic", "Tony Mowbray", "Ross", "Gordon Strachan", "Neil Lennon", "Martin O’Neill", "Easy Street", "League Cup", "Ronny Deila"]
+| "Napoli find truest tribute to Maradona by mirroring his magic against Roma \| Nicky Bandini" | ["Stadio San Paolo", "Lorenzo Insigne", "European", "Napoli", "Roma", "Lionel Messi", "Naples", "Diego Maradona", "Curva"]
+| "Concussion substitutes trial could begin in Premier League early next year"                 | ["David Luiz    Trials", "David Luiz", "Raúl Jiménez", "Mexico", "Guardian", "Arsenal", "Wolves", "Premier League", "Daniela"]
+|===
+
+--
+
+.GCP
+--
+[source,cypher]
+----
+MATCH (a:Article)
+RETURN a.title AS title, [(a)-[:GCP_ENTITY]->(entity) | entity.name] AS entities
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| title                                                                                        | entities
+| "Manchester United's Edinson Cavani apologises for 'racist' Instagram post"                  | ["Southampton", "greeting", "club", "Striker", "incident", "Manchester United", "win", "body", "Uruguayan", "FA", "Edinson Cavani", "friend", "Football Association"]
+| "The need for concussion substitutes – Football Weekly"                                      | ["Wolves", "Acast", "Barry Glendenning", "Apple", "Ewan Murray", "victory", "Arsenal", "Soundcloud", "Faye Carruthers", "Max Rushden", "Raúl Jiménez", "Audioboom", "Lars Sivertsen", "David Luiz", "Manchester United"]
+| "Lennon the fall guy for Celtic's failure to build on domestic dominance"                    | ["Brendan Rodgers", "club", "season", "bar", "Easy Street", "Rangers", "Leicester", "Gordon Strachan", "Ronny Deila", "race", "League Cup", "defeat", "City manager", "fans", "Martin O'Neill's", "Celtic", "Tony Mowbray", "pond", "Neil Lennon", "Ross County"]
+| "Napoli find truest tribute to Maradona by mirroring his magic against Roma \| Nicky Bandini" | ["fans", "Lorenzo Insigne", "Stadio San Paolo", "Naples", "Napoli", "family", "Diego Maradona", "Roma", "win", "death", "Lionel Messi", "European", "player"]
+| "Concussion substitutes trial could begin in Premier League early next year"                 | ["club", "clash", "Daniela", "Raúl Jiménez", "operation", "Premier League", "David Luiz", "teams", "Arsenal", "recovery", "Guardian", "striker", "Mexico", "Wolves", "Rule change", "David Luiz Trials"]
+|===
+
+--
+
+.Azure
+--
+[source,cypher]
+----
+MATCH (a:Article)
+RETURN a.title AS title, [(a)-[:AZURE_ENTITY]->(entity) | entity.name] AS entities
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| title                                                                                        | entities
+| "Manchester United's Edinson Cavani apologises for 'racist' Instagram post"                  | ["Striker", "Edinson Cavani", "Manchester United F.C.", "Uruguay national football team", "The Football Association", "Southampton F.C."]
+| "The need for concussion substitutes – Football Weekly"                                      | ["Arsenal F.C.", "AudioBoom", "Stitcher Radio", "Max Rushden", "Lars Sivertsen", "Manchester United F.C.", "SoundCloud", "Raúl Jiménez", "Acast", "Facebook", "Mixcloud", "Barry Glendenning", "Southampton   Rate", "Ewan Murray", "Twitter", "Southampton F.C.", "David Luiz", "Apple Podcasts", "Faye Carruthers"]
+| "Lennon the fall guy for Celtic's failure to build on domestic dominance"                    | ["Martin O'Neill", "Leicester City F.C.", "Tony Mowbray", "Ronny Deila", "Rangers F.C.", "Gordon Strachan", "League Cup", "Neil Lennon", "Ross County F.C.", "EFL Cup", "Celtic F.C.", "Brendan Rodgers"]
+| "Napoli find truest tribute to Maradona by mirroring his magic against Roma \| Nicky Bandini" | ["Naples", "Lorenzo Insigne", "Diego Maradona", "Rome", "Europe", "Lionel Messi", "Lionel Messi", "Stadio San Paolo", "S.S.C. Napoli", "Stadio San Paolo"]
+| "Concussion substitutes trial could begin in Premier League early next year"                 | ["Premier League", "Mexico", "Daniela", "Guardian", "Raúl Jiménez", "Wolverhampton Wanderers F.C.", "David Luiz", "Arsenal F.C.", "The Guardian"]
+|===
+
+--
+
+We can also use the entities that pairs of articles have in common to determine article similarity.
+If we want to find the similar articles to Gary Lineker's video about Maradona, we could write the following query:
+
+
+[.tabs]
+
+.AWS
+--
+[source,cypher]
+----
+MATCH (a1:Article {title: "Gary Lineker: Maradona was 'like a messiah' in Argentina – video"})
+MATCH (a1:Article)-[:AWS_ENTITY]-(entity)<-[:AWS_ENTITY]-(a2:Article)
+RETURN a2.title AS otherArticle, collect(entity.name) AS entities
+ORDER BY size(entities) DESC
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| otherArticle  | entities
+| "Remembering Diego Maradona: football legend dies aged 60 – video obituary"                 | ["World Cup", "Diego Maradona", "Buenos Aires", "Napoli", "Maradona", "Argentina", "Barcelona"]
+| "Classic YouTube \| Diego Armando Maradona, nerveless kicking and Football Manager kids"     | ["England", "World Cup", "Diego Maradona", "Argentina", "Maradona", "Lineker", "Gary Lineker"]
+| "Fans in Argentina and Naples mourn death of Diego Maradona – video"                        | ["World Cup", "Diego Maradona", "Buenos Aires", "Napoli", "Argentina", "Maradona"]
+| "Burdened by genius: Maradona reminds us how peaking young brings its problems \| Vic Marks" | ["World Cup", "Diego Maradona", "Mexico", "Maradona", "Argentina"]
+| "A tribute to Diego Maradona – Football Weekly"                                             | ["World Cup", "Diego Maradona", "Buenos Aires", "Mexico", "Twitter"]
+|===
+
+--
+
+.GCP
+--
+[source,cypher]
+----
+MATCH (a1:Article {title: "Gary Lineker: Maradona was 'like a messiah' in Argentina – video"})
+MATCH (a1:Article)-[:GCP_ENTITY]-(entity)<-[:GCP_ENTITY]-(a2:Article)
+RETURN a2.title AS otherArticle, collect(entity.name) AS entities
+ORDER BY size(entities) DESC
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| otherArticle                                                                              | entities
+| "Remembering Diego Maradona: football legend dies aged 60 – video obituary"               | ["Barcelona", "Argentina", "Napoli", "Buenos Aires"]
+| "Classic YouTube \| Diego Armando Maradona, nerveless kicking and Football Manager kids"   | ["Argentina", "England", "Gary Lineker"]
+| "Diego Maradona's personal doctor denies responsibility for death"                        | ["home", "footballer", "Buenos Aires"]
+| "Ageless Zlatan Ibrahimovic continues to take care of business for Milan \| Nicky Bandini" | ["home", "Napoli"]
+| "'He took us all to heaven': football fans react to Diego Maradona's death"               | ["Argentina", "Buenos Aires"]
+|===
+
+--
+
+.Azure
+--
+[source,cypher]
+----
+MATCH (a1:Article {title: "Gary Lineker: Maradona was 'like a messiah' in Argentina – video"})
+MATCH (a1:Article)-[:AZURE_ENTITY]-(entity)<-[:AZURE_ENTITY]-(a2:Article)
+RETURN a2.title AS otherArticle, collect(entity.name) AS entities
+ORDER BY size(entities) DESC
+LIMIT 5;
+----
+
+.Results
+[opts="header"]
+|===
+| otherArticle                                                                              | entities
+| "Remembering Diego Maradona: football legend dies aged 60 – video obituary"             | ["FC Barcelona", "Maradona", "S.S.C. Napoli", "Napoli", "Argentina", "Buenos Aires", "Diego Maradona"]
+| "Classic YouTube \| Diego Armando Maradona, nerveless kicking and Football Manager kids" | ["Gary Lineker", "Argentina national football team", "Sheffield Wednesday F.C.", "England", "England national football team", "Argentina", "Diego Maradona"]
+| "A tribute to Diego Maradona – Football Weekly"                                         | ["Sheffield Wednesday F.C.", "Maradona", "Mexico", "Twitter", "Buenos Aires", "Diego Maradona"]
+| "Fans in Argentina and Naples mourn death of Diego Maradona – video"                    | ["Maradona", "S.S.C. Napoli", "Argentina", "Buenos Aires", "Diego Maradona"]
+| "It was Maradona's defiance that most inspired me \| Kenan Malik"                        | ["Argentina national football team", "England", "England national football team", "Diego Maradona"]
+|===
+
+--
+
+Some of the entities that these articles have in common don't really make sense (e.g. "home" or "Twitter"), but in general the articles would be good candidates to go in a 'recommended articles' section for the Gary Lineker article.
+
+If we wanted to filter the extracted entities further, we could try including only those entities that have a Wikipedia entry.
+For more details on that approach, see xref:nlp/build-knowledge-graph-nlp-ontologies.adoc[].
