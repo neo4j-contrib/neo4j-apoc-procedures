@@ -7,7 +7,10 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
@@ -113,5 +116,36 @@ public class VectorDbTestUtil {
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
         db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
         return openAIKey;
+    }
+
+    public static List<Map<String, Object>> generateFakeData(String type) {
+
+        return IntStream.range(0, getSizePerformanceVectors(type))
+                .mapToObj(i -> Map.of(
+                        "id", VectorDbHandler.Type.WEAVIATE.name().equals(type) ? UUID.randomUUID().toString() : i,
+                        "vector", List.of(
+                                Math.random(), Math.random(), Math.random(), Math.random()
+                        ),
+                        "metadata", Map.of("city", "Berlin", "foo", "one")
+                )
+        ).toList();
+    }
+
+    public static int getSizePerformanceVectors(String type) {
+        return switch (VectorDbHandler.Type.valueOf(type)) {
+            // we can't increase this value, since there is an upsert limit
+            // see https://github.com/chroma-core/chroma/issues/1049
+            case CHROMA -> 41666;
+            case QDRANT -> 230000;
+            case WEAVIATE -> 100000;
+            // we can't increase this value, since there is a get/query limit
+            // see https://github.com/milvus-io/milvus/issues/19007 and https://github.com/milvus-io/milvus/issues/5115
+            case MILVUS -> 16384;
+            default -> 10000;
+        };
+    }
+
+    public static List<Object> getFakeIds(List<Map<String, Object>> data) {
+        return data.stream().map(x -> x.get("id")).toList();
     }
 }

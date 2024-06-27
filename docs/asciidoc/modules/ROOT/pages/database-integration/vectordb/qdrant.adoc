@@ -239,3 +239,19 @@ RETURN value
 ----
 CALL apoc.vectordb.qdrant.delete($hostOrKey, 'test_collection', [1,2], {<optional config>})
 ----
+
+=== Performance
+
+The table below shows the time spent on all operations on a sample of 230.000 records.
+
+.Performance results
+[opts="header"]
+|===
+| Operation | Time (ms)
+| apoc.vectordb.qdrant.createCollection | 129
+| apoc.vectordb.qdrant.upsert | 1962
+| apoc.vectordb.qdrant.get | 4567
+| apoc.vectordb.qdrant.query | 81
+| apoc.vectordb.qdrant.delete | 21
+| apoc.vectordb.qdrant.deleteCollection | 37
+|===

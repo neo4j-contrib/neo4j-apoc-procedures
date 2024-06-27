@@ -2,15 +2,18 @@ package apoc.vectordb;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.qdrant.QdrantContainer;
 
@@ -20,6 +23,7 @@ import java.util.Map;
 import apoc.ml.Prompt;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.ml.Prompt.API_KEY_CONF;
+import static apoc.util.ExtendedTestUtil.stopWatchLog;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -33,7 +37,9 @@ import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.generateFakeData;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
+import static apoc.vectordb.VectorDbTestUtil.getFakeIds;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
@@ -43,7 +49,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.neo4j.configuration.GraphDatabaseSettings.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class QdrantTest {
     private static final String ADMIN_KEY = "my_admin_api_key";
@@ -502,5 +509,70 @@ public class QdrantTest {
 
         assertNodesCreated(db);
     }
-    
+
+    @Ignore("This test measures procedures performances, we ignore it since it's slow and just log the times spent")
+    @Test
+    public void performanceTest() {
+        StopWatch watch = new StopWatch();
+        watch.start();
+
+        String collection = "performance_col";
+        testCall(db, "CALL apoc.vectordb.qdrant.createCollection($host, $collection, 'Cosine', 4, $conf)",
+                map("host", HOST, "collection", collection, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.qdrant.createCollection");
+
+        List<Map<String, Object>> data = generateFakeData(VectorDbHandler.Type.QDRANT.name());
+
+        watch.start();
+        testCall(db,
+                "CALL apoc.vectordb.qdrant.upsert($host, $collection, $data, $conf)",
+                map("host", HOST, "collection", collection, "data", data, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.qdrant.upsert");
+
+        watch.start();
+        testResult(db, "CALL apoc.vectordb.qdrant.get($host, $collection, $ids, $conf) ",
+                map(
+                        "host", HOST,
+                        "collection", collection,
+                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION),
+                        "ids", getFakeIds(data)
+                ),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.qdrant.get");
+
+        watch.start();
+        testResult(db,
+                """
+                CALL apoc.vectordb.qdrant.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 1000, $conf) YIELD metadata, id, score, vector""",
+                map("host", HOST, "collection", collection,"conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.qdrant.query");
+
+        watch.start();
+        testCall(db, "CALL apoc.vectordb.qdrant.delete($host, $collection, $ids, $conf) ",
+                map("host", HOST, "collection", collection, "ids", getFakeIds(data), "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.qdrant.delete");
+
+        watch.start();
+        testCall(db, "CALL apoc.vectordb.qdrant.deleteCollection($host, $collection, $conf)",
+                map("host", HOST, "collection", collection, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(true, value.get("result"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.qdrant.deleteCollection");
+    }
+
 }
