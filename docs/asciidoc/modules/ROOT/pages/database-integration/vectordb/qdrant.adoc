@@ -1,4 +1,3 @@
-
 == Qdrant
 
 Here is a list of all available Qdrant procedures,
@@ -200,7 +199,15 @@ For example, by executing a `CALL apoc.vectordb.qdrant.query(...) YIELD metadata
 so that we do not return the other values that we do not need.
 ====
 
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
 
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.getAndUpdate($host, $collection, [<id1>, <id2>], $conf) YIELD node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
 
 .Delete vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/delete_vectors[this API])
 [source,cypher]

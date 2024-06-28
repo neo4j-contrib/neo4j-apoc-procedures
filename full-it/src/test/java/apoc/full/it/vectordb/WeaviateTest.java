@@ -1,5 +1,25 @@
 package apoc.full.it.vectordb;
 
+import apoc.ml.Prompt;
+import apoc.util.MapUtil;
+import apoc.util.TestUtil;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
+import org.testcontainers.weaviate.WeaviateContainer;
+
+import java.util.List;
+import java.util.Map;
+
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -9,7 +29,19 @@ import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbTestUtil.*;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
+import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
+import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
+import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
+import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
+import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
+import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +53,7 @@ import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
+import apoc.ml.Prompt;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.vectordb.VectorDb;
@@ -82,7 +115,7 @@ public class WeaviateTest {
         WEAVIATE_CONTAINER.start();
         HOST = WEAVIATE_CONTAINER.getHttpHostAddress();
 
-        TestUtil.registerProcedure(db, Weaviate.class, VectorDb.class);
+        TestUtil.registerProcedure(db, Weaviate.class, VectorDb.class, Prompt.class);
 
         testCall(
                 db,
@@ -551,5 +584,35 @@ public class WeaviateTest {
                 });
 
         assertNodesCreated(db);
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = ragSetup(db);
+
+        Map<String, Object> conf = MapUtil.map(
+                FIELDS_KEY, FIELDS,
+                ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Rag",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db,
+                "CALL apoc.vectordb.weaviate.getAndUpdate($host, 'TestCollection', [$id1], $conf) YIELD score, node, metadata, id, vector\n" +
+                "WITH collect(node) as paths\n" +
+                "CALL apoc.ml.rag(paths, $attributes, \"Which city has foo equals to one?\", $confPrompt) YIELD value\n" +
+                "RETURN value"
+                ,
+                MapUtil.map(
+                        "host", HOST,
+                        "id1", ID_1,
+                        "conf", conf,
+                        "confPrompt", MapUtil.map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")
+                ),
+                VectorDbTestUtil::assertRagWithVectors);
     }
 }

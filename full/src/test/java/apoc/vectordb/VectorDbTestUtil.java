@@ -4,9 +4,12 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import apoc.util.MapUtil;
 import java.util.Map;
+import org.junit.Assume;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
@@ -88,5 +91,35 @@ public class VectorDbTestUtil {
 
     public static Map<String, String> getAuthHeader(String key) {
         return map("Authorization", "Bearer " + key);
+    }
+
+    public static void assertReadOnlyProcWithMappingResults(Result r, String node) {
+        Map<String, Object> row = r.next();
+        Map<String, Object> props = ((Entity) row.get(node)).getAllProperties();
+        assertEquals(MapUtil.map("readID", "one"), props);
+        assertNotNull(row.get("vector"));
+        assertNotNull(row.get("id"));
+
+        row = r.next();
+        props = ((Entity) row.get(node)).getAllProperties();
+        assertEquals(MapUtil.map("readID", "two"), props);
+        assertNotNull(row.get("vector"));
+        assertNotNull(row.get("id"));
+
+        assertFalse(r.hasNext());
+    }
+
+    public static void assertRagWithVectors(Result r) {
+        Map<String, Object> row = r.next();
+        Object value = row.get("value");
+        assertTrue("The actual value is: " + value, value.toString().contains("Berlin"));
+    }
+
+    public static String ragSetup(GraphDatabaseService db) {
+        String openAIKey = System.getenv("OPENAI_KEY");
+        ;
+        Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
+        db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
+        return openAIKey;
     }
 }
