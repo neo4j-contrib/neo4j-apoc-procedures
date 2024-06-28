@@ -38,6 +38,7 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 
 public class SystemDbUtil {
+    public static final String NON_SYS_DB_ERROR = "The procedure should be executed against a system database.";
     public static final String SYS_NON_LEADER_ERROR =
             "It's not possible to write into a cluster member with a non-LEADER system database.\n";
     public static final String PROCEDURE_NOT_ROUTED_ERROR =
@@ -57,6 +58,15 @@ public class SystemDbUtil {
     public static void checkWriteAllowed(GraphDatabaseService db, String msgDeprecation) {
         if (!Util.isWriteableInstance(db, GraphDatabaseSettings.SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(SYS_NON_LEADER_ERROR + msgDeprecation);
+        }
+    }
+
+    /**
+     * Check that the database name is equal to "system"
+     */
+    public static void checkInSystemDb(GraphDatabaseService db) {
+        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
+            throw new RuntimeException(NON_SYS_DB_ERROR);
         }
     }
 

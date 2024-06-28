@@ -1,0 +1,97 @@
+NOTE: Procedure, input and output names must have at least 2 characters.
+
+Here is a simple example:
+
+[source,cypher]
+----
+CALL apoc.custom.installProcedure('answerInteger() :: (answer::INT)', 'RETURN 42 as answer')
+----
+
+This registers, *after a time defined by the configuration `apoc.custom.procedures.refresh`*,
+a procedure `custom.answer` that you then can call.
+
+[source,cypher]
+----
+CALL custom.answerInteger
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+Or you can also write in this way:
+
+[source,cypher]
+----
+CALL apoc.custom.installProcedure('answer() :: (row::MAP)', 'RETURN 42 as answer')
+----
+
+In this case the result is wrapped in a stream of maps called `row`. Therefore, you can do:
+
+[source,cypher]
+----
+CALL custom.answer()
+YIELD row
+RETURN row.answer
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 42
+|===
+
+
+We can create the procedure `custom.powers` that returns a stream of the powers of the first parameter, up to and including the power provided by the second parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.installProcedure(
+  'powers(input::INT, power::INT) :: (answer::INT)',
+  'UNWIND range(0, $power) AS power
+   RETURN $input ^ power AS answer'
+);
+----
+
+
+
+We can use this function, to return 4°, 4¹, 4², and 4³, as shown in the query below:
+
+[source,cypher]
+----
+CALL custom.powers(4,3);
+----
+
+.Results
+[opts="header"]
+|===
+| answer
+| 1.0
+| 4.0
+| 16.0
+| 64.0
+|===
+
+Moreover, via the 3rd parameter, we can create the custom procedure in a different database than `neo4j`.
+For example, the following one creates a custom procedure in the `foo` database:
+
+[source,cypher]
+----
+CALL apoc.custom.installProcedure('foodb() :: (row::INT)', 'RETURN 42 as row', 'foo')
+----
+
+
+Furthermore, we can pass as the 4th parameter a string to specify the procedure mode (default "WRITE").
+It can be:
+- "READ" - if the procedure will only perform read operations against the graph
+- "WRITE" - if it may perform both read and write operations against the graph
+- "SCHEMA" - if it will perform operations against the schema
+- "DBMS" - if it will perform system operations - i.e. not against the graph
+
+
+Also, we can pass a `description` parameter as the 5th parameter,
+which will be returned by the `call apoc.custom.list` and `SHOW PROCEDURES`.

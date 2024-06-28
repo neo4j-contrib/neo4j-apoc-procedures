@@ -19,6 +19,7 @@
 package apoc.custom;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.custom.CypherProceduresUtil.*;
 import static java.util.Collections.singletonList;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.AnyType;
@@ -190,59 +191,17 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private ProcedureDescriptor procedureDescriptor(Node node) {
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
 
-        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
-        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[] {PREFIX});
-
-        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
-        List<FieldSignature> inputs = deserializeSignatures(property);
-
-        List<FieldSignature> outputSignature =
-                deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
-        return new ProcedureDescriptor(
-                Signatures.createProcedureSignature(
-                        new QualifiedName(prefix, name),
-                        inputs,
-                        outputSignature,
-                        Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
-                        false,
-                        null,
-                        new String[0],
-                        description,
-                        null,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false),
-                statement);
+        ProcedureSignature procedureSignature = getProcedureSignature(node);
+        return new ProcedureDescriptor(procedureSignature, statement);
     }
 
     private UserFunctionDescriptor userFunctionDescriptor(Node node) {
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
-
-        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
-        String[] prefix = (String[]) node.getProperty(SystemPropertyKeys.prefix.name(), new String[] {PREFIX});
-
-        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
-        List<FieldSignature> inputs = deserializeSignatures(property);
-
         boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
         boolean mapResult = (boolean) node.getProperty(SystemPropertyKeys.mapResult.name(), false);
-        return new UserFunctionDescriptor(
-                new UserFunctionSignature(
-                        new QualifiedName(prefix, name),
-                        inputs,
-                        typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
-                        null,
-                        new String[0],
-                        description,
-                        "apoc.custom",
-                        false),
-                statement,
-                forceSingle,
-                mapResult);
+
+        UserFunctionSignature signature = getUserFunctionSignature(node);
+        return new UserFunctionDescriptor(signature, statement, forceSingle, mapResult);
     }
 
     public synchronized void restoreProceduresAndFunctions() {
