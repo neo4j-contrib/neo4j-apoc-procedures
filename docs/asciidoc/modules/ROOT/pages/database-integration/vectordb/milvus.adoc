@@ -1,4 +1,3 @@
-
 == Milvus
 
 Here is a list of all available Milvus procedures:
@@ -223,6 +222,15 @@ For example, by executing a `CALL apoc.vectordb.milvus.query(...) YIELD metadata
 so that we do not return the other values that we do not need.
 ====
 
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
+
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.getAndUpdate($host, $collection, [<id1>, <id2>], $conf) YIELD node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
 
 
 .Delete vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Delete.md[this API])

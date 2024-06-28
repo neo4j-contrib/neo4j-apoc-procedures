@@ -1,6 +1,7 @@
 package apoc.vectordb;
 
 import apoc.util.MapUtil;
+import org.junit.Assume;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
@@ -99,5 +100,18 @@ public class VectorDbTestUtil {
         assertNotNull(row.get("id"));
 
         assertFalse(r.hasNext());
+    }
+
+    public static void assertRagWithVectors(Result r) {
+        Map<String, Object> row = r.next();
+        Object value = row.get("value");
+        assertTrue("The actual value is: " + value, value.toString().contains("Berlin"));
+    }
+
+    public static String ragSetup(GraphDatabaseService db) {
+        String openAIKey = System.getenv("OPENAI_KEY");;
+        Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
+        db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
+        return openAIKey;
     }
 }

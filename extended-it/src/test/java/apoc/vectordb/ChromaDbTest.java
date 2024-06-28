@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.ml.Prompt;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,30 +17,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static apoc.ml.Prompt.API_KEY_CONF;
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertRagWithVectors;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
-import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
+import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
+import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class ChromaDbTest {
     private static final AtomicReference<String> COLL_ID = new AtomicReference<>();
     private static final ChromaDBContainer CHROMA_CONTAINER = new ChromaDBContainer("chromadb/chroma:0.4.25.dev137");
+    private static final String READONLY_KEY = "my_readonly_api_key";
+    private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
 
     private static String HOST;
 
@@ -60,7 +70,7 @@ public class ChromaDbTest {
         CHROMA_CONTAINER.start();
 
         HOST = "localhost:" + CHROMA_CONTAINER.getMappedPort(8000);
-        TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class);
+        TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class, Prompt.class);
         
         testCall(db, "CALL apoc.vectordb.chroma.createCollection($host, 'test_collection', 'cosine', 4)",
             map("host", HOST),
@@ -123,7 +133,7 @@ public class ChromaDbTest {
                     assertNull(row.get("id"));
                 });
     }
-    
+
     @Test
     public void deleteVector() {
         testCall(db, """
@@ -420,5 +430,34 @@ public class ChromaDbTest {
                 });
 
         assertNodesCreated(db);
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = ragSetup(db);
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, map(NODE_LABEL, "Rag",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db,
+                """
+                    CALL apoc.vectordb.chroma.getAndUpdate($host, $collection, ['1', '2'], $conf) YIELD node, metadata, id, vector
+                    WITH collect(node) as paths
+                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
+                    RETURN value
+                    """
+                ,
+                map(
+                        "host", HOST,
+                        "conf", conf,
+                        "collection", COLL_ID.get(),
+                        "confPrompt", map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")
+                ),
+                VectorDbTestUtil::assertRagWithVectors);
     }
 }
