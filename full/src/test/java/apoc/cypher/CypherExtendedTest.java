@@ -201,6 +201,34 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void testRunFileWithCommentsAndEmptyRows() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFile('return.cypher', {statistics: false})", r -> {
+            Map<String, Object> row = r.next();
+            assertEquals(Map.of("\"Step 1\"", "Step 1"), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("row", "Step 3"), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("row", 6L), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("row", 7L), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("'8'", "8"), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("9", 9L), row.get("result"));
+
+            row = r.next();
+            assertEquals(Map.of("10", 10L), row.get("result"));
+
+            assertFalse(r.hasNext());
+        });
+    }
+
+    @Test
     public void testRunFileWithAutoTransaction() {
         final int expectedCount = 2000;
         testCall(db, "CALL apoc.cypher.runFile('in_transaction.cypher')", row -> {
@@ -638,6 +666,14 @@ public class CypherExtendedTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(expectedBefore + 4, count(tx.schema().getIndexes()));
         }
+    }
+
+    @Test
+    public void testRunSchemaFileWithCommentsAndEmptyRows() {
+        testResult(db, "CALL apoc.cypher.runSchemaFile('schemaWithCommentsAndEmptyRows.cypher')", r -> {
+            assertSchemaCypherFile(r);
+            assertFalse(r.hasNext());
+        });
     }
 
     private void assertSchemaCypherFile(Result r) {
