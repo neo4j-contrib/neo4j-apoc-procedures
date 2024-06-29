@@ -142,8 +142,8 @@ dependencies {
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
 
     // schemacrawler
-    implementation group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
-    testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
+    implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
+    testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
 
     testImplementation group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
