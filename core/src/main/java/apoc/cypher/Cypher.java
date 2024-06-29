@@ -239,7 +239,7 @@ public class Cypher {
         }
     }
 
-    private String removeShellControlCommands(String stmt) {
+    public static String removeShellControlCommands(String stmt) {
         Matcher matcher = shellControl.matcher(stmt.trim());
         if (matcher.find()) {
             // an empty file get transformed into ":begin\n:commit" and that statement is not matched by the pattern
@@ -257,7 +257,7 @@ public class Cypher {
         return stmt.matches("(?is).*using\\s+periodic.*");
     }
 
-    private Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
+    protected static Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
         final Map<String, Object> map = map(
                 "rows", rows,
                 "time", time);

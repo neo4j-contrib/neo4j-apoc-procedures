@@ -25,6 +25,8 @@ import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.hasEntry;
@@ -38,10 +40,12 @@ import apoc.util.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -739,5 +743,45 @@ public class CypherExtendedTest {
         result = (Map) row.get("result");
         assertEquals(-1L, row.get("row"));
         assertEquals(1L, toLong(result.get("nodesDeleted")));
+    }
+
+    @Test
+    public void runManyCloseTransactionsWithRandomFailures() {
+        final var rnd = new Random();
+        final var seed = rnd.nextLong();
+        rnd.setSeed(seed);
+
+        // The outer query also fails at a random row
+        final var failureRow = rnd.nextInt(1024);
+
+        assertThatThrownBy(() -> {
+                    try (final var tx = db.beginTx()) {
+                        final var q =
+                                "CALL apoc.cypher.runFile('runManyStatementsWithFailure.cypher', {}) YIELD row, result "
+                                        + "RETURN row, result, 1 / (result.x - $x) AS boom";
+                        try (final var result = tx.execute(q, Map.of("x", failureRow))) {
+                            result.accept(r -> true);
+                        }
+                    }
+                })
+                .hasRootCauseInstanceOf(org.neo4j.exceptions.ArithmeticException.class);
+
+        assertNoOpenTransactionsEventually();
+    }
+
+    private void assertNoOpenTransactionsEventually() {
+        await("transactions closed")
+                .pollInterval(Duration.ofMillis(200))
+                .atMost(Duration.ofSeconds(10))
+                .pollInSameThread()
+                .untilAsserted(this::assertNoOpenTransactions);
+    }
+
+    private void assertNoOpenTransactions() {
+        testResult(db, "SHOW TRANSACTIONS", r -> {
+            Map<String, Object> row = r.next();
+            assertEquals("SHOW TRANSACTIONS", row.get("currentQuery"));
+            assertFalse(r.hasNext());
+        });
     }
 }
