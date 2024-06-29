@@ -68,6 +68,10 @@ public class VirtualRelationship implements Relationship {
         this.props.putAll(props);
     }
 
+    public VirtualRelationship(Relationship rel) {
+        this(rel.getId(), rel.getStartNode(), rel.getEndNode(), rel.getType(), rel.getAllProperties());
+    }
+
     public static Relationship from(VirtualNode start, VirtualNode end, Relationship rel) {
         return new VirtualRelationship(start, end, rel.getType()).withProperties(rel.getAllProperties());
     }

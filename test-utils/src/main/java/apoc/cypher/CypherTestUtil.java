@@ -34,6 +34,9 @@ public class CypherTestUtil {
             + "RETURN collect(n) as nodes, collect(rel) as rels, collect(o) as others;\n";
 
     public static String SIMPLE_RETURN_QUERIES = "MATCH (n:ReturnQuery) RETURN n";
+    public static String GEM_QUERIES = "MATCH (n:Result)-[:REL]->(:Other)\n" +
+            "SET n.updated = true\n" +
+            "RETURN n;";
 
     public static void testRunProcedureWithSimpleReturnResults(
             Session session, String query, Map<String, Object> params) {
