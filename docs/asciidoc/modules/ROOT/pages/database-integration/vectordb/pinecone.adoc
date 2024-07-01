@@ -1,4 +1,5 @@
-== Pinecone
+
+= Pinecone
 
 Here is a list of all available Pinecone procedures:
 
@@ -49,7 +50,7 @@ and equal to the host name, with the other ones, that is, the one indicated in t
 image::pinecone-index.png[width=800]
 
 
-=== Examples
+== Examples
 
 The following example assume we want to create and manage an index called `test-index`.
 
