@@ -18,19 +18,10 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
-        exclude group: 'org.apache.logging.log4j'
-    }
-    implementation group: 'org.apache.poi', name: 'poi-ooxml-lite', version: '5.1.0', {
-        exclude group: 'org.apache.logging.log4j'
-    }
-    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0' , {
-        exclude group: 'org.apache.commons', module: 'commons-compress'
-        exclude group: 'org.apache.logging.log4j'
-    }
-    implementation group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '5.0.2', {
-        exclude group: 'org.apache.logging.log4j'
-    }
-    implementation group: 'com.github.virtuald', name: 'curvesapi', version: '1.06'
-    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.2.5', commonExclusions
+    implementation group: 'org.apache.poi', name: 'poi-ooxml-lite', version: '5.2.5', commonExclusions
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.2.5' , commonExclusions
+    implementation group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '5.2.1', commonExclusions
+    implementation group: 'com.github.virtuald', name: 'curvesapi', version: '1.08', commonExclusions
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4', commonExclusions
 }

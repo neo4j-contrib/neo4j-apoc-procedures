@@ -67,6 +67,9 @@ ext {
         exclude group: 'io.netty', module: 'netty-transport-native-kqueue'
         exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
         exclude group: 'io.netty', module: 'netty-tcnative-classes'
+        
+        // logging
+        exclude group: 'org.apache.logging.log4j'
     }
 }
 
