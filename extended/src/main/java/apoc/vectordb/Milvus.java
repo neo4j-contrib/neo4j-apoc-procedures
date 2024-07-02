@@ -23,6 +23,7 @@ import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
 import static apoc.vectordb.VectorDbUtil.*;
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_ERRORS;
 
 @Extended
 public class Milvus {
@@ -180,6 +181,9 @@ public class Milvus {
 
     private Stream<Map> getMapStream(Map v) {
         var data = v.get("data");
+        if (data == null) {
+            return Stream.of(Map.of(DEFAULT_ERRORS, v));
+        }
 
         return ((List<Map>) data).stream()
                 .map(i -> {

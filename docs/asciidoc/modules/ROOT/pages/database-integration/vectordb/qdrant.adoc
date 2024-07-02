@@ -75,9 +75,9 @@ CALL apoc.vectordb.qdrant.get($hostOrKey, 'test_collection', [1,2], {<optional c
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | null | null | null | null
-| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| score | metadata | id | vector | text | entity | errors
+| null | {city: "Berlin", foo: "one"} | null | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null | null
 | ...
 |===
 
@@ -91,9 +91,9 @@ CALL apoc.vectordb.qdrant.get($hostOrKey, 'test_collection', [1,2], {allResults:
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
-| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| score | metadata | id | vector | text | entity | errors
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null | null
 | ...
 |===
 
@@ -114,9 +114,9 @@ CALL apoc.vectordb.qdrant.query($hostOrKey,
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
-| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| score | metadata | id | vector | text | entity | errors
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null | null
 | ...
 |===
 

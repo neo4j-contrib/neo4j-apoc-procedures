@@ -114,6 +114,12 @@ public class VectorDb {
     }
 
     public static EmbeddingResult getEmbeddingResult(VectorEmbeddingConfig conf, Transaction tx, boolean hasEmbedding, boolean hasMetadata, VectorMappingConfig mapping, Map m) {
+        Object errors = m.get(conf.getErrorsKey());
+        if (errors != null) {
+            return new EmbeddingResult(null, null, null, null, null, null, null,
+                    errors);
+        }
+        
         Object id = conf.isAllResults() ? m.get(conf.getIdKey()) : null;
         List<Double> embedding = hasEmbedding ? (List<Double>) m.get(conf.getVectorKey()) : null;
         Map<String, Object> metadata = hasMetadata ? (Map<String, Object>) m.get(conf.getMetadataKey()) : null;
@@ -126,7 +132,8 @@ public class VectorDb {
         if (entity != null) entity = Util.rebind(tx, entity);
         return new EmbeddingResult(id, score, embedding, metadata, text,
                 mapping.getNodeLabel() == null ? null : (Node) entity,
-                mapping.getNodeLabel() != null ? null : (Relationship) entity
+                mapping.getNodeLabel() != null ? null : (Relationship) entity,
+                errors
         );
     }
 
