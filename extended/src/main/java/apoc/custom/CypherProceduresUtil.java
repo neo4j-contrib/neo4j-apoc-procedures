@@ -32,10 +32,12 @@ public class CypherProceduresUtil {
 
     public static QualifiedName qualifiedName(@Name("name") String name) {
         String[] names = name.split("\\.");
-        List<String> namespace = new ArrayList<>(names.length);
-        namespace.add(PREFIX);
-        namespace.addAll(Arrays.asList(names));
-        return new QualifiedName(namespace.subList(0, namespace.size() - 1), names[names.length - 1]);
+        List<String> namespaceList = new ArrayList<>(names.length);
+        namespaceList.add(PREFIX);
+        namespaceList.addAll(Arrays.asList(names));
+        String[] namespace = namespaceList.subList(0, namespaceList.size() - 1)
+                .toArray(String[]::new);
+        return new QualifiedName(namespace, names[names.length - 1]);
     }
 
     public static Mode mode(String s) {

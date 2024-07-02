@@ -22,6 +22,7 @@ import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.QualifiedName;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
+import org.neo4j.kernel.api.CypherScope;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
@@ -31,7 +32,6 @@ import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Name;
 import org.neo4j.procedure.impl.ProcedureHolderUtils;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
@@ -42,7 +42,6 @@ import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -243,7 +242,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
         QualifiedName name = signature.name();
         try {
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures().stream()
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(CypherScope.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
                 // we deregister and remove possible homonyms signatures overridden/overloaded
@@ -293,7 +292,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         try {
             QualifiedName name = signature.name();
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions()
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(CypherScope.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
                 // we deregister and remove possible homonyms signatures overridden/overloaded
@@ -360,14 +359,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
      */
     private boolean isWrapped(AnyType outType, boolean mapResult) {
         return !mapResult && outType.getClass().equals(Neo4jTypes.MapType.class);
-    }
-
-    public static QualifiedName qualifiedName(@Name("name") String name) {
-        String[] names = name.split("\\.");
-        List<String> namespace = new ArrayList<>(names.length);
-        namespace.add(PREFIX);
-        namespace.addAll(Arrays.asList(names));
-        return new QualifiedName(namespace.subList(0, namespace.size() - 1), names[names.length - 1]);
     }
 
     private AnyValue[] toResult(Map<String, Object> row, String[] names, boolean defaultOutputs) {

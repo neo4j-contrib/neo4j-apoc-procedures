@@ -16,6 +16,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -57,6 +59,9 @@ public class ExportParquet {
     @Context
     public Pools pools;
 
+    @Context
+    public URLAccessChecker urlAccessChecker;
+
 
     @Procedure("apoc.export.parquet.all.stream")
     @Description("Exports the full database as a Parquet byte array.")
@@ -93,20 +98,20 @@ public class ExportParquet {
 
     @Procedure("apoc.export.parquet.all")
     @Description("Exports the full database as a Parquet file.")
-    public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+    public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         return exportParquet(fileName, new DatabaseSubGraph(tx), new ParquetConfig(config));
     }
 
     @Procedure("apoc.export.parquet.data")
     @Description("Exports the given nodes and relationships as a Parquet file.")
-    public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+    public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         ParquetConfig conf = new ParquetConfig(config);
         return exportParquet(fileName, new NodesAndRelsSubGraph(tx, nodes, rels), conf);
     }
 
     @Procedure("apoc.export.parquet.graph")
     @Description("Exports the given graph as a Parquet file.")
-    public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+    public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         ParquetConfig conf = new ParquetConfig(config);
@@ -116,7 +121,7 @@ public class ExportParquet {
 
     @Procedure("apoc.export.parquet.query")
     @Description("Exports the given Cypher query as a Parquet file.")
-    public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+    public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         ParquetConfig exportConfig = new ParquetConfig(config);
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = tx.execute(query,params);
@@ -124,12 +129,12 @@ public class ExportParquet {
         return exportParquet(fileName, result, exportConfig);
     }
 
-    public Stream<ProgressInfo> exportParquet(String fileName, Object data, ParquetConfig config) throws IOException {
+    public Stream<ProgressInfo> exportParquet(String fileName, Object data, ParquetConfig config) throws IOException, URLAccessValidationError {
         if (StringUtils.isBlank(fileName)) {
             throw new RuntimeException("The fileName must exists. Otherwise, use the `apoc.export.parquet.*.stream.` procedures to stream the export back to your client.");
         }
         // normalize file url
-        fileName = FileUtils.changeFileUrlIfImportDirectoryConstrained(fileName);
+        fileName = FileUtils.changeFileUrlIfImportDirectoryConstrained(fileName, urlAccessChecker);
 
         // we cannot use apocConfig().checkWriteAllowed(..) because the error is confusing
         //  since it says "... use the `{stream:true}` config", but with arrow procedures the streaming mode is implemented via different procedures
