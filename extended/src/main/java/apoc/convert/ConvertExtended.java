@@ -2,7 +2,6 @@ package apoc.convert;
 
 import apoc.Extended;
 import apoc.meta.Types;
-import apoc.util.MissingDependencyException;
 import apoc.util.collection.Iterables;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
