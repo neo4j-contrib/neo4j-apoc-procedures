@@ -331,7 +331,7 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testWithSpacesInFileName() throws Exception {
-        String url = "test pipe column with spaces in filename.csv";
+        String url = "file:///test%20pipe%20column%20with%20spaces%20in%20filename.csv";
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings'],mapping:{name:{type:'string'},beverage:{array:true,arraySep:'|',type:'string'}}})", map("url",url), // 'file:test.csv'
                 (r) -> {
                     assertEquals(asList("Selma", asList("Soda")), r.next().get("list"));

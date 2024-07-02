@@ -21,6 +21,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -29,6 +30,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Arrays;
 import java.util.Collection;
@@ -152,7 +154,7 @@ public class ImportArrow {
     }
 
     
-    private ArrowReader getReader(Object input) throws IOException {
+    private ArrowReader getReader(Object input) throws IOException, URISyntaxException, URLAccessValidationError {
         RootAllocator allocator = new RootAllocator();
         if (input instanceof String) {
             final SeekableByteChannel channel = FileUtils.inputStreamFor(input, null, null, null, urlAccessChecker)

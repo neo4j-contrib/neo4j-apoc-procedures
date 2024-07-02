@@ -25,7 +25,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.TerminationGuard;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -352,8 +351,8 @@ public class CypherExtended {
     private Reader readerForFile(@Name("file") String fileName) {
         try {
             return FileUtils.readerFor(fileName, CompressionAlgo.NONE.name(), urlAccessChecker);
-        } catch (IOException ioe) {
-            throw new RuntimeException("Error accessing file "+fileName,ioe);
+        } catch (Exception e) {
+            throw new RuntimeException("Error accessing file "+fileName,e);
         }
     }
 
