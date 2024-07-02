@@ -94,15 +94,15 @@ public class Signatures {
         return createProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, description, warning, eager, caseInsensitive, false, false, false, false);
     }
 
-    public List<String> namespace(SignatureParser.NamespaceContext namespaceContext) {
+    public String[] namespace(SignatureParser.NamespaceContext namespaceContext) {
         List<String> parsed = namespaceContext == null ? Collections.emptyList() : namespaceContext.name().stream().map(this::name).collect(Collectors.toList());
         if (prefix == null) {
-            return parsed;
+            return parsed.toArray(String[]::new);
         } else {
             ArrayList<String> namespace = new ArrayList<>();
             namespace.add(prefix);
             namespace.addAll(parsed);
-            return namespace;
+            return namespace.toArray(String[]::new);
         }
     }
 

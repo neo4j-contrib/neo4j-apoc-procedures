@@ -72,16 +72,18 @@ public class SystemDbTest {
             Map<String, Object> map = Iterators.single(result);
             List<Node> nodes = (List<Node>) map.get("nodes");
             List<Relationship> relationships = (List<Relationship>) map.get("relationships");
-            assertEquals(6, nodes.size());
+            assertEquals(7, nodes.size());
             assertEquals(2, nodes.stream().filter( node -> "Database".equals(Iterables.single(node.getLabels()).name())).count());
             assertEquals(2, nodes.stream().filter( node -> "DatabaseName".equals(Iterables.single(node.getLabels()).name())).count());
             assertEquals(1, nodes.stream().filter( node -> "User".equals(Iterables.single(node.getLabels()).name())).count());
             assertEquals(1, nodes.stream().filter( node -> "Version".equals(Iterables.single(node.getLabels()).name())).count());
+            assertEquals(1, nodes.stream().filter( node -> "Auth".equals(Iterables.single(node.getLabels()).name())).count());
             Set<String> names = nodes.stream().map(node -> (String)node.getProperty("name")).filter(Objects::nonNull).collect(Collectors.toSet());
             org.hamcrest.MatcherAssert.assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
 
-            assertEquals( 2, relationships.size() );
+            assertEquals( 3, relationships.size() );
             assertEquals( 2, relationships.stream().filter( rel -> "TARGETS".equals( rel.getType().name() ) ).count() );
+            assertEquals( 1, relationships.stream().filter( rel -> "HAS_AUTH".equals( rel.getType().name() ) ).count() );
         });
     }
 

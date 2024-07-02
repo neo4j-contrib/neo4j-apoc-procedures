@@ -57,7 +57,7 @@ public class LoadCsv {
             }
             reader = FileUtils.readerFor(urlOrBinary, httpHeaders, payload, config.getCompressionAlgo(), urlAccessChecker);
             return streamCsv(url, config, reader);
-        } catch (IOException e) {
+        } catch (Exception e) {
             closeReaderSafely(reader);
             if(!config.isFailOnError())
                 return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
