@@ -4,7 +4,7 @@ import apoc.ApocConfig;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
-import org.apache.commons.collections4.ListUtils;
+import apoc.util.ExtendedListUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -143,7 +143,7 @@ public class ExportXlsHandler {
             List<String> keys = triple.getRight();
             Row row = sheet.getRow(0);
             int cellNum = 0;
-            for (String key: ListUtils.union(magicKeys,keys)) {
+            for (String key: ExtendedListUtils.union(magicKeys,keys)) {
                 sheet.autoSizeColumn(cellNum);
                 Cell cell = row.createCell(cellNum++);
                 cell.setCellValue(key);
