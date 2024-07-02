@@ -35,6 +35,7 @@ import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_ERRORS;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
@@ -47,6 +48,7 @@ import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -168,6 +170,20 @@ public class MilvusTest {
                     assertLondonResult(row, FALSE);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
+                });
+    }
+
+    @Test
+    public void queryVectorsWithWrongVectorSize() {
+        testCall(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9], null, 5, $conf)",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)),
+                row -> {
+                    Map error = (Map) row.get(DEFAULT_ERRORS);
+                    String message = (String) error.get("message");
+                    String expected = "invalid parameter";
+                    assertTrue("Actual error message is: " + message,
+                            message.contains(expected)
+                    );
                 });
     }
 
@@ -319,6 +335,30 @@ public class MilvusTest {
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
+        );
+    }
+
+    @Test
+    public void getVectorsWithWrongVectorIdFormat() {
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                FIELDS_KEY, FIELDS,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo"));
+
+        testCall(db, "CALL apoc.vectordb.milvus.get($host, 'test_collection', ['wrong', 'id'], $conf)",
+                map("host", HOST, "conf", conf),
+                r -> {
+                    Map error = (Map) r.get(DEFAULT_ERRORS);
+                    String message = (String) error.get("message");
+                    String expected = "unable to cast";
+                    assertTrue("Actual error message is: " + message,
+                            message.contains(expected)
+                    );
+                }
         );
     }
 

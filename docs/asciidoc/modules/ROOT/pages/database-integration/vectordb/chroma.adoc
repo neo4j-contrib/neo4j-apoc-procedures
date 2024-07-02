@@ -74,9 +74,9 @@ CALL apoc.vectordb.chroma.get($host, '<collection_id>', ['1','2'], {<optional co
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | null | null | null | null
-| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| score | metadata | id | vector | text | entity | errors
+| null | {city: "Berlin", foo: "one"} | null | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null | null
 | ...
 |===
 
@@ -91,9 +91,9 @@ CALL apoc.vectordb.chroma.get($host, '<collection_id>', ['1','2'], {<optional co
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje | null
-| null | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf | null
+| score | metadata | id | vector | text | entity  | errors
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf | null | null
 | ...
 |===
 
@@ -113,9 +113,9 @@ CALL apoc.vectordb.chroma.queryAndUpdate($host,
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text
-| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje
-| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf
+| score | metadata | id | vector | text | errors
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | ajeje | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | brazorf | null
 | ...
 |===
 

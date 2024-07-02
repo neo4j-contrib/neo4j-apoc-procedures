@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
+import apoc.util.CollectionUtils;
 import apoc.util.UrlResolver;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -27,6 +28,7 @@ import static apoc.vectordb.VectorDb.getEmbeddingResult;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbUtil.*;
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_ERRORS;
 
 @Extended
 public class Weaviate {
@@ -222,7 +224,14 @@ public class Weaviate {
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
-                    Object getValue = ((Map<String, Map>) v).get("data").get("Get");
+                    Map<String, Map> mapResult = (Map<String, Map>) v;
+                    List<Map> errors = (List<Map>) mapResult.get("errors");
+                    if (CollectionUtils.isNotEmpty(errors)) {
+                        Map map = new HashMap<>();
+                        map.put(DEFAULT_ERRORS, errors);
+                        return Stream.of(map);
+                    }
+                    Object getValue = mapResult.get("data").get("Get");
                     Object collectionValue = ((Map) getValue).get(collection);
                     return ((List<Map>) collectionValue).stream()
                             .map(i -> {

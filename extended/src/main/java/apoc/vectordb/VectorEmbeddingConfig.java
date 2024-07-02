@@ -16,6 +16,7 @@ public class VectorEmbeddingConfig {
     
     public static final String DEFAULT_ID = "id";
     public static final String DEFAULT_TEXT = "text";
+    public static final String DEFAULT_ERRORS = "errors";
     public static final String DEFAULT_VECTOR = "vector";
     public static final String DEFAULT_METADATA = "metadata";
     public static final String DEFAULT_SCORE = "score";
@@ -27,6 +28,7 @@ public class VectorEmbeddingConfig {
     private final String vectorKey;
     private final String metadataKey;
     private final String scoreKey;
+    private final String errorsKey;
 
     private final boolean allResults;
     private final boolean metaAsSubKey;
@@ -40,6 +42,7 @@ public class VectorEmbeddingConfig {
         this.scoreKey = (String) config.getOrDefault(SCORE_KEY, DEFAULT_SCORE);
         this.idKey = (String) config.getOrDefault(ID_KEY, DEFAULT_ID);
         this.textKey = (String) config.getOrDefault(TEXT_KEY, DEFAULT_TEXT);
+        this.errorsKey = (String) config.getOrDefault(TEXT_KEY, DEFAULT_ERRORS);
         this.allResults = Util.toBoolean(config.get(ALL_RESULTS_KEY));
         this.mapping = new VectorMappingConfig((Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of()));
 
@@ -66,6 +69,10 @@ public class VectorEmbeddingConfig {
 
     public String getTextKey() {
         return textKey;
+    }
+
+    public String getErrorsKey() {
+        return errorsKey;
     }
 
     public boolean isAllResults() {

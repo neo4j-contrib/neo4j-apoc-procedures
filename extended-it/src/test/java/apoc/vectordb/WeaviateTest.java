@@ -40,6 +40,7 @@ import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_ERRORS;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
@@ -48,6 +49,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -200,7 +202,21 @@ public class WeaviateTest {
                     assertLondonResult(row, ID_2, FALSE);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
-                }); 
+                });
+    }
+
+    @Test
+    public void queryVectorsWithWrongVectorSize() {
+        testCall(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9], null, 5, $conf)",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                row -> {
+                    List<Map> errors = (List<Map>) row.get(DEFAULT_ERRORS);
+                    String message = (String) errors.get(0).get("message");
+                    String expected = "vector lengths don't match";
+                    assertTrue("Actual error message is: " + message,
+                            message.contains(expected)
+                    );
+                });
     }
 
     @Test
@@ -377,7 +393,7 @@ public class WeaviateTest {
                         METADATA_KEY, "foo")
         );
 
-        testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1, $id2], $conf) " +
+        testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', ['$id1', $id2], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
                 MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
