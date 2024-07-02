@@ -2,23 +2,28 @@ package apoc.vectordb;
 
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.chromadb.ChromaDBContainer;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.stopWatchLog;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -33,6 +38,9 @@ import static apoc.vectordb.VectorDbTestUtil.assertRagWithVectors;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.generateFakeData;
+import static apoc.vectordb.VectorDbTestUtil.getSizePerformanceVectors;
+import static apoc.vectordb.VectorDbTestUtil.getFakeIds;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
@@ -460,4 +468,66 @@ public class ChromaDbTest {
                 ),
                 VectorDbTestUtil::assertRagWithVectors);
     }
+
+    @Ignore("This test measures procedures performances, we ignore it since it's slow and just log the times spent")
+    @Test
+    public void performanceTest() {
+        StopWatch watch = new StopWatch();
+        watch.start();
+
+        final AtomicReference<String> PERFORMANCE_COLL_ID = new AtomicReference<>();
+        String collection = "performance_col";
+        testCall(db, "CALL apoc.vectordb.chroma.createCollection($host, $collection, 'cosine', 4)",
+                map("host", HOST, "collection", collection),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    PERFORMANCE_COLL_ID.set((String) value.get("id"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.chroma.createCollection");
+
+        List<Map<String, Object>> data = generateFakeData(VectorDbHandler.Type.CHROMA.name());
+
+        watch.start();
+        testCall(db, """
+                        CALL apoc.vectordb.chroma.upsert($host, $collection, $data)
+                        """,
+                map("host", HOST, "collection", PERFORMANCE_COLL_ID.get(), "data", data),
+                r -> assertNull(r.get("value")));
+        stopWatchLog(watch, "apoc.vectordb.chroma.upsert");
+
+        watch.start();
+        int size = getSizePerformanceVectors(CHROMA.name());
+        testResult(db, "CALL apoc.vectordb.chroma.get($host, $collection, $ids, $conf) ",
+                map(
+                        "host", HOST,
+                        "collection", PERFORMANCE_COLL_ID.get(),
+                        "conf", map(ALL_RESULTS_KEY, true),
+                        "ids", IntStream.range(0, size).mapToObj(String::valueOf).toList()
+                ),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.chroma.get");
+
+        watch.start();
+        testResult(db, """
+                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, $limit, $conf) YIELD metadata, id""",
+                map("host", HOST, "collection", PERFORMANCE_COLL_ID.get(), "conf", map(ALL_RESULTS_KEY, true), "limit", size),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.chroma.query");
+
+        watch.start();
+        testResult(db, "CALL apoc.vectordb.chroma.delete($host, $collection, $ids) ",
+                map("host", HOST, "collection", PERFORMANCE_COLL_ID.get(), "ids", getFakeIds(data)),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.chroma.delete");
+
+        watch.start();
+        testCall(db, "CALL apoc.vectordb.chroma.deleteCollection($host, $collection)",
+                map("host", HOST, "collection", collection),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertNull(value);
+                });
+        stopWatchLog(watch, "apoc.vectordb.chroma.deleteCollection");
+    }
+
 }

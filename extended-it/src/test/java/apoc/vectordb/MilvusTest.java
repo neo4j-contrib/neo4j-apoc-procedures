@@ -3,22 +3,27 @@ package apoc.vectordb;
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.testcontainers.milvus.MilvusContainer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.stopWatchLog;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -34,6 +39,9 @@ import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
+import static apoc.vectordb.VectorDbTestUtil.generateFakeData;
+import static apoc.vectordb.VectorDbTestUtil.getSizePerformanceVectors;
+import static apoc.vectordb.VectorDbTestUtil.getFakeIds;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
@@ -464,6 +472,77 @@ public class MilvusTest {
                         "attributes", List.of("city", "foo")
                 ),
                 VectorDbTestUtil::assertRagWithVectors);
+    }
+
+    @Ignore("This test measures procedures performances, we ignore it since it's slow and just log the times spent")
+    @Test
+    public void performanceTest() {
+        StopWatch watch = new StopWatch();
+        watch.start();
+
+        String collection = "performance_col";
+        testCall(db, "CALL apoc.vectordb.milvus.createCollection($host, $collection, 'COSINE', 4)",
+                map("host", HOST, "collection", collection),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.milvus.createCollection");
+
+        List<Map<String, Object>> data = generateFakeData(VectorDbHandler.Type.MILVUS.name());
+
+        watch.start();
+        testCall(db,
+                "CALL apoc.vectordb.milvus.upsert($host, $collection, $data)",
+                map("host", HOST, "collection", collection, "data", data),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.milvus.upsert");
+
+        watch.start();
+        testResult(db, "CALL apoc.vectordb.milvus.get($host, $collection, $ids, $conf) ",
+                map(
+                        "host", HOST,
+                        "collection", collection,
+                        "conf", map(FIELDS_KEY, FIELDS),
+                        "ids", IntStream.range(0, getSizePerformanceVectors(VectorDbHandler.Type.MILVUS.name())).mapToObj(Long::valueOf).toList()
+                ),
+                Result::resultAsString);
+
+        stopWatchLog(watch, "apoc.vectordb.milvus.get");
+
+        watch.start();
+        testResult(db,
+                """
+                CALL apoc.vectordb.milvus.query($host, $collection, [0.2, 0.1, 0.9, 0.7], null, $limit, $conf) YIELD metadata, id, score, vector""",
+                map(
+                        "host", HOST,
+                        "collection", collection,
+                        "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true),
+                        "limit", getSizePerformanceVectors(VectorDbHandler.Type.MILVUS.name())
+                ),
+                Result::resultAsString);
+        stopWatchLog(watch, "apoc.vectordb.milvus.query");
+
+        watch.start();
+        testCall(db, "CALL apoc.vectordb.milvus.delete($host, $collection, $ids) ",
+                map("host", HOST, "collection", collection, "ids", getFakeIds(data)),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.milvus.delete");
+
+        watch.start();
+        testCall(db, "CALL apoc.vectordb.milvus.deleteCollection($host, $collection)",
+                map("host", HOST, "collection", collection),
+                r -> {
+                    Map value = (Map) r.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
+        stopWatchLog(watch, "apoc.vectordb.milvus.deleteCollection");
     }
 
 }
