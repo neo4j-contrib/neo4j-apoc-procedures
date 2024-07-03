@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.ResultTransformer;
@@ -82,5 +83,11 @@ public class ExtendedTestUtil {
                 return false;
             }
         }, (v) -> v, timeout, TimeUnit.SECONDS);
+    }
+
+    public static void stopWatchLog(StopWatch watch, String operation) {
+        watch.stop();
+        System.out.println("Operation: " + operation  + " | Time spent: " + watch.getTime() + "ms");
+        watch.reset();
     }
 }

@@ -255,3 +255,20 @@ RETURN value
 ----
 CALL apoc.vectordb.weaviate.delete($host, 'test_collection', [1,2], {<optional config>})
 ----
+
+=== Performance
+
+The table below shows the time spent on all operations on a sample of 100.000 records,
+tested with a MacBook Pro M3 Pro 18GB Ram using a Docker with 8 CPU, Memory limit 10GB and Swap 1.5GB.
+
+.Performance results
+[opts="header"]
+|===
+| Operation | Time (ms)
+| apoc.vectordb.weaviate.createCollection | 59
+| apoc.vectordb.weaviate.upsert | 319766
+| apoc.vectordb.weaviate.get | 41431
+| apoc.vectordb.weaviate.query | 1887
+| apoc.vectordb.weaviate.delete | 53218
+| apoc.vectordb.weaviate.deleteCollection | 201
+|===

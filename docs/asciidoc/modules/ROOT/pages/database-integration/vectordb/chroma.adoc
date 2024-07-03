@@ -237,3 +237,20 @@ RETURN value
 CALL apoc.vectordb.chroma.delete($host, '<collection_id>', [1,2], {<optional config>})
 ----
 
+=== Performance
+
+The table below shows the time spent on all operations on a sample of 41.666 records,
+tested with a MacBook Pro M3 Pro 18GB Ram using a Docker with 8 CPU, Memory limit 10GB and Swap 1.5GB.
+
+
+.Performance results
+[opts="header"]
+|===
+| Operation | Time (ms)
+| apoc.vectordb.chroma.createCollection | 158
+| apoc.vectordb.chroma.upsert | 10650
+| apoc.vectordb.chroma.get | 2357
+| apoc.vectordb.chroma.query | 1068
+| apoc.vectordb.chroma.delete | 9827
+| apoc.vectordb.chroma.deleteCollection | 141
+|===
