@@ -242,7 +242,8 @@ CALL apoc.vectordb.milvus.delete('http://localhost:19531', 'test_collection', [1
 
 === Performance
 
-The table below shows the time spent on all operations on a sample of 16.384 records.
+The table below shows the time spent on all operations on a sample of 16.384 records,
+tested with a MacBook Pro M3 Pro 18GB Ram using a Docker with 8 CPU, Memory limit 10GB and Swap 1.5GB.
 
 .Performance results
 [opts="header"]
