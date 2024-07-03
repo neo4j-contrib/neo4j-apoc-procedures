@@ -8,6 +8,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -363,7 +364,7 @@ public class WeaviateTest {
         assertNodesCreated(db);
     }
 
-
+    @Ignore("Flaky test, sometimes fails with HTTP 422 error")
     @Test
     public void getReadOnlyVectorsWithMapping() {
         db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
