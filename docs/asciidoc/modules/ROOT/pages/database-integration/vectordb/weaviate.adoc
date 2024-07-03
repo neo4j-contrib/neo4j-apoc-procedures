@@ -87,9 +87,9 @@ CALL apoc.vectordb.weaviate.get($host, 'test_collection', [1,2], {<optional conf
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | null | null | null | null
-| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| score | metadata | id | vector | text | entity | errors
+| null | {city: "Berlin", foo: "one"} | null | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null | null
 | ...
 |===
 
@@ -104,9 +104,9 @@ CALL apoc.vectordb.weaviate.get($host, 'test_collection', [1,2], {allResults: tr
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text | entity
-| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
-| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| score | metadata | id | vector | text | entity | errors
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null | null
 | ...
 |===
 
@@ -126,12 +126,20 @@ CALL apoc.vectordb.weaviate.query($host,
 .Example results
 [opts="header"]
 |===
-| score | metadata | id | vector | text
-| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null
-| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null
+| score | metadata | id | vector | text | errors
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
 | ...
 |===
 
+In case of errors, e.g. due to `apoc.vectordb.weaviate.query` with wrong vector size as a 3rd parameter, the error field will be populated, for example:
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | errors
+| null | null | null | null | null | ..vector search: knn search: distance between entrypoint and query node: vector lengths don't match: 4 vs 3..
+|===
 
 We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
 

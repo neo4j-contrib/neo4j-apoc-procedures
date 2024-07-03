@@ -39,7 +39,8 @@ public class VectorDbUtil {
     public record EmbeddingResult(
             Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text,
             Node node,
-            Relationship rel) {}
+            Relationship rel,
+            Object errors) {}
     
     public static Map<String, Object> getCommonVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl, VectorDbHandler handler) {
