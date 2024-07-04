@@ -7,6 +7,7 @@ note that the list and the signature procedures are consistent with the others, 
 [opts=header, cols="1, 3"]
 |===
 | name | description
+| apoc.vectordb.chroma.info(hostOrKey, collection, $config) | Get information about the specified existing collection or throws an error if it does not exist
 | apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
     The default endpoint is `<hostOrKey param>/api/v1/collections`.
@@ -37,6 +38,19 @@ where the 1st parameter can be a key defined by the apoc config `apoc.chroma.<ke
 With hostOrKey=null, the default is 'http://localhost:8000'.
 
 == Examples
+
+.Get collection info (it leverages https://docs.trychroma.com/reference/py-client#get_collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.info(hostOrKey, 'test_collection', {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| value
+| {name=test_collection, metadata={size=4, hnsw:space=cosine}, database=default_database, id=74ebe008-1ccb-4d3d-8c5d-cdd7cfa526c2, tenant=default_tenant}
+|===
 
 .Create a collection (it leverages https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections[this API])
 [source,cypher]

@@ -127,6 +127,19 @@ public class PineconeTest {
     }
 
     @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.pinecone.info($host, $coll, $conf) ",
+                map("host", HOST, "coll", collName,
+                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                ),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(collName, value.get("name"));
+                });
+    }
+
+    @Test
     public void getVectors() {
         testResult(db, "CALL apoc.vectordb.pinecone.get($host, $coll, ['1', '2'], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",

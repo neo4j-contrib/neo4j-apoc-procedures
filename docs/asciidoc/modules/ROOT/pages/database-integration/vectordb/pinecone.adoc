@@ -6,6 +6,7 @@ Here is a list of all available Pinecone procedures:
 [opts=header, cols="1, 3"]
 |===
 | name | description
+| apoc.vectordb.pinecone.info(hostOrKey, collection, $config) | Get information about the specified existing collection or throws an error if it does not exist
 | apoc.vectordb.pinecone.createCollection(hostOrKey, index, similarity, size, $config) |
     Creates an index, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
     The default endpoint is `<hostOrKey param>/indexes`.
@@ -53,6 +54,13 @@ image::pinecone-index.png[width=800]
 == Examples
 
 The following example assume we want to create and manage an index called `test-index`.
+
+.Get collection info (it leverages https://docs.pinecone.io/reference/api/control-plane/describe_collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.info(hostOrKey, 'test-collection', {<optional config>})
+----
+
 
 .Create an index (it leverages https://docs.pinecone.io/reference/api/control-plane/create_index[this API])
 [source,cypher]

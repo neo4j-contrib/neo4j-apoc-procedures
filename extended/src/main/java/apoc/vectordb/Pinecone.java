@@ -23,6 +23,7 @@ import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.PINECONE;
 import static apoc.vectordb.VectorDbUtil.getCommonVectorDbInfo;
+import static apoc.vectordb.VectorDbUtil.methodAndPayloadNull;
 import static apoc.vectordb.VectorDbUtil.setReadOnlyMappingMode;
 
 @Extended
@@ -40,6 +41,22 @@ public class Pinecone {
 
     @Context
     public URLAccessChecker urlAccessChecker;
+
+    @Procedure("apoc.vectordb.pinecone.info")
+    @Description("apoc.vectordb.pinecone.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
+    public Stream<MapResult> getInfo(@Name("hostOrKey") String hostOrKey,
+                                              @Name("collection") String collection,
+                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        String url = "%s/collections/%s";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+
+        methodAndPayloadNull(config);
+
+        RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
+        return executeRequest(restAPIConfig, urlAccessChecker)
+                .map(v -> (Map<String,Object>) v)
+                .map(MapResult::new);
+    }
 
     @Procedure("apoc.vectordb.pinecone.createCollection")
     @Description("apoc.vectordb.pinecone.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
