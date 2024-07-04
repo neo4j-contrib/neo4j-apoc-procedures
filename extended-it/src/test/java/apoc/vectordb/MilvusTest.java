@@ -329,7 +329,7 @@ public class MilvusTest {
     }
 
     @Test
-    public void getReadOnlyVectorsWithMapping() {
+    public void getReadOnlyVectorsWithMappingAndFieldsKey() {
         db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
@@ -343,6 +343,26 @@ public class MilvusTest {
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
                 map("host", HOST, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
+        );
+    }
+
+    @Test
+    public void getReadOnlyVectorsWithMapping() {
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo"));
+
+        testResult(db, "CALL apoc.vectordb.milvus.get($host, 'test_collection', [1, 2], $conf) " +
+                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "node",
+                        Map.of("foo", "one"),
+                        Map.of("foo", "two")
+                )
         );
     }
 
@@ -429,7 +449,7 @@ public class MilvusTest {
     }
 
     @Test
-    public void queryReadOnlyVectorsWithMapping() {
+    public void queryReadOnlyVectorsWithMappingAndFieldsKey() {
         db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
@@ -443,6 +463,26 @@ public class MilvusTest {
         testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
                 map("host", HOST, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "rel")
+        );
+    }
+
+    @Test
+    public void queryReadOnlyVectorsWithMapping() {
+        db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel",
+                        Map.of("foo", "one"),
+                        Map.of("foo", "two")
+                )
         );
     }
 
