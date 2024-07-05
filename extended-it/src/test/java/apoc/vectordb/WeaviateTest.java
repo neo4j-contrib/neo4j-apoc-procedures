@@ -448,7 +448,7 @@ public class WeaviateTest {
     }
 
     @Test
-    public void queryReadOnlyVectorsWithMapping() {
+    public void queryReadOnlyVectorsWithMappingAndFieldsKey() {
         db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
         Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
@@ -464,6 +464,28 @@ public class WeaviateTest {
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
                 MapUtil.map("host", HOST, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "rel")
+        );
+    }
+
+    @Test
+    public void queryReadOnlyVectorsWithMapping() {
+        db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
+                MAPPING_KEY, MapUtil.map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                       " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel",
+                        Map.of("foo", "one"),
+                        Map.of("foo", "two")
+                )
         );
     }
 

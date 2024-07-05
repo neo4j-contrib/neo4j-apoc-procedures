@@ -39,6 +39,12 @@ Besides the above config, the `apoc.vectordb.<type>.get` and the `apoc.vectordb.
     To let the procedure know which key in the restAPI (if present) corresponds to the one that should be populated as respectively the vector/metadata/score/text result.
     Defaults are "vector", "metadata", "score", "text".
     See examples below.
+| fields | a list of fields to be returned, it must be specified for `apoc.vectordb.weaviate.query`, `apoc.vectordb.milvus.get` and `apoc.vectordb.milvus.query`.
+
+    The keys present in the `metadataKey`, defined in the `mapping` config, will be added in addition to the ones specified in the `fields` parameter.
+    If the `fields` parameter is absent, the procedures will return the fields specified in the `metadataKey` defined in the `mapping` config.
+
+     If both the `fields` and the `metadataKey` parameters are absent or empty, the mentioned procedures will return an error.
 |===
 
 

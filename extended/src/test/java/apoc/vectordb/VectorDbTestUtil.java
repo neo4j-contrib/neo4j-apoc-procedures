@@ -90,17 +90,28 @@ public class VectorDbTestUtil {
     }
     
     public static void assertReadOnlyProcWithMappingResults(Result r, String node) {
+        assertReadOnlyProcWithMappingResults(r, node,
+                Map.of("city", "Berlin", "foo", "one"),
+                Map.of("city", "London", "foo", "two")
+        );
+    }
+    
+    public static void assertReadOnlyProcWithMappingResults(Result r, String node,
+                                                            Map<String, Object> metadataRowOne,
+                                                            Map<String, Object> metadataRowTwo) {
         Map<String, Object> row = r.next();
         Map<String, Object> props = ((Entity) row.get(node)).getAllProperties();
         assertEquals(MapUtil.map("readID", "one"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
+        assertEquals(metadataRowOne, row.get("metadata"));
 
         row = r.next();
         props = ((Entity) row.get(node)).getAllProperties();
         assertEquals(MapUtil.map("readID", "two"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
+        assertEquals(metadataRowTwo, row.get("metadata"));
 
         assertFalse(r.hasNext());
     }

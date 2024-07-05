@@ -9,14 +9,19 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.util.SystemDbUtil.withSystemDb;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.MappingMode.READ_ONLY;
 
@@ -86,5 +91,32 @@ public class VectorDbUtil {
     public static void setReadOnlyMappingMode(Map<String, Object> configuration) {
         Map<String, Object> mappingConf = (Map<String, Object>) configuration.getOrDefault(MAPPING_KEY, new HashMap<>());
         mappingConf.put(MODE_KEY, READ_ONLY.toString());
+    }
+
+    /**
+     * get field list, with the API requiring a list of field keys to be returned,
+     * e.g. the weaviate and the milvus query APIs
+     * 
+     * It returns the fields defined via `fields` config plus the one present in the `metadataKey`, within the config `mapping`
+     */
+    public static List getFieldList(Map<String, Object> config) {
+        Set fields = new HashSet<>();
+        
+        List fieldListConfig = (List) config.get(FIELDS_KEY);
+        if (fieldListConfig != null) {
+            fields.addAll(fieldListConfig);
+        }
+        
+        Map<String, String> mappingKey = (Map) config.getOrDefault(MAPPING_KEY, Map.of());
+        String metadataKey = mappingKey.get(METADATA_KEY);
+        if (metadataKey != null) {
+            fields.add(metadataKey);
+        }
+        
+        if (fields.isEmpty()) {
+            throw new RuntimeException("You have to define `field` list of parameter with the fields to be returned" +
+                                       "or a `mapping` config with the `medadataKey` as the field to be returned");
+        }
+        return new ArrayList<>(fields);
     }
 }
