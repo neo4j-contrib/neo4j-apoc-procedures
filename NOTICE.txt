@@ -237,7 +237,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.6.jar
+  reactor-core-3.6.7.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
