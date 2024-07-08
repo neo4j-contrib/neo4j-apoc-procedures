@@ -82,7 +82,7 @@ public class QdrantTest {
         
         QDRANT_CONTAINER.start();
 
-        HOST = "localhost:" + QDRANT_CONTAINER.getMappedPort(6333);
+        HOST = QDRANT_CONTAINER.getHost() + ":" +QDRANT_CONTAINER.getMappedPort(6333);
         TestUtil.registerProcedure(db, Qdrant.class, VectorDb.class, Prompt.class);
 
         testCall(db, "CALL apoc.vectordb.qdrant.createCollection($host, 'test_collection', 'Cosine', 4, $conf)",
