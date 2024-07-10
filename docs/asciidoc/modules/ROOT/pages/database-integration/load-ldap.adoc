@@ -8,8 +8,6 @@
 With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
 The entries can then be used to update or create graph structures.
 
-Note this utility requires to have the link:https://mvnrepository.com/artifact/com.novell.ldap/jldap/2009-10-07[jldap] library to be placed the plugin directory.
-
 [separator=¦,opts=header,cols="5,1m,1m"]
 |===
 ¦Qualified Name¦Type¦Release
@@ -24,6 +22,7 @@ include::example$generated-documentation/apoc.load.ldap.adoc[]
 |{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
 |  | loginDN | This is the dn of the ldap server user who has read access on the ldap server
 |  | loginPW | This is the password used by the loginDN
+|  | ssl    | Boolean which indicates whether to use SSL connection or not (default false)
 |{searchMap} | searchBase | From this entry a search is executed
 |  | searchScope | SCOPE_ONE (one level) or
                    SCOPE_SUB (all sub levels) or
