@@ -23,9 +23,15 @@ apoc.custom.asFunction
 apoc.custom.asProcedure
 apoc.custom.declareFunction
 apoc.custom.declareProcedure
+apoc.custom.dropAll
+apoc.custom.dropFunction
+apoc.custom.dropProcedure
+apoc.custom.installFunction
+apoc.custom.installProcedure
 apoc.custom.list
 apoc.custom.removeFunction
 apoc.custom.removeProcedure
+apoc.custom.show
 apoc.cypher.mapParallel
 apoc.cypher.mapParallel2
 apoc.cypher.parallel
