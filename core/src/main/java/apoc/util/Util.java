@@ -113,6 +113,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.graphdb.schema.ConstraintType;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -1035,6 +1036,24 @@ public class Util {
 
     public static Relationship rebind(Transaction tx, Relationship rel) {
         return rel instanceof VirtualRelationship ? rel : tx.getRelationshipById(rel.getId());
+    }
+
+    public static <T extends Entity> T anyUnbind(T e) {
+        if (e instanceof Node) {
+            return (T) unbind((Node) e);
+        } else {
+            return (T) unbind((Relationship) e);
+        }
+    }
+
+    public static Node unbind(Node node) {
+        return node instanceof VirtualNode
+                ? node
+                : new VirtualNode(node, Iterables.asList(node.getPropertyKeys()), true);
+    }
+
+    public static Relationship unbind(Relationship rel) {
+        return rel instanceof VirtualRelationship ? rel : new VirtualRelationship(rel);
     }
 
     public static <T extends Entity> T rebind(Transaction tx, T e) {

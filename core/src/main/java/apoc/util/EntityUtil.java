@@ -51,4 +51,27 @@ public class EntityUtil {
         }
         return any;
     }
+
+    public static <T> T anyUnbind(Transaction tx, T any) {
+        if (any instanceof Map) {
+            return (T) ((Map<String, Object>) any)
+                    .entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> anyUnbind(tx, e.getValue())));
+        }
+        if (any instanceof Path) {
+            final Path path = (Path) any;
+            PathImpl.Builder builder = new PathImpl.Builder(Util.rebind(tx, path.startNode()));
+            for (Relationship rel : path.relationships()) {
+                builder = builder.push(Util.unbind(rel));
+            }
+            return (T) builder.build();
+        }
+        if (any instanceof Iterable) {
+            return (T)
+                    Iterables.stream((Iterable) any).map(i -> anyUnbind(tx, i)).collect(Collectors.toList());
+        }
+        if (any instanceof Entity) {
+            return (T) Util.anyUnbind((Entity) any);
+        }
+        return any;
+    }
 }
