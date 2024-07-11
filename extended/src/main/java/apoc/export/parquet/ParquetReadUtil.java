@@ -8,9 +8,11 @@ import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -30,14 +32,14 @@ public class ParquetReadUtil {
         };
     }
 
-    public static InputFile getInputFile(Object source, URLAccessChecker urlAccessChecker) throws IOException {
+    public static InputFile getInputFile(Object source, URLAccessChecker urlAccessChecker) throws IOException, URISyntaxException, URLAccessValidationError {
         return new ParquetStream(FileUtils.inputStreamFor(source, null, null, CompressionAlgo.NONE.name(), urlAccessChecker).readAllBytes());
     }
 
     public static ApocParquetReader getReader(Object source, ParquetConfig conf, URLAccessChecker urlAccessChecker) {
         try {
             return new ApocParquetReader(getInputFile(source, urlAccessChecker), conf);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

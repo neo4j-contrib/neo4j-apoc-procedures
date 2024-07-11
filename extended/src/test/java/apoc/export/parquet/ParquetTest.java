@@ -110,7 +110,7 @@ public class ParquetTest {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
-        assertFails("CALL apoc.export.parquet.all('ignore.parquet')", EXPORT_TO_FILE_PARQUET_ERROR);
+        assertFails("CALL apoc.export.parquet.all('ignore.parquet')", LOAD_FROM_FILE_ERROR);
     }
 
     @Test

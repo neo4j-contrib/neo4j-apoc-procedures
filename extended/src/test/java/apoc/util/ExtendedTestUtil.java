@@ -3,6 +3,7 @@ package apoc.util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.ResultTransformer;
+import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.test.assertion.Assert;
 
 import java.util.Collections;
@@ -16,6 +17,13 @@ import static org.junit.Assert.assertNull;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
+
+    /**
+     * Mock URLAccessChecker instance with checkURL(URL url) {return url}
+     */
+    public static class MockURLAccessChecker {
+        public static final URLAccessChecker INSTANCE = url -> url;
+    }
 
     public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
         assertMapEquals(null, expected, actual);

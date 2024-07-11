@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.graphdb.security.URLAccessValidationError;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -58,12 +59,12 @@ public class LoadDirectory {
                                                              @Name("cypher") String cypher,
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
-                                                             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+                                                             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         apocConfig().checkReadAllowed(urlDir, urlAccessChecker);
         Util.validateQuery(db, cypher, READ_WRITE, WRITE);
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);
-        LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, checkIfUrlBlankAndGetFileUrl(urlDir), conf);
+        LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, checkIfUrlBlankAndGetFileUrl(urlDir, urlAccessChecker), conf);
 
         loadDirectoryHandler.add(loadDirectoryItem);
         return loadDirectoryHandler.list();
@@ -91,13 +92,13 @@ public class LoadDirectory {
 
     @Procedure
     @Description("apoc.load.directory('pattern', 'urlDir', {config}) YIELD value - Loads list of all files in the folder specified by the parameter urlDir satisfying the given pattern. If the parameter urlDir is not specified or empty, the files of the import folder are loaded instead.")
-    public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
+    public Stream<StringResult> directory(@Name(value = "pattern", defaultValue = "*") String pattern, @Name(value = "urlDir", defaultValue = "") String urlDir, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         if (urlDir == null) {
             throw new IllegalArgumentException("Invalid (null) urlDir");
         }
 
-        urlDir = checkIfUrlBlankAndGetFileUrl(urlDir);
+        urlDir = checkIfUrlBlankAndGetFileUrl(urlDir, urlAccessChecker);
 
         boolean isRecursive = Util.toBoolean(config.getOrDefault("recursive", true));
 
@@ -114,13 +115,13 @@ public class LoadDirectory {
     }
 
     // visible for test purpose
-    public static String checkIfUrlBlankAndGetFileUrl(String urlDir) throws IOException {
+    public static String checkIfUrlBlankAndGetFileUrl(String urlDir, URLAccessChecker urlAccessChecker) throws IOException, URLAccessValidationError {
         if (StringUtils.isBlank(urlDir)) {
             final Path pathImport = Paths.get(ApocConfig.apocConfig().getImportDir()).toAbsolutePath();
             // with replaceAll we remove final "/" from path
             return pathImport.toUri().toString().replaceAll(".$", "");
         }
-        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"));
+        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"), urlAccessChecker);
     }
 
 }
