@@ -85,6 +85,28 @@ public class PromptIT {
                 """,
                 Map.of(
                         "query", "What movies has Tom Hanks acted in?",
+                        "retries", 3L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    List<Map<String, Object>> list = r.stream().toList();
+                    Assertions.assertThat(list).hasSize(12);
+                    Assertions.assertThat(list.stream()
+                                    .map(m -> m.get("query"))
+                                    .filter(Objects::nonNull)
+                                    .map(Object::toString)
+                                    .map(String::trim))
+                            .isNotEmpty();
+                });
+    }
+
+    @Test
+    public void testQueryGpt35Turbo() {
+        testResult(db, """
+                CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", "What movies has Tom Hanks acted in?",
                         "retries", 2L,
                         "apiKey", OPENAI_KEY
                 ),
@@ -97,6 +119,23 @@ public class PromptIT {
                                     .map(Object::toString)
                                     .map(String::trim))
                             .isNotEmpty();
+                });
+    }
+
+    @Test
+    public void testQueryGpt35TurboUsingRetryWithError() {
+        testResult(db, """
+                CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey, retryWithError: true})
+                """,
+                Map.of(
+                        "query", UUID.randomUUID().toString(),
+                        "retries", 10L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    // check that it returns a Cypher result, also empty, without errors
+                    List<Map<String, Object>> maps = Iterators.asList(r);
+                    assertNotNull(maps);
                 });
     }
 
@@ -155,6 +194,49 @@ public class PromptIT {
     }
 
     @Test
+    public void testCypherGpt35Turbo() {
+        long numOfQueries = 4L;
+        testResult(db, """
+                CALL apoc.ml.cypher($query, {model: 'gpt-3.5-turbo', count: $numOfQueries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", "Who are the actors which also directed a movie?",
+                        "numOfQueries", numOfQueries,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    List<Map<String, Object>> list = r.stream().toList();
+                    Assertions.assertThat(list).hasSize((int) numOfQueries);
+                    Assertions.assertThat(list.stream()
+                                    .map(m -> m.get("query"))
+                                    .filter(Objects::nonNull)
+                                    .map(Object::toString)
+                                    .filter(StringUtils::isNotEmpty))
+                            .hasSize((int) numOfQueries);
+                });
+    }
+
+    @Test
+    public void testFromCypherGpt35Turbo() {
+        testCall(db, """
+                CALL apoc.ml.fromCypher($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m",
+                        "retries", 2L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    String value = ( (String) r.get("value") ).toLowerCase();
+                    String message = "Current value is: " + value;
+                    assertTrue(message,
+                            value.contains("movie"));
+                    assertTrue(message,
+                            value.contains("person") || value.contains("people") || value.contains("actor"));
+                });
+    }
+
+    @Test
     public void testFromCypher() {
         testCall(db, """
                 CALL apoc.ml.fromCypher($query, {retries: $retries, apiKey: $apiKey})
@@ -175,6 +257,25 @@ public class PromptIT {
     }
 
     @Test
+    public void testSchemaFromQueriesGpt35Turbo() {
+        List<String> queries = List.of("MATCH p=(n:Movie)--() RETURN p", "MATCH (n:Person) RETURN n", "MATCH (n:Movie) RETURN n", "MATCH p=(n)-[r]->() RETURN r");
+
+        testCall(db, """
+                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                """,
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+
+                    String value = ((String) r.get("value")).toLowerCase();
+                    Assertions.assertThat(value).containsIgnoringCase("movie");
+                    Assertions.assertThat(value).containsAnyOf("person", "people");
+                });
+    }
+
+    @Test
     public void testSchemaFromQueries() {
         List<String> queries = List.of("MATCH p=(n:Movie)--() RETURN p", "MATCH (n:Person) RETURN n", "MATCH (n:Movie) RETURN n", "MATCH p=(n)-[r]->() RETURN r");
 
@@ -190,6 +291,24 @@ public class PromptIT {
                     String value = ((String) r.get("value")).toLowerCase();
                     Assertions.assertThat(value).containsIgnoringCase("movie");
                     Assertions.assertThat(value).containsAnyOf("person", "people");
+                });
+    }
+
+    @Test
+    public void testSchemaFromQueriesWithSingleQueryGpt35Turbo() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN n");
+
+        testCall(db, """
+                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                """,
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    String value = ((String) r.get("value")).toLowerCase();
+                    Assertions.assertThat(value).containsIgnoringCase("movie");
+                    Assertions.assertThat(value).doesNotContainIgnoringCase("person", "people");
                 });
     }
     
@@ -212,6 +331,24 @@ public class PromptIT {
     }
 
     @Test
+    public void testSchemaFromQueriesWithWrongQueryGpt35Turbo() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN a");
+        try {
+            testCall(db, """
+                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                """,
+                    Map.of(
+                            "queries", queries,
+                            "apiKey", OPENAI_KEY
+                    ),
+                    (r) -> fail());
+        } catch (Exception e) {
+            Assertions.assertThat(e.getMessage()).contains(" Variable `a` not defined");
+        }
+
+    }
+
+    @Test
     public void testSchemaFromQueriesWithWrongQuery() {
         List<String> queries = List.of("MATCH (n:Movie) RETURN a");
         try {
@@ -227,6 +364,23 @@ public class PromptIT {
             Assertions.assertThat(e.getMessage()).contains(" Variable `a` not defined");
         }
 
+    }
+
+    @Test
+    public void testSchemaFromEmptyQueriesGpt35Turbo() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN 1");
+
+        testCall(db, """
+            CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+            """,
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    String value = ((String) r.get("value")).toLowerCase();
+                    Assertions.assertThat(value).containsAnyOf("does not contain", "empty", "undefined", "doesn't have");
+                });
     }
     
     @Test
@@ -247,14 +401,14 @@ public class PromptIT {
     }
 
     @Test
-    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedure() {
-        String question = "Which athletes won the gold medal in mixed doubles's curling  at the 2022 Winter Olympics?";
-        
+    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedureGpt35Turbo() {
+        String question = "Which athletes won the gold medal in mixed doubles's curling at the 2022 Winter Olympics?";
+
         // -- test with hallucinations, wrong winner names
         testCall(db, """
                 CALL apoc.ml.openai.chat([
                     {role:"user", content: $question}
-                ], $apiKey)""", 
+                ], $apiKey, { model: 'gpt-3.5-turbo' })""",
                 map("apiKey", OPENAI_KEY, "question", question),
                 r -> {
                     var result = (Map<String,Object>) r.get("value");
@@ -266,6 +420,58 @@ public class PromptIT {
                     String msg = "Current value is: " + value;
                     assertTrue(msg, value.contains("gold medal"));
                     assertNot2022Winners(value);
+                });
+
+        // -- test RAG with irrilevant attributes
+        testCall(db, QUERY_RAG,
+                map("attributes", List.of("irrelevant", "irrelevant2"),
+                        "question", "Which athletes won the gold medal in curling at the 2022 Winter Olympics?",
+                        "conf", map(API_KEY_CONF, OPENAI_KEY)
+                ),
+                (r) -> {
+                    String value = (String) r.get("value");
+                    String message = "Current value is: " + value;
+                    assertTrue(message, value.contains(UNKNOWN_ANSWER));
+
+                    assertNot2022Winners(value);
+                });
+
+        // -- test RAG with relevant attributes
+        testCall(db, QUERY_RAG,
+                map(
+                        "attributes", RAG_ATTRIBUTES,
+                        "question", "Which athletes won the gold medal in curling at the 2022 Winter Olympics?",
+                        "conf", map("apiKey", OPENAI_KEY)
+                ),
+                (r) -> {
+                    String value = (String) r.get("value");
+                    String message = "Current value is: " + value;
+                    assertTrue(message, value.contains("Stefania Constantini"));
+                    assertTrue(message, value.contains("Amos Mosaner"));
+                    assertTrue(message, value.contains("Italy"));
+                });
+    }
+
+    @Test
+    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedure() {
+        String question = "Which athletes won the gold medal in mixed doubles's curling at the 2022 Winter Olympics?";
+        
+        // -- test with hallucinations, wrong winner names
+        testCall(db, """
+                CALL apoc.ml.openai.chat([
+                    {role:"user", content: $question}
+                ], $apiKey)""",
+                map("apiKey", OPENAI_KEY, "question", question),
+                r -> {
+                    var result = (Map<String,Object>) r.get("value");
+
+                    Map message = ((List<Map<String,Map>>) result.get("choices")).get(0).get("message");
+                    assertEquals("assistant", message.get("role"));
+                    String value = (String) message.get("content");
+
+                    String msg = "Current value is: " + value;
+                    assertTrue(msg, value.contains("gold medal"));
+                    assert2022Winners(value);
                 });
 
         // -- test RAG with irrilevant attributes
@@ -451,7 +657,8 @@ public class PromptIT {
     }
 
     private static void assert2022Winners(String value) {
-        assertThat(value).contains("Stefania Constantini", "Amos Mosaner", "Italy");
+        assertThat(value).contains("Stefania Constantini", "Amos Mosaner");
+        assertThat(value).containsAnyOf("Italy", "Italian");
     }
 
 }

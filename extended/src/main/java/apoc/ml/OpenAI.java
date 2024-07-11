@@ -176,7 +176,8 @@ public class OpenAI {
         if (messages == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
-        return executeRequest(apiKey, configuration, "chat/completions", "gpt-3.5-turbo", "messages", messages, "$", apocConfig, urlAccessChecker)
+        configuration.putIfAbsent("model", "gpt-4o");
+        return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create
     /*

@@ -312,7 +312,7 @@ public class Prompt {
         prompt.addAll(otherPrompts);
         
         String apiKey = (String) conf.get(API_KEY_CONF);
-        String model = (String) conf.getOrDefault("model", "gpt-3.5-turbo");
+        String model = (String) conf.getOrDefault("model", "gpt-4o");
         String result = OpenAI.executeRequest(apiKey, Map.of(), "chat/completions",
                         model, "messages", prompt, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String, Object>) v)
