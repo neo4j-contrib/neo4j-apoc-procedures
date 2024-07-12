@@ -14,9 +14,10 @@ All the following procedures can have the following APOC config, i.e. in `apoc.c
 .Apoc configuration
 |===
 |key | description | default
-| apoc.ml.openai.type | "AZURE", "HUGGINGFACE", "OPENAI", indicates whether the API is Azure, HuggingFace or another one | "OPENAI" 
-| apoc.ml.openai.url | the OpenAI endpoint base url | https://api.openai.com/v1 
-    (or empty string if `apoc.ml.openai.type=<AZURE OR HUGGINGFACE>`)
+| apoc.ml.openai.type | "AZURE", "HUGGINGFACE", "OPENAI", indicates whether the API is Azure, HuggingFace, Anthropic or another one | "OPENAI" 
+| apoc.ml.openai.url | the OpenAI endpoint base url | `https://api.openai.com/v1` by default, 
+    `https://api.anthropic.com/v1` if `apoc.ml.openai.type=<ANTHROPIC>`,
+    or empty string if `apoc.ml.openai.type=<AZURE OR HUGGINGFACE>`
 | apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url
 |===
 
@@ -249,3 +250,53 @@ CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of
     '<apiKey>',
     {endpoint: 'https://api.groq.com/openai/v1', model: 'mixtral-8x7b-32768'})
 ----
+
+Another alternative is to use the https://docs.anthropic.com/en/api/getting-started[Anthropic API].
+
+We can use the `apoc.ml.openai.chat` procedure to leverage the https://docs.anthropic.com/en/api/messages[Anthropic Messages API], that is:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+      { content: "What planet do humans live on?", role: "user" },
+      { content: "Only answer with a single word", role: "assistant" }
+    ],
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC'}
+)
+----
+
+.Default Anthropic body parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| max_tokens | 1000
+| model | claude-3-5-sonnet-20240620
+|===
+
+Also, we can use the `apoc.ml.openai.completion` procedure to leverage the https://docs.anthropic.com/en/api/complete[Anthropic Complete API]:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.completion('What color is the sky?', 
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC'}
+)
+----
+
+
+.Default Anthropic body parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| max_tokens_to_sample | 1000
+| model | claude-2.1
+|===
+
+[NOTE]
+====
+At the moment Anthropic does not support embedding API.
+
+And at the time, payload with https://docs.anthropic.com/en/api/messages-streaming[`stream: true`] is not supported, since the result of apoc.ml.openai must be a JSON.
+====
+
