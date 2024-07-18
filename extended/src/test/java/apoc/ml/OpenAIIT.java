@@ -15,6 +15,7 @@ import java.util.Set;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
+import static apoc.ml.OpenAI.GPT_4O_MODEL;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -24,6 +25,8 @@ import static org.junit.Assert.assertEquals;
 public class OpenAIIT {
 
     private String openaiKey;
+    
+    public static final String GPT_35_MODEL = "gpt-3.5-turbo";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -97,7 +100,7 @@ public class OpenAIIT {
     @Test
     public void chatCompletion() {
         testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
-                (row) -> assertChatCompletion(row, "gpt-3.5-turbo"));
+                (row) -> assertChatCompletion(row, GPT_4O_MODEL));
 
         /*
         {
@@ -125,6 +128,12 @@ public class OpenAIIT {
     }
 
     @Test
+    public void chatCompletionGpt35Turbo() {
+        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL)),
+                (row) -> assertChatCompletion(row, GPT_35_MODEL));
+    }
+
+    @Test
     public void embeddingsNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
                 Map.of("apiKey", openaiKey, "conf", emptyMap())
@@ -142,6 +151,13 @@ public class OpenAIIT {
     public void chatCompletionNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
                 Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatCompletionNullGpt35Turbo() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL))
         );
     }
 }
