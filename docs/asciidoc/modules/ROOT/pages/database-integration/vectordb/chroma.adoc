@@ -44,6 +44,12 @@ With hostOrKey=null, the default is 'http://localhost:8000'.
 CALL apoc.vectordb.chroma.createCollection($host, 'test_collection', 'Cosine', 4, {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| name | metadata | database | id | tenant
+| test_collection | {"size": 4, "hnsw:space": "cosine"} | default_database | 9c046861-f46f-417d-bd01-ca8c9f99aee5 | default_tenant
+|===
 
 .Delete a collection (it leverages https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections[this API])
 [source,cypher]
@@ -51,6 +57,7 @@ CALL apoc.vectordb.chroma.createCollection($host, 'test_collection', 'Cosine', 4
 CALL apoc.vectordb.chroma.deleteCollection($host, '<collection_id>', {<optional config>})
 ----
 
+which returns an empty result.
 
 .Upsert vectors (it leverages https://docs.trychroma.com/usage-guide#adding-data-to-a-collection[this API])
 [source,cypher]
@@ -63,6 +70,7 @@ CALL apoc.vectordb.qdrant.upsert($host, '<collection_id>',
     {<optional config>})
 ----
 
+which returns an empty result.
 
 .Get vectors (it leverages https://docs.trychroma.com/usage-guide#querying-a-collection[this API])
 [source,cypher]
@@ -231,9 +239,12 @@ CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
 RETURN value
 ----
 
+which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
+
 .Delete vectors (it leverages https://docs.trychroma.com/usage-guide#deleting-data-from-a-collection[this API])
 [source,cypher]
 ----
 CALL apoc.vectordb.chroma.delete($host, '<collection_id>', [1,2], {<optional config>})
 ----
 
+which returns an array of strings of deleted ids. For example, `["1", "2"]`

@@ -46,6 +46,13 @@ With hostOrKey=null, the default is 'http://localhost:8080/v1'.
 CALL apoc.vectordb.weaviate.createCollection($host, 'test_collection', 'Cosine', 4, {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| vectorizer | invertedIndexConfig | vectorIndexConfig | multiTenancyConfig | vectorIndexType | replicationConfig | shardingConfig | class | properties
+| none | {"bm25": { "b": 0.75, "k1": 1.2 }, "stopwords": { "additions": null, "removals": null, "preset": "en" }, "cleanupIntervalSeconds": 60} | { "ef": -1, "dynamicEfMin": 100, "pq": { "centroids": 256, "trainingLimit": 100000, "encoder": { "type": "kmeans", "distribution": "log-normal" }, "enabled": false, "bitCompression": false, "segments": 0 }, "distance": "cosine", "skip": false, "dynamicEfFactor": 8, "bq": { "enabled": false }, "vectorCacheMaxObjects": 1000000000000, "cleanupIntervalSeconds": 300, "dynamicEfMax": 500, "efConstruction": 128, "flatSearchCutoff": 40000, "maxConnections": 64 }  | { "enabled": false } | hnsw | { "factor": 1 } | { "desiredVirtualCount": 128, "desiredCount": 1, "actualCount": 1, "function": "murmur3", "virtualPerPhysical": 128, "strategy": "hash", "actualVirtualCount": 128, "key": "_id" } | TestCollection | null
+|===
+
 .Create a collection against a remote connection using an API key (see https://weaviate.io/developers/weaviate/configuration/authentication[here])
 [source,cypher]
 ----
@@ -56,6 +63,12 @@ CALL apoc.vectordb.weaviate.createCollection("https://<weaviateInstanceId>.weavi
     {headers: {Authorization: 'Bearer <apiKey>'}})
 ----
 
+.Example results
+[opts="header"]
+|===
+| vectorizer | invertedIndexConfig | vectorIndexConfig | multiTenancyConfig | vectorIndexType | replicationConfig | shardingConfig | class | properties
+| none | {"bm25": { "b": 0.75, "k1": 1.2 }, "stopwords": { "additions": null, "removals": null, "preset": "en" }, "cleanupIntervalSeconds": 60} | { "ef": -1, "dynamicEfMin": 100, "pq": { "centroids": 256, "trainingLimit": 100000, "encoder": { "type": "kmeans", "distribution": "log-normal" }, "enabled": false, "bitCompression": false, "segments": 0 }, "distance": "cosine", "skip": false, "dynamicEfFactor": 8, "bq": { "enabled": false }, "vectorCacheMaxObjects": 1000000000000, "cleanupIntervalSeconds": 300, "dynamicEfMax": 500, "efConstruction": 128, "flatSearchCutoff": 40000, "maxConnections": 64 }  | { "enabled": false } | hnsw | { "factor": 1 } | { "desiredVirtualCount": 128, "desiredCount": 1, "actualCount": 1, "function": "murmur3", "virtualPerPhysical": 128, "strategy": "hash", "actualVirtualCount": 128, "key": "_id" } | TestCollection | null
+|===
 
 
 .Delete a collection (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/schema/delete/schema/{className}[this API])
@@ -63,6 +76,8 @@ CALL apoc.vectordb.weaviate.createCollection("https://<weaviateInstanceId>.weavi
 ----
 CALL apoc.vectordb.weaviate.deleteCollection($host, 'test_collection', {<optional config>})
 ----
+
+which returns an empty result.
 
 
 .Upsert vectors (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/objects/post/objects[this API])
@@ -76,6 +91,13 @@ CALL apoc.vectordb.weaviate.upsert($host, 'test_collection',
     {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| lastUpdateTimeUnix | vector | id | creationTimeUnix | class | properties
+| 1721293838439 | [0.05, 0.61, 0.76, 0.74] | 8ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308  | 1721293838439 | TestCollection | {city: "Berlin", foo: "one"}
+| 1721293838439 | [0.19, 0.81, 0.75, 0.11] | 9ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308  | 1721293838439 | TestCollection | {city: "London", foo: "two"}
+|===
 
 .Get vectors (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/\{className\}/\{id\}[this API])
 [source,cypher]
@@ -250,8 +272,17 @@ CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
 RETURN value
 ----
 
+which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
+
 .Delete vectors (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/objects/delete/objects/\{className\}/\{id\}[this API])
 [source,cypher]
 ----
 CALL apoc.vectordb.weaviate.delete($host, 'test_collection', [1,2], {<optional config>})
 ----
+
+.Example results
+[opts="header"]
+|===
+| value
+| ["1", "2"]
+|===
