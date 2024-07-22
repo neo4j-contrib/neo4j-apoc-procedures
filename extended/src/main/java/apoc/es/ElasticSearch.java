@@ -81,7 +81,7 @@ public class ElasticSearch {
     @Procedure
     @Description("apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a POST operation on elastic search")
     public Stream<MapResult> post(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query,
-                                  @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload,
+                                  @Name(value = "payload", defaultValue = "{}") Object payload,
                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null)
         {

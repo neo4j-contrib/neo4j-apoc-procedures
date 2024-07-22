@@ -14,7 +14,7 @@ apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-nul
 
 [source]
 ----
-apoc.es.post(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload = {} :: MAP?, config = {} :: MAP?) :: (value :: MAP?)
+apoc.es.post(host :: STRING?, index :: STRING?, type :: STRING?, query :: ANY?, payload = {} :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
 ----
 
 == Input parameters
