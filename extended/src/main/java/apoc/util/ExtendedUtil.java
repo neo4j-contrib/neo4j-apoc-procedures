@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.WordUtils;
 import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.ExecutionPlanDescription;
@@ -151,46 +152,61 @@ public class ExtendedUtil
      * For example `mapping: {myPropertyKey: "DateArray"}`
      */
     private static Object convertValue(String value, String typeName) {
+        typeName = typeName.toLowerCase(); // Suitable to work with Parquet/Arrow/Gexf
         switch (typeName) {
             // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
-            case "Point":
+            case "point":
                 return getPointValue(value);
-            case "LocalDateTime":
+            case "localdatetime":
                 return LocalDateTimeValue.parse(value).asObjectCopy();
-            case "LocalTime":
+            case "localtime":
                 return LocalTimeValue.parse(value).asObjectCopy();
-            case "DateTime":
+            case "datetime":
                 return DateTimeValue.parse(value, () -> ZoneId.of("Z")).asObjectCopy();
-            case "Time":
+            case "time":
                 return TimeValue.parse(value, () -> ZoneId.of("Z")).asObjectCopy();
-            case "Date":
+            case "date":
                 return DateValue.parse(value).asObjectCopy();
-            case "Duration":
+            case "duration":
                 return DurationValue.parse(value);
-            case "Char":
+            case "boolean":
+                return Boolean.parseBoolean(value);
+            case "char":
                 return value.charAt(0);
-            case "Byte":
+            case "byte":
                 return value.getBytes();
-            case "Double":
+            case "double":
                 return Double.parseDouble(value);
-            case "Float":
+            case "float":
                 return Float.parseFloat(value);
-            case "Short":
+            case "short":
                 return Short.parseShort(value);
-            case "Int":
+            case "int":
+            case "integer":
                 return Integer.parseInt(value);
-            case "Long":
+            case "long":
                 return Long.parseLong(value);
-            case "Node", "Relationship":
+            case "node", "relationship":
                 return JsonUtil.parse(value, null, Map.class);
+            case "no_value":
             case "NO_VALUE":
                 return null;
+            case "listboolean":
+                value = StringUtils.removeStart(value, "[");
+                value = StringUtils.removeEnd(value, "]");
+                String dataType = typeName.replace("array", "").replace("list", "");
+
+                final Object[] arr = getPrototypeFor(dataType);
+                return Arrays.stream(value.split(","))
+                        .map(item -> convertValue(StringUtils.trim(item), dataType))
+                        .toList()
+                        .toArray(arr);
             default:
                 // If ends with "Array", for example StringArray
-                if (typeName.endsWith("Array")) {
+                if (typeName.endsWith("array") || typeName.startsWith("list")) {
                     value = StringUtils.removeStart(value, "[");
                     value = StringUtils.removeEnd(value, "]");
-                    String array = typeName.replace("Array", "");
+                    String array = typeName.replace("array", "").replace("list", "");
 
                     final Object[] prototype = getPrototypeFor(array);
                     return Arrays.stream(value.split(","))
@@ -222,23 +238,24 @@ public class ExtendedUtil
 
     // similar to CsvPropertyConverter
     public static Object[] getPrototypeFor(String type) {
+        type = type.toLowerCase(); // Suitable to work with Parquet/Arrow/Gexf
         return switch (type) {
-            case "Long" -> new Long[]{};
-            case "Integer" -> new Integer[]{};
-            case "Double" -> new Double[]{};
-            case "Float" -> new Float[]{};
-            case "Boolean" -> new Boolean[]{};
-            case "Byte" -> new Byte[]{};
-            case "Short" -> new Short[]{};
-            case "Char" -> new Character[]{};
-            case "String" -> new String[]{};
-            case "DateTime" -> new ZonedDateTime[]{};
-            case "LocalTime" -> new LocalTime[]{};
-            case "LocalDateTime" -> new LocalDateTime[]{};
-            case "Point" -> new PointValue[]{};
-            case "Time" -> new OffsetTime[]{};
-            case "Date" -> new LocalDate[]{};
-            case "Duration" -> new DurationValue[]{};
+            case "long" -> new Long[]{};
+            case "integer" -> new Integer[]{};
+            case "double" -> new Double[]{};
+            case "float" -> new Float[]{};
+            case "boolean" -> new Boolean[]{};
+            case "byte" -> new Byte[]{};
+            case "short" -> new Short[]{};
+            case "char" -> new Character[]{};
+            case "string" -> new String[]{};
+            case "datetime" -> new ZonedDateTime[]{};
+            case "localtime" -> new LocalTime[]{};
+            case "localdatetime" -> new LocalDateTime[]{};
+            case "point" -> new PointValue[]{};
+            case "time" -> new OffsetTime[]{};
+            case "date" -> new LocalDate[]{};
+            case "duration" -> new DurationValue[]{};
             default -> throw new IllegalStateException("Type " + type + " not supported.");
         };
     }

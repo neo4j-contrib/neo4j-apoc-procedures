@@ -26,6 +26,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::import/load-csv.adoc[]
     ** xref::import/xls.adoc[]
     ** xref::import/html.adoc[]
+    ** xref::import/parquet.adoc[]
+    ** xref::import/gexf.adoc[]
 
 * xref:export/index.adoc[]
     ** xref::export/xls.adoc[]
