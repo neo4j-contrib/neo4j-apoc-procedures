@@ -49,6 +49,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -207,8 +208,7 @@ public class CypherExtended {
                         runSchemaStatementsInTx(
                                 scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
                     } else {
-                        runDataStatementsInTx(
-                                scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
+                        runDataStatementsInTx(scanner, internalQueue, params, addStatistics, reportError, fileName);
                     }
                 },
                 RowResult.TOMBSTONE);
@@ -246,40 +246,46 @@ public class CypherExtended {
             BlockingQueue<RowResult> queue,
             Map<String, Object> params,
             boolean addStatistics,
-            long timeout,
             boolean reportError,
             String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
-            boolean schemaOperation;
-            try {
-                schemaOperation = isSchemaOperation(stmt);
-            } catch (Exception e) {
-                collectError(queue, reportError, e, fileName);
-                return;
-            }
 
-            if (!schemaOperation) {
-                if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools, () -> {
-                        try {
-                            return db.executeTransactionally(
-                                    stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
-                        } catch (Exception e) {
-                            collectError(queue, reportError, e, fileName);
-                            return null;
-                        }
-                    });
-                } else {
+            // Periodic operations cannot be schema operations, so no need to check that here (will fail as invalid
+            // query)
+            if (isPeriodicOperation(stmt)) {
+                Util.inThread(pools, () -> {
+                    try {
+                        return db.executeTransactionally(
+                                stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
+                    } catch (Exception e) {
+                        collectError(queue, reportError, e, fileName);
+                        return null;
+                    }
+                });
+            } else {
+                AtomicBoolean isSchemaError = new AtomicBoolean(false);
+                try {
                     Util.inTx(db, pools, threadTx -> {
                         try (Result result = threadTx.execute(stmt, params)) {
                             return consumeResult(result, queue, addStatistics, tx, fileName);
                         } catch (Exception e) {
-                            collectError(queue, reportError, e, fileName);
+                            // APOC historically skips schema operations
+                            if (!e.getMessage().contains("Schema operations on database 'neo4j' are not allowed")) {
+                                collectError(queue, reportError, e, fileName);
+                                return null;
+                            }
+                            isSchemaError.set(true);
                             return null;
                         }
                     });
+                } catch (Exception e) {
+                    // An error thrown by a schema operation
+                    if (isSchemaError.get()) {
+                        continue;
+                    }
+                    throw e;
                 }
             }
         }
