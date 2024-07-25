@@ -89,7 +89,7 @@ RETURN m.title
 | retryWithError | If true, in case of error retry the api adding the following messages to the body request:
 {`"role":"user", "content": "The previous Cypher Statement throws the following error, consider it to return the correct statement: `<errorMessage>`"}, {"role":"assistant", "content":"Cypher Statement (in backticks):"}` | no, default `false`
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -138,7 +138,7 @@ RETURN *
 |===
 | name | description | mandatory
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -203,7 +203,7 @@ RETURN DISTINCT a.name
 | name | description | mandatory
 | count | The number of queries to retrieve | no, default `1`
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -250,7 +250,7 @@ overall, this graph database schema provides a simple yet powerful representatio
 | name | description | mandatory
 | retries | The number of retries in case of API call failures | no, default `3`
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -329,7 +329,7 @@ RETURN *
 |===
 | name | description | mandatory
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
