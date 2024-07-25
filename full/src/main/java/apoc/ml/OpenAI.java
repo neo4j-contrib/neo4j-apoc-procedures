@@ -144,11 +144,12 @@ public class OpenAI {
             @Name("api_key") String apiKey,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
+        String model = configuration.putIfAbsent("model", "gpt-4o");
         return executeRequest(
                         apiKey,
                         configuration,
                         "chat/completions",
-                        "gpt-3.5-turbo",
+                        model,
                         "messages",
                         messages,
                         "$",

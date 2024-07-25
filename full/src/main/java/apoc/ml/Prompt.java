@@ -163,7 +163,7 @@ public class Prompt {
         if (assistantPrompt != null && !assistantPrompt.isBlank())
             prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
         String apiKey = (String) conf.get("apiKey");
-        String model = (String) conf.getOrDefault("model", "gpt-3.5-turbo");
+        String model = (String) conf.getOrDefault("model", "gpt-4o");
         String result = OpenAI.executeRequest(
                         apiKey, Map.of(), "chat/completions", model, "messages", prompt, "$", apocConfig)
                 .map(v -> (Map<String, Object>) v)

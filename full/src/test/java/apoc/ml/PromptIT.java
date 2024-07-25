@@ -176,4 +176,26 @@ public class PromptIT {
                                     s -> assertThat(s).contains("doesn't have"));
                 });
     }
+    
+    @Test
+    public void testQueryGpt35Turbo() {
+        testResult(db, """
+                CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", "What movies has Tom Hanks acted in?",
+                        "retries", 2L,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> {
+                    List<Map<String, Object>> list = r.stream().toList();
+                    Assertions.assertThat(list).hasSize(12);
+                    Assertions.assertThat(list.stream()
+                                    .map(m -> m.get("query"))
+                                    .filter(Objects::nonNull)
+                                    .map(Object::toString)
+                                    .map(String::trim))
+                            .isNotEmpty();
+                });
+    }
 }
