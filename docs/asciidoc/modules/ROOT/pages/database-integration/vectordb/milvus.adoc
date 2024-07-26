@@ -46,12 +46,25 @@ Here is a list of example using a local installation using th default port `1953
 CALL apoc.vectordb.milvus.createCollection('http://localhost:19531', 'test_collection', 'COSINE', 4, {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| data | code
+| null | 200
+|===
 
 .Delete a collection (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Collection%20(v2)/Drop.md[this API])
 [source,cypher]
 ----
 CALL apoc.vectordb.milvus.deleteCollection('http://localhost:19531', 'test_collection', {<optional config>})
 ----
+
+.Example results
+[opts="header"]
+|===
+| data | code
+| null | 200
+|===
 
 
 .Upsert vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Upsert.md[this API])
@@ -64,6 +77,13 @@ CALL apoc.vectordb.milvus.upsert('http://localhost:19531', 'test_collection',
     ],
     {<optional config>})
 ----
+
+.Example results
+[opts="header"]
+|===
+| data | code
+| {"upsertCount": 2, "upsertId": [1, 2]} | 200
+|===
 
 
 .Get vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Get.md[this API])
@@ -233,9 +253,17 @@ CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
 RETURN value
 ----
 
+which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
 
 .Delete vectors (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Vector%20(v2)/Delete.md[this API])
 [source,cypher]
 ----
 CALL apoc.vectordb.milvus.delete('http://localhost:19531', 'test_collection', [1,2], {<optional config>})
 ----
+
+.Example results
+[opts="header"]
+|===
+| data | code
+| null | 200
+|===

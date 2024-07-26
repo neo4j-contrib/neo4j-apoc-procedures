@@ -45,6 +45,12 @@ With hostOrKey=null, the default is 'http://localhost:6333'.
 CALL apoc.vectordb.qdrant.createCollection($hostOrKey, 'test_collection', 'Cosine', 4, {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| true | 0.094182458 | "ok"
+|===
 
 .Delete a collection (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/delete_collection[this API])
 [source,cypher]
@@ -52,6 +58,12 @@ CALL apoc.vectordb.qdrant.createCollection($hostOrKey, 'test_collection', 'Cosin
 CALL apoc.vectordb.qdrant.deleteCollection($hostOrKey, 'test_collection', {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| true | 0.094182458 | "ok"
+|===
 
 .Upsert vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/upsert_points[this API])
 [source,cypher]
@@ -64,6 +76,12 @@ CALL apoc.vectordb.qdrant.upsert($hostOrKey, 'test_collection',
     {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| {"result": { "operation_id": 0, "status": "acknowledged" } } | 0.094182458 | "ok"
+|===
 
 .Get vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/get_points[this API])
 [source,cypher]
@@ -234,8 +252,17 @@ CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
 RETURN value
 ----
 
+which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
+
 .Delete vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/delete_vectors[this API])
 [source,cypher]
 ----
 CALL apoc.vectordb.qdrant.delete($hostOrKey, 'test_collection', [1,2], {<optional config>})
 ----
+
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| {"result": { "operation_id": 2, "status": "acknowledged" } } | 0.094182458 | "ok"
+|===
