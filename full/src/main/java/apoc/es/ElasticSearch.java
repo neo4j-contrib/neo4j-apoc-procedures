@@ -104,7 +104,7 @@ public class ElasticSearch {
             @Name("index") String index,
             @Name("type") String type,
             @Name("query") Object query,
-            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload,
+            @Name(value = "payload", defaultValue = "{}") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null) {
             payload = Collections.emptyMap();
@@ -123,7 +123,7 @@ public class ElasticSearch {
             @Name("type") String type,
             @Name("id") String id,
             @Name("query") Object query,
-            @Name(value = "payload", defaultValue = "{}") Map<String, Object> payload,
+            @Name(value = "payload", defaultValue = "{}") Object payload,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null) {
             payload = Collections.emptyMap();

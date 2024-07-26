@@ -269,3 +269,139 @@ CALL apoc.es.put($host,'<indexName>', null, null, null, null, { version: 'EIGHT'
 === Results
 
 Results are stream of map in value.
+
+== Reciprocal Rank Fusion (RRF)
+
+RRF can be performed from Neo4j using ES. For further details, read the https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html[official documentation].
+Note that this API is supported since version 8.14.x of Elastic.
+
+Here an example using Neo4j with ES.
+
+=== Step 1 - Mapping creation
+
+[source, cypher]
+----
+CALL apoc.es.put($host, 'example-index', null, null, null,
+{
+              "mappings": {
+                "properties": {
+                  "text": {
+                    "type": "text"
+                  },
+                  "vector": {
+                    "type": "dense_vector",
+                    "dims": 1,
+                    "index": true,
+                    "similarity": "l2_norm"
+                  },
+                  "integer": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }, $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 2 - Put documents
+
+[source, cypher]
+----
+CALL apoc.es.put($host, 'example-index/_doc/1', null, null, null,
+{
+    "text" : "rrf",
+    "vector" : [5],
+    "integer": 1
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/2', null, null, null,
+{
+    "text" : "rrf rrf",
+    "vector" : [4],
+    "integer": 2
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/3', null, null, null,
+{
+    "text" : "rrf rrf rrf",
+    "vector" : [3],
+    "integer": 1
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/4', null, null, null,
+{
+    "text" : "rrf rrf rrf rrf",
+    "integer": 2
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/5', null, null, null,
+{
+    "vector" : [0],
+    "integer": 1
+}, $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 3 - Refresh index
+
+[source, cypher]
+----
+CALL apoc.es.post($host, 'example-index/_refresh', null, null, '', $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 4 - Perform search using rrf retriever
+
+[source, cypher]
+----
+CALL apoc.es.getRaw($host,'example-index/_search',
+{
+    "retriever": {
+        "rrf": {
+            "retrievers": [
+                {
+                    "standard": {
+                        "query": {
+                            "term": {
+                                "text": "rrf"
+                            }
+                        }
+                    }
+                },
+                {
+                    "knn": {
+                        "field": "vector",
+                        "query_vector": [3],
+                        "k": 5,
+                        "num_candidates": 5
+                    }
+                }
+            ],
+            "window_size": 5,
+            "rank_constant": 1
+        }
+    },
+    "size": 3,
+    "aggs": {
+        "int_count": {
+            "terms": {
+                "field": "integer"
+            }
+        }
+    }
+}
+,$config) yield value
+----
+
+==== Results
+
+Results are stream of map in value.
