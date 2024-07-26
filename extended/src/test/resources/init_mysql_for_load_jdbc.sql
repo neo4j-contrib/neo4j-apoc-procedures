@@ -96,3 +96,5 @@ INSERT INTO `countrylanguage` VALUES ('NLD','Turkish','F',0.8);
 COMMIT;
 
 SET AUTOCOMMIT=1;
+
+CREATE TABLE merchandise_id (id varchar(255), source varchar(255) );
