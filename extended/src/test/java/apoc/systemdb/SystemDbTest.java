@@ -19,8 +19,10 @@ import java.util.HashSet;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.jupiter.api.AfterAll;
 
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -36,14 +38,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
 import static org.junit.Assert.assertEquals;
 
 public class SystemDbTest {
-    private static File directory = new File("target/import");
+    private static final File directory = new File("target/import");
 
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule =
+            new ProvideSystemProperty(APOC_TRIGGER_ENABLED, String.valueOf(true));
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
@@ -57,7 +64,6 @@ public class SystemDbTest {
         apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, true);
         apocConfig().setProperty(ExtendedApocConfig.APOC_UUID_ENABLED, true);
-        apocConfig().setProperty(ApocConfig.APOC_TRIGGER_ENABLED, true);
         TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
     }
 
