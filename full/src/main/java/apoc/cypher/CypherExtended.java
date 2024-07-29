@@ -272,7 +272,8 @@ public class CypherExtended {
                             return consumeResult(result, queue, addStatistics, tx, fileName);
                         } catch (Exception e) {
                             // APOC historically skips schema operations
-                            if (!e.getMessage().contains("Schema operations on database 'neo4j' are not allowed")) {
+                            if (!(e.getMessage().contains("Schema operations on database")
+                                    && e.getMessage().contains("are not allowed"))) {
                                 collectError(queue, reportError, e, fileName);
                                 return null;
                             }
