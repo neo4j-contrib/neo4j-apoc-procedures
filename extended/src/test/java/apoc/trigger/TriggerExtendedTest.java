@@ -4,8 +4,10 @@ import apoc.create.Create;
 import apoc.nodes.Nodes;
 import apoc.util.TestUtil;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.jupiter.api.AfterAll;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Label;
@@ -29,17 +31,17 @@ import static org.neo4j.configuration.GraphDatabaseSettings.procedure_unrestrict
  * @since 20.09.16
  */
 public class TriggerExtendedTest {
+    @ClassRule
+    public static final ProvideSystemProperty systemPropertyRule =
+            new ProvideSystemProperty(APOC_TRIGGER_ENABLED, String.valueOf(true));
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(procedure_unrestricted, List.of("apoc*"));
 
-    private long start;
-
     @Before
     public void setUp() throws Exception {
-        start = System.currentTimeMillis();
         TestUtil.registerProcedure(db, Trigger.class, TriggerExtended.class, Nodes.class, Create.class);
-        apocConfig().setProperty(APOC_TRIGGER_ENABLED, true);
     }
 
     @AfterAll
