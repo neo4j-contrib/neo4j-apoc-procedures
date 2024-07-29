@@ -61,6 +61,19 @@ The following example assume we want to create and manage an index called `test-
 CALL apoc.vectordb.pinecone.info(hostOrKey, 'test-collection', {<optional config>})
 ----
 
+.Example results
+[opts="header"]
+|===
+| value
+| { "dimension": 3,
+    "environment": "us-east1-gcp",
+    "name": "tiny-collection",
+    "size": 3126700,
+    "status": "Ready",
+    "vector_count": 99
+}
+|===
+
 
 .Create an index (it leverages https://docs.pinecone.io/reference/api/control-plane/create_index[this API])
 [source,cypher]

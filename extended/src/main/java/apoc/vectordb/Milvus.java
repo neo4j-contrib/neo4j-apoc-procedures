@@ -42,7 +42,7 @@ public class Milvus {
     public URLAccessChecker urlAccessChecker;
 
     @Procedure("apoc.vectordb.milvus.info")
-    @Description("apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if if it does not exist")
+    @Description("apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist")
     public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "dbName", defaultValue = "default") String dbName,  @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/describe";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
