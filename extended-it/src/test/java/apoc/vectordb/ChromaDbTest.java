@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -117,6 +118,14 @@ public class ChromaDbTest {
                     Map<String, Object> row = (Map<String, Object>) r.next().get("value");
                     assertEquals(COLLECTION_NAME, row.get("name"));
                 });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(db, "CALL apoc.vectordb.chroma.info($host, 'wrong_collection', $conf) ",
+                map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
+                "Server returned HTTP response code: 500"
+        );
     }
     
     @Test

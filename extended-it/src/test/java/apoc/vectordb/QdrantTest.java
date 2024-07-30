@@ -20,6 +20,7 @@ import java.util.Map;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -130,6 +131,16 @@ public class QdrantTest {
                     Map value = (Map) res.get("value");
                     assertEquals("ok", value.get("status"));
                 });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                "java.io.FileNotFoundException"
+        );
     }
     
     @Test

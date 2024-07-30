@@ -229,6 +229,7 @@ apoc.vectordb.chroma.get
 apoc.vectordb.chroma.getAndUpdate
 apoc.vectordb.chroma.query
 apoc.vectordb.chroma.queryAndUpdate
+apoc.vectordb.chroma.info
 apoc.vectordb.qdrant.createCollection
 apoc.vectordb.qdrant.deleteCollection
 apoc.vectordb.qdrant.upsert
@@ -237,6 +238,7 @@ apoc.vectordb.qdrant.get
 apoc.vectordb.qdrant.getAndUpdate
 apoc.vectordb.qdrant.query
 apoc.vectordb.qdrant.queryAndUpdate
+apoc.vectordb.qdrant.info
 apoc.vectordb.weaviate.createCollection
 apoc.vectordb.weaviate.deleteCollection
 apoc.vectordb.weaviate.upsert
@@ -245,6 +247,7 @@ apoc.vectordb.weaviate.get
 apoc.vectordb.weaviate.getAndUpdate
 apoc.vectordb.weaviate.query
 apoc.vectordb.weaviate.queryAndUpdate
+apoc.vectordb.weaviate.info
 apoc.vectordb.pinecone.createCollection
 apoc.vectordb.pinecone.deleteCollection
 apoc.vectordb.pinecone.upsert
@@ -253,6 +256,7 @@ apoc.vectordb.pinecone.get
 apoc.vectordb.pinecone.getAndUpdate
 apoc.vectordb.pinecone.query
 apoc.vectordb.pinecone.queryAndUpdate
+apoc.vectordb.pinecone.info
 apoc.vectordb.milvus.createCollection
 apoc.vectordb.milvus.deleteCollection
 apoc.vectordb.milvus.upsert
@@ -261,6 +265,7 @@ apoc.vectordb.milvus.get
 apoc.vectordb.milvus.getAndUpdate
 apoc.vectordb.milvus.query
 apoc.vectordb.milvus.queryAndUpdate
+apoc.vectordb.milvus.info
 apoc.vectordb.custom.get
 apoc.vectordb.custom
 apoc.vectordb.configure

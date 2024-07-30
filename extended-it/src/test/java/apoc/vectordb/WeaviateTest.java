@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -150,13 +151,23 @@ public class WeaviateTest {
 
     @Test
     public void getInfo() {
-        testResult(db, "CALL apoc.vectordb.weaviate.info($host, '$collectionName', $conf)",
+        testResult(db, "CALL apoc.vectordb.weaviate.info($host, $collectionName, $conf)",
                 map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     Map value = (Map) row.get("value");
                     assertEquals(COLLECTION_NAME, value.get("class"));
                 });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                "java.io.FileNotFoundException"
+        );
     }
 
     @Test

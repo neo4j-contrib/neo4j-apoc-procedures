@@ -7,7 +7,7 @@ note that the list and the signature procedures are consistent with the others, 
 [opts=header, cols="1, 3"]
 |===
 | name | description
-| apoc.vectordb.qdrant.info(hostOrKey, collection, $config) | Get information about the specified existing collection or throws an error if it does not exist or throws an error
+| apoc.vectordb.qdrant.info(hostOrKey, collection, $config) | Get information about the specified existing collection or throws a FileNotFoundException if it does not exist
 | apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
     The default endpoint is `<hostOrKey param>/collections/<collection param>`.

@@ -119,12 +119,23 @@ public class MilvusTest {
 
     @Test
     public void getInfo() {
-        testResult(db, "CALL apoc.vectordb.milvus.info($host, 'taaaest_collection', '', $conf) ",
+        testResult(db, "CALL apoc.vectordb.milvus.info($host, 'test_collection', '', $conf) ",
                 map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
                 r -> {
                     Map<String, Object> row = r.next();
                     Map value = (Map) row.get("value");
                     assertEquals(200L, value.get("code"));
+                });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        testResult(db, "CALL apoc.vectordb.milvus.info($host, 'wrong_collection', '', $conf) ",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(100L, value.get("code"));
                 });
     }
 
