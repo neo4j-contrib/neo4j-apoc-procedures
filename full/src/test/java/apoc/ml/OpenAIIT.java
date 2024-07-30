@@ -1,5 +1,6 @@
 package apoc.ml;
 
+import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,7 +17,8 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 public class OpenAIIT {
-
+    public static final String GPT_35_MODEL = "gpt-3.5-turbo";
+    
     private String openaiKey;
 
     @Rule
@@ -71,6 +73,12 @@ public class OpenAIIT {
                     assertEquals("text-davinci-003", result.get("model"));
                     assertEquals("text_completion", result.get("object"));
                 });
+    }
+
+    @Test
+    public void chatCompletionGpt35Turbo() {
+        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", Map.of("model", GPT_35_MODEL)),
+                (row) -> assertChatCompletion(row, GPT_35_MODEL));
     }
 
     @Test
