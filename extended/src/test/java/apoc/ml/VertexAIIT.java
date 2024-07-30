@@ -123,15 +123,20 @@ public class VertexAIIT {
                 params, 
                 (row) -> assertCorrectResponse(row, "libro"));
     }
-    
+
+    @Test
+    public void customWithCompleteStringGeminiFlash() {
+        customWithCompleteStringCustomModel("gemini-1.5-flash-001");
+    }
+
     @Test
     public void customWithStringFormat() {
         HashMap<String, Object> params = new HashMap<>(parameters);
         params.put("contents", streamContents);
         String endpoint = "https://us-central1-aiplatform.googleapis.com/v1/projects/{project}/locations/us-central1/publishers/google/models/gemini-pro-vision:" + STREAM_RESOURCE;
         params.put(ENDPOINT_CONF_KEY, endpoint);
-        testCall(db, "CALL apoc.ml.vertexai.custom({contents: $contents}, $apiKey, $project, {endpoint: $endpoint})", 
-                params, 
+        testCall(db, "CALL apoc.ml.vertexai.custom({contents: $contents}, $apiKey, $project, {endpoint: $endpoint})",
+                params,
                 (row) -> assertCorrectResponse(row, "libro"));
     }
 
@@ -247,5 +252,23 @@ public class VertexAIIT {
         assertNullInputFails(db, "CALL apoc.ml.vertexai.chat(null, $apiKey, $project)",
                 parameters
         );
+    }
+
+    private void customWithCompleteStringCustomModel(String model) {
+        HashMap<String, Object> params = new HashMap<>(parameters);
+        params.put("contents", List.of(
+                Map.of("role", "user",
+                        "parts", List.of(Map.of("text", "translate the word 'book' in italian"))
+                )
+        ));
+
+        String endpoint = "https://us-central1-aiplatform.googleapis.com/v1/projects/" + vertexAiProject + "/locations/us-central1/publishers/google/models/{model}:{resource}";
+        params.put(ENDPOINT_CONF_KEY, endpoint);
+        params.put(MODEL_CONF_KEY, model);
+        params.put(RESOURCE_CONF_KEY, "generateContent");
+
+        testCall(db, " CALL apoc.ml.vertexai.custom({contents: $contents}, $apiKey, null, {endpoint: $endpoint, model: $model, resource: $resource})",
+                params,
+                (row) -> assertCorrectResponse(row, "libro"));
     }
 }

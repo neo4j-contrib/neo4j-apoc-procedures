@@ -33,6 +33,7 @@ public class OpenAI {
     public static final String APIKEY_CONF_KEY = "apiKey";
     public static final String JSON_PATH_CONF_KEY = "jsonPath";
     public static final String PATH_CONF_KEY = "path";
+    public static final String GPT_4O_MODEL = "gpt-4o";
 
     @Context
     public ApocConfig apocConfig;
@@ -203,7 +204,7 @@ public class OpenAI {
         if (messages == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
-        configuration.putIfAbsent("model", "gpt-4o");
+        configuration.putIfAbsent("model", GPT_4O_MODEL);
         return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create

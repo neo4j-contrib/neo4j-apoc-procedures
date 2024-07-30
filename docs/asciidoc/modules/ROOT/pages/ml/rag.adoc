@@ -122,6 +122,29 @@ RETURN value
 | The gold medal in curling at the 2022 Winter Olympics was won by Kristin Skaslien and Magnus Nedregotten from Norway.
 |===
 
+or:
+
+.Query call with custom model
+[source,cypher]
+----
+MATCH path=(:Athlete)-[:HAS_MEDAL]->(Discipline)
+WITH collect(path) AS paths
+CALL apoc.ml.rag(paths,
+  ["name", "country", "medal", "title", "year"],
+  "Which athletes won the gold medal in mixed doubles's curling at the 2022 Winter Olympics?",
+  {apiKey: $apiKey, model: "gpt-3.5-turbo"}
+) YIELD value
+RETURN value
+----
+
+.Example response
+[opts="header"]
+|===
+| value
+| The athletes who won the gold medal in mixed doubles curling at the 2022 Winter Olympics were Stefania Constantini and Amos Mosaner from Italy.
+|===
+
+
 We can also pass a string query returning paths/relationships/nodes, for example:
 
 [source,cypher]
@@ -190,4 +213,3 @@ CALL apoc.ml.rag("rag-rel-embeddings",
 ) YIELD value
 RETURN value
 ----
-
