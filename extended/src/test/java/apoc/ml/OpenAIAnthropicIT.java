@@ -81,7 +81,7 @@ public class OpenAIAnthropicIT {
         byte[] fileContent = FileUtils.readFileToByteArray(new File(path));
         String base64Image = Base64.getEncoder().encodeToString(fileContent);
 
-        List<Map<String, ?>> parts = List.of(
+        List<Map<String, ?>> contentBody = List.of(
                 Map.of(
                         "type", "image",
                         "source", Map.of(
@@ -98,16 +98,16 @@ public class OpenAIAnthropicIT {
 
         List<Map<String, Object>> messages = List.of(Map.of(
                 "role", "user",
-                "content", parts
+                "content", contentBody
         ));
 
-        String query = "CALL apoc.ml.openai.chat($content, $apiKey, $conf)";
+        String query = "CALL apoc.ml.openai.chat($messages, $apiKey, $conf)";
 
         Map<String, Object> conf = Map.of(
                 API_TYPE_CONF_KEY, ANTHROPIC.name()
         );
         testCall(db, query,
-                Map.of( "content", messages,"conf", conf, "apiKey", anthropicApiKey),
+                Map.of( "messages", messages,"conf", conf, "apiKey", anthropicApiKey),
                 (row) -> {
                     var result = (Map<String,Object>) row.get("value");
                     var contentList = (List<Map<String, Object>>) result.get("content");

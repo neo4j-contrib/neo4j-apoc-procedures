@@ -251,9 +251,23 @@ CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of
     {endpoint: 'https://api.groq.com/openai/v1', model: 'mixtral-8x7b-32768'})
 ----
 
+=== Anthropic API (OpenAI-compatible)
+
 Another alternative is to use the https://docs.anthropic.com/en/api/getting-started[Anthropic API].
 
-We can use the `apoc.ml.openai.chat` procedure to leverage the https://docs.anthropic.com/en/api/messages[Anthropic Messages API], that is:
+We can use the `apoc.ml.openai.chat` procedure to leverage the https://docs.anthropic.com/en/api/messages[Anthropic Messages API].
+
+These are the default key-value parameters that will be included in the body request, if not specified:
+
+.Default Anthropic key-value parameters
+[%autowidth, opts=header]
+|===
+| key | value
+| max_tokens | 1000
+| model | "claude-3-5-sonnet-20240620"
+|===
+
+For example:
 
 [source,cypher]
 ----
@@ -266,32 +280,181 @@ CALL apoc.ml.openai.chat([
 )
 ----
 
-.Default Anthropic body parameters
+.Example result
 [%autowidth, opts=header]
 |===
-|name | description
-| max_tokens | 1000
-| model | claude-3-5-sonnet-20240620
+| value
+| {"id": "msg_01NUvsajthuiqRXKJyfs4nBE", 
+    "content": [{"text": " in lowercase: What planet do humans live on?", type: "text"}],
+    "model": "claude-3-5-sonnet-20240620",
+    "role": "assistant",
+    "usage": {"output_tokens": 13, input_tokens: 20},
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message"
+}
 |===
 
-Also, we can use the `apoc.ml.openai.completion` procedure to leverage the https://docs.anthropic.com/en/api/complete[Anthropic Complete API]:
+
+Moreover, we can define the Anthropic API Version via the `anthropic-version` config parameter, e.g.:
 
 [source,cypher]
 ----
-CALL apoc.ml.openai.completion('What color is the sky?', 
+CALL apoc.ml.openai.chat([
+      { content: "What planet do humans live on?", role: "user" }
+    ],
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC', `anthropic-version`: "2023-06-01"}
+)
+----
+
+with a result similar to above.
+
+
+Additionally, we can specify a Base64 image to include in the body, e.g.:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+      { role: "user", content: [
+        {type: "image", source: {type: "base64",
+            media_type: "image/jpeg",
+            data: "<theBase64ImageOfAPizza>"} }
+      ]
+    }
+    ],
     $anthropicApiKey,
     {apiType: 'ANTHROPIC'}
 )
 ----
 
-
-.Default Anthropic body parameters
+.Example result
 [%autowidth, opts=header]
 |===
-|name | description
-| max_tokens_to_sample | 1000
-| model | claude-2.1
+| value
+| {"id": "msg_01NxAth45myf36njuh1qwxfM",
+    "content": [{
+        "text": "This image shows a pizza.....",
+        "type": "text"
+    }
+    ],
+    "model": "claude-3-5-sonnet-20240620",
+    "role": "assistant",
+    "usage": {
+        "output_tokens": 202,
+        "input_tokens": 192
+    },
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message"
+}
 |===
+
+We can also specify other custom body requests, like the  `max_tokens` value, to be included in the config parameter:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+      { content: "What planet do humans live on?", role: "user" }
+    ],
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC', max_tokens: 2}
+)
+----
+
+.Example result
+[%autowidth, opts=header]
+|===
+| value
+| {
+    "id": "msg_01HxQbBuPc9xxBDSBc5iWw2P",
+    "content": [
+    {
+        text": "Hearth",
+        "type": "text"
+    }
+    ],
+        "model": "claude-3-5-sonnet-20240620",
+        "role": "assistant",
+    "usage": {
+        "output_tokens": 10,
+        "input_tokens": 20
+    },
+        "stop_reason": "max_tokens",
+        "stop_sequence": null,
+        "type": "message"
+}
+|===
+
+
+
+
+Also, we can use the `apoc.ml.openai.completion` procedure to leverage the https://docs.anthropic.com/en/api/complete[Anthropic Complete API].
+
+These are the default key-value parameters that will be included in the body request, if not specified:
+
+.Default Anthropic key-value parameters
+[%autowidth, opts=header]
+|===
+| key | value
+| max_tokens_to_sample | 1000
+| model | "claude-2.1"
+|===
+
+
+For example:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.completion('\n\nHuman: What color is sky?\n\nAssistant:', 
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC'}
+)
+----
+
+.Example result
+[%autowidth, opts=header]
+|===
+| value
+| {
+    "id": "compl_016JGWzFfBQCVWQ8vkoDsdL3",
+    "stop": "Human:",
+    "model": "claude-2.1",
+    "stop_reason": "stop_sequence",
+    "type": "completion",
+    "completion": " The sky appears blue on a clear day. This is due to how air molecules in Earth's atmosphere scatter sunlight. Shorter wavelengths of light like blue and violet are scattered more, making the sky appear blue to our eyes.",
+    "log_id": "compl_016JGWzFfBQCVWQ8vkoDsdL3"
+    }
+|===
+
+Moreover, we can specify other custom body requests, like the `max_tokens_to_sample` value, to be included in the config parameter:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.completion('\n\nHuman: What color is sky?\n\nAssistant:', 
+    $anthropicApiKey,
+    {apiType: 'ANTHROPIC', max_tokens_to_sample: 3}
+)
+----
+
+.Example result
+[%autowidth, opts=header]
+|===
+| value
+| {
+    "id": "compl_015yzL9jDdMQnLSN3jkQifZt",
+    "stop": null,
+    "model": "claude-2.1",
+    "stop_reason": "max_tokens",
+    "type": "completion",
+    "completion": " The sky is",
+    "log_id": "compl_015yzL9jDdMQnLSN3jkQifZt"
+}
+|===
+
+
+And also, we can specify the API version via `anthropic-version` configuration parameter, like the above example with the apoc.ml.openai.chat procedure.
+
 
 [NOTE]
 ====
