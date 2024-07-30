@@ -48,6 +48,7 @@ abstract class OpenAIRequestHandler {
         HUGGINGFACE(new OpenAi(null)),
         MIXEDBREAD_EMBEDDING(new OpenAi(MIXEDBREAD_BASE_URL)),
         MIXEDBREAD_CUSTOM(new Custom()),
+        ANTHROPIC(new Anthropic()),
         OPENAI(new OpenAi("https://api.openai.com/v1"));
 
         private final OpenAIRequestHandler handler;
@@ -91,6 +92,18 @@ abstract class OpenAIRequestHandler {
         @Override
         public void addApiKey(Map<String, Object> headers, String apiKey) {
             headers.put("Authorization", "Bearer " + apiKey);
+        }
+    }
+
+    static class Anthropic extends OpenAi {
+
+        public Anthropic() {
+            super("https://api.anthropic.com/v1");
+        }
+
+        @Override
+        public void addApiKey(Map<String, Object> headers, String apiKey) {
+            headers.put("x-api-key", apiKey);
         }
     }
 

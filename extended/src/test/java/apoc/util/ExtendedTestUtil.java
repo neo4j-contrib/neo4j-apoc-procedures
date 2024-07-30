@@ -11,9 +11,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallAssertions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
@@ -82,5 +85,14 @@ public class ExtendedTestUtil {
                 return false;
             }
         }, (v) -> v, timeout, TimeUnit.SECONDS);
+    }
+
+    public static void assertFails(GraphDatabaseService db, String query, Map<String,Object> params, String expectedErrMsg) {
+        try {
+            testCall(db, query, params, r -> fail("Should fail due to " + expectedErrMsg));
+        } catch (Exception e) {
+            String actualErrMsg = e.getMessage();
+            assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
+        }
     }
 }

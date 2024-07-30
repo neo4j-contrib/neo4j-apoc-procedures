@@ -64,40 +64,67 @@ public class OpenAI {
         );
         OpenAIRequestHandler.Type type = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
         
-        var config = new HashMap<>(configuration);
-        // we remove these keys from config, since the json payload is calculated starting from the config map
-        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(config::remove);
-        
-        switch (type) {
-            case MIXEDBREAD_CUSTOM -> {
-                // no payload manipulation, taken from the configuration as-is
-            }
-            case HUGGINGFACE -> {
-                config.putIfAbsent("inputs", inputs);
-                jsonPath = "$[0]";
-            }
-            default -> {
-                config.putIfAbsent(MODEL_CONF_KEY, model);
-                config.put(key, inputs);
-            }
-        }
-        
+        var configForPayload = new HashMap<>(configuration);
+        // we remove these keys from configPayload, since the json payload is calculated starting from the configPayload map
+        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(configForPayload::remove);
+
+        final Map<String, Object> headers = new HashMap<>();
+
+        handleAPIProvider(type, configuration, path, model, key, inputs, configForPayload, headers);
+
+        path = (String) configuration.getOrDefault(PATH_CONF_KEY, path);
         OpenAIRequestHandler apiType = type.get();
 
         jsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
-        path = (String) configuration.getOrDefault(PATH_CONF_KEY, path);
-        
-        final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         apiType.addApiKey(headers, apiKey);
 
-        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
+        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(configForPayload);
         
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
         var url = apiType.getFullUrl(path, configuration, apocConfig);
         return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
+    }
+
+    private static void handleAPIProvider(OpenAIRequestHandler.Type type,
+                                          Map<String, Object> configuration,
+                                          String path,
+                                          String model,
+                                          String key,
+                                          Object inputs,
+                                          HashMap<String, Object> configForPayload,
+                                          Map<String, Object> headers) {
+        switch (type) {
+            case MIXEDBREAD_CUSTOM -> {
+                // no payload manipulation, taken from the configuration as-is
+            }
+            case HUGGINGFACE -> {
+                configForPayload.putIfAbsent("inputs", inputs);
+                configuration.putIfAbsent(JSON_PATH_CONF_KEY, "$[0]");
+            }
+            case ANTHROPIC -> {
+                headers.putIfAbsent(ANTHROPIC_VERSION, configuration.getOrDefault(ANTHROPIC_VERSION, "2023-06-01"));
+
+                if (path.equals("completions")) {
+                    configuration.putIfAbsent(PATH_CONF_KEY, "complete");
+                    configForPayload.putIfAbsent(MAX_TOKENS_TO_SAMPLE, 1000);
+                    configForPayload.putIfAbsent(MODEL_CONF_KEY, "claude-2.1");
+                } else {
+                    configuration.putIfAbsent(PATH_CONF_KEY, "messages");
+                    configForPayload.putIfAbsent(MAX_TOKENS, 1000);
+                    configForPayload.putIfAbsent(MODEL_CONF_KEY, "claude-3-5-sonnet-20240620");
+                }
+
+                configForPayload.remove(ANTHROPIC_VERSION);
+                configForPayload.put(key, inputs);
+            }
+            default -> {
+                configForPayload.putIfAbsent(MODEL_CONF_KEY, model);
+                configForPayload.put(key, inputs);
+            }
+        }
     }
 
     @Procedure("apoc.ml.openai.embedding")
