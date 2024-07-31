@@ -9,6 +9,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.mockserver.socket.PortFactory;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -33,6 +34,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 public class WatsonTest {
 
+    private static final int PORT = PortFactory.findFreePort();
     private static ClientAndServer mockServer;
 
     @ClassRule
@@ -45,14 +47,15 @@ public class WatsonTest {
         TestUtil.registerProcedure(db, Watson.class);
         
         String path = "/generation/text";
-        apocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:1080" + path);
+        apocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:" + PORT + path);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, "fakeProjectId");
         
         File urlFileName = new File(getUrlFileName("watson.json").getFile());
         String body = FileUtils.readFileToString(urlFileName, UTF_8);
         
-        mockServer = startClientAndServer(1080);
+        
+        mockServer = startClientAndServer(PORT);
         mockServer.when(
                         request()
                                 .withMethod("POST")
