@@ -14,13 +14,15 @@ import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
 import org.neo4j.driver.internal.util.Iterables;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -82,6 +84,12 @@ public class LoadS3Test extends S3BaseTest {
     private String removeRegionFromUrl(String url) {
         return url.replace(s3Container.getEndpointConfiguration().getSigningRegion() + ".", "");
     }
-
+    
+    public static void assertRow(Result r, String name, String age, long lineNo) {
+        Map<String, Object> row = r.next();
+        assertEquals(map("name", name,"age", age), row.get("map"));
+        assertEquals(asList(name, age), row.get("list"));
+        assertEquals(lineNo, row.get("lineNo"));
+    }
 
 }
