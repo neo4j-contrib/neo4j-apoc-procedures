@@ -60,6 +60,7 @@ public class WeaviateTest {
     private static final List<String> FIELDS = List.of("city", "foo");
     private static final String ADMIN_KEY = "jane-secret-key";
     private static final String READONLY_KEY = "ian-secret-key";
+    private static final String COLLECTION_NAME = "TestCollection";
 
     private static final WeaviateContainer WEAVIATE_CONTAINER = new WeaviateContainer(
                     "semitechnologies/weaviate:1.24.5")
@@ -154,6 +155,27 @@ public class WeaviateTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.weaviate.info($host, $collectionName, $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(COLLECTION_NAME, value.get("class"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                "java.io.FileNotFoundException"
+        );
     }
 
     @Test

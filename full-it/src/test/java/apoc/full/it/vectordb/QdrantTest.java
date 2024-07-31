@@ -1,7 +1,26 @@
 package apoc.full.it.vectordb;
 
+import apoc.ml.Prompt;
+import apoc.util.TestUtil;
+import apoc.util.Util;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
+import org.testcontainers.qdrant.QdrantContainer;
+
+import java.util.List;
+import java.util.Map;
+
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -124,6 +143,29 @@ public class QdrantTest {
         dropAndDeleteAll(db);
     }
 
+    @Test
+    public void getInfo() {
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'test_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map<String, Object> res = r.next();
+                    Map value = (Map) res.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                "java.io.FileNotFoundException"
+        );
+    }
+    
     @Test
     public void getVectorsWithReadOnlyApiKey() {
         testResult(
