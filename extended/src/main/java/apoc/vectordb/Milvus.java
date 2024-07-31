@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
@@ -39,6 +40,21 @@ public class Milvus {
 
     @Context
     public URLAccessChecker urlAccessChecker;
+
+    @Procedure("apoc.vectordb.milvus.info")
+    @Description("apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist")
+    public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "dbName", defaultValue = "default") String dbName,  @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+        String url = "%s/collections/describe";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+
+        config.put(BODY_KEY, Map.of("dbName", dbName, "collectionName", collection));
+
+        RestAPIConfig restAPIConfig = new RestAPIConfig( config, Map.of(), Map.of() );
+
+        return executeRequest(restAPIConfig, urlAccessChecker)
+                .map(v -> (Map<String,Object>) v)
+                .map(MapResult::new);
+    }
 
     @Procedure("apoc.vectordb.milvus.createCollection")
     @Description("apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")

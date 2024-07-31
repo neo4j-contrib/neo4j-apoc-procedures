@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -124,6 +125,29 @@ public class PineconeTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.pinecone.info($host, $coll, $conf) ",
+                map("host", HOST, "coll", collName,
+                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                ),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(collName, value.get("name"));
+                });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(db, "CALL apoc.vectordb.pinecone.info($host, 'wrong_collection', $conf) ",
+                map("host", HOST, "coll", collName,
+                        "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
+                ),
+                "Server returned HTTP response code: 500"
+        );
     }
 
     @Test

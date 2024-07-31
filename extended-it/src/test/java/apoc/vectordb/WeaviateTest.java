@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -56,6 +57,7 @@ public class WeaviateTest {
     private static final List<String> FIELDS = List.of("city", "foo");
     private static final String ADMIN_KEY = "jane-secret-key";
     private static final String READONLY_KEY = "ian-secret-key";
+    private static final String COLLECTION_NAME = "TestCollection";
 
     private static final WeaviateContainer WEAVIATE_CONTAINER = new WeaviateContainer("semitechnologies/weaviate:1.24.5")
             .withEnv("AUTHENTICATION_APIKEY_ENABLED", "true")
@@ -114,10 +116,10 @@ public class WeaviateTest {
                 MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
-                    assertEquals("TestCollection", values.next().get("class"));
-                    assertEquals("TestCollection", values.next().get("class"));
-                    assertEquals("TestCollection", values.next().get("class"));
-                    assertEquals("TestCollection", values.next().get("class"));
+                    assertEquals(COLLECTION_NAME, values.next().get("class"));
+                    assertEquals(COLLECTION_NAME, values.next().get("class"));
+                    assertEquals(COLLECTION_NAME, values.next().get("class"));
+                    assertEquals(COLLECTION_NAME, values.next().get("class"));
                     assertFalse(values.hasNext());
                 });
         
@@ -134,8 +136,8 @@ public class WeaviateTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        testCallEmpty(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, 'TestCollection', $conf)",
-                MapUtil.map("host", HOST, "conf", ADMIN_HEADER_CONF)
+        testCallEmpty(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, $collectionName, $conf)",
+                MapUtil.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
         );
 
         WEAVIATE_CONTAINER.stop();
@@ -145,6 +147,27 @@ public class WeaviateTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.weaviate.info($host, $collectionName, $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(COLLECTION_NAME, value.get("class"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                "java.io.FileNotFoundException"
+        );
     }
 
     @Test

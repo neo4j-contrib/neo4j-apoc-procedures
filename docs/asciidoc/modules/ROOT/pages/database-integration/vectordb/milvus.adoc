@@ -6,6 +6,7 @@ Here is a list of all available Milvus procedures:
 [opts=header, cols="1, 3"]
 |===
 | name | description
+| apoc.vectordb.milvus.info(hostOrKey, collection, $config) | Get information about the specified existing collection or returns a response with code 100 if it does not exist
 | apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $config) |
     Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
     The default endpoint is `<hostOrKey param>/v2/vectordb/collections/create`.
@@ -39,6 +40,25 @@ With hostOrKey=null, the default host is 'http://localhost:19530'.
 
 Here is a list of example using a local installation using th default port `19531`.
 
+.Get collection info (it leverages https://milvus.io/docs/manage-collections.md#View-Collections[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.milvus.info($host, 'test_collection', '', {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| value
+| {"data": {"shardsNum": 1, "aliases": [], "autoId": false, "description": "", "partitionsNum": 1, "collectionName": "test_collection", 
+    "indexes": [{"metricType": "COSINE", "indexName": "vector", "fieldName": "vector"}],
+    "load": "LoadStateLoading", "consistencyLevel": "Bounded",
+    "fields": [{"partitionKey": false, "autoId": false, "name": "id", "description": "", "id": 100, "type": "Int64", "primaryKey": true},
+        {"partitionKey": false, "autoId": false, "name": "vector", "description": "", "id": 101, "params": [{"value": 4, "key": "dim"}], "type": "FloatVector", "primaryKey": false}
+    ],
+    "collectionID": "451046728334049293", "enableDynamicField": true, "properties": []}, "message": "", "code": 200
+}
+|===
 
 .Create a collection (it leverages https://milvus.io/api-reference/restful/v2.4.x/v2/Collection%20(v2)/Create.md[this API])
 [source,cypher]

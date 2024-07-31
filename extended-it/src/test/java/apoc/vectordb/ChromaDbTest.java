@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -29,7 +30,6 @@ import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
-import static apoc.vectordb.VectorDbTestUtil.assertRagWithVectors;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
@@ -41,7 +41,6 @@ import static apoc.vectordb.VectorMappingConfig.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -50,6 +49,7 @@ public class ChromaDbTest {
     private static final ChromaDBContainer CHROMA_CONTAINER = new ChromaDBContainer("chromadb/chroma:0.4.25.dev137");
     private static final String READONLY_KEY = "my_readonly_api_key";
     private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
+    private static final String COLLECTION_NAME = "test_collection";
 
     private static String HOST;
 
@@ -108,6 +108,24 @@ public class ChromaDbTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.chroma.info($host, $collection, $conf) ",
+                map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
+                r -> {
+                    Map<String, Object> row = (Map<String, Object>) r.next().get("value");
+                    assertEquals(COLLECTION_NAME, row.get("name"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(db, "CALL apoc.vectordb.chroma.info($host, 'wrong_collection', $conf) ",
+                map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
+                "Server returned HTTP response code: 500"
+        );
     }
     
     @Test

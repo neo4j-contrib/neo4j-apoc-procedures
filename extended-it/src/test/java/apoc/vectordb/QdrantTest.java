@@ -1,5 +1,6 @@
 package apoc.vectordb;
 
+import apoc.ml.Prompt;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
@@ -17,15 +18,15 @@ import org.testcontainers.qdrant.QdrantContainer;
 import java.util.List;
 import java.util.Map;
 
-import apoc.ml.Prompt;
-import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.ml.Prompt.API_KEY_CONF;
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbHandler.Type.QDRANT;
-import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
+import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
@@ -43,7 +44,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.neo4j.configuration.GraphDatabaseSettings.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class QdrantTest {
     private static final String ADMIN_KEY = "my_admin_api_key";
@@ -116,6 +118,29 @@ public class QdrantTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'test_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map<String, Object> res = r.next();
+                    Map value = (Map) res.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                "java.io.FileNotFoundException"
+        );
     }
     
     @Test
