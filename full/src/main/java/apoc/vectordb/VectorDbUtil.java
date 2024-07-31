@@ -33,6 +33,21 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
+import static apoc.ml.RestAPIConfig.BODY_KEY;
+import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
+import static apoc.ml.RestAPIConfig.METHOD_KEY;
+import static apoc.util.SystemDbUtil.withSystemDb;
+import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MappingMode.READ_ONLY;
+
 public class VectorDbUtil {
 
     public static final String ERROR_READONLY_MAPPING =

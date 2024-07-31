@@ -247,6 +247,8 @@ apoc.vectordb.weaviate.get
 apoc.vectordb.weaviate.getAndUpdate
 apoc.vectordb.weaviate.query
 apoc.vectordb.weaviate.queryAndUpdate
-apoc.vectordb.custom.get
+apoc.vectordb.weaviate.info
+apoc.vectordb.pinecone.info
+apoc.vectordb.milvus.info
 apoc.vectordb.custom
 apoc.vectordb.configure

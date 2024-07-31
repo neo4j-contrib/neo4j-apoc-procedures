@@ -1,5 +1,12 @@
 package apoc.full.it.vectordb;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static apoc.ml.Prompt.API_KEY_CONF;
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -9,6 +16,7 @@ import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
@@ -46,6 +54,7 @@ import org.testcontainers.chromadb.ChromaDBContainer;
 public class ChromaDbTest {
     private static final AtomicReference<String> COLL_ID = new AtomicReference<>();
     private static final ChromaDBContainer CHROMA_CONTAINER = new ChromaDBContainer("chromadb/chroma:0.4.25.dev137");
+    private static final String COLLECTION_NAME = "test_collection";
 
     private static String HOST;
 
@@ -105,6 +114,24 @@ public class ChromaDbTest {
         dropAndDeleteAll(db);
     }
 
+    @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.chroma.info($host, $collection, $conf) ",
+                map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
+                r -> {
+                    Map<String, Object> row = (Map<String, Object>) r.next().get("value");
+                    assertEquals(COLLECTION_NAME, row.get("name"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(db, "CALL apoc.vectordb.chroma.info($host, 'wrong_collection', $conf) ",
+                map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
+                "Server returned HTTP response code: 500"
+        );
+    }
+    
     @Test
     public void getVectors() {
         testResult(
