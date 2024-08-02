@@ -3,6 +3,7 @@ package apoc.ml;
 import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.StringResult;
+import apoc.util.CollectionUtils;
 import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -148,6 +149,7 @@ public class Prompt {
     public static final String EXPLAIN_SCHEMA_PROMPT = """
             You are an expert in the Neo4j graph database and graph data modeling and have experience in a wide variety of business domains.
             Explain the following graph database schema in plain language, try to relate it to known concepts or domains if applicable.
+            Try to explain as much as possible the nodes, relationships and properties.
             Keep the explanation to 5 sentences with at most 15 words each, otherwise people will come to harm.
             """;
 
@@ -274,8 +276,9 @@ public class Prompt {
 
     @Procedure
     public Stream<StringResult> schema(@Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) throws MalformedURLException, JsonProcessingException {
+        String schema = loadSchema(tx, conf);
         String schemaExplanation = prompt("Please explain the graph database schema to me and relate it to well known concepts and domains.",
-                EXPLAIN_SCHEMA_PROMPT, "This database schema ", loadSchema(tx, conf), conf, List.of());
+                EXPLAIN_SCHEMA_PROMPT, "This database schema ", schema, conf, List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
 
@@ -302,14 +305,19 @@ public class Prompt {
         }
     }
 
-    private String prompt(String userQuestion, String systemPrompt, String assistantPrompt, String schema, Map<String, Object> conf, List<Map<String,String>> otherPrompts) throws JsonProcessingException, MalformedURLException {
+    private String prompt(String userQuestion, String systemPrompt, String assistantPrompt, String schema, Map<String, Object> conf, List<Map<String,String>> otherPromptsFromRetries) throws JsonProcessingException, MalformedURLException {
         List<Map<String, String>> prompt = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank()) prompt.add(Map.of("role", "system", "content", systemPrompt));
         if (schema != null && !schema.isBlank()) prompt.add(Map.of("role", "system", "content", "The graph database schema consists of these elements\n" + schema));
+        
+        List<Map<String, String>> additionalPrompts = (List<Map<String, String>>) conf.get("additionalPrompts");
+        if (CollectionUtils.isNotEmpty(additionalPrompts)) {
+            prompt.addAll(additionalPrompts);
+        }
         if (userQuestion != null && !userQuestion.isBlank()) prompt.add(Map.of("role", "user", "content", userQuestion));
         if (assistantPrompt != null && !assistantPrompt.isBlank()) prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
 
-        prompt.addAll(otherPrompts);
+        prompt.addAll(otherPromptsFromRetries);
         
         String apiKey = (String) conf.get(API_KEY_CONF);
         String model = (String) conf.getOrDefault("model", "gpt-4o");
@@ -357,12 +365,20 @@ public class Prompt {
             """ + SCHEMA_FROM_META_DATA;
     
     private final static String SCHEMA_PROMPT = """
-                nodes:
-                %s
-                relationships:
-                %s
-                patterns:
-                %s
+            nodes:
+            ```
+            %s
+            ```
+
+            relationships:
+            ```
+            %s
+            ```
+
+            patterns:
+            ```
+            %s
+            ```
             """;
 
 

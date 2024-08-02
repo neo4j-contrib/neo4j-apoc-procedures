@@ -337,5 +337,11 @@ public class ExtendedUtil
         }
         return floats;
     }
+
+    public static List<String> splitSemicolonAndRemoveBlanks(String value) {
+        return Arrays.stream(value.split(";\n"))
+                .filter(i -> !i.isBlank())
+                .toList();
+    }
             
 }
