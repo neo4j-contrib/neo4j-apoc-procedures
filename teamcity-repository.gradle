@@ -2,11 +2,11 @@ allprojects {
     plugins.withType(JavaLibraryPlugin) {
         repositories {
             maven {
-                name = 'teamcity-neo4j-dev'
-                url =  System.getenv('TEAMCITY_DEV_URL')
+                name = 'aws-codeartifact-repo'
+                url =  System.getenv('CODEARTIFACT_DOWNLOAD_URL')
                 credentials {
-                    username System.getenv('TEAMCITY_USER')
-                    password System.getenv('TEAMCITY_PASSWORD')
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
                 }
                 authentication {
                     basic(BasicAuthentication)

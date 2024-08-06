@@ -12,10 +12,10 @@ runs:
     - uses: ./.github/actions/setup-gradle-cache
     - name: Run compile tests 
       shell: bash
-      run: ./gradlew :${{inputs.project-name}}:compileJava :${{inputs.project-name}}:compileTestJava
+      run: ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI :${{inputs.project-name}}:compileJava :${{inputs.project-name}}:compileTestJava
     - name: Run tests
       shell: bash
-      run: ./gradlew :${{inputs.project-name}}:check --parallel
+      run: ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI :${{inputs.project-name}}:check --parallel
     - name: Archive test results
       uses: actions/upload-artifact@v2
       if: always()
