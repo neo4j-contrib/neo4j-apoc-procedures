@@ -37,6 +37,10 @@ public class ExtendedTestContainerUtil
 
     public static void addExtraDependencies() {
         File extraDepsDir = new File(TestContainerUtil.baseDir, "extra-dependencies");
+        
+        String codeArtifactUrl = System.getenv("CODEARTIFACT_DOWNLOAD_URL");
+        System.out.println("codeArtifactUrl = " + codeArtifactUrl);
+        
         // build the extra-dependencies
         executeGradleTasks(extraDepsDir, "buildDependencies");
 
