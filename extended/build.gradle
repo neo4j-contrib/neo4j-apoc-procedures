@@ -31,6 +31,12 @@ compileKotlin {
     mustRunAfter tasks.generateGrammarSource
 }
 
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "17"
+
+    mustRunAfter tasks.generateTestGrammarSource
+}
+
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
 }
