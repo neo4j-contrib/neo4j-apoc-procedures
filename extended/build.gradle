@@ -27,12 +27,12 @@ jar {
 
 compileKotlin {
     kotlinOptions.jvmTarget = "17"
+
+    dependsOn tasks.generateGrammarSource
 }
 
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
-
-    dependsOn tasks.compileKotlin
 }
 
 javadoc {
