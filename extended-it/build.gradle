@@ -13,6 +13,12 @@ test {
     maxParallelForks = 1
 }
 
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "17"
+
+    mustRunAfter tasks.generateTestGrammarSource
+}
+
 dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
