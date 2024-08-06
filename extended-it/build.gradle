@@ -19,6 +19,30 @@ compileTestKotlin {
     mustRunAfter tasks.generateTestGrammarSource
 }
 
+allprojects {
+    repositories {
+
+        /*maven {  // this contains the neo4j 4.0.0-beta jars
+        url "https://neo4j.bintray.com/community/"
+    }*/
+        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+            maven {
+                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+                credentials {
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
+                }
+            }
+        } else {
+            mavenCentral()
+        }
+        maven {
+            url "https://repo.gradle.org/gradle/libs-releases"
+        }
+        mavenLocal()
+    }
+}
+
 dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
