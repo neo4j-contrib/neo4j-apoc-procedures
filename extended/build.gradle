@@ -28,7 +28,7 @@ jar {
 compileKotlin {
     kotlinOptions.jvmTarget = "17"
 
-    dependsOn tasks.generateGrammarSource
+    mustRunAfter tasks.generateGrammarSource
 }
 
 generateGrammarSource {
