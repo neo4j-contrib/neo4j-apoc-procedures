@@ -31,6 +31,8 @@ compileKotlin {
 
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
+
+    dependsOn tasks.compileKotlin
 }
 
 javadoc {
