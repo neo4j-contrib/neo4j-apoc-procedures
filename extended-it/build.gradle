@@ -44,6 +44,8 @@ allprojects {
 }
 
 dependencies {
+    implementation project(":extended")
+    
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
@@ -57,7 +59,6 @@ dependencies {
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
-    implementation project(":extended")
 
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
