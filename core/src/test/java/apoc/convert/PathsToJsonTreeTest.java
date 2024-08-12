@@ -56,7 +56,7 @@ public class PathsToJsonTreeTest {
     }
 
     @Test
-    public void testToTreeSimplePath() throws Exception {
+    public void testToTreeSimplePath() {
         /*            r:R
               a:A --------> b:B
         */
@@ -87,6 +87,68 @@ public class PathsToJsonTreeTest {
                     + "}";
             assertEquals(rows.size(), 1);
             assertEquals(parseJson(expectedRow), rows.get(0));
+        }
+    }
+
+    @Test
+    public void testSingleNode() {
+        // a:A
+        db.executeTransactionally("CREATE (a: A {nodeName: 'a'})");
+
+        var query = "MATCH path = (n)\n"
+                + "WITH COLLECT(path) AS paths\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "RETURN tree";
+
+        try (Transaction tx = db.beginTx()) {
+            Result result = tx.execute(query);
+            var rows = result.stream().collect(Collectors.toList());
+            var expectedRow = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0"
+                    + "   }"
+                    + "}";
+            assertEquals(rows.size(), 1);
+            assertEquals(parseJson(expectedRow), rows.get(0));
+        }
+    }
+
+    @Test
+    public void testSingleDisjointNodes() {
+        // a:A
+        db.executeTransactionally("CREATE (a: A {nodeName: 'a'}), (b: B {nodeName: 'b'}), (c: C {nodeName: 'c'})");
+
+        var query = "MATCH path = (n)\n"
+                + "WITH COLLECT(path) AS paths\n"
+                + "CALL apoc.paths.toJsonTree(paths, true, {sortPaths: false}) YIELD value AS tree\n"
+                + "RETURN tree";
+
+        try (Transaction tx = db.beginTx()) {
+            Result result = tx.execute(query);
+            var rows = result.stream().collect(Collectors.toList());
+            var expectedRowA = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"a\","
+                    + "      \"_type\":\"A\","
+                    + "      \"_id\":0"
+                    + "   }"
+                    + "}";
+            var expectedRowB = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"b\","
+                    + "      \"_type\":\"B\","
+                    + "      \"_id\":1"
+                    + "   }"
+                    + "}";
+            var expectedRowC = "{" + "   \"tree\":{"
+                    + "      \"nodeName\":\"c\","
+                    + "      \"_type\":\"C\","
+                    + "      \"_id\":2"
+                    + "   }"
+                    + "}";
+            assertEquals(rows.size(), 3);
+            assertEquals(parseJson(expectedRowA), rows.get(0));
+            assertEquals(parseJson(expectedRowB), rows.get(1));
+            assertEquals(parseJson(expectedRowC), rows.get(2));
         }
     }
 
