@@ -234,7 +234,6 @@ public class Json {
     @Procedure("apoc.paths.toJsonTree")
     @Description(
             "apoc.paths.toJsonTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the graph as a tree by traversing outgoing relationships")
-    // todo optinally provide root node
     public Stream<MapResult> pathsToTree(
             @Name("paths") List<Path> paths,
             @Name(value = "lowerCaseRels", defaultValue = "true") boolean lowerCaseRels,
@@ -254,6 +253,16 @@ public class Json {
         allPaths.forEach(path -> {
             // This api will always return relationships in an outgoing fashion ()-[r]->()
             var pathRelationships = path.relationships();
+            // If no relationships exist in the path, then add the node by itself
+            if (!pathRelationships.iterator().hasNext()) {
+                Node currentNode = path.startNode();
+                Long currentNodeId = currentNode.getId();
+
+                if (!visitedInOtherPaths.contains(currentNodeId)) {
+                    nodesToKeepInResult.add(currentNodeId);
+                }
+                tree.computeIfAbsent(currentNode.getId(), (id) -> toMap(currentNode, nodes));
+            }
             pathRelationships.iterator().forEachRemaining((currentRel) -> {
                 Node currentNode = currentRel.getStartNode();
                 Long currentNodeId = currentNode.getId();
