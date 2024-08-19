@@ -42,6 +42,7 @@ import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -242,6 +243,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
         QualifiedName name = signature.name();
         try {
+            Method[] methods = globalProceduresRegistry.getClass().getMethods();
+            System.out.println("methods = " + Arrays.toString(methods));
             boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(CypherScope.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
@@ -249,6 +252,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                 ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
                 registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
             }
+
+
 
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
