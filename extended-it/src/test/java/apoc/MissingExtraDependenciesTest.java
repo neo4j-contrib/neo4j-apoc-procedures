@@ -37,6 +37,12 @@ public class MissingExtraDependenciesTest {
     public static void setUp() throws Exception {
         String codeArtifactUrl = System.getenv("CODEARTIFACT_DOWNLOAD_URL");
         System.out.println("codeArtifactUrl = " + codeArtifactUrl);
+
+        String neo4JVersionCi = System.getenv("NEO4J_VERSION_CI");
+        System.out.println("neo4JVersionCi = " + neo4JVersionCi);
+
+        String neo4jVersionOverride = System.getProperty("neo4jVersionOverride");
+        System.out.println("neo4jVersionOverride.. = " + neo4jVersionOverride);
         
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
         neo4jContainer.start();
