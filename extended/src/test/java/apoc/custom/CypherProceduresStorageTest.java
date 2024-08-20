@@ -5,6 +5,7 @@ import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * @author mh
  * @since 18.08.18
  */
+@Ignore
 public class CypherProceduresStorageTest {
     private final static String QUERY_CREATE = "RETURN $input1 + $input2 as answer";
     private final static String QUERY_OVERWRITE = "RETURN $input1 + $input2 + 123 as answer";

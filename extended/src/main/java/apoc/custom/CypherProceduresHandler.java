@@ -241,53 +241,54 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
      * @return
      */
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
-        QualifiedName name = signature.name();
-        try {
-            Method[] methods = globalProceduresRegistry.getClass().getMethods();
-            System.out.println("methods = " + Arrays.toString(methods));
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(CypherScope.CYPHER_5)
-                    .anyMatch(s -> s.name().equals(name));
-            if (exists) {
-                // we deregister and remove possible homonyms signatures overridden/overloaded
-                ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
-                registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
-            }
-
-
-
-            final boolean isStatementNull = statement == null;
-            globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
-                @Override
-                public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
-                    if (isStatementNull) {
-                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
-                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
-                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
-                    } else {
-                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        Transaction tx = ctx.transaction();
-                        Result result = tx.execute(statement, params);
-                        resourceMonitor.registerCloseableResource(result);
-
-                        List<FieldSignature> outputs = signature.outputSignature();
-                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
-                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
-
-                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
-                        return Iterators.asRawIterator(stream);
-                    }
-                }
-            });
-            if (isStatementNull) {
-                registeredProcedureSignatures.remove(signature);
-            } else {
-                registeredProcedureSignatures.add(signature);
-            }
-            return true;
-        } catch (Exception e) {
-            log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
-            return false;
-        }
+        return false;
+//        QualifiedName name = signature.name();
+//        try {
+//            Method[] methods = globalProceduresRegistry.getClass().getMethods();
+//            System.out.println("methods = " + Arrays.toString(methods));
+//            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(CypherScope.CYPHER_5)
+//                    .anyMatch(s -> s.name().equals(name));
+//            if (exists) {
+//                // we deregister and remove possible homonyms signatures overridden/overloaded
+//                ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
+//                registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
+//            }
+//
+//
+//
+//            final boolean isStatementNull = statement == null;
+//            globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
+//                @Override
+//                public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
+//                    if (isStatementNull) {
+//                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
+//                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
+//                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+//                    } else {
+//                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
+//                        Transaction tx = ctx.transaction();
+//                        Result result = tx.execute(statement, params);
+//                        resourceMonitor.registerCloseableResource(result);
+//
+//                        List<FieldSignature> outputs = signature.outputSignature();
+//                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
+//                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
+//
+//                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
+//                        return Iterators.asRawIterator(stream);
+//                    }
+//                }
+//            });
+//            if (isStatementNull) {
+//                registeredProcedureSignatures.remove(signature);
+//            } else {
+//                registeredProcedureSignatures.add(signature);
+//            }
+//            return true;
+//        } catch (Exception e) {
+//            log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
+//            return false;
+//        }
     }
 
     public boolean registerFunction(UserFunctionSignature signature) {

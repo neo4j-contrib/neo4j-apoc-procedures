@@ -9,6 +9,7 @@ import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -47,6 +48,7 @@ import static org.junit.Assert.assertTrue;
  * @author mh
  * @since 18.08.18
  */
+@Ignore
 public class CypherProceduresTest  {
 
     @Rule

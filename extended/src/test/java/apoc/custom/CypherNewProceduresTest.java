@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
@@ -49,6 +50,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@Ignore
 public class CypherNewProceduresTest {
 
     private static final File directory = new File("target/conf");

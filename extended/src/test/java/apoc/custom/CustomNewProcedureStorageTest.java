@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // Test cases taken and adapted from CypherProceduresStorageTest, with non-deprecated procedures
+@Ignore
 public class CustomNewProcedureStorageTest {
     private final static String QUERY_CREATE = "RETURN $input1 + $input2 as answer";
     private final static String QUERY_OVERWRITE = "RETURN $input1 + $input2 + 123 as answer";

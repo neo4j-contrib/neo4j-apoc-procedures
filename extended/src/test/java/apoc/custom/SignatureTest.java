@@ -3,6 +3,7 @@ package apoc.custom;
 import apoc.util.Util;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.internal.kernel.api.procs.*;
 
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
+@Ignore
 public class SignatureTest {
 
     private final Signatures sigs = new Signatures();

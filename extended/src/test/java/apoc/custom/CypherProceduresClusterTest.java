@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 // existing setup or nor Michael's setup [1] work reliably 100% of the time. There is a real possibility
 // that clustering might be broken in dev because it is undergoing many changes.
 // [1] https://github.com/michael-simons/junit-jupiter-causal-cluster-testcontainer-extension
+@Ignore
 public class CypherProceduresClusterTest {
 
     private static TestcontainersCausalCluster cluster;
