@@ -35,6 +35,9 @@ public class MissingExtraDependenciesTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        String codeArtifactUrl = System.getenv("CODEARTIFACT_DOWNLOAD_URL");
+        System.out.println("codeArtifactUrl = " + codeArtifactUrl);
+        
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
         neo4jContainer.start();
 
