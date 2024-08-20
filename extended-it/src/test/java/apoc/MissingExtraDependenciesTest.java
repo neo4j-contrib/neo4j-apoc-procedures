@@ -38,7 +38,7 @@ public class MissingExtraDependenciesTest {
         String codeArtifactUrl = System.getenv("CODEARTIFACT_DOWNLOAD_URL");
         System.out.println("codeArtifactUrl = " + codeArtifactUrl);
 
-        String neo4JVersionCi = System.getenv("NEO4J_VERSION_CI");
+        String neo4JVersionCi = System.getenv("NEO4JVERSION");
         System.out.println("neo4JVersionCi = " + neo4JVersionCi);
 
         String neo4jVersionOverride = System.getProperty("neo4jVersionOverride");
