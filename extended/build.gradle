@@ -179,16 +179,16 @@ publishing {
             name = 'pipeline'
             url = "file://${project(':extended').buildDir}/repo"
         }
-        if (System.getenv("CODEARTIFACT_PUBLISH_URL") ?: "" != "") {
-            maven {
-                name = 'codeartifact-publish'
-                url System.getenv('CODEARTIFACT_PUBLISH_URL')
-                credentials {
-                    username System.getenv('CODEARTIFACT_USERNAME')
-                    password System.getenv('CODEARTIFACT_TOKEN')
-                }
-            }
-        }
+//        if (System.getenv("CODEARTIFACT_PUBLISH_URL") ?: "" != "") {
+//            maven {
+//                name = 'codeartifact-publish'
+//                url System.getenv('CODEARTIFACT_PUBLISH_URL')
+//                credentials {
+//                    username System.getenv('CODEARTIFACT_USERNAME')
+//                    password System.getenv('CODEARTIFACT_TOKEN')
+//                }
+//            }
+//        }
     }
     publications {
         shadow(MavenPublication) { publication ->

@@ -28,17 +28,17 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-//    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
-//        maven {
-//            url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
-//            credentials {
-//                username System.getenv('CODEARTIFACT_USERNAME')
-//                password System.getenv('CODEARTIFACT_TOKEN')
-//            }
-//        }
-//    } else {
+    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+        maven {
+            url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+            credentials {
+                username System.getenv('CODEARTIFACT_USERNAME')
+                password System.getenv('CODEARTIFACT_TOKEN')
+            }
+        }
+    } else {
         mavenCentral()
-//    }
+    }
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -77,17 +77,17 @@ subprojects {
         /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
     }*/
-//        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
-//            maven {
-//                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
-//                credentials {
-//                    username System.getenv('CODEARTIFACT_USERNAME')
-//                    password System.getenv('CODEARTIFACT_TOKEN')
-//                }
-//            }
-//        } else {
+        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+            maven {
+                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+                credentials {
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
+                }
+            }
+        } else {
             mavenCentral()
-//        }
+        }
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
