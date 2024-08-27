@@ -26,6 +26,8 @@ import kotlin.test.*
 class KafkaStreamsSinkProceduresTSE : KafkaEventSinkBaseTSE() {
 
     private fun testProcedure(db: GraphDatabaseService, topic: String) {
+        print("procedure tested")
+        
         val producerRecord = ProducerRecord(topic, "{\"id\": \"{${UUID.randomUUID()}}\"}", JsonUtil.writeValueAsBytes(data))
         kafkaProducer.send(producerRecord).get()
         db.executeTransactionally("CALL apoc.kafka.consume('$topic', {timeout: 5000}) YIELD event RETURN event", emptyMap()) { result ->

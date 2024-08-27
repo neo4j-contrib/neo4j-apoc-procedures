@@ -1,6 +1,7 @@
 package apoc.kafka
 
 import apoc.kafka.producer.StreamsEventRouter
+import apoc.kafka.producer.StreamsTransactionEventHandler
 //import apoc.kafka.producer.StreamsTransactionEventHandler
 import apoc.kafka.producer.events.StreamsEventBuilder
 import apoc.kafka.utils.KafkaUtil
@@ -19,7 +20,7 @@ import java.util.stream.Stream
 data class StreamPublishResult(@JvmField val value: Map<String, Any>)
 
 data class StreamsEventSinkStoreEntry(val eventRouter: StreamsEventRouter,
-                                  //    val txHandler: StreamsTransactionEventHandler
+                                      val txHandler: StreamsTransactionEventHandler
 )
 class PublishProcedures {
 
@@ -99,9 +100,9 @@ class PublishProcedures {
         fun register(
             db: GraphDatabaseAPI,
             evtRouter: StreamsEventRouter,
-//            txHandler: StreamsTransactionEventHandler
+            txHandler: StreamsTransactionEventHandler
         ) {
-            streamsEventRouterStore[KafkaUtil.getName(db)] = StreamsEventSinkStoreEntry(evtRouter)
+            streamsEventRouterStore[KafkaUtil.getName(db)] = StreamsEventSinkStoreEntry(evtRouter, txHandler)
         }
 
         fun unregister(db: GraphDatabaseAPI) {

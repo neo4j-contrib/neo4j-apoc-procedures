@@ -38,13 +38,13 @@ class KafkaEventRouter(private val config: Map<String, String>,
 
     private var producer: Neo4jKafkaProducer<ByteArray, ByteArray>? = null
     private val kafkaConfig by lazy { KafkaConfiguration.from(config, log) }
-    private val kafkaAdminService by lazy { KafkaAdminService(kafkaConfig, eventRouterConfiguration.allTopics(), log) }
+    private val kafkaAdminService by lazy { KafkaAdminService(kafkaConfig/*, eventRouterConfiguration.allTopics()*/, log) }
 
     override fun printInvalidTopics() {
-        val invalidTopics = kafkaAdminService.getInvalidTopics()
-        if (invalidTopics.isNotEmpty()) {
-            log.warn(getInvalidTopicsError(invalidTopics))
-        }
+//        val invalidTopics = kafkaAdminService.getInvalidTopics()
+//        if (invalidTopics.isNotEmpty()) {
+//            log.warn(getInvalidTopicsError(invalidTopics))
+//        }
     }
 
     private fun status(producer: Neo4jKafkaProducer<*, *>?): StreamsPluginStatus = when (producer != null) {
