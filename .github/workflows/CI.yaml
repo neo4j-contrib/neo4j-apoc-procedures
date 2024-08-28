@@ -9,7 +9,13 @@ on:
 env:
   CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
-  
+  DOCKER_ENTERPRISE_URL: ${{ secrets.DOCKER_ENTERPRISE_DEV_URL }}
+  DOCKER_COMMUNITY_URL: ${{ secrets.DOCKER_COMMUNITY_DEV_URL }}
+  TEAMCITY_DEV_URL: ${{ secrets.TEAMCITY_DEV_URL }}
+  TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
+  TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
+  ENTERPRISE_TAR: enterprise-docker.tar
+  COMMUNITY_TAR: community-docker.tar
 
 jobs:
   code-ql:
@@ -111,7 +117,21 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION --init-script init.gradle
-
+          
+      - name: Download neo4j dev docker container
+        if: matrix.project == 'extended-it'
+        run: |
+          echo "CODEARTIFACT_USERNAME=$CODEARTIFACT_TOKEN"
+          echo "CODEARTIFACT_USERNAME=$CODEARTIFACT_TOKEN"
+          echo "DOCKER_ENTERPRISE_URL=$DOCKER_ENTERPRISE_URL"
+          echo "ENTERPRISE_TAR=$ENTERPRISE_TAR"
+          echo "DOCKER_COMMUNITY_URL=$DOCKER_COMMUNITY_URL"
+          echo "COMMUNITY_TAR=$COMMUNITY_TAR"
+          curl -s -L0 -u "${CODEARTIFACT_USERNAME}:${CODEARTIFACT_TOKEN}" -X GET ${DOCKER_ENTERPRISE_URL} -o ${ENTERPRISE_TAR} &
+          curl -s -L0 -u "${CODEARTIFACT_USERNAME}:${CODEARTIFACT_TOKEN}" -X GET ${DOCKER_COMMUNITY_URL} -o ${COMMUNITY_TAR} &
+          wait
+          docker load --input ${ENTERPRISE_TAR}
+          docker load --input ${COMMUNITY_TAR}
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
         with:
