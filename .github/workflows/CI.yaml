@@ -14,6 +14,7 @@ env:
   TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
   ENTERPRISE_TAR: enterprise-docker.tar
   COMMUNITY_TAR: community-docker.tar
+  CODEARTIFACT_DOWNLOAD_URL: 
   
 
 jobs:
