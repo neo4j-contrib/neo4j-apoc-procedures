@@ -92,9 +92,9 @@ public class ExportCsvTest {
                     + "\"Bar Sport\",\"\",\"\",\"[\"\"Address\"\"]\"%n"
                     + "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"%n");
     private static final String EXPECTED_QUERY_QUOTES_NEEDED = String.format(
-            "a.name,a.city,a.street,labels(a)%n" + "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n"
-                    + "Bar Sport,,,\"[\"Address\"]\"%n"
-                    + ",,via Benni,\"[\"Address\"]\"%n");
+            "a.name,a.city,a.street,labels(a)%n" + "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n"
+                    + "Bar Sport,,,\"[\"\"Address\"\"]\"%n"
+                    + ",,via Benni,\"[\"\"Address\"\"]\"%n");
     private static final String EXPECTED = String.format(
             "\"_id\",\"_labels\",\"age\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\"%n"
                     + "\"0\",\":User:User1\",\"42\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\",\"\",,,%n"
@@ -134,7 +134,7 @@ public class ExportCsvTest {
                     + ",,,,,,,,3,4,NEXT_DELIVERY%n");
     private static final String EXPECTED_NEEDED_QUOTES =
             String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n"
-                    + "0,:User:User1,42,,\"[\"a\",\"b\",\"c\"]\",true,foo,,,,%n"
+                    + "0,:User:User1,42,,\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",true,foo,,,,%n"
                     + "1,:User,42,,,,bar,,,,%n"
                     + "2,:User,12,,,,,,,,%n"
                     + "3,:Address:Address1,,Milano,,,Andrea,\"Via Garibaldi, 7\",,,%n"
@@ -142,6 +142,16 @@ public class ExportCsvTest {
                     + "5,:Address,,,,,,via Benni,,,%n"
                     + ",,,,,,,,0,1,KNOWS%n"
                     + ",,,,,,,,3,4,NEXT_DELIVERY%n");
+    private static final String EXPECTED_QUOTES_ALWAYS =
+            "\"_id\",\"_labels\",\"age\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\"\n"
+                    + "\"0\",\":User:User1\",\"42\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\",\"\",,,\n"
+                    + "\"1\",\":User\",\"42\",\"\",\"\",\"\",\"bar\",\"\",,,\n"
+                    + "\"2\",\":User\",\"12\",\"\",\"\",\"\",\"\",\"\",,,\n"
+                    + "\"3\",\":Address:Address1\",\"\",\"Milano\",\"\",\"\",\"Andrea\",\"Via Garibaldi, 7\",,,\n"
+                    + "\"4\",\":Address\",\"\",\"\",\"\",\"\",\"Bar Sport\",\"\",,,\n"
+                    + "\"5\",\":Address\",\"\",\"\",\"\",\"\",\"\",\"via Benni\",,,\n"
+                    + ",,,,,,,,\"0\",\"1\",\"KNOWS\"\n"
+                    + ",,,,,,,,\"3\",\"4\",\"NEXT_DELIVERY\"\n";
 
     private static final File directory = new File("target/import");
 
@@ -365,6 +375,17 @@ public class ExportCsvTest {
                 map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED_NEEDED_QUOTES, readFile(fileName));
+    }
+
+    @Test
+    public void testExportAllCsvAlwaysQuotes() {
+        String fileName = "all.csv";
+        TestUtil.testCall(
+                db,
+                "CALL apoc.export.csv.all($file,{quotes: 'always'})",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_QUOTES_ALWAYS, readFile(fileName));
     }
 
     @Test
