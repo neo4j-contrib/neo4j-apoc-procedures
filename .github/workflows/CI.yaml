@@ -51,8 +51,8 @@ jobs:
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
           NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
-          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
-          echo "Found NEO4JVERSION=$NEO4JVERSION"
+          echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
+          echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
       
       - name: Compile Java
         run: |
@@ -110,8 +110,8 @@ jobs:
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
           NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
-          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
-          echo "Found NEO4JVERSION=$NEO4JVERSION"
+          echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
+          echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
 
       - name: Init gradle
         run: |
