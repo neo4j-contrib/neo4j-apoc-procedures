@@ -16,9 +16,6 @@ spotless {
     }
 }
 
-print("CODEARTIFACT_DOWNLOAD_URL: " + System.getenv("CODEARTIFACT_DOWNLOAD_URL"))
-print("CI: " + System.env.CI)
-
 archivesBaseName = "apoc"
 
 jar {
@@ -30,15 +27,8 @@ jar {
 
 compileKotlin {
     kotlinOptions.jvmTarget = "17"
-
-    mustRunAfter tasks.generateGrammarSource
 }
 
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "17"
-
-    mustRunAfter tasks.generateTestGrammarSource
-}
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
 }
