@@ -14,8 +14,8 @@ env:
   TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
   ENTERPRISE_TAR: enterprise-docker.tar
   COMMUNITY_TAR: community-docker.tar
-  CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
-  CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
+#  CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
+#  CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
   
 
 jobs:
@@ -30,18 +30,18 @@ jobs:
       matrix:
         language: [ 'java', 'javascript' ]
     steps:
-      - name: Configure AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-      
-      - name: Configure CodeArtifact Authentication Token 
-        run: |
-          CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
-          echo "::add-mask::$CODEARTIFACT_TOKEN"
-          echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+#      - name: Configure AWS CLI
+#        uses: aws-actions/configure-aws-credentials@v2
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: eu-west-1
+#      
+#      - name: Configure CodeArtifact Authentication Token 
+#        run: |
+#          CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
+#          echo "::add-mask::$CODEARTIFACT_TOKEN"
+#          echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-jdk

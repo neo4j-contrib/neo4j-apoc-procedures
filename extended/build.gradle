@@ -16,6 +16,9 @@ spotless {
     }
 }
 
+print("CODEARTIFACT_DOWNLOAD_URL: " + System.getenv("CODEARTIFACT_DOWNLOAD_URL"))
+print("CI: " + System.env.CI)
+
 archivesBaseName = "apoc"
 
 jar {
