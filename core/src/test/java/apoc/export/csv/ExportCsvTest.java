@@ -91,10 +91,10 @@ public class ExportCsvTest {
                     + "\"Andrea\",\"Milano\",\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n"
                     + "\"Bar Sport\",\"\",\"\",\"[\"\"Address\"\"]\"%n"
                     + "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"%n");
-    private static final String EXPECTED_QUERY_QUOTES_NEEDED = String.format(
-            "a.name,a.city,a.street,labels(a)%n" + "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n"
-                    + "Bar Sport,,,\"[\"\"Address\"\"]\"%n"
-                    + ",,via Benni,\"[\"\"Address\"\"]\"%n");
+    private static final String EXPECTED_QUERY_QUOTES_NEEDED = String.format("a.name,a.city,a.street,labels(a)%n"
+            + "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n"
+            + "Bar Sport,,,\"[\"\"Address\"\"]\"%n"
+            + ",,via Benni,\"[\"\"Address\"\"]\"%n");
     private static final String EXPECTED = String.format(
             "\"_id\",\"_labels\",\"age\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\"%n"
                     + "\"0\",\":User:User1\",\"42\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\",\"\",,,%n"
@@ -717,6 +717,41 @@ public class ExportCsvTest {
                     assertEquals(1.1D, (double) place.get("height"), 0);
                 });
         db.executeTransactionally("MATCH (n:Position) DETACH DELETE n");
+    }
+
+    @Test
+    public void testGithubIssue4120() {
+        String query = "UNWIND [\"\\\"Jan\\\" Apoc User\", \"\\\"Jan\\\" Apoc\\\"\\\" User\"] AS name RETURN name";
+        String expected = "name\n" + "\"\"\"Jan\"\" Apoc User\"\n" + "\"\"\"Jan\"\" Apoc\"\"\"\" User\"\n";
+        StringBuilder sb = new StringBuilder();
+        testResult(
+                db,
+                "CALL apoc.export.csv.query($query,null,{quotes: 'ifNeeded', stream:true,batchSize:2})",
+                map("query", query),
+                (res) -> {
+                    Map<String, Object> r = res.next();
+                    assertEquals(2L, r.get("batchSize"));
+                    assertEquals(1L, r.get("batches"));
+                    assertEquals(0L, r.get("nodes"));
+                    assertEquals(2L, r.get("rows"));
+                    assertEquals(0L, r.get("relationships"));
+                    assertEquals(2L, r.get("properties"));
+                    assertNull("Should get file", r.get("file"));
+                    assertEquals("csv", r.get("format"));
+                    assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
+                    sb.append(r.get("data"));
+                    r = res.next();
+                    assertEquals(2L, r.get("batchSize"));
+                    assertEquals(2L, r.get("batches"));
+                    assertEquals(0L, r.get("nodes"));
+                    assertEquals(2L, r.get("rows"));
+                    assertEquals(0L, r.get("relationships"));
+                    assertEquals(2L, r.get("properties"));
+                    assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
+                    sb.append(r.get("data"));
+                });
+
+        assertEquals(expected, sb.toString());
     }
 
     private Consumer<Result> getAndCheckStreamingMetadataQueryMatchAddress(StringBuilder sb) {
