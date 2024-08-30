@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
 import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.ExecutionPlanDescription;
