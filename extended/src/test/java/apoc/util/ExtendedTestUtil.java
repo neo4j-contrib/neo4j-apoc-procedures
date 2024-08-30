@@ -76,14 +76,17 @@ public class ExtendedTestUtil {
             assertEquals(errMsg, expected.keySet(), actual.keySet());
 
             actual.forEach((key, value) -> {
+                Object expectedKey = expected.get(key);
+                boolean areBothArrays = value != null && value.getClass().isArray() 
+                                        && expectedKey != null && expectedKey.getClass().isArray();
                 if (value instanceof Map mapVal) {
-                    assertMapEquals(errMsg, (Map<String, Object>) expected.get(key), mapVal);
-                } else if (value.getClass().isArray() && expected.get(key).getClass().isArray()) {
-                    Object[] expectedArray = Iterators.array(expected.get(key));
+                    assertMapEquals(errMsg, (Map<String, Object>) expectedKey, mapVal);
+                } else if (areBothArrays) {
+                    Object[] expectedArray = Iterators.array(expectedKey);
                     Object[] actualArray = Iterators.array(value);
                     assertArrayEquals(expectedArray, actualArray);
                 } else {
-                    assertEquals(errMsg, expected.get(key), value);
+                    assertEquals(errMsg, expectedKey, value);
                 }
             });
         }
