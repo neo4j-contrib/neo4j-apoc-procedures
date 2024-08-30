@@ -16,6 +16,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.ExtendedTestUtil.assertRelationship;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -178,6 +179,33 @@ public class GexfTest {
         Map props = TestUtil.singleResultFirstColumn(db, "MATCH (n) RETURN properties(n) AS props");
         assertEquals("http://gephi.org", props.get("0"));
         assertTrue( props.containsKey("id") );
+    }
+
+    @Test
+    public void testImportGexfWithMalformedFile() {
+        final String file = ClassLoader.getSystemResource("gexf/malformed.gexf").toString();
+        
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.gexf($file)",
+                map("file", file),
+                (r) -> {
+                    assertEquals("gexf", r.get("format"));
+                    assertEquals(0L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                    assertEquals(0L, r.get("properties"));
+                    assertEquals(true, r.get("done"));
+                });
+    }
+
+    @Test
+    public void testLoadGexfWithMalformedFile() {
+        final String file = ClassLoader.getSystemResource("gexf/malformed.gexf").toString();
+
+        assertFails(db, "CALL apoc.load.gexf($file)",
+                Map.of("file", file),
+                "The element type \"attributes\" must be terminated by the matching end-tag \"</attributes>"
+        );
     }
     
     @Test

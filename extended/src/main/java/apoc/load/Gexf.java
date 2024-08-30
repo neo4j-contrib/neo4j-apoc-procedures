@@ -51,7 +51,7 @@ public class Gexf {
     @Procedure(name = "apoc.import.gexf", mode = Mode.WRITE)
     @Description("Imports a graph from the provided GraphML file.")
     public Stream<ProgressInfo> importGexf(
-            @Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name("config") Map<String, Object> config) {
+            @Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ProgressInfo result = Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
             String file = null;

@@ -4,7 +4,7 @@
 
 
 
-Many existing applications and data integrations use GEXF to describes a graph with nodes and edges.
+Many existing applications and data integrations use GEXF to describes a graph with nodes and relationships.
 For further information, you should visit the https://gexf.net/[official documentation].
 
 It is possible to load or import nodes and relationship from a GEXF file with the procedures
@@ -56,6 +56,33 @@ CALL apoc.load.gexf('load.gexf')
 | value
 | {_type: gexf, _children: [{_type: graph, defaultedgetype: directed, _children: [{_type: nodes, _children: [{_type: node, _children: [{_type: attvalues, _children: [{_type: attvalue, for: 0, value: http://gephi.org}]}], foo: bar}]}]}], version: 1.2}
 |===
+
+
+With a malformed GEXF file, like the following one:
+
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://gexf.net/1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gexf.net/1.3 http://gexf.net/1.3/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2009-03-20">
+    <creator>Gephi.org</creator>
+    <description>A Web network</description>
+  </meta>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      </attribute>
+    <nodes>
+      <nodea id="0" label="Gephi">
+        <attvalues>
+      </node>
+    </edges>
+  </graph>
+</gexf>
+----
+
+we get the following error:
+```
+[Fatal Error] :9:9: The element type "attributes" must be terminated by the matching end-tag "</attributes>".
+```
 
 == Examples for apoc.import.gexf
 
@@ -205,6 +232,51 @@ We can also store the node IDs by executing:
 ----
 CALL apoc.import.gexf('data.gexf', {readLabels:true, storeNodeIds: true})
 ----
+
+
+With a malformed GEXF file, like the following one:
+
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://gexf.net/1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gexf.net/1.3 http://gexf.net/1.3/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2009-03-20">
+    <creator>Gephi.org</creator>
+    <description>A Web network</description>
+  </meta>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      </attribute>
+    <nodes>
+      <nodea id="0" label="Gephi">
+        <attvalues>
+      </node>
+    </edges>
+  </graph>
+</gexf>
+----
+
+we get the following result, without nodes, relationships and properties imported:
+
+.Results
+[opts="header"]
+|===
+| value
+| {
+"relationships" : 8,
+"batches" : 0,
+"file" : "file:/../malformed.gexf",
+"nodes" : 0,
+"format" : "gexf",
+"source" : "file",
+"time" : 9736,
+"rows" : 0,
+"batchSize" : -1,
+"done" : true,
+"properties" : 0
+}
+|===
+
+
 
 === source / target config
 
