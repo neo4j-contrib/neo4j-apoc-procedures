@@ -64,10 +64,10 @@ dependencies {
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
-    compileOnly "org.apache.poi:poi:5.1.0"
-    testImplementation "org.apache.poi:poi:5.1.0"
-    compileOnly "org.apache.poi:poi-ooxml:5.1.0"
-    testImplementation "org.apache.poi:poi-ooxml:5.1.0"
+    compileOnly "org.apache.poi:poi:5.3.0"
+    testImplementation "org.apache.poi:poi:5.3.0"
+    compileOnly "org.apache.poi:poi-ooxml:5.3.0"
+    testImplementation "org.apache.poi:poi-ooxml:5.3.0"
 
     implementation 'org.jsoup:jsoup:1.15.3'
 

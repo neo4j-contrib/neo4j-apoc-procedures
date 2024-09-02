@@ -20,9 +20,9 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
-    implementation group: 'org.apache.poi', name: 'poi-ooxml-lite', version: '5.1.0'
-    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0' , {
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.3.0'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml-lite', version: '5.3.0'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.3.0' , {
         exclude group: 'org.apache.commons', module: 'commons-compress' 
     }
     implementation group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '5.0.2'
