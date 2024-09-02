@@ -29,7 +29,6 @@ import static apoc.ExtendedApocConfig.APOC_TTL_LIMIT;
 import static apoc.ExtendedApocConfig.APOC_TTL_SCHEDULE;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_UUID_FORMAT;
-import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 
 /**
  * @author mh
@@ -70,8 +69,6 @@ public class Config {
             "apoc.http.timeout.connect",
             "apoc.http.timeout.read",
             
-            // apoc.custom.
-            CUSTOM_PROCEDURES_REFRESH,
 
             // apoc.spatial. - other configs can have sensitive credentials
             "apoc.spatial.geocode.osm.throttle",
