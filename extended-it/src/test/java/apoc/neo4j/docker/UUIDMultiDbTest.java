@@ -8,6 +8,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.*;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ public class UUIDMultiDbTest {
                 .withEnv(String.format(APOC_UUID_ENABLED_DB, DB_TEST), "false")
                 .withEnv(APOC_UUID_ENABLED, "true")
                 .withEnv(APOC_UUID_REFRESH, "1000");
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
         neo4jContainer.start();
         driver = neo4jContainer.getDriver();
         SYS_CONF = SessionConfig.forDatabase(SYSTEM_DATABASE_NAME);

@@ -8,6 +8,7 @@ import apoc.util.TestContainerUtil.ApocPackage;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ public class CoreExtendedTest {
         try(Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(ApocPackage.CORE, ApocPackage.EXTENDED), true)
                 .withNeo4jConfig("dbms.transaction.timeout", "60s")
                 .withEnv(APOC_IMPORT_FILE_ENABLED, "true")) {
+            neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
             neo4jContainer.start();
 
             Session session = neo4jContainer.getSession();
@@ -54,7 +56,7 @@ public class CoreExtendedTest {
         try(Neo4jContainerExtension neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.CORE, TestContainerUtil.ApocPackage.EXTENDED), true)
                 .withNeo4jConfig("dbms.transaction.timeout", "60s")
                 .withEnv(APOC_IMPORT_FILE_ENABLED, "true")) {
-
+            neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
             neo4jContainer.start();
 
             Session session = neo4jContainer.getSession();

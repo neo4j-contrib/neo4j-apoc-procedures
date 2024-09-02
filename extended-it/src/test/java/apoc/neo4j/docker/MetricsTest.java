@@ -9,6 +9,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class MetricsTest {
                 .withNeo4jConfig("metrics.enabled", "true")
                 .withNeo4jConfig("metrics.csv.interval", "1s")
                 .withNeo4jConfig("metrics.namespaces.enabled", "true");
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
         neo4jContainer.start();
         session = neo4jContainer.getSession();
     }

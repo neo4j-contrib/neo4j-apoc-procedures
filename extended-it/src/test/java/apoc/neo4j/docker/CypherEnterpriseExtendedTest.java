@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -69,6 +70,7 @@ public class CypherEnterpriseExtendedTest {
         // We build the project, the artifact will be placed into ./build/libs
         neo4jContainer = createEnterpriseDB(List.of(ApocPackage.EXTENDED), true)
                 .withNeo4jConfig("dbms.transaction.timeout", "60s");
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
         neo4jContainer.start();
         session = neo4jContainer.getSession();
 

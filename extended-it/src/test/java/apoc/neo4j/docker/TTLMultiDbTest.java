@@ -9,6 +9,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class TTLMultiDbTest {
                         "apoc.ttl.schedule." + DB_FOO, "7",
                         "apoc.ttl.limit", "200",
                         "apoc.ttl.limit." + DB_BAR, "2000"));
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
         neo4jContainer.start();
         driver = neo4jContainer.getDriver();
         createDatabases();

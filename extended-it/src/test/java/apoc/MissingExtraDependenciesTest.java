@@ -7,6 +7,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,6 +37,7 @@ public class MissingExtraDependenciesTest {
     @BeforeClass
     public static void setUp() throws Exception {
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
         neo4jContainer.start();
 
         session = neo4jContainer.getSession();
