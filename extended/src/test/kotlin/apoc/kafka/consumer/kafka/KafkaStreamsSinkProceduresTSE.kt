@@ -161,7 +161,6 @@ class KafkaStreamsSinkProceduresTSE : KafkaEventSinkBaseTSE() {
         val partition = 0
         (1..10).forEach {
             val producerRecord = ProducerRecord(topic, partition, "{\"a\":${it}}", JsonUtil.writeValueAsBytes("{\"b\":${it}}"))
-//            val producerRecord = ProducerRecord(topic, partition, UUID.randomUUID().toString(), JsonUtil.writeValueAsBytes(simpleInt))
             kafkaProducer.send(producerRecord).get()
         }
         delay(1000) // should ignore the three above
@@ -257,67 +256,4 @@ class KafkaStreamsSinkProceduresTSE : KafkaEventSinkBaseTSE() {
             assertEquals(struct.toMap(), resultData)
         }
     }
-
-//    @Test
-//    fun `should report the streams sink config`() {
-//        val db = createDbWithKafkaConfigs()
-//        val expected = mapOf("invalid_topics" to emptyList<String>(),
-//                "apoc.kafka.sink.topic.pattern.relationship" to emptyMap<String, Any>(),
-//                "apoc.kafka.sink.topic.cud" to emptyList<String>(),
-//                "apoc.kafka.sink.topic.cdc.sourceId" to emptyList<String>(),
-//                "apoc.kafka.sink.topic.cypher" to emptyMap<String, Any>(),
-//                "apoc.kafka.sink.topic.cdc.schema" to emptyList<String>(),
-//                "apoc.kafka.sink.topic.pattern.node" to emptyMap<String, Any>(),
-//                "apoc.kafka.sink.errors" to emptyMap<String, Any>(),
-//                "apoc.kafka.cluster.only" to false,
-//                "apoc.kafka.sink.poll.interval" to 0L,
-//                "apoc.kafka.sink.source.id.strategy.config" to mapOf("labelName" to "SourceEvent", "idName" to "sourceId"))
-//
-//        // when
-//        db.executeTransactionally("CALL apoc.kafka.sink.config()", emptyMap()) { result ->
-//            // then
-//            val actual = result.stream()
-//                    .collect(Collectors.toList())
-//                    .map { it.getValue("name").toString() to it.getValue("value") }
-//                    .toMap()
-//            assertEquals(expected, actual)
-//        }
-//    }
-
-//    @Test
-//    fun `should report the streams sink status RUNNING`() = runBlocking {
-//        // given
-//
-//        val db = createDbWithKafkaConfigs("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery" to cypherQueryTemplate)
-//
-//        val expectedRunning = listOf(mapOf("name" to "status", "value" to StreamsPluginStatus.RUNNING.toString()))
-//
-//        Assert.assertEventually(ThrowingSupplier {
-//            // when
-//            val actual=  db.executeTransactionally("CALL apoc.kafka.sink.status()", emptyMap()) { result ->
-//                result.stream().collect(Collectors.toList())
-//            }
-//            println("actual = $actual")
-//            // then
-//            expectedRunning == actual
-//        }, Matchers.equalTo(true), 30, TimeUnit.SECONDS)
-//    }
-
-//    @Test
-//    fun `should report the streams sink status STOPPED`() {
-//        // given
-//        val db = createDbWithKafkaConfigs("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery" to cypherQueryTemplate)
-//        val expectedRunning = listOf(mapOf("name" to "status", "value" to StreamsPluginStatus.STOPPED.toString()))
-//        db.executeTransactionally("CALL apoc.kafka.sink.stop()", emptyMap()) {
-//            println(it.resultAsString())
-//        }
-//
-//        // when
-//        db.executeTransactionally("CALL apoc.kafka.sink.status()", emptyMap()) { result ->
-//            // then
-//            val actual = result.stream()
-//                    .collect(Collectors.toList())
-//            assertEquals(expectedRunning, actual)
-//        }
-//    }
 }
