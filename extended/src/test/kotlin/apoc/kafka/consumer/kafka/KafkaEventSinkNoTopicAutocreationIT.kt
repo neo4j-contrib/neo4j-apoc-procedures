@@ -72,33 +72,12 @@ class KafkaEventSinkNoTopicAutoCreationIT {
         val topicList = client.listTopics().names().get()
         val notRegisteredTopic = "notRegistered"
         assertTrue { topicList.containsAll(expectedTopics.toSet()) && !topicList.contains(notRegisteredTopic) }
-        // TODO - CAMBIARE CON apoc.conf
-//        val db = ImpermanentDbmsRule()
-//                .setConfig("apoc.kafka.bootstrap.servers", kafka.bootstrapServers)
-//                .setConfig("apoc.kafka.sink.enabled", "true")
-//                .setConfig("apoc.kafka.sink.topic.cypher.$notRegisteredTopic", "MERGE (p:NotRegisteredTopic{name: event.name})")
-//                .setConfig("apoc.kafka.sink.topic.cypher.$topic", "MERGE (p:Person{name: event.name})")
-//                .start()
+
         val kafkaProducer: KafkaProducer<String, ByteArray> = KafkaTestUtils.createProducer(bootstrapServers = kafka.bootstrapServers)
 
         // when
         val data = mapOf<String, Any>("name" to "Andrea")
         val producerRecord = ProducerRecord(topic, UUID.randomUUID().toString(), JsonUtil.writeValueAsBytes(data))
         kafkaProducer.send(producerRecord).get()
-
-        // then
-        // todo  - cambiare con apoc.conf
-//        Assert.assertEventually(ThrowingSupplier {
-//            val count = db.executeTransactionally("MATCH (n:Person) RETURN COUNT(n) AS count", emptyMap()) {
-//                it.columnAs<Long>("count")
-//                        .next()
-//            }
-//            val topics = client.listTopics().names().get()
-//            count == 1L && !topics.contains(notRegisteredTopic)
-//        }, Matchers.equalTo(true), 30, TimeUnit.SECONDS)
-//        kafkaProducer.flush()
-//        kafkaProducer.close()
-//        client.close()
-//        db.shutdownSilently()
     }
 }
