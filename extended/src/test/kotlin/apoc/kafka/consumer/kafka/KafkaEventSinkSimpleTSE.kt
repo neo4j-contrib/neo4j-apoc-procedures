@@ -110,10 +110,6 @@ class KafkaEventSinkSimpleTSE: KafkaEventSinkBaseTSE() {
     fun `should stop and start the sink via procedures`() = runBlocking {
         // given
         val db = createDbWithKafkaConfigs("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery" to cypherQueryTemplate)
-//        db.setConfig("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery", cypherQueryTemplate)
-        // db.start()
-//        db.dependencyResolver.resolveDependency(GlobalProcedures::class.java)
-//                .registerProcedure(StreamsSinkProcedures::class.java)
 
         db.executeTransactionally("CALL apoc.kafka.sink.stop()", emptyMap()) { stopped ->
             assertEquals(mapOf("name" to "status", "value" to StreamsPluginStatus.STOPPED.toString()), stopped.next())
@@ -200,12 +196,6 @@ class KafkaEventSinkSimpleTSE: KafkaEventSinkBaseTSE() {
         val db = createDbWithKafkaConfigs("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery" to cypherQueryTemplate,
             "apoc.kafka.bootstrap.servers" to "foo",
             "apoc.kafka.default.api.timeout.ms" to "5000")
-//        db.setConfig("apoc.kafka.sink.topic.cypher.shouldWriteCypherQuery", cypherQueryTemplate)
-//                .setConfig("apoc.kafka.bootstrap.servers", "foo")
-//                .setConfig("apoc.kafka.default.api.timeout.ms", "5000")
-//                .start()
-//        db.dependencyResolver.resolveDependency(GlobalProcedures::class.java)
-//                .registerProcedure(StreamsSinkProcedures::class.java)
 
         val expectedRunning = listOf(mapOf("name" to "status", "value" to StreamsPluginStatus.STOPPED.toString()))
 

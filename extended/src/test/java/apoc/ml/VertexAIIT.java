@@ -25,7 +25,6 @@ import static apoc.ml.VertexAIHandler.PREDICT_RESOURCE;
 import static apoc.ml.VertexAIHandler.RESOURCE_CONF_KEY;
 import static apoc.ml.VertexAIHandler.STREAM_RESOURCE;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallEventually;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -94,14 +93,14 @@ public class VertexAIIT {
 
     @Test
     public void chatCompletion() {
-        testCallEventually(db, """
+        testCall(db, """
                     CALL apoc.ml.vertexai.chat([
                     {author:"user", content:"What planet do timelords live on?"}
                     ],  $apiKey, $project, {temperature:0},
                     "Fictional universe of Doctor Who. Only answer with a single word!",
                     [{input:{content:"What planet do humans live on?"}, output:{content:"Earth"}}])""", 
                 parameters,
-                (row) -> assertCorrectResponse(row, "gallifrey"), 3);
+                (row) -> assertCorrectResponse(row, "gallifrey"));
     }
 
     @Test

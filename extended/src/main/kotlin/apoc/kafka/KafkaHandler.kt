@@ -21,7 +21,6 @@ class KafkaHandler(): LifecycleAdapter() {
 
     override fun start() {
         if(ApocConfig.apocConfig().getBoolean(APOC_KAFKA_ENABLED)) {
-//            println("start db......")
 
             try {
                 StreamsRouterConfigurationListener(db, log)
@@ -41,7 +40,6 @@ class KafkaHandler(): LifecycleAdapter() {
 
     override fun stop() {
         if(ApocConfig.apocConfig().getBoolean(APOC_KAFKA_ENABLED)) {
-//            println("stop db..........")
 
             StreamsRouterConfigurationListener(db, log).shutdown()
             StreamsSinkConfigurationListener(db, log).shutdown()

@@ -4,7 +4,6 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.SocatContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import java.util.stream.Stream
 
 
@@ -19,9 +18,6 @@ class SchemaRegistryContainer(version: String): GenericContainer<SchemaRegistryC
                     .withTarget(PORT, networkAlias)
 
         proxy.start()
-//        waitingFor(Wait.forHttp("/subjects")
-//                .forPort(PORT)
-//                .forStatusCode(200))
         super.doStart()
     }
 
