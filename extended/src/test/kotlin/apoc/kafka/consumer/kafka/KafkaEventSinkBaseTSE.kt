@@ -19,7 +19,6 @@ import org.neo4j.configuration.GraphDatabaseSettings
 import org.neo4j.dbms.api.DatabaseManagementService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.kernel.api.procedure.GlobalProcedures
-import org.neo4j.test.TestDatabaseManagementServiceBuilder
 
 import apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED
 
@@ -27,8 +26,7 @@ open class KafkaEventSinkBaseTSE {
     
     companion object {
         private var startedFromSuite = true
-        
-//        lateinit var db: GraphDatabaseService
+
         lateinit var dbms: DatabaseManagementService
         
         @BeforeClass
@@ -103,9 +101,6 @@ open class KafkaEventSinkBaseTSE {
     @AfterEach
     fun tearDown() {
         dbms.shutdown()
-
-//        dbms = TestDatabaseManagementServiceBuilder(temporaryFolder.root.toPath()).build()
-//        getDbServices()
         
         if (::kafkaProducer.isInitialized) {
             kafkaProducer.flushAndClose()

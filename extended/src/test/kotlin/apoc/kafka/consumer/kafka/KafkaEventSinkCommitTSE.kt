@@ -1,16 +1,13 @@
 package apoc.kafka.consumer.kafka
 
-import apoc.ApocConfig
 import apoc.kafka.producer.integrations.KafkaEventSinkSuiteIT
 import apoc.kafka.common.support.Assert
 import apoc.kafka.common.support.KafkaTestUtils
-// import apoc.kafka.support.start
 import apoc.kafka.utils.JSONUtils
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.TopicPartition
 import org.hamcrest.Matchers
-import org.junit.Ignore
 import org.junit.Test
 import org.neo4j.function.ThrowingSupplier
 import java.util.*

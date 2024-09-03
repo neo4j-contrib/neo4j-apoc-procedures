@@ -1,6 +1,5 @@
 package apoc.kafka.consumer.kafka
 
-import apoc.ApocConfig
 import apoc.kafka.producer.integrations.KafkaEventSinkSuiteIT
 import apoc.kafka.common.support.Assert
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
