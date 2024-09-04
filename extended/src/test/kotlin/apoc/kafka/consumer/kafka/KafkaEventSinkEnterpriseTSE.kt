@@ -7,13 +7,15 @@ import apoc.kafka.common.support.KafkaTestUtils
 import apoc.kafka.common.support.Neo4jContainerExtension
 import apoc.kafka.utils.KafkaUtil
 import apoc.util.JsonUtil
-import io.confluent.kafka.serializers.KafkaAvroSerializer
+//import io.confluent.kafka.serializers.KafkaAvroSerializer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
+import org.apache.kafka.common.serialization.ByteArraySerializer
+import org.apache.kafka.common.serialization.StringSerializer
 import org.hamcrest.Matchers
 import org.junit.After
 import org.junit.AfterClass
@@ -92,8 +94,8 @@ class KafkaEventSinkEnterpriseTSE {
         kafkaAvroProducer = KafkaTestUtils.createProducer(
                 bootstrapServers = KafkaEventSinkSuiteIT.kafka.bootstrapServers,
                 schemaRegistryUrl = KafkaEventSinkSuiteIT.schemaRegistry.getSchemaRegistryUrl(),
-                keySerializer = KafkaAvroSerializer::class.java.name,
-                valueSerializer = KafkaAvroSerializer::class.java.name)
+                keySerializer = StringSerializer::class.java.name,
+                valueSerializer = ByteArraySerializer::class.java.name)
         ALL_DBS.forEach { dbName ->
             neo4j.driver!!.session(SessionConfig.forDatabase(dbName))
                     .run("MATCH (n) DETACH DELETE n")
