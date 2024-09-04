@@ -101,7 +101,7 @@ public class CsvFormat implements Format {
     private CSVWriter getCsvWriter(Writer writer, ExportConfig config) {
         CSVWriter out;
         switch (config.isQuotes()) {
-            case ExportConfig.NONE_QUOTES:
+            case ExportConfig.NO_QUOTES:
                 out = new CSVWriter(
                         writer,
                         config.getDelimChar(),
@@ -110,12 +110,12 @@ public class CsvFormat implements Format {
                         CSVWriter.DEFAULT_LINE_END);
                 applyQuotesToAll = false;
                 break;
-            case ExportConfig.IF_NEEDED_QUUOTES:
+            case ExportConfig.IF_NEEDED_QUOTES:
                 out = new CSVWriter(
                         writer,
                         config.getDelimChar(),
                         ExportConfig.QUOTECHAR,
-                        '\0', // escape char
+                        CSVWriter.DEFAULT_ESCAPE_CHARACTER,
                         CSVWriter.DEFAULT_LINE_END);
                 applyQuotesToAll = false;
                 break;
