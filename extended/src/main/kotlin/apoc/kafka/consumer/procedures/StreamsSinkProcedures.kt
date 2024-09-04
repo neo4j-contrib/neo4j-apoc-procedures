@@ -63,73 +63,6 @@ class StreamsSinkProcedures {
         }
     }
 
-//    @Procedure("apoc.kafka.sink.start")
-//    fun sinkStart(): Stream<KeyValueResult> {
-//        checkEnabled()
-//        return checkLeader {
-//            try {
-//                getStreamsEventSink(db!!)?.start()
-//                sinkStatus()
-//            } catch (e: Exception) {
-//                log?.error("Cannot start the Sink because of the following exception", e)
-//                Stream.concat(sinkStatus(),
-//                        Stream.of(KeyValueResult("exception", ExceptionUtils.getStackTrace(e))))
-//            }
-//        }
-//    }
-//
-//    @Procedure("apoc.kafka.sink.stop")
-//    fun sinkStop(): Stream<KeyValueResult> {
-//        checkEnabled()
-//        return checkLeader {
-//            try {
-//                getStreamsEventSink(db!!)?.stop()
-//                sinkStatus()
-//            } catch (e: Exception) {
-//                log?.error("Cannot stopped the Sink because of the following exception", e)
-//                Stream.concat(sinkStatus(),
-//                        Stream.of(KeyValueResult("exception", ExceptionUtils.getStackTrace(e))))
-//            }
-//        }
-//    }
-//
-//    @Procedure("apoc.kafka.sink.restart")
-//    fun sinkRestart(): Stream<KeyValueResult> {
-//        val stopped = sinkStop().collect(Collectors.toList())
-//        val hasError = stopped.any { it.name == "exception" }
-//        if (hasError) {
-//            return stopped.stream()
-//        }
-//        return sinkStart()
-//    }
-//
-//    @Procedure("apoc.kafka.sink.config")
-//    @Deprecated("Please use apoc.kafka.configuration.get")
-//    fun sinkConfig(): Stream<KeyValueResult> {
-//        checkEnabled()
-//        return checkLeader {
-//            StreamsSinkConfiguration
-//                // todo - check that
-////                    .from(configMap = StreamsConfig.getInstance(db!! as GraphDatabaseAPI)
-//                    .from(configMap = StreamsConfig
-//                        .getConfiguration().mapValues { it.value.toString() },
-//                        dbName = db!!.databaseName(),
-//                        isDefaultDb = db!!.isDefaultDb())
-//                    .asMap()
-//                    .entries.stream()
-//                    .map { KeyValueResult(it.key, it.value) }
-//        }
-//    }
-//
-//    @Procedure("apoc.kafka.sink.status")
-//    fun sinkStatus(): Stream<KeyValueResult> {
-//        checkEnabled()
-//        return run {
-//            val value = (getStreamsEventSink(db!!)?.status() ?: StreamsPluginStatus.UNKNOWN).toString()
-//            Stream.of(KeyValueResult("status", value))
-//        }
-//    }
-
     private fun checkLeader(lambda: () -> Stream<KeyValueResult>): Stream<KeyValueResult> = if (KafkaUtil.isWriteableInstance(db as GraphDatabaseAPI)) {
         lambda()
     } else {
@@ -147,17 +80,12 @@ class StreamsSinkProcedures {
             try {
                 val start = System.currentTimeMillis()
                 while ((System.currentTimeMillis() - start) < timeout) {
-                    println("coroutineContext = ${coroutineContext}")
                     consumer.read(cfg) { _, topicData ->
-                        println("topicData = ${topicData}")
                         data.addAll(topicData.mapNotNull { it.value }.map { StreamResult(mapOf("data" to it)) })
                     }
                 }
-                println("coroutineContext = ${coroutineContext}")
                 data.add(tombstone)
             } catch (e: Exception) {
-                println("coroutineContext = "  
-                + e.message)
                 if (log?.isDebugEnabled!!) {
                     log?.error("Error while consuming data", e)
                 }

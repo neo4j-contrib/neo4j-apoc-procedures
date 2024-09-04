@@ -1,6 +1,6 @@
 package apoc.kafka.consumer.kafka
 
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
+//import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
@@ -14,7 +14,7 @@ import java.util.Properties
 
 private const val kafkaConfigPrefix = "apoc.kafka."
 
-private val SUPPORTED_DESERIALIZER = listOf(ByteArrayDeserializer::class.java.name, KafkaAvroDeserializer::class.java.name)
+//private val SUPPORTED_DESERIALIZER = listOf(ByteArrayDeserializer::class.java.name, KafkaAvroDeserializer::class.java.name)
 
 private fun validateDeserializers(config: KafkaSinkConfiguration) {
 //    val key = if (!SUPPORTED_DESERIALIZER.contains(config.keyDeserializer)) {

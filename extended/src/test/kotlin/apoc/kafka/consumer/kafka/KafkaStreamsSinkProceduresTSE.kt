@@ -6,7 +6,7 @@ import apoc.kafka.producer.integrations.KafkaEventSinkSuiteIT
 import apoc.kafka.common.support.Assert
 import apoc.kafka.common.support.KafkaTestUtils
 import apoc.util.JsonUtil
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
+//import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import kotlinx.coroutines.*
 import org.apache.avro.SchemaBuilder
 import org.apache.avro.generic.GenericRecordBuilder
@@ -221,39 +221,39 @@ class KafkaStreamsSinkProceduresTSE : KafkaEventSinkBaseTSE() {
         assertNull(offsetAndMetadata)
     }
 
-    @Test
-    fun `should consume AVRO messages`() {
-        val db = createDbWithKafkaConfigs("apoc.kafka.${ConsumerConfig.GROUP_ID_CONFIG}" to "avroajeje")
-        val PLACE_SCHEMA = SchemaBuilder.builder("com.namespace")
-                .record("Place").fields()
-                .name("name").type().stringType().noDefault()
-                .name("coordinates").type().array().items().doubleType().noDefault()
-                .name("citizens").type().longType().noDefault()
-                .endRecord()
-        val coordinates = listOf(42.30000, -11.22222)
-        val citizens = 1_000_000L
-        val struct = GenericRecordBuilder(PLACE_SCHEMA)
-                .set("name", "Foo")
-                .set("coordinates", coordinates)
-                .set("citizens", citizens)
-                .build()
-        val topic = "avro-procedure"
-        val keyDeserializer = KafkaAvroDeserializer::class.java.name
-        val valueDeserializer = KafkaAvroDeserializer::class.java.name
-        kafkaAvroProducer.send(ProducerRecord(topic, null, struct)).get()
-        val schemaRegistryUrl = KafkaEventSinkSuiteIT.schemaRegistry.getSchemaRegistryUrl()
-        db.executeTransactionally("""
-            CALL apoc.kafka.consume('$topic', {timeout: 5000, keyDeserializer: '$keyDeserializer', valueDeserializer: '$valueDeserializer', schemaRegistryUrl: '$schemaRegistryUrl'}) YIELD event
-            RETURN event
-        """.trimIndent(), emptyMap()
-        ) { result ->
-            assertTrue { result.hasNext() }
-            val resultMap = result.next()
-            assertTrue { resultMap.containsKey("event") }
-            assertNotNull(resultMap["event"], "should contain event")
-            val event = resultMap["event"] as Map<String, Any?>
-            val resultData = event["data"] as Map<String, Any?>
-            assertEquals(struct.toMap(), resultData)
-        }
-    }
+//    @Test
+//    fun `should consume AVRO messages`() {
+//        val db = createDbWithKafkaConfigs("apoc.kafka.${ConsumerConfig.GROUP_ID_CONFIG}" to "avroajeje")
+//        val PLACE_SCHEMA = SchemaBuilder.builder("com.namespace")
+//                .record("Place").fields()
+//                .name("name").type().stringType().noDefault()
+//                .name("coordinates").type().array().items().doubleType().noDefault()
+//                .name("citizens").type().longType().noDefault()
+//                .endRecord()
+//        val coordinates = listOf(42.30000, -11.22222)
+//        val citizens = 1_000_000L
+//        val struct = GenericRecordBuilder(PLACE_SCHEMA)
+//                .set("name", "Foo")
+//                .set("coordinates", coordinates)
+//                .set("citizens", citizens)
+//                .build()
+//        val topic = "avro-procedure"
+//        val keyDeserializer = KafkaAvroDeserializer::class.java.name
+//        val valueDeserializer = KafkaAvroDeserializer::class.java.name
+//        kafkaAvroProducer.send(ProducerRecord(topic, null, struct)).get()
+//        val schemaRegistryUrl = KafkaEventSinkSuiteIT.schemaRegistry.getSchemaRegistryUrl()
+//        db.executeTransactionally("""
+//            CALL apoc.kafka.consume('$topic', {timeout: 5000, keyDeserializer: '$keyDeserializer', valueDeserializer: '$valueDeserializer', schemaRegistryUrl: '$schemaRegistryUrl'}) YIELD event
+//            RETURN event
+//        """.trimIndent(), emptyMap()
+//        ) { result ->
+//            assertTrue { result.hasNext() }
+//            val resultMap = result.next()
+//            assertTrue { resultMap.containsKey("event") }
+//            assertNotNull(resultMap["event"], "should contain event")
+//            val event = resultMap["event"] as Map<String, Any?>
+//            val resultData = event["data"] as Map<String, Any?>
+//            assertEquals(struct.toMap(), resultData)
+//        }
+//    }
 }

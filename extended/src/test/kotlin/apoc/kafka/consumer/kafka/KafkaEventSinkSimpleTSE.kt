@@ -151,7 +151,6 @@ class KafkaEventSinkSimpleTSE: KafkaEventSinkBaseTSE() {
                 val result = it.columnAs<Long>("count")
                 if (result.hasNext()) {
                     val next = result.next()
-                    println("next = $next")
                     return@executeTransactionally next == 1L && !result.hasNext()
                 } 
                 return@executeTransactionally false

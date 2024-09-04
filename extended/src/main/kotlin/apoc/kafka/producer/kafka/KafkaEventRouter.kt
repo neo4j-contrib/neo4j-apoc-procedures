@@ -4,7 +4,7 @@ import apoc.kafka.events.StreamsEvent
 import apoc.kafka.events.StreamsPluginStatus
 import apoc.kafka.events.StreamsTransactionEvent
 import apoc.kafka.extensions.isDefaultDb
-import apoc.kafka.producer.StreamsEventRouter
+//import apoc.kafka.producer.StreamsEventRouter
 import apoc.kafka.producer.StreamsEventRouterConfiguration
 import apoc.kafka.producer.asSourceRecordKey
 import apoc.kafka.producer.asSourceRecordValue
@@ -28,9 +28,9 @@ import java.util.*
 
 class KafkaEventRouter(private val config: Map<String, String>,
                        private val db: GraphDatabaseService,
-                       private val log: Log): StreamsEventRouter(config, db, log) {
+                       private val log: Log)/*: StreamsEventRouter(config, db, log)*/ {
 
-    override val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
+    /*override*/ val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
         .from(config, db.databaseName(), db.isDefaultDb(), log)
 
 
@@ -40,19 +40,19 @@ class KafkaEventRouter(private val config: Map<String, String>,
     private val kafkaConfig by lazy { KafkaConfiguration.from(config, log) }
     private val kafkaAdminService by lazy { KafkaAdminService(kafkaConfig/*, eventRouterConfiguration.allTopics()*/, log) }
 
-    override fun printInvalidTopics() {
+//    /*override*/ fun printInvalidTopics() {
 //        val invalidTopics = kafkaAdminService.getInvalidTopics()
 //        if (invalidTopics.isNotEmpty()) {
 //            log.warn(getInvalidTopicsError(invalidTopics))
 //        }
-    }
+//    }
 
     private fun status(producer: Neo4jKafkaProducer<*, *>?): StreamsPluginStatus = when (producer != null) {
         true -> StreamsPluginStatus.RUNNING
         else -> StreamsPluginStatus.STOPPED
     }
 
-    override fun start() = runBlocking {
+    /*override*/ fun start() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == StreamsPluginStatus.RUNNING) {
                 return@runBlocking
@@ -66,7 +66,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         }
     }
 
-    override fun stop() = runBlocking {
+    /*override*/ fun stop() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == StreamsPluginStatus.STOPPED) {
                 return@runBlocking
@@ -131,7 +131,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         send(producerRecord)
     }
 
-    override fun sendEventsSync(topic: String, transactionEvents: List<out StreamsEvent>, config: Map<String, Any?>): List<Map<String, Any>> {
+    fun sendEventsSync(topic: String, transactionEvents: List<out StreamsEvent>, config: Map<String, Any?>): List<Map<String, Any>> {
         producer?.beginTransaction()
 
         val results = transactionEvents.mapNotNull {
@@ -142,7 +142,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         return results
     }
 
-    override fun sendEvents(topic: String, transactionEvents: List<out StreamsEvent>, config: Map<String, Any?>) {
+    fun sendEvents(topic: String, transactionEvents: List<out StreamsEvent>, config: Map<String, Any?>) {
         try {
             producer?.beginTransaction()
             transactionEvents.forEach {

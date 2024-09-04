@@ -56,7 +56,8 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
         serviceMap.put("cypherProcedures", cypherProcedureHandler);
 
-        if (dependencies.apocConfig().getBoolean(APOC_KAFKA_ENABLED)) {
+        boolean isKafkaEnabled = dependencies.apocConfig().getConfig().getBoolean(APOC_KAFKA_ENABLED, false);
+        if (isKafkaEnabled) {
             try {
                 Class<?> kafkaHandlerClass = Class.forName("apoc.kafka.KafkaHandler");
                 Lifecycle kafkaHandler = (Lifecycle) kafkaHandlerClass
