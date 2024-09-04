@@ -267,6 +267,25 @@ Or via https://localai.io/[LocalAI APIs] (note that the apiKey is `null` by defa
 CALL apoc.ml.openai.embedding(['Some Text'], "ignored", 
 {endpoint: 'http://localhost:8080/v1', model: 'text-embedding-ada-002'})
 ----
+We can use https://huggingface.co/tomasonjo[tomasonjo models] to generate Cypher from text:
+
+[source,cypher]
+----
+WITH 'Node properties are the following:
+Movie {title: STRING, votes: INTEGER, tagline: STRING, released: INTEGER}, Person {born: INTEGER, name: STRING}
+Relationship properties are the following:
+ACTED_IN {roles: LIST}, REVIEWED {summary: STRING, rating: INTEGER}
+The relationships are the following:
+(:Person)-[:ACTED_IN]->(:Movie), (:Person)-[:DIRECTED]->(:Movie), (:Person)-[:PRODUCED]->(:Movie), (:Person)-[:WROTE]->(:Movie), (:Person)-[:FOLLOWS]->(:Person), (:Person)-[:REVIEWED]->(:Movie)'
+as schema,
+'Which actors played in the most movies?' as question
+CALL apoc.ml.openai.chat([
+            {role:"system", content:"Given an input question, convert it to a Cypher query. No pre-amble."},
+            {role:"user", content:"Based on the Neo4j graph schema below, write a Cypher query that would answer the user's question:
+\n "+ schema +" \n\n Question: "+ question +" \n Cypher query:"}
+            ], '<apiKey>', { endpoint: 'http://localhost:8080/chat/completions', model: 'text2cypher-demo-4bit-gguf-unsloth.Q4_K_M.gguf'})
+YIELD value RETURN value
+----
 
 Or also, by using https://github.com/fardjad/node-llmatic[LLMatic Library]:
 [source,cypher]
