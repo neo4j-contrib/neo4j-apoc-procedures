@@ -8,13 +8,6 @@ import apoc.kafka.events.StreamsPluginStatus
 object StreamsEventSinkFactory {
     fun getStreamsEventSink(config: Map<String, String>, //streamsQueryExecution: StreamsEventSinkQueryExecution,
                           /*  streamsTopicService: StreamsTopicService, */log: Log, db: GraphDatabaseAPI): KafkaEventSink {
-//        return Class.forName(config.getOrDefault("apoc.kafka.sink", "apoc.kafka.consumer.kafka.KafkaEventSink"))
-//                .getConstructor(Map::class.java,
-//                        StreamsEventSinkQueryExecution::class.java,
-//                        StreamsTopicService::class.java,
-//                        Log::class.java,
-//                        GraphDatabaseAPI::class.java)
-//                .newInstance(config, streamsQueryExecution, streamsTopicService, log, db)
         return KafkaEventSink(/*config, streamsQueryExecution, streamsTopicService, log, */db)
     }
 }

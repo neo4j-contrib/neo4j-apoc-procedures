@@ -125,8 +125,6 @@ dependencies {
 
     compileOnly group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2'
     compileOnly group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
-    compileOnly group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711'
-    compileOnly group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2'
 
     testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
     testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion
@@ -163,9 +161,7 @@ dependencies {
     testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: '1.6.0'
 
     testImplementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
-    testImplementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2'
     testImplementation group: 'org.testcontainers', name: 'kafka', version: testContainersVersion
-    testImplementation group: 'com.github.conker84', name: 'neo4j-configuration-lifecycle', version: 'ad59084711'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
