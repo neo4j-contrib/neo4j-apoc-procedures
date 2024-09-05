@@ -50,10 +50,10 @@ Apache-2.0
   audience-annotations-0.12.0.jar
   avro-1.9.2.jar
   awaitility-4.1.0.jar
-  aws-java-sdk-core-1.12.646.jar
-  aws-java-sdk-kms-1.12.646.jar
-  aws-java-sdk-s3-1.12.646.jar
-  byte-buddy-1.14.9.jar
+  aws-java-sdk-core-1.12.770.jar
+  aws-java-sdk-kms-1.12.770.jar
+  aws-java-sdk-s3-1.12.770.jar
+  byte-buddy-1.11.13.jar
   byte-buddy-agent-1.11.13.jar
   caffeine-3.0.3.jar
   cassandra-driver-core-3.10.0.jar
@@ -127,20 +127,21 @@ Apache-2.0
   jPowerShell-3.0.jar
   jProcesses-1.6.5.jar
   jackson-annotations-2.15.2.jar
-  jackson-annotations-2.17.0.jar
+  jackson-annotations-2.17.2.jar
   jackson-core-2.15.2.jar
-  jackson-core-2.17.0.jar
+  jackson-core-2.17.2.jar
   jackson-databind-2.15.2.jar
-  jackson-databind-2.17.0.jar
-  jackson-dataformat-cbor-2.17.0.jar
-  jackson-dataformat-csv-2.17.0.jar
+  jackson-databind-2.17.2.jar
+  jackson-dataformat-cbor-2.17.2.jar
+  jackson-dataformat-csv-2.17.2.jar
   jackson-datatype-jsr310-2.17.0.jar
+  jackson-datatype-jsr310-2.17.2.jar
   jackson-jaxrs-base-2.15.2.jar
-  jackson-jaxrs-base-2.17.0.jar
+  jackson-jaxrs-base-2.17.2.jar
   jackson-jaxrs-json-provider-2.15.2.jar
-  jackson-jaxrs-json-provider-2.17.0.jar
+  jackson-jaxrs-json-provider-2.17.2.jar
   jackson-module-jaxb-annotations-2.15.2.jar
-  jackson-module-jaxb-annotations-2.17.0.jar
+  jackson-module-jaxb-annotations-2.17.2.jar
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   javapoet-1.13.0.jar
@@ -162,11 +163,11 @@ Apache-2.0
   jetty-xml-9.4.53.v20231009.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
-  jmespath-java-1.12.646.jar
+  jmespath-java-1.12.770.jar
   jna-5.9.0.jar
   jnr-constants-0.9.9.jar
   jnr-ffi-2.1.7.jar
-  joda-time-2.8.1.jar
+  joda-time-2.12.7.jar
   json-path-2.9.0.jar
   json-smart-2.5.0.jar
   jsonschema2pojo-core-1.0.2.jar

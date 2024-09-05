@@ -88,8 +88,8 @@ dependencies {
 
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.646'
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.646'
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.770'
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.770'
 
     testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
@@ -125,17 +125,17 @@ dependencies {
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
-    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
+    compileOnly group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.17.2', withoutJacksons
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
-    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.14.0', withoutJacksons
+    testImplementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.17.2', withoutJacksons
     testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     testImplementation 'org.mock-server:mockserver-netty:5.15.0'
     testImplementation 'org.mock-server:mockserver-client-java:5.15.0'
 
-    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.646' , withoutJacksons
-    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.646' , withoutJacksons
+    compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.770' , withoutJacksons
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.770' , withoutJacksons
 
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
@@ -154,7 +154,7 @@ dependencies {
     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '2.2'
 
-    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.14.0'
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.17.2'
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
