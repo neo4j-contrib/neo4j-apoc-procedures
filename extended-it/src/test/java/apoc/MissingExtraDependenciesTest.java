@@ -11,6 +11,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,9 @@ public class MissingExtraDependenciesTest {
     @BeforeClass
     public static void setUp() throws Exception {
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
-        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
+            .withStartupTimeout(Duration.ofMinutes(10)));
+        neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
 
         session = neo4jContainer.getSession();

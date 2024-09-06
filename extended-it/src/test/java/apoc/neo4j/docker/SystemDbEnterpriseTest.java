@@ -13,6 +13,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,7 +56,9 @@ public class SystemDbEnterpriseTest {
                 .withNeo4jConfig("dbms.security.keystore.path", pathPwdValue)
                 .withNeo4jConfig("dbms.security.keystore.password", PASSWORD)
                 .withNeo4jConfig("dbms.security.key.name", randomKeyAlias);
-        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
+.withStartupTimeout(Duration.ofMinutes(10)));
+        neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
         session = neo4jContainer.getSession();
 

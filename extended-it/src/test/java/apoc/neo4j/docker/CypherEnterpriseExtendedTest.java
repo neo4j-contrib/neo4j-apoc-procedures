@@ -17,6 +17,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -64,13 +65,17 @@ public class CypherEnterpriseExtendedTest {
 
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
+    
+    
 
     @BeforeClass
     public static void beforeAll() {
         // We build the project, the artifact will be placed into ./build/libs
         neo4jContainer = createEnterpriseDB(List.of(ApocPackage.EXTENDED), true)
                 .withNeo4jConfig("dbms.transaction.timeout", "60s");
-        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy());
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
+                .withStartupTimeout(Duration.ofMinutes(10)));
+        neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
         session = neo4jContainer.getSession();
 
