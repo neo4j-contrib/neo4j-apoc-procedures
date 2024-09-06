@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import static apoc.ExtendedApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 import static apoc.ml.MLUtil.*;
+import static apoc.ml.RestAPIConfig.METHOD_KEY;
 
 
 @Extended
@@ -103,6 +104,8 @@ public class OpenAI {
             }
             case HUGGINGFACE -> {
                 configForPayload.putIfAbsent("inputs", inputs);
+                configuration.putIfAbsent(PATH_CONF_KEY, "");
+                headers.putIfAbsent(METHOD_KEY, "POST");
                 configuration.putIfAbsent(JSON_PATH_CONF_KEY, "$[0]");
             }
             case ANTHROPIC -> {

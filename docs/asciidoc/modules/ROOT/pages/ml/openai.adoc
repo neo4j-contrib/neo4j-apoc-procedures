@@ -161,9 +161,11 @@ For the https://huggingface.co/[HuggingFace API], we have to define the config `
 For example:
 [source,cypher]
 ----
-CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $huggingFaceApiKey, 
-{endpoint: 'https://api-inference.huggingface.co/models/gpt2', apiType: 'HUGGINGFACE', model: 'gpt2', path: ''})
+CALL apoc.ml.openai.completion('The sky has a [MASK] color', $huggingFaceApiKey,
+{endpoint: 'https://api-inference.huggingface.co/models/google-bert/bert-base-uncased', apiType: 'HUGGINGFACE'})
 ----
+
+With gpt2 or other text completion models the answers are not valid.
 
 Or also, by using the https://docs.cohere.com/docs[Cohere API], where we have to define `path: '''` not to add the `/completions` suffix to the URL:
 [source,cypher]
