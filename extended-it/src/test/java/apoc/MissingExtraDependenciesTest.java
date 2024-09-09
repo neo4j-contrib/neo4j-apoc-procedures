@@ -42,7 +42,9 @@ public class MissingExtraDependenciesTest {
             .withStartupTimeout(Duration.ofMinutes(10)));
         neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
-
+        
+        System.out.println("Logging neo4jContainer..");
+        neo4jContainer.dumpLogs();
         session = neo4jContainer.getSession();
     }
 
