@@ -18,6 +18,8 @@
  */
 package apoc.custom;
 
+import static apoc.custom.CypherProceduresUtil.MAP_RESULT_TYPE;
+import static apoc.custom.CypherProceduresUtil.getBaseType;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 import apoc.util.JsonUtil;
@@ -242,63 +244,7 @@ public class Signatures {
     }
 
     private Neo4jTypes.AnyType type(SignatureParser.Opt_typeContext opt_type) {
-        switch (opt_type.base_type().getText()) {
-            case "ANY":
-                return NTAny;
-            case "MAP":
-            case MAP_RESULT_TYPE:
-                return NTMap;
-            case "NODE":
-                return NTNode;
-            case "REL":
-                return NTRelationship;
-            case "RELATIONSHIP":
-                return NTRelationship;
-            case "EDGE":
-                return NTRelationship;
-            case "PATH":
-                return NTPath;
-            case "NUMBER":
-                return NTNumber;
-            case "LONG":
-                return NTInteger;
-            case "INT":
-                return NTInteger;
-            case "INTEGER":
-                return NTInteger;
-            case "FLOAT":
-                return NTFloat;
-            case "DOUBLE":
-                return NTFloat;
-            case "BOOL":
-                return NTBoolean;
-            case "BOOLEAN":
-                return NTBoolean;
-            case "DATE":
-                return NTDate;
-            case "TIME":
-                return NTTime;
-            case "LOCALTIME":
-                return NTLocalTime;
-            case "DATETIME":
-                return NTDateTime;
-            case "LOCALDATETIME":
-                return NTLocalDateTime;
-            case "DURATION":
-                return NTDuration;
-            case "POINT":
-                return NTPoint;
-            case "GEO":
-                return NTGeometry;
-            case "GEOMETRY":
-                return NTGeometry;
-            case "STRING":
-                return NTString;
-            case "TEXT":
-                return NTString;
-            default:
-                return NTString;
-        }
+        return getBaseType(opt_type.base_type().getText());
     }
 
     public UserFunctionSignature asFunctionSignature(String signature, String description) {
