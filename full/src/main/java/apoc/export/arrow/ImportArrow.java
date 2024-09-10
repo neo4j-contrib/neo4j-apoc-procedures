@@ -11,6 +11,24 @@ import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;
@@ -40,31 +58,11 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-
 @Extended
 public class ImportArrow {
 
     // TODO: field similar to the one placed in ArrowUtils (placed in core)
-    //  when the Arrow procedures will be placed in extended remove these lines 
+    //  when the Arrow procedures will be placed in extended remove these lines
     //  and replace FIELD_ID with FIELD_ID.getName(), FIELD_LABELS with FIELD_LABELS.getName(), etc..
     public static String FIELD_ID = "<id>";
     public static String FIELD_LABELS = "labels";
@@ -72,115 +70,115 @@ public class ImportArrow {
     public static String FIELD_TARGET_ID = "<target.id>";
     public static String FIELD_TYPE = "<type>";
     // -- end ArrowUtils fields
-    
+
     @Context
     public Pools pools;
 
     @Context
     public GraphDatabaseService db;
-    
-    
+
     @Procedure(name = "apoc.import.arrow", mode = Mode.WRITE)
     @Description("Imports arrow from the provided arrow file or byte array")
-    public Stream<ProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ProgressInfo> importFile(
+            @Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config)
+            throws Exception {
 
-        ProgressInfo result =
-                Util.inThread(pools, () -> {
-                    String file = null;
-                    String sourceInfo = "binary";
-                    if (input instanceof String) {
-                        file =  (String) input;
-                        sourceInfo = "file";
-                    }
+        ProgressInfo result = Util.inThread(pools, () -> {
+            String file = null;
+            String sourceInfo = "binary";
+            if (input instanceof String) {
+                file = (String) input;
+                sourceInfo = "file";
+            }
 
-                    final ArrowConfig conf = new ArrowConfig(config);
+            final ArrowConfig conf = new ArrowConfig(config);
 
-                    final Map<Long, Long> idMapping = new HashMap<>();
-                    
-                    AtomicInteger counter = new AtomicInteger();
-                    try (ArrowReader reader = getReader(input);
-                         VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
+            final Map<Long, Long> idMapping = new HashMap<>();
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "arrow"));
-                        BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
-                        try {
-                            while (hasElements(counter, reader, schemaRoot)) {
+            AtomicInteger counter = new AtomicInteger();
+            try (ArrowReader reader = getReader(input);
+                    VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
 
-                                final Map<String, Object> row = schemaRoot.getFieldVectors()
-                                        .stream()
-                                        .collect(
-                                                HashMap::new,
-                                                (map, fieldVector) -> {
-                                                    Object read = read(fieldVector, counter.get(), conf);
-                                                    if (read == null) {
-                                                        return;
-                                                    }
-                                                    map.put(fieldVector.getName(), read);
-                                                },
-                                                HashMap::putAll);
+                final ProgressReporter reporter =
+                        new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "arrow"));
+                BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
+                try {
+                    while (hasElements(counter, reader, schemaRoot)) {
 
-                                String relType = (String) row.remove(FIELD_TYPE);
-                                if (relType == null) {
-                                    // is node
-                                    String[] stringLabels = (String[]) row.remove(FIELD_LABELS);
-                                    Label[] labels = Optional.ofNullable(stringLabels)
-                                            .map(l -> Arrays.stream(l).map(Label::label).toArray(Label[]::new))
-                                            .orElse(new Label[]{});
-                                    final Node node = btx.getTransaction().createNode(labels);
+                        final Map<String, Object> row = schemaRoot.getFieldVectors().stream()
+                                .collect(
+                                        HashMap::new,
+                                        (map, fieldVector) -> {
+                                            Object read = read(fieldVector, counter.get(), conf);
+                                            if (read == null) {
+                                                return;
+                                            }
+                                            map.put(fieldVector.getName(), read);
+                                        },
+                                        HashMap::putAll);
 
-                                    long id = (long) row.remove(FIELD_ID);
-                                    idMapping.put(id, node.getId());
+                        String relType = (String) row.remove(FIELD_TYPE);
+                        if (relType == null) {
+                            // is node
+                            String[] stringLabels = (String[]) row.remove(FIELD_LABELS);
+                            Label[] labels = Optional.ofNullable(stringLabels)
+                                    .map(l -> Arrays.stream(l).map(Label::label).toArray(Label[]::new))
+                                    .orElse(new Label[] {});
+                            final Node node = btx.getTransaction().createNode(labels);
 
-                                    addProps(row, node);
-                                    reporter.update(1, 0, row.size());
-                                } else {
-                                    // is relationship
-                                    long sourceId = (long) row.remove(FIELD_SOURCE_ID);
-                                    Long idSource = idMapping.get(sourceId);
-                                    final Node source = btx.getTransaction().getNodeById(idSource);
+                            long id = (long) row.remove(FIELD_ID);
+                            idMapping.put(id, node.getId());
 
-                                    long targetId = (long) row.remove(FIELD_TARGET_ID);
-                                    Long idTarget = idMapping.get(targetId);
-                                    final Node target = btx.getTransaction().getNodeById(idTarget);
+                            addProps(row, node);
+                            reporter.update(1, 0, row.size());
+                        } else {
+                            // is relationship
+                            long sourceId = (long) row.remove(FIELD_SOURCE_ID);
+                            Long idSource = idMapping.get(sourceId);
+                            final Node source = btx.getTransaction().getNodeById(idSource);
 
-                                    final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(relType));
-                                    addProps(row, rel);
-                                    reporter.update(0, 1, row.size());
-                                }
-                                
-                                counter.incrementAndGet();
-                                btx.increment();
-                            }
-                            
-                            btx.commit();
-                        } catch (RuntimeException e) {
-                            btx.rollback();
-                            throw e;
-                        } finally {
-                            btx.close();
+                            long targetId = (long) row.remove(FIELD_TARGET_ID);
+                            Long idTarget = idMapping.get(targetId);
+                            final Node target = btx.getTransaction().getNodeById(idTarget);
+
+                            final Relationship rel =
+                                    source.createRelationshipTo(target, RelationshipType.withName(relType));
+                            addProps(row, rel);
+                            reporter.update(0, 1, row.size());
                         }
 
-                        return reporter.getTotal();
+                        counter.incrementAndGet();
+                        btx.increment();
                     }
-                });
+
+                    btx.commit();
+                } catch (RuntimeException e) {
+                    btx.rollback();
+                    throw e;
+                } finally {
+                    btx.close();
+                }
+
+                return reporter.getTotal();
+            }
+        });
 
         return Stream.of(result);
     }
 
-    
     private ArrowReader getReader(Object input) throws IOException {
         RootAllocator allocator = new RootAllocator();
         if (input instanceof String) {
-            final SeekableByteChannel channel = FileUtils.inputStreamFor(input, null, null, null)
-                    .asChannel();
+            final SeekableByteChannel channel =
+                    FileUtils.inputStreamFor(input, null, null, null).asChannel();
             return new ArrowFileReader(channel, allocator);
         }
         ByteArrayInputStream inputStream = new ByteArrayInputStream((byte[]) input);
         return new ArrowStreamReader(inputStream, allocator);
     }
 
-
-    private static boolean hasElements(AtomicInteger counter, ArrowReader reader, VectorSchemaRoot schemaRoot) throws IOException {
+    private static boolean hasElements(AtomicInteger counter, ArrowReader reader, VectorSchemaRoot schemaRoot)
+            throws IOException {
         if (counter.get() >= schemaRoot.getRowCount()) {
             if (reader.loadNextBatch()) {
                 counter.set(0);
@@ -188,12 +186,12 @@ public class ImportArrow {
                 return false;
             }
         }
-        
+
         return true;
     }
 
     private static Object read(FieldVector fieldVector, int index, ArrowConfig conf) {
-        
+
         if (fieldVector.isNull(index)) {
             return null;
         } else if (fieldVector instanceof BitVector) {
@@ -246,14 +244,17 @@ public class ImportArrow {
 
         if (object instanceof Collection) {
             // if there isn't a mapping config, we convert the list to a String[]
-            return ((Collection<?>) object).stream()
-                    .map(i -> toValidValue(i, field, mapping))
-                    .collect(Collectors.toList())
-                    .toArray(new String[0]);
+            return ((Collection<?>) object)
+                    .stream()
+                            .map(i -> toValidValue(i, field, mapping))
+                            .collect(Collectors.toList())
+                            .toArray(new String[0]);
         }
         if (object instanceof Map) {
-            return ((Map<String, Object>) object).entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> toValidValue(e.getValue(), field, mapping)));
+            return ((Map<String, Object>) object)
+                    .entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey, e -> toValidValue(e.getValue(), field, mapping)));
         }
         try {
             // we test if is a valid Neo4j type
@@ -272,7 +273,7 @@ public class ImportArrow {
      */
     private static Object convertValue(String value, String typeName) {
         switch (typeName) {
-            // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
+                // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
             case "Point":
                 return getPointValue(value);
             case "LocalDateTime":
@@ -301,7 +302,7 @@ public class ImportArrow {
                 return Integer.parseInt(value);
             case "Long":
                 return Long.parseLong(value);
-            case "Node": 
+            case "Node":
             case "Relationship":
                 return JsonUtil.parse(value, null, Map.class);
             case "NO_VALUE":
@@ -327,10 +328,11 @@ public class ImportArrow {
         try {
             return PointValue.parse(value);
         } catch (Neo4jException e) {
-            // fallback in case of double-quotes, e.g. {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
-            // we remove the double quotes before parsing the result, e.g. {crs:"wgs-84-3d",latitude:13.1,longitude:33.46789,height:100.0}
-            ObjectMapper objectMapper = new ObjectMapper()
-                    .disable(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature());
+            // fallback in case of double-quotes, e.g.
+            // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
+            // we remove the double quotes before parsing the result, e.g.
+            // {crs:"wgs-84-3d",latitude:13.1,longitude:33.46789,height:100.0}
+            ObjectMapper objectMapper = new ObjectMapper().disable(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature());
             try {
                 Map readValue = objectMapper.readValue(value, Map.class);
                 String stringWithoutKeyQuotes = objectMapper.writeValueAsString(readValue);
@@ -345,40 +347,39 @@ public class ImportArrow {
     public static Object[] getPrototypeFor(String type) {
         switch (type) {
             case "Long":
-                return new Long[]{};
+                return new Long[] {};
             case "Integer":
-                return new Integer[]{};
+                return new Integer[] {};
             case "Double":
-                return new Double[]{};
+                return new Double[] {};
             case "Float":
-                return new Float[]{};
+                return new Float[] {};
             case "Boolean":
-                return new Boolean[]{};
+                return new Boolean[] {};
             case "Byte":
-                return new Byte[]{};
+                return new Byte[] {};
             case "Short":
-                return new Short[]{};
+                return new Short[] {};
             case "Char":
-                return new Character[]{};
+                return new Character[] {};
             case "String":
-                return new String[]{};
+                return new String[] {};
             case "DateTime":
-                return new ZonedDateTime[]{};
+                return new ZonedDateTime[] {};
             case "LocalTime":
-                return new LocalTime[]{};
+                return new LocalTime[] {};
             case "LocalDateTime":
-                return new LocalDateTime[]{};
+                return new LocalDateTime[] {};
             case "Point":
-                return new PointValue[]{};
+                return new PointValue[] {};
             case "Time":
-                return new OffsetTime[]{};
+                return new OffsetTime[] {};
             case "Date":
-                return new LocalDate[]{};
+                return new LocalDate[] {};
             case "Duration":
-                return new DurationValue[]{};
+                return new DurationValue[] {};
             default:
                 throw new IllegalStateException("Type " + type + " not supported.");
         }
     }
-
 }
