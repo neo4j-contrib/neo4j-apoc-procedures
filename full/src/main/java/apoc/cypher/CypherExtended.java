@@ -250,7 +250,7 @@ public class CypherExtended {
             String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
-            if (stmt.trim().isEmpty()) continue;
+            if (isCommentOrEmpty(stmt)) continue;
 
             // Periodic operations cannot be schema operations, so no need to check that here (will fail as invalid
             // query)
@@ -303,7 +303,7 @@ public class CypherExtended {
 
     private Scanner createScannerFor(Reader reader) {
         Scanner scanner = new Scanner(reader);
-        scanner.useDelimiter(";\r?\n");
+        scanner.useDelimiter(";\\s*\r?\n");
         return scanner;
     }
 
@@ -317,7 +317,7 @@ public class CypherExtended {
             String fileName) {
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
-            if (stmt.trim().isEmpty()) continue;
+            if (isCommentOrEmpty(stmt)) continue;
             boolean schemaOperation;
             try {
                 schemaOperation = isSchemaOperation(stmt);
@@ -336,6 +336,11 @@ public class CypherExtended {
                 });
             }
         }
+    }
+
+    private static boolean isCommentOrEmpty(String stmt) {
+        String trimStatement = stmt.trim();
+        return trimStatement.isEmpty() || trimStatement.startsWith("//");
     }
 
     private static final Pattern shellControl =
