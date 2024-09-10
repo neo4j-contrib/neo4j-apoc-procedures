@@ -84,6 +84,11 @@ dependencies {
         exclude module: "commons-lang3"
         exclude module: "commons-text"
     }
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0', {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
@@ -166,6 +171,7 @@ dependencies {
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
+    testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
