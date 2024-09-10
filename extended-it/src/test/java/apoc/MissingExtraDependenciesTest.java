@@ -38,6 +38,7 @@ public class MissingExtraDependenciesTest {
     @BeforeClass
     public static void setUp() throws Exception {
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
+        neo4jContainer.withoutDriver();
         neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
             .withStartupTimeout(Duration.ofMinutes(10)));
         neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
@@ -45,6 +46,8 @@ public class MissingExtraDependenciesTest {
         
         System.out.println("Logging neo4jContainer..");
         neo4jContainer.dumpLogs();
+
+        System.out.println("Logging neo4jContainer 2..");
         session = neo4jContainer.getSession();
     }
 
