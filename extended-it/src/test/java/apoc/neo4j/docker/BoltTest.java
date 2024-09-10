@@ -65,6 +65,7 @@ public class BoltTest {
         neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
 .withStartupTimeout(Duration.ofMinutes(10)));neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
+        
         TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class, PathExplorer.class, GraphRefactoring.class);
         BOLT_URL = getBoltUrl().replaceAll("'", "");
         session = neo4jContainer.getSession();
