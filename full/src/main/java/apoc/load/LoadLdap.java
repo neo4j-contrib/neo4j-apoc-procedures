@@ -22,7 +22,6 @@ import static apoc.ApocConfig.apocConfig;
 
 import apoc.Extended;
 import apoc.util.Util;
-import com.novell.ldap.*;
 import com.unboundid.ldap.sdk.*;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchScope;
