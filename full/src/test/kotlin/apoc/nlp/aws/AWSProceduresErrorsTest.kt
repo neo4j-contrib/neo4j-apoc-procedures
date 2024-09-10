@@ -18,6 +18,7 @@
  */
 package apoc.nlp.aws
 
+import apoc.nlp.aws.RealAWSClient.Companion.missingCredentialError
 import apoc.util.TestUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.AfterClass
@@ -94,7 +95,7 @@ class AWSProceduresErrorsTest {
                 println(it.resultAsString())
             }
         }
-        assertThat(exception.message, containsString("java.lang.IllegalArgumentException: Missing parameter `key`"))
+        assertThat(exception.message, containsString(missingCredentialError))
     }
 
     @Test
@@ -111,6 +112,6 @@ class AWSProceduresErrorsTest {
                 println(it.resultAsString())
             }
         }
-        assertThat(exception.message, containsString("java.lang.IllegalArgumentException: Missing parameter `secret`"))
+        assertThat(exception.message, containsString(missingCredentialError))
     }
 }
