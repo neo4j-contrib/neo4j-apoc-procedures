@@ -303,7 +303,7 @@ public class CypherExtended {
 
     private Scanner createScannerFor(Reader reader) {
         Scanner scanner = new Scanner(reader);
-        scanner.useDelimiter(";\s*\r?\n");
+        scanner.useDelimiter(";\\s*\r?\n");
         return scanner;
     }
 
