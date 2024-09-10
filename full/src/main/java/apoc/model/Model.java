@@ -36,8 +36,7 @@ import org.neo4j.procedure.Procedure;
 import schemacrawler.schema.*;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
-import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
-import schemacrawler.utility.SchemaCrawlerUtility;
+import schemacrawler.tools.utility.SchemaCrawlerUtility;
 
 @Extended
 public class Model {
@@ -79,9 +78,7 @@ public class Model {
             throws Exception {
         String url = getUrlOrKey(urlOrKey);
 
-        SchemaCrawlerOptionsBuilder optionsBuilder =
-                SchemaCrawlerOptionsBuilder.builder().withSchemaInfoLevel(SchemaInfoLevelBuilder.standard());
-        SchemaCrawlerOptions options = optionsBuilder.toOptions();
+        SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
 
         Catalog catalog = SchemaCrawlerUtility.getCatalog(getConnection(url, new LoadJdbcConfig(config)), options);
 
