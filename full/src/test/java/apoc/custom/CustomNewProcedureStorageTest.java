@@ -23,7 +23,6 @@ import static apoc.util.ExtendedTestUtil.testRetryCallEventually;
 import static apoc.util.MapUtil.map;
 import static apoc.util.SystemDbTestUtil.PROCEDURE_DEFAULT_REFRESH;
 import static apoc.util.SystemDbTestUtil.TIMEOUT;
-import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -433,7 +432,8 @@ public class CustomNewProcedureStorageTest {
                             row.get("signature"));
                     row = r.next();
                     assertEquals(
-                            "custom.sumFun2(input1 :: INTEGER?, input2 :: INTEGER?) :: (INTEGER?)", row.get("signature"));
+                            "custom.sumFun2(input1 :: INTEGER?, input2 :: INTEGER?) :: (INTEGER?)",
+                            row.get("signature"));
                     assertFalse(r.hasNext());
                 });
         testResultEventually(sysDb, "call apoc.custom.show() YIELD name RETURN name ORDER BY name", row -> {
