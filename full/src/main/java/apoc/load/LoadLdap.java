@@ -184,14 +184,21 @@ public class LoadLdap {
             attributeList = (List<String>) search.get(SEARCH_ATTRIBUTES_P);
             if (attributeList == null) attributeList = new ArrayList<>();
 
-            int searchScope =
-                    switch (sScope) {
-                        case SCOPE_BASE -> SearchScope.BASE_INT_VALUE;
-                        case SCOPE_ONE -> SearchScope.ONE_INT_VALUE;
-                        case SCOPE_SUB -> SearchScope.SUB_INT_VALUE;
-                        default -> throw new RuntimeException(
-                                "Invalid scope:" + sScope + ". value scopes are SCOPE_BASE, SCOPE_ONE and SCOPE_SUB");
-                    };
+            int searchScope;
+            switch (sScope) {
+                case SCOPE_BASE:
+                    searchScope = SearchScope.BASE_INT_VALUE;
+                    break;
+                case SCOPE_ONE:
+                    searchScope = SearchScope.ONE_INT_VALUE;
+                    break;
+                case SCOPE_SUB:
+                    searchScope = SearchScope.SUB_INT_VALUE;
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "Invalid scope:" + sScope + ". value scopes are SCOPE_BASE, SCOPE_ONE and SCOPE_SUB");
+            }
             // getting an ldap connection
             try {
                 lc = getConnection();
