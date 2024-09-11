@@ -83,7 +83,7 @@ dependencies {
         exclude group: 'org.apache.commons', module: 'commons-io'
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
-    implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.20.8'
+    implementation group: 'us.fatehi', name: 'schemacrawler', version: '16.22.2'
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.17.0', withoutJacksons
 
     // These will be dependencies not packaged with the .jar
