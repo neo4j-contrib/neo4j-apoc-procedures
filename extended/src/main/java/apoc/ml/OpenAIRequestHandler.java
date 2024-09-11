@@ -40,7 +40,8 @@ abstract class OpenAIRequestHandler {
     public String getFullUrl(String method, Map<String, Object> procConfig, ApocConfig apocConfig) {
         return Stream.of(getEndpoint(procConfig, apocConfig), method, getApiVersion(procConfig, apocConfig))
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining("/"));
+                .collect(Collectors.joining("/"))
+                .replaceAll("/\\?", "?"); // Remove terminating endpoint
     }
 
     enum Type {

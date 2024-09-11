@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ml.OpenAI.API_TYPE_CONF_KEY;
+import static apoc.ml.OpenAI.PATH_CONF_KEY;
 import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.CHAT_COMPLETION_QUERY;
 import static apoc.ml.OpenAITestResultUtils.COMPLETION_QUERY;
@@ -60,6 +61,19 @@ public class OpenAIAzureIT {
     public void embedding() {
         testCall(db, EMBEDDING_QUERY,
                 getParams(OPENAI_EMBEDDING_URL),
+                OpenAITestResultUtils::assertEmbeddings);
+    }
+
+    @Test
+    public void embeddingFixPath() {
+        Map<String, Object> params = Map.of("apiKey", OPENAI_KEY,
+                "conf", Map.of(ENDPOINT_CONF_KEY, OPENAI_EMBEDDING_URL,
+                        API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.AZURE.name(),
+                        API_VERSION_CONF_KEY, OPENAI_AZURE_API_VERSION,
+                        PATH_CONF_KEY, "openai/deployments/text-embedding-ada-002/embeddings"
+                ));
+        testCall(db, EMBEDDING_QUERY,
+                params,
                 OpenAITestResultUtils::assertEmbeddings);
     }
 
