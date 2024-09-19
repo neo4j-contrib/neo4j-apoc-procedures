@@ -121,8 +121,8 @@ jobs:
             echo "DOCKER_REMOTE=Dockerhub" >> "$GITHUB_ENV"
           else
             NEO4JVERSION="$neo4j_version_base-SNAPSHOT"
-            NEO4J_ENTERPRISE_IMAGE="${{ secrets.ECR_NEO4J_DOCKER_URL }}/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
-            NEO4J_COMMUNITY_IMAGE="${{ secrets.ECR_NEO4J_DOCKER_URL }}/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
+            NEO4J_ENTERPRISE_IMAGE="${{ secrets.ECR_NEO4J_DOCKER_URL }}/build-service/neo4j:5.23.0-enterprise-debian-nightly"
+            NEO4J_COMMUNITY_IMAGE="${{ secrets.ECR_NEO4J_DOCKER_URL }}/build-service/neo4j:5.23.0-community-debian-nightly"
             echo "DOCKER_REMOTE=ECR" >> "$GITHUB_ENV"
             CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_URL/ci-live"
             echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
