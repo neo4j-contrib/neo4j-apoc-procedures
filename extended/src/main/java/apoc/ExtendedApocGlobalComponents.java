@@ -6,7 +6,6 @@ import apoc.ttl.TTLLifeCycle;
 import apoc.uuid.Uuid;
 import apoc.uuid.UuidHandler;
 import org.neo4j.annotations.service.ServiceProvider;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.Lifecycle;
