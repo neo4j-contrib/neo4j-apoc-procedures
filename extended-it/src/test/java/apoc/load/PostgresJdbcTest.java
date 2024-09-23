@@ -32,9 +32,6 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     public static void setUp() throws Exception {
         postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
         postgress.start();
-        
-        postgress.getJdbcUrl();
-        
         TestUtil.registerProcedure(db,Jdbc.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
     }
