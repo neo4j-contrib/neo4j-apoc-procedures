@@ -64,10 +64,20 @@ dependencies {
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
-    compileOnly "org.apache.poi:poi:5.3.0"
-    testImplementation "org.apache.poi:poi:5.3.0"
-    compileOnly "org.apache.poi:poi-ooxml:5.3.0"
-    testImplementation "org.apache.poi:poi-ooxml:5.3.0"
+    // Make sure no transitive dependencies are included together with apache.poi
+
+    compileOnly "org.apache.poi:poi:5.3.0", {
+        exclude group: '*'
+    }
+    testImplementation "org.apache.poi:poi:5.3.0", {
+        exclude group: '*'
+    }
+    compileOnly "org.apache.poi:poi-ooxml:5.3.0", {
+        exclude group: '*'
+    }
+    testImplementation "org.apache.poi:poi-ooxml:5.3.0", {
+        exclude group: '*'
+    }
 
     implementation 'org.jsoup:jsoup:1.15.3'
 

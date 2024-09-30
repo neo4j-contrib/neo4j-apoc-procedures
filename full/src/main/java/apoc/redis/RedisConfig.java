@@ -49,7 +49,7 @@ public class RedisConfig {
                 Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
-                throw new MissingDependencyException(REDIS_MISSING_DEPS_ERROR);
+                throw new MissingDependencyException(REDIS_MISSING_DEPS_ERROR, e);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
