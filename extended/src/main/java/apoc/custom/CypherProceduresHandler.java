@@ -6,7 +6,7 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
-import org.neo4j.collection.RawIterator;
+import org.neo4j.collection.ResourceRawIterator;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -26,6 +26,7 @@ import org.neo4j.kernel.api.CypherScope;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
+import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
@@ -253,7 +254,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             final boolean isStatementNull = statement == null;
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
-                public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
+                public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
                     if (isStatementNull) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
                                 "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
