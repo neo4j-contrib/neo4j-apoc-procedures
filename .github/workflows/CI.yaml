@@ -44,7 +44,7 @@ jobs:
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
-          echo "NEO4J_VERSION_CI=5.23.0" >> "$GITHUB_ENV"
+          echo "NEO4J_VERSION_CI=5.24.0" >> "$GITHUB_ENV"
       
       - name: Compile Java
         run: |
@@ -101,7 +101,7 @@ jobs:
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
-          echo "NEO4J_VERSION_CI=5.23.0" >> "$GITHUB_ENV"
+          echo "NEO4J_VERSION_CI=5.24.0" >> "$GITHUB_ENV"
 
       - name: Init gradle
         run: |
