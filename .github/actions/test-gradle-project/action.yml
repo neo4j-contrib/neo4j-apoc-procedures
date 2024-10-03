@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI :${{inputs.project-name}}:check --parallel
     - name: Archive test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: always()
       with:
         name: ${{inputs.project-name}}-test-results
