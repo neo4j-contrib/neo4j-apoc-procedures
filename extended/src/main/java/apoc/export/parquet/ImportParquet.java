@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ProgressReporter;
+import apoc.result.ImportProgressInfo;
 import apoc.result.ProgressInfo;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
@@ -69,7 +70,7 @@ public class ImportParquet {
                     final Map<Long, Long> idMapping = new HashMap<>();
                     try (ApocParquetReader reader = getReader(input, conf, urlAccessChecker)) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "parquet"));
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "parquet"));
 
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
 

@@ -2,6 +2,7 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
+import apoc.result.ExportProgressInfo;
 import apoc.result.ProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
@@ -45,8 +46,8 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
 
     public Stream<ProgressInfo> export(IN data, ParquetConfig config) {
 
-        ProgressInfo progressInfo = new ProgressInfo(fileName, getSource(data), "parquet");
-        progressInfo.batchSize = config.getBatchSize();
+        ExportProgressInfo progressInfo = new ExportProgressInfo(fileName, getSource(data), "parquet");
+        progressInfo.setBatchSize( config.getBatchSize() );
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
         final BlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(10);

@@ -3,6 +3,7 @@ package apoc.export.xls;
 import apoc.ApocConfig;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
+import apoc.result.ExportProgressInfo;
 import apoc.result.ProgressInfo;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -57,8 +58,8 @@ public class ExportXlsHandler {
              SXSSFWorkbook wb = new SXSSFWorkbook(-1)) {
 
             XlsExportConfig config = new XlsExportConfig(configMap);
-            ProgressInfo progressInfo = new ProgressInfo(fileName, source, "xls");
-            progressInfo.batchSize = config.getBatchSize();
+            ExportProgressInfo progressInfo = new ExportProgressInfo(fileName, source, "xls");
+            progressInfo.setBatchSize( config.getBatchSize() );
             ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
             Map<Class, CellStyle> styles = buildCellStyles(config, wb);
