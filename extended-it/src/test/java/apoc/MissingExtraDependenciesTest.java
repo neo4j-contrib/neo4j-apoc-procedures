@@ -20,7 +20,7 @@ import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
 import static apoc.load.LoadHtml.SELENIUM_MISSING_DEPS_ERROR;
 import static apoc.mongodb.MongoDBUtils.MONGO_MISSING_DEPS_ERROR;
 import static apoc.redis.RedisConfig.REDIS_MISSING_DEPS_ERROR;
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.createCommunityDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -35,7 +35,7 @@ public class MissingExtraDependenciesTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
+        neo4jContainer = createCommunityDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
         neo4jContainer.start();
 
         session = neo4jContainer.getSession();

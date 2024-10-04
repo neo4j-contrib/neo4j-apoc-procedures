@@ -25,7 +25,9 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.util.Arrays;
@@ -60,7 +62,10 @@ public class BoltTest {
     @BeforeClass
     public static void setUp() throws Exception {
         neo4jContainer = createEnterpriseDB(List.of(ApocPackage.EXTENDED, ApocPackage.CORE), true).withInitScript("init_neo4j_bolt.cypher");
+        neo4jContainer.setWaitStrategy(Wait.defaultWaitStrategy()
+.withStartupTimeout(Duration.ofMinutes(10)));neo4jContainer.withStartupTimeout(Duration.ofMinutes(10));
         neo4jContainer.start();
+        
         TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class, Cypher.class, PathExplorer.class, GraphRefactoring.class);
         BOLT_URL = getBoltUrl().replaceAll("'", "");
         session = neo4jContainer.getSession();

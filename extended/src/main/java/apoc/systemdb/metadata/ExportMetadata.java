@@ -17,8 +17,6 @@ import java.util.Optional;
 public interface ExportMetadata {
 
     enum Type {
-        CypherProcedure(new ExportProcedure()),
-        CypherFunction(new ExportFunction()),
         Uuid(new ExportUuid()),
         Trigger(new ExportTrigger()),
         DataVirtualizationCatalog(new ExportDataVirtualization());
@@ -35,11 +33,11 @@ public interface ExportMetadata {
 
         public static Optional<Type> from(Label label, SystemDbConfig config) {
             final String name = label.name();
-            if (name.equalsIgnoreCase( ExtendedSystemLabels.Procedure.name())) {
-                return get(CypherProcedure, config);
-            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.Function.name())) {
-                return get(CypherFunction, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
+//            if (name.equalsIgnoreCase( ExtendedSystemLabels.Procedure.name())) {
+//                return get(CypherProcedure, config);
+//            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.Function.name())) {
+//                return get(CypherFunction, config);
+            if(name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
                 return get(Trigger, config);
             } else if(name.equalsIgnoreCase(ExtendedSystemLabels.ApocUuid.name())) {
                 return get(Uuid, config);

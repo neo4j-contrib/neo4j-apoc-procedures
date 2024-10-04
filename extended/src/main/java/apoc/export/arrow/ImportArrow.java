@@ -4,6 +4,7 @@ import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ProgressReporter;
+import apoc.result.ImportProgressInfo;
 import apoc.result.ProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
@@ -87,7 +88,7 @@ public class ImportArrow {
                     try (ArrowReader reader = getReader(input);
                          VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "arrow"));
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "arrow"));
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
                         try {
                             while (hasElements(counter, reader, schemaRoot)) {
