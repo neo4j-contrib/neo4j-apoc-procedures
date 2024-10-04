@@ -161,7 +161,7 @@ For the https://huggingface.co/[HuggingFace API], we have to define the config `
 For example:
 [source,cypher]
 ----
-CALL apoc.ml.openai.completion('The sky has a [MASK] color', $huggingFaceApiKey,
+CALL apoc.ml.openai.completion('[MASK] is the color of the sky', $huggingFaceApiKey,
 {endpoint: 'https://api-inference.huggingface.co/models/google-bert/bert-base-uncased', apiType: 'HUGGINGFACE'})
 ----
 

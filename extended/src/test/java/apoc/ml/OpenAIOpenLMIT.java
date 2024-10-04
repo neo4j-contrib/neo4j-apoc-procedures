@@ -1,7 +1,6 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +50,7 @@ public class OpenAIOpenLMIT {
                 API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.HUGGINGFACE.name()
         );
 
-        testCall(db, "CALL apoc.ml.openai.completion('The sky has a [MASK] color', $apiKey, $conf)",
+        testCall(db, "CALL apoc.ml.openai.completion('[MASK] is the color of the sky', $apiKey, $conf)",
                 Map.of("conf", conf, "apiKey", huggingFaceApiKey),
                 (row) -> {
                     var result = (Map<String,Object>) row.get("value");
