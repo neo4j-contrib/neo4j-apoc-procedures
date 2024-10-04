@@ -10,7 +10,6 @@ import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
