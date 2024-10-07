@@ -28,6 +28,7 @@ dependencies {
     }
 
     implementation project(":extended")
+    testImplementation project(':extended').sourceSets.main.allJava
 
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
