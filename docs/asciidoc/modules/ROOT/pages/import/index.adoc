@@ -13,3 +13,4 @@ For more information on these procedures, see:
 * xref::import/xls.adoc[]
 * xref::import/html.adoc[]
 * xref::import/parquet.adoc[]
+* xref::import/gexf.adoc[]

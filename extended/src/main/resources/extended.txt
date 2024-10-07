@@ -81,6 +81,8 @@ apoc.graph.filterProperties
 apoc.import.arrow
 apoc.import.parquet
 apoc.load.csv
+apoc.load.gexf
+apoc.import.gexf
 apoc.load.csvParams
 apoc.load.directory
 apoc.load.directory.async.add
