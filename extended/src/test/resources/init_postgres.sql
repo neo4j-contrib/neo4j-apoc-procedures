@@ -88,3 +88,5 @@ CREATE TABLE ARRAY_TABLE (
 );
 INSERT INTO ARRAY_TABLE ("NAME", "INT_VALUES", "DOUBLE_VALUES")
 VALUES ('John', '{ 1, 2, 3}', '{ 1.0, 2.0, 3.0 }');
+
+CREATE TABLE nodes (id serial PRIMARY KEY, my_id integer);

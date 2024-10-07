@@ -10,6 +10,7 @@ import schemacrawler.schema.*;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
+import us.fatehi.utility.datasource.DatabaseConnectionSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,8 +61,8 @@ public class Model {
 
         SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
 
-        Catalog catalog = SchemaCrawlerUtility.getCatalog(getConnection(url, new LoadJdbcConfig(config)),
-                options);
+        DatabaseConnectionSource connectionSource = (DatabaseConnectionSource) getConnection( url, new LoadJdbcConfig(config), DatabaseConnectionSource.class );
+        Catalog catalog = SchemaCrawlerUtility.getCatalog(connectionSource, options);
 
         DatabaseModel databaseModel = new DatabaseModel();
 
