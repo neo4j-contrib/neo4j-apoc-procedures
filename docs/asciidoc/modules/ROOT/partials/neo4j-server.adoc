@@ -24,6 +24,21 @@ The version compatibility matrix explains the mapping between Neo4j and APOC ver
 [opts=header]
 |===
 |apoc version | neo4j version
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.11.0[2025.11.0^] | 2025.11.2 (2025.11.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.10.0[2025.10.0^] | 2025.10.0 (2025.10.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.09.0[2025.09.0^] | 2025.09.0 (2025.09.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.08.0[2025.08.0^] | 2025.08.0 (2025.08.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.07.0[2025.07.0^] | 2025.07.0 (2025.07.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.06.0[2025.06.0^] | 2025.06.0 (2025.06.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.05.0[2025.05.0^] | 2025.05.0 (2025.05.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.04.0[2025.04.0^] | 2025.04.0 (2025.04.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.03.0[2025.03.0^] | 2025.03.0 (2025.03.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.02.0[2025.02.0^] | 2025.02.0 (2025.02.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/2025.01.0[2025.01.0^] | 2025.01.0 (2025.01.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.26.0[5.26.0^] | 5.26.0 (5.26.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.25.0[5.25.0^] | 5.25.0 (5.25.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.24.0[5.24.0^] | 5.24.0 (5.24.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.23.0[5.23.0^] | 5.23.0 (5.23.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.22.0[5.22.0^] | 5.22.0 (5.22.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.21.0[5.21.0^] | 5.21.0 (5.21.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.20.0[5.20.0^] | 5.20.0 (5.20.x)
@@ -46,7 +61,7 @@ The version compatibility matrix explains the mapping between Neo4j and APOC ver
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.3.1[5.3.1^] | 5.3.0 (5.3.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.2.0[5.2.0^] | 5.2.0 (5.2.x)
 | https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/5.1.0[5.1.0^] | 5.1.0 (5.1.x)
-| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.18[4.4.0.18^] | 4.4.0 (4.4.x)
+| https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/4.4.0.31[4.4.0.31^] | 4.4.0 (4.4.x)
 |===
 
 // end::version-matrix[]
