@@ -44,18 +44,17 @@ public class OpenAIOpenLMIT {
     public void completionWithHuggingFace() {
         String huggingFaceApiKey = System.getenv("HF_API_TOKEN");
         Assume.assumeNotNull("No HF_API_TOKEN environment configured", huggingFaceApiKey);
-        
-        String modelId = "gpt2";
+
+        String modelId = "google-bert/bert-base-uncased";
         Map<String, String> conf = Map.of(ENDPOINT_CONF_KEY, "https://api-inference.huggingface.co/models/" + modelId,
-                API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.HUGGINGFACE.name(),
-                PATH_CONF_KEY, "",
-                MODEL_CONF_KEY, modelId
+                API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.HUGGINGFACE.name()
         );
-        testCall(db, COMPLETION_QUERY,
+
+        testCall(db, "CALL apoc.ml.openai.completion('[MASK] is the color of the sky', $apiKey, $conf)",
                 Map.of("conf", conf, "apiKey", huggingFaceApiKey),
                 (row) -> {
                     var result = (Map<String,Object>) row.get("value");
-                    String generatedText = (String) result.get("generated_text");
+                    String generatedText = (String) result.get("sequence");
                     assertTrue(generatedText.toLowerCase().contains("blue"),
                             "Actual generatedText is " + generatedText);
                 });
