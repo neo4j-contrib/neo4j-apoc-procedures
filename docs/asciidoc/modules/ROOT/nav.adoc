@@ -32,6 +32,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::import/import-csv.adoc[]
     ** xref::import/arrow.adoc[]
     ** xref::import/import-graphml.adoc[]
+    ** xref::import/gexf.adoc[]
 
 * xref:export/index.adoc[]
     ** xref::export/web-apis.adoc[]

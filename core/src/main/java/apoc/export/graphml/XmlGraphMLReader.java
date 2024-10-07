@@ -18,6 +18,7 @@
  */
 package apoc.export.graphml;
 
+
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
@@ -218,13 +219,37 @@ public class XmlGraphMLReader {
     public static final QName TYPE = QName.valueOf("attr.type");
     public static final QName LIST = QName.valueOf("attr.list");
     public static final QName KEY = QName.valueOf("key");
+    public static final QName VALUE = QName.valueOf("value");
+    public static final QName DATA_TYPE = QName.valueOf("type");
+    public static final QName KIND = QName.valueOf("kind");
 
     public XmlGraphMLReader(GraphDatabaseService db, Transaction tx) {
         this.db = db;
         this.tx = tx;
     }
 
+    public enum ReaderType {
+        GRAPHML("attvalue", KEY, LABEL),
+        GEXF("data", FOR, KIND);
+
+        public String attvalue;
+        public QName key;
+        public QName label;
+
+        ReaderType(String attvalue, QName key, QName label) {
+            this.attvalue = attvalue;
+            this.key = key;
+            this.label = label;
+        }
+    }
+
     public long parseXML(Reader input, TerminationGuard terminationGuard) throws XMLStreamException {
+        return parseXML(input, terminationGuard, ReaderType.GRAPHML);
+    }
+
+    public long parseXML(Reader input, TerminationGuard terminationGuard, ReaderType readerType)
+            throws XMLStreamException {
+        Map<String, Object> dataMap = new HashMap<>();
         Map<String, Long> cache = new HashMap<>(1024 * 32);
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
@@ -238,7 +263,6 @@ public class XmlGraphMLReader {
         int count = 0;
         BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter);
         try {
-
             while (reader.hasNext()) {
                 terminationGuard.check();
                 XMLEvent event;
@@ -257,11 +281,14 @@ public class XmlGraphMLReader {
                     continue;
                 }
                 if (event.isStartElement()) {
-
                     StartElement element = event.asStartElement();
                     String name = element.getName().getLocalPart();
-
-                    if (name.equals("graphml") || name.equals("graph")) continue;
+                    if (name.equals("graphml") || name.equals("graph") || name.equals("gexf")) continue;
+                    if (name.equals("attribute")) {
+                        String id = getAttribute(element, ID);
+                        String type = getAttribute(element, DATA_TYPE);
+                        dataMap.put(id, type);
+                    }
                     if (name.equals("key")) {
                         String id = getAttribute(element, ID);
                         Key key = new Key(
@@ -270,7 +297,6 @@ public class XmlGraphMLReader {
                                 getAttribute(element, TYPE),
                                 getAttribute(element, LIST),
                                 getAttribute(element, FOR));
-
                         XMLEvent next = peek(reader);
                         if (next.isStartElement()
                                 && next.asStartElement()
@@ -284,20 +310,23 @@ public class XmlGraphMLReader {
                         else relKeys.put(id, key);
                         continue;
                     }
-                    if (name.equals("data")) {
+                    if (name.equals(readerType.attvalue)) { // Changed from data to attvalue for node properties in gexf
                         if (last == null) continue;
-                        String id = getAttribute(element, KEY);
+                        String id = getAttribute(element, readerType.key);
                         boolean isNode = last instanceof Node;
                         Key key = isNode ? nodeKeys.get(id) : relKeys.get(id);
                         if (key == null) key = Key.defaultKey(id, isNode);
                         final Map.Entry<XMLEvent, Object> eventEntry = getDataEventEntry(reader, key);
                         final XMLEvent next = eventEntry.getKey();
-                        final Object value = eventEntry.getValue();
+                        final Object value = readerType.equals(ReaderType.GRAPHML)
+                                ? eventEntry.getValue()
+                                : getAttribute(element, VALUE);
                         if (value != null) {
                             if (this.labels && isNode && id.equals("labels")) {
                                 addLabels((Node) last, value.toString());
                             } else if (!this.labels || isNode || !id.equals("label")) {
-                                last.setProperty(key.name, value);
+                                Object convertedValue = toValidValue(value, key.name, dataMap);
+                                last.setProperty(key.name, convertedValue);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
                         } else if (next.getEventType() == XMLStreamConstants.END_ELEMENT) {
@@ -311,7 +340,8 @@ public class XmlGraphMLReader {
                         String id = getAttribute(element, ID);
                         Node node = tx.getTransaction().createNode();
                         if (this.labels) {
-                            String labels = getAttribute(element, LABELS);
+                            String labels = getAttribute(
+                                    element, LABEL); // Changed from labels to label to fit gexf property format
                             addLabels(node, labels);
                         }
                         if (storeNodeIds) node.setProperty("id", id);
@@ -324,7 +354,7 @@ public class XmlGraphMLReader {
                     }
                     if (name.equals("edge")) {
                         tx.increment();
-                        String label = getAttribute(element, LABEL);
+                        String label = getAttribute(element, readerType.label); // changed from label to kind for gexf
                         Node from = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.SOURCE);
                         Node to = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.TARGET);
 

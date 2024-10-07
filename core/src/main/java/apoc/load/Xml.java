@@ -134,7 +134,7 @@ public class Xml {
                 .orElse(null);
     }
 
-    private Stream<MapResult> xmlXpathToMapResult(
+    public static Stream<MapResult> xmlXpathToMapResult(
             @Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config)
             throws Exception {
         if (config == null) config = Collections.emptyMap();
@@ -150,7 +150,7 @@ public class Xml {
         }
     }
 
-    private Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError)
+    public static Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError)
             throws Exception {
         List<MapResult> result = new ArrayList<>();
         try {
