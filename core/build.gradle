@@ -63,6 +63,7 @@ dependencies {
     testImplementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.770'
+    compileOnly group: 'us.fatehi', name: 'schemacrawler', version: '16.22.2'
 
     testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
     testImplementation group: 'junit', name: 'junit', version: '4.13.1'
@@ -79,6 +80,7 @@ dependencies {
 
     testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testImplementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
+    testImplementation group: 'us.fatehi', name: 'schemacrawler', version: '16.22.2'
 
 
     def withoutServers = {
