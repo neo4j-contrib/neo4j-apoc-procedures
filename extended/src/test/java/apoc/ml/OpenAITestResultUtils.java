@@ -23,7 +23,15 @@ public class OpenAITestResultUtils {
     public static final String COMPLETION_QUERY = "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, $conf)";
 
     public static final String COMPLETION_QUERY_EXTENDED_PROMPT = "CALL apoc.ml.openai.completion('\\n\\nHuman: What color is sky?\\n\\nAssistant:', $apiKey, $conf)";
-    
+    public static final String TEXT_TO_CYPHER_QUERY = """
+            WITH $schema as schema, $question as question
+            CALL apoc.ml.openai.chat([
+                        {role:"system", content:"Given an input question, convert it to a Cypher query. No pre-amble."},
+                        {role:"user", content:"Based on the Neo4j graph schema below, write a Cypher query that would answer the user's question:
+            \\n "+ schema +" \\n\\n Question: "+ question +" \\n Cypher query:"}
+                        ], $apiKey, $conf) YIELD value RETURN value
+            """;
+
     public static void assertEmbeddings(Map<String, Object> row) {
         assertEmbeddings(row, 1536);
     }
@@ -51,7 +59,7 @@ public class OpenAITestResultUtils {
         assertEquals("text_completion", result.get("object"));
     }
 
-    public static void assertChatCompletion(Map<String, Object> row, String modelId) {
+    public static String assertChatCompletion(Map<String, Object> row, String modelId) {
         var result = (Map<String,Object>) row.get("value");
         assertTrue(result.get("created") instanceof Number);
         assertTrue(result.containsKey("choices"));
@@ -65,5 +73,7 @@ public class OpenAITestResultUtils {
         assertTrue(((Map) result.get("usage")).get("prompt_tokens") instanceof Number);
         assertEquals("chat.completion", result.get("object"));
         assertTrue(result.get("model").toString().startsWith(modelId));
+
+        return text;
     }
 }
