@@ -14,9 +14,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -45,19 +47,19 @@ public class ExportCsvTest {
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
             ",,,,,,,,\"3\",\"4\",\"NEXT_DELIVERY\"%n");
 
-    private static File directory = new File("target/import");
-    static { //noinspection ResultOfMethodCallIgnored
-        directory.mkdirs();
-    }
-
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+    
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService dbms;
 
     private static MiniDFSCluster miniDFSCluster;
 
     @BeforeClass
     public static void setUp() throws Exception {
+        dbms = new TestDatabaseManagementServiceBuilder(storeDir.getRoot().toPath()).build();
+        db = dbms.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
@@ -70,7 +72,7 @@ public class ExportCsvTest {
         if (miniDFSCluster!= null) {
             miniDFSCluster.shutdown();
         }
-        db.shutdown();
+        dbms.shutdown();
     }
 
     @Test

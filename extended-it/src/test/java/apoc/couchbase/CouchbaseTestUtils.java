@@ -132,8 +132,8 @@ public class CouchbaseTestUtils {
     }
 
     protected static void createCouchbaseContainer() {
-        // 7.0 support stably multi collections and scopes
-        couchbase = new CouchbaseContainer("couchbase/server:7.0.0")
+        // 7.x support stably multi collections and scopes
+        couchbase = new CouchbaseContainer("couchbase/server:7.2.6")
                 .withStartupAttempts(3)
                 .withCredentials(USERNAME, PASSWORD)
                 .withBucket(new BucketDefinition(BUCKET_NAME));
