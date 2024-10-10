@@ -8,7 +8,7 @@ plugins {
 
 ext {
     // Move to gradle.properties (but versions.json generation build depends on this right now)
-    neo4jVersion = '4.4.38'
+    neo4jVersion = '4.4.39'
     publicDir =  "${project.rootDir}"
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     neo4jDockerVersion = project.hasProperty("neo4jDockerVersionOverride") ? project.getProperty("neo4jDockerVersionOverride") : neo4jVersion
