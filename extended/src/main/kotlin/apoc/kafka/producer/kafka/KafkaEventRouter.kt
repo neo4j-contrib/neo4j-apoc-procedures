@@ -28,7 +28,7 @@ import java.util.*
 
 class KafkaEventRouter(private val config: Map<String, String>,
                        private val db: GraphDatabaseService,
-                       private val log: Log)/*: StreamsEventRouter(config, db, log)*/ {
+                       private val log: Log) {
 
     /*override*/ val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
         .from(config, db.databaseName(), db.isDefaultDb(), log)
@@ -38,14 +38,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
 
     private var producer: Neo4jKafkaProducer<ByteArray, ByteArray>? = null
     private val kafkaConfig by lazy { KafkaConfiguration.from(config, log) }
-    private val kafkaAdminService by lazy { KafkaAdminService(kafkaConfig/*, eventRouterConfiguration.allTopics()*/, log) }
-
-//    /*override*/ fun printInvalidTopics() {
-//        val invalidTopics = kafkaAdminService.getInvalidTopics()
-//        if (invalidTopics.isNotEmpty()) {
-//            log.warn(getInvalidTopicsError(invalidTopics))
-//        }
-//    }
+    private val kafkaAdminService by lazy { KafkaAdminService(kafkaConfig, log) }
 
     private fun status(producer: Neo4jKafkaProducer<*, *>?): StreamsPluginStatus = when (producer != null) {
         true -> StreamsPluginStatus.RUNNING

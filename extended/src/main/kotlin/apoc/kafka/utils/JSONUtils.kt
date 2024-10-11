@@ -80,7 +80,9 @@ class TemporalAccessorSerializer : JsonSerializer<TemporalAccessor>() {
     }
 }
 
-// NOTE: it works differently from apoc.JSONUtil
+/**
+ * NOTE: it works differently from apoc.JSONUtil
+ */
 object JSONUtils {
 
     private val OBJECT_MAPPER: ObjectMapper = jacksonObjectMapper()
