@@ -59,26 +59,6 @@ abstract class ErrorService(private val config: Map<String, Any> = emptyMap()) {
     data class ErrorConfig(val fail:Boolean=false, val log:Boolean=false, val logMessages:Boolean=false,
                            val dlqTopic:String? = null, val dlqHeaderPrefix:String = "", val dlqHeaders:Boolean = false, val dlqReplication: Int? = 3) {
 
-        /*
-        https://www.confluent.io/blog/kafka-connect-deep-dive-error-handling-dead-letter-queues
-            "errors.retry.timeout": "-1",
-            "errors.retry.delay.max.ms": "1000",
-
-            "errors.tolerance": "all", "none" == fail-fast, abort sink task
-
-            fail-fast for configuration errors (e.g. validate cypher statements on start)
-            errors.tolerance = all -> silently ignore all bad messages
-
-            org.apache.kafka.connect.runtime.errors.RetryWithToleranceOperator.execAndHandleError(RetryWithToleranceOperator.java
-
-
-            "errors.log.enable": true,
-            "errors.deadletterqueue.context.headers.enable"=true/false
-            "errors.deadletterqueue.topic.name": "test-error-topic",
-            "errors.deadletterqueue.topic.replication.factor": 1,
-            "errors.log.include.messages": true,
-        */
-
         companion object {
             const val TOLERANCE = "errors.tolerance"
             const val LOG = "errors.log.enable"

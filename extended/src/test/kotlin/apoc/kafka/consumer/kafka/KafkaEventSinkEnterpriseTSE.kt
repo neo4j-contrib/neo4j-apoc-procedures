@@ -7,7 +7,6 @@ import apoc.kafka.common.support.KafkaTestUtils
 import apoc.kafka.common.support.Neo4jContainerExtension
 import apoc.kafka.utils.KafkaUtil
 import apoc.util.JsonUtil
-//import io.confluent.kafka.serializers.KafkaAvroSerializer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.avro.generic.GenericRecord
