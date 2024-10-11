@@ -54,9 +54,6 @@ class StreamsSinkProcedures {
             Stream.empty<StreamResult>()
         } else {
             val properties = config?.mapValues { it.value.toString() } ?: emptyMap()
-//            val configuration = getStreamsEventSink(db!!)!!
-//                .getEventSinkConfigMapper()
-//                .convert(config = properties)
 
             val configuration = StreamsConfig.getConfiguration(properties)
             readData(topic, config ?: emptyMap(), configuration)
@@ -101,11 +98,9 @@ class StreamsSinkProcedures {
     }
 
     private fun createConsumer(consumerConfig: Map<String, String>, topic: String): StreamsEventConsumer = runBlocking {
-        // todo - check that
         val copy = StreamsConfig.getConfiguration()
-//        val copy = StreamsConfig.getInstance(db!! as GraphDatabaseAPI).getConfiguration()
             .filter { it.value is String }
-            .mapValues { it.value.toString() }
+            .mapValues { it.value }
             .toMutableMap()
         copy.putAll(consumerConfig)
         getStreamsEventSink(db!!)!!.getEventConsumerFactory()
@@ -113,17 +108,6 @@ class StreamsSinkProcedures {
     }
 
     companion object {
-        // todo - move in another class, similar to CypherProceduresHandler extends LifecycleAdapter implements AvailabilityListener {
-//        fun initListeners(db: GraphDatabaseAPI?, log: Log?) {
-//            // todo - move in another class, similar to CypherProcedureHandler
-//            // todo - check if there is a better way, maybe put if(apoc.kafka.enabled=true) 
-//            StreamsRouterConfigurationListener(db!!, log!!
-//            ).start(StreamsConfig.getConfiguration())
-//
-//            StreamsSinkConfigurationListener(db!!, log!!
-//            ).start(StreamsConfig.getConfiguration())
-//        }
-//        
         private val streamsEventSinkStore = ConcurrentHashMap<String, KafkaEventSink>()
 
         private fun getStreamsEventSink(db: GraphDatabaseService) = streamsEventSinkStore[KafkaUtil.getName(db)]

@@ -3,7 +3,6 @@ package apoc.kafka.consumer.kafka
 import apoc.kafka.PublishProcedures
 import apoc.kafka.consumer.procedures.StreamsSinkProcedures
 import apoc.kafka.producer.integrations.KafkaEventSinkSuiteIT
-//import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.AfterAll

@@ -102,7 +102,7 @@ data class RelationshipPatternConfiguration(val start: NodePatternConfiguration,
         // (:Source{!id})-[:REL_TYPE{foo, -bar}]->(:Target{!targetId})
         private val cypherRelationshipPatternConfigured = """^\(:(.*?)\)(<)?-\[(?::)([\w\_]+)(\{\s*(-?[\w\*\.]+\s*(?:,\s*-?[\w\*\.]+\s*)*)\})?\]-(>)?\(:(.*?)\)$""".toRegex()
         // LabelA{!id} REL_TYPE{foo, -bar} LabelB{!targetId}
-        private val simpleRelationshipPatternConfigured =  """^(.*?) ([\w\_]+)(\{\s*(-?[\w\*\.]+\s*(?:,\s*-?[\w\*\.]+\s*)*)\})? (.*?)$""".toRegex() // """^\((.*?)\)-\[(?::)([\w\_]+)(\{\s*(-?[\w\*\.]+\s*(?:,\s*-?[\w\*\.]+\s*)*)\})?\]->\((.*?)\)$""".toRegex()
+        private val simpleRelationshipPatternConfigured =  """^(.*?) ([\w\_]+)(\{\s*(-?[\w\*\.]+\s*(?:,\s*-?[\w\*\.]+\s*)*)\})? (.*?)$""".toRegex() 
 
         data class RelationshipPatternMetaData(val startPattern: String, val endPattern: String, val relType: String, val properties: List<String>) {
             companion object {
