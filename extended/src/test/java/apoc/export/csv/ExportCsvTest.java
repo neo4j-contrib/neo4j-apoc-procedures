@@ -50,6 +50,9 @@ public class ExportCsvTest {
     @ClassRule
     public static TemporaryFolder storeDir = new TemporaryFolder();
     
+    @ClassRule
+    public static TemporaryFolder hdfsDir = new TemporaryFolder();
+    
     private static GraphDatabaseService db;
     private static DatabaseManagementService dbms;
 
@@ -64,7 +67,7 @@ public class ExportCsvTest {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
-        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster();
+        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster(hdfsDir.getRoot());
     }
 
     @AfterClass
