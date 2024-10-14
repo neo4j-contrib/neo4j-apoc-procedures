@@ -5,10 +5,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
@@ -22,15 +25,34 @@ public class LoadLdapContainerTest {
     private static GenericContainer ldap;
 
     @ClassRule
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+
+    @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
-    public static void beforeClass() {
+    public static void beforeClass() throws IOException {
         ldap = new GenericContainer("osixia/openldap:1.5.0")
                 .withEnv("LDAP_TLS_VERIFY_CLIENT", "try")
-                .withExposedPorts(LDAP_DEFAULT_PORT, LDAP_DEFAULT_SSL_PORT);
+                .withExposedPorts(LDAP_DEFAULT_PORT, LDAP_DEFAULT_SSL_PORT)
+                .waitingFor( Wait.forListeningPort() );
+
+        addVolumes();
         ldap.start();
         TestUtil.registerProcedure(db, LoadLdap.class);
+    }
+
+    /**
+     * Added volumes to solve the issue: https://github.com/osixia/docker-openldap/issues/400,
+     * without these we can have the following error during startup if we execute the container multiple times: 
+     *  [Errno 17] File exists: '/container/service/:ssl-tools/startup.sh' -> '/container/run/startup/:ssl-tools'
+     * and, even if the container is started, we have error during apoc.load.ldap(...), i.e. :
+     *  IOException(LDAPException(resultCode=91 (connect error), errorMessage='An error occurred while attempting to establish a connection to server localhost/127.0.0.1:56860
+     */
+    private static void addVolumes() throws IOException {
+        ldap.withFileSystemBind(storeDir.newFolder("data/ldap").getAbsolutePath(), "/var/lib/ldap")
+            .withFileSystemBind(storeDir.newFolder("data/slapd").getAbsolutePath(), "/etc/ldap/slapd.d")
+            .withFileSystemBind(storeDir.newFolder("tmp").getAbsolutePath(), "/tmp");
     }
 
     @AfterClass
