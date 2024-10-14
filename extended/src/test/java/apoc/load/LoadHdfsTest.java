@@ -8,10 +8,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -28,6 +30,9 @@ import static org.junit.Assert.assertEquals;
 
 public class LoadHdfsTest {
 
+    @ClassRule
+    public static TemporaryFolder hdfsDir = new TemporaryFolder();
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
@@ -36,7 +41,7 @@ public class LoadHdfsTest {
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster();
+        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster(hdfsDir.getRoot());
 		FileSystem fs = miniDFSCluster.getFileSystem();
 		String fileName = "test.csv";
 		Path file = new Path(fileName);

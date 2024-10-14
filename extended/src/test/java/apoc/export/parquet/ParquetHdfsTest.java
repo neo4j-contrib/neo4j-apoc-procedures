@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -29,6 +30,9 @@ public class ParquetHdfsTest {
     }
 
     @ClassRule
+    public static TemporaryFolder hdfsDir = new TemporaryFolder();
+
+    @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
@@ -37,7 +41,7 @@ public class ParquetHdfsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         beforeClassCommon(db);
-        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster();
+        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster(hdfsDir.getRoot());
     }
 
     @Before

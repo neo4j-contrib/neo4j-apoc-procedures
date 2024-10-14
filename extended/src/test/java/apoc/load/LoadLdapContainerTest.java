@@ -74,7 +74,7 @@ public class LoadLdapContainerTest {
     }
 
     private static void testLoadLDAPCommon(int port, boolean ssl) {
-        Map<String, Object> conn = Map.of("ldapHost", "localhost:" + port, 
+        Map<String, Object> conn = Map.of("ldapHost", ldap.getHost() + ":" + port, 
                 "loginDN", "cn=admin,dc=example,dc=org", 
                 "loginPW", "admin", 
                 "ssl", ssl);
