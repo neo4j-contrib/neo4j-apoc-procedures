@@ -18,6 +18,7 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,7 @@ public class CouchbaseTestUtils {
 
     public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
+        couchbaseBucket.waitUntilReady(Duration.ofMinutes(1));
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
