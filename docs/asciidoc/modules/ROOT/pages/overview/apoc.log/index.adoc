@@ -24,5 +24,11 @@ apoc.log.info(message, params) - logs info message
 
 apoc.log.warn(message, params) - logs warn message
 |label:procedure[]
+
+|xref::overview/apoc.log/apoc.log.stream.adoc[apoc.log.stream icon:book[]]
+
+`apoc.log.stream(path STRING, config MAP<STRING, ANY>)` - returns the file contents from the given log, optionally returning only the last n lines.
+This procedure requires users to have an admin role.
+|label:procedure[]
 |===
 

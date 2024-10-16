@@ -1,0 +1,76 @@
+:page-role: procedure
+:table-caption!:
+= apoc.export.arrow.graph
+
+[NOTE]
+====
+This procedure is not considered safe to run from multiple threads.
+It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
+For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
+====
+
+.Details
+|===
+| *Syntax* 3+| `apoc.export.arrow.graph(file, graph [, config ]) :: (file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data)`
+| *Description* 3+| Exports the given graph as an arrow file.
+.4+| *Input arguments* | *Name* | *Type* | *Description*
+| `file` | `STRING` | The name of the file to export the data to.
+| `graph` | `ANY` | The graph to export.
+| `config` | `MAP` | `{ batchSize = 2000 :: INTEGER }`. The default is: `{}`.
+.13+| *Return arguments* | *Name* | *Type* | *Description*
+| `file` | `STRING` | The name of the file to which the data was exported.
+| `source` | `STRING` | A summary of the exported data.
+| `format` | `STRING` | The format the file is exported in.
+| `nodes` | `INTEGER` | The number of exported nodes.
+| `relationships` | `INTEGER` | The number of exported relationships.
+| `properties` | `INTEGER` | The number of exported properties.
+| `time` | `INTEGER` | The duration of the export.
+| `rows` | `INTEGER` | The number of rows returned.
+| `batchSize` | `INTEGER` | The size of the batches the export was run in.
+| `batches` | `INTEGER` | The number of batches the export was run in.
+| `done` | `BOOLEAN` | Whether the export ran successfully.
+| `data` | `ANY` | The data returned by the export.
+|===
+
+== Usage Examples
+The procedure expose an Arrow file of rows with the following structure
+- `<id>`: for node id
+- `<labels>`: list of labels
+- `<source.id>`: source node id (in case of relationship)
+- `<target.id>`: target node id (in case of relationship)
+- `<type>`: for relationship type
+- the list of properties of nodes and relationships flattened as table
+
+So for the following query:
+
+[source,cypher]
+----
+CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {age:12}),(d:Another {foo: 'bar'})
+----
+
+With this query:
+
+[source,cypher]
+----
+CALL apoc.graph.fromDB('neo4j',{}) yield graph
+CALL apoc.export.arrow.graph('my_file.arrow', graph) YIELD file, source, format,
+    nodes, relationships, properties,
+    time, rows, batchSize,
+    batches, done, data
+----
+
+We'll have an arrow file with the following columns:
+
+- `<id>`
+- `<labels>`
+- `<source.id>`
+- `<target.id>`
+- `<type>`
+- `name`
+- `age`
+- `male`
+- `kids`
+- `born`
+- `place`
+- `since`
+- `bffSince`

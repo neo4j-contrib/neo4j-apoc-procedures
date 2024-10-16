@@ -58,7 +58,7 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 
 == xref::overview/apoc.coll/index.adoc[]
 
-[.procedures, opts=header, cols='5a,1a,1a']
+[.procedures, opts=header, cols='5a,1a']
 |===
 |xref::overview/apoc.coll/apoc.coll.avgDuration.adoc[apoc.coll.avgDuration icon:book[]]
 
@@ -326,6 +326,42 @@ apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+
+|xref::overview/apoc.export/apoc.export.arrow.all.adoc[apoc.export.arrow.all icon:book[]]
+
+`apoc.export.arrow.all(file STRING, config MAP<STRING, ANY>)` - exports the full database as an arrow file.
+|label:procedure[]
+
+
+|xref::overview/apoc.export/apoc.export.arrow.graph.adoc[apoc.export.arrow.graph icon:book[]]
+
+`apoc.export.arrow.graph(file STRING, graph ANY, config MAP<STRING, ANY>)` - exports the given graph as an arrow file.
+|label:procedure[]
+
+
+|xref::overview/apoc.export/apoc.export.arrow.query.adoc[apoc.export.arrow.query icon:book[]]
+
+`apoc.export.arrow.query(file STRING, query STRING, config MAP<STRING, ANY>)` - exports the results from the given Cypher query as an arrow file.
+|label:procedure[]
+
+
+|xref::overview/apoc.export/apoc.export.arrow.stream.all.adoc[apoc.export.arrow.stream.all icon:book[]]
+
+`apoc.export.arrow.stream.all(config MAP<STRING, ANY>)` - exports the full database as an arrow byte array.
+|label:procedure[]
+
+
+|xref::overview/apoc.export/apoc.export.arrow.stream.graph.adoc[apoc.export.arrow.stream.graph icon:book[]]
+
+`apoc.export.arrow.stream.graph(graph ANY, config MAP<STRING, ANY>)` - exports the given graph as an arrow byte array.
+|label:procedure[]
+
+
+|xref::overview/apoc.export/apoc.export.arrow.stream.query.adoc[apoc.export.arrow.stream.query icon:book[]]
+
+`apoc.export.arrow.stream.query(query STRING, config MAP<STRING, ANY>)` - exports the given Cypher query as an arrow byte array.
+|label:procedure[]
+
 |xref::overview/apoc.export/apoc.export.xls.all.adoc[apoc.export.xls.all icon:book[]]
 
 apoc.export.xls.all(file,config) - exports whole database as xls to the provided file
@@ -415,6 +451,18 @@ apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file o
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+
+|xref::overview/apoc.load/apoc.load.arrow.adoc[apoc.load.arrow icon:book[]]
+
+`apoc.load.arrow(file STRING, config MAP<STRING, ANY>)` - imports `NODE` and `RELATIONSHIP` values from the provided arrow file.
+|label:procedure[]
+
+
+|xref::overview/apoc.load/apoc.load.arrow.stream.adoc[apoc.load.arrow.stream icon:book[]]
+
+`apoc.load.arrow.stream(source LIST<INTEGER>, config MAP<STRING, ANY>)` - imports `NODE` and `RELATIONSHIP` values from the provided arrow byte array.
+|label:procedure[]
+
 |xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]]
 
 apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
@@ -463,6 +511,12 @@ apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - lo
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.jdbcUpdate.adoc[apoc.load.jdbcUpdate icon:book[]]
 
+|xref::overview/apoc.load/apoc.load.jsonParams.adoc[apoc.load.jsonParams icon:book[]]
+
+`apoc.load.jsonParams(urlOrKeyOrBinary ANY, headers MAP<STRING, ANY>, payload STRING, path STRING, config MAP<STRING, ANY>)` - loads parameters from a JSON URL (e.g. web-API) as a stream of values if the given JSON file is a `LIST<ANY>`.
+If the given JSON file is a `MAP`, this procedure imports a single value instead.
+|label:procedure[]
+
 apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.ldap.adoc[apoc.load.ldap icon:book[]]
@@ -497,6 +551,13 @@ apoc.log.info(message, params) - logs info message
 
 apoc.log.warn(message, params) - logs warn message
 |label:procedure[]
+
+|xref::overview/apoc.log/apoc.log.stream.adoc[apoc.log.stream icon:book[]]
+
+`apoc.log.stream(path STRING, config MAP<STRING, ANY>)` - returns the file contents from the given log, optionally returning only the last n lines.
+This procedure requires users to have an admin role.
+|label:procedure[]
+
 |===
 
 == xref::overview/apoc.map/index.adoc[]
