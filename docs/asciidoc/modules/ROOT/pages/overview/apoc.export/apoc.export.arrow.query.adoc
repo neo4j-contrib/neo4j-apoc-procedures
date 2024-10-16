@@ -1,0 +1,56 @@
+:page-role: procedure
+:table-caption!:
+= apoc.export.arrow.query
+
+[NOTE]
+====
+This procedure is not considered safe to run from multiple threads.
+It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
+For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
+====
+
+.Details
+|===
+| *Syntax* 3+| `apoc.export.arrow.query(file, query [, config ]) :: (file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data)`
+| *Description* 3+| Exports the results from the given Cypher query as an arrow file.
+.4+| *Input arguments* | *Name* | *Type* | *Description*
+| `file` | `STRING` | The name of the file to which the data will be exported.
+| `query` | `STRING` | The query to use to collect the data for export.
+| `config` | `MAP` | `{ batchSize = 2000 :: INTEGER }`. The default is: `{}`.
+.13+| *Return arguments* | *Name* | *Type* | *Description*
+| `file` | `STRING` | The name of the file to which the data was exported.
+| `source` | `STRING` | A summary of the exported data.
+| `format` | `STRING` | The format the file is exported in.
+| `nodes` | `INTEGER` | The number of exported nodes.
+| `relationships` | `INTEGER` | The number of exported relationships.
+| `properties` | `INTEGER` | The number of exported properties.
+| `time` | `INTEGER` | The duration of the export.
+| `rows` | `INTEGER` | The number of rows returned.
+| `batchSize` | `INTEGER` | The size of the batches the export was run in.
+| `batches` | `INTEGER` | The number of batches the export was run in.
+| `done` | `BOOLEAN` | Whether the export ran successfully.
+| `data` | `ANY` | The data returned by the export.
+|===
+
+== Usage Examples
+Let's suppose we have this data set:
+
+[source,cypher]
+----
+CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42}),(c:User {name: 'John', age:12}),(d:Another {foo: 'bar'})
+----
+
+With this query:
+
+[source,cypher]
+----
+CALL apoc.export.arrow.query('my_file.arrow', 'MATCH (n:User) RETURN count(n) as count, n.name as name') YIELD file, source, format,
+    nodes, relationships, properties,
+    time, rows, batchSize,
+    batches, done, data
+----
+
+We'll have an arrow file with the following columns:
+
+- `count`
+- `name`
