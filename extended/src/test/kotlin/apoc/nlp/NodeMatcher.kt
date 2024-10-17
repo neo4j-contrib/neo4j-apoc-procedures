@@ -11,7 +11,7 @@ data class NodeMatcher(private val labels: List<Label>, private val properties: 
                 actual?.keys == expected?.keys && actual!!.all { entry -> expected?.containsKey(entry.key)!! && expected[entry.key] == entry.value }
 
         fun nodeMatches(item: Node?, labels: List<String>?, properties: Map<String, Any>?): Boolean {
-            val labelsMatched = item?.labels!!.count() == labels?.size  && item.labels!!.all { label -> labels?.contains(label.name()) }
+            val labelsMatched = item?.labels!!.count() == labels?.size  && item.labels!!.all { label -> labels.contains(label.name()) }
             val propertiesMatches = propertiesMatch(properties, item.allProperties)
             return labelsMatched && propertiesMatches
         }

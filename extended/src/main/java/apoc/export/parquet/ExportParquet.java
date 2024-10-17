@@ -6,7 +6,7 @@ import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.result.ByteArrayResult;
-import apoc.result.ProgressInfo;
+import apoc.result.ExportProgressInfo;
 import apoc.util.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.DatabaseSubGraph;
@@ -98,20 +98,20 @@ public class ExportParquet {
 
     @Procedure("apoc.export.parquet.all")
     @Description("Exports the full database as a Parquet file.")
-    public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ExportProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         return exportParquet(fileName, new DatabaseSubGraph(tx), new ParquetConfig(config));
     }
 
     @Procedure("apoc.export.parquet.data")
     @Description("Exports the given nodes and relationships as a Parquet file.")
-    public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ExportProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         ParquetConfig conf = new ParquetConfig(config);
         return exportParquet(fileName, new NodesAndRelsSubGraph(tx, nodes, rels), conf);
     }
 
     @Procedure("apoc.export.parquet.graph")
     @Description("Exports the given graph as a Parquet file.")
-    public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ExportProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         ParquetConfig conf = new ParquetConfig(config);
@@ -121,7 +121,7 @@ public class ExportParquet {
 
     @Procedure("apoc.export.parquet.query")
     @Description("Exports the given Cypher query as a Parquet file.")
-    public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ExportProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         ParquetConfig exportConfig = new ParquetConfig(config);
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = tx.execute(query,params);
@@ -129,7 +129,7 @@ public class ExportParquet {
         return exportParquet(fileName, result, exportConfig);
     }
 
-    public Stream<ProgressInfo> exportParquet(String fileName, Object data, ParquetConfig config) throws IOException, URLAccessValidationError {
+    public Stream<ExportProgressInfo> exportParquet(String fileName, Object data, ParquetConfig config) throws IOException, URLAccessValidationError {
         if (StringUtils.isBlank(fileName)) {
             throw new RuntimeException("The fileName must exists. Otherwise, use the `apoc.export.parquet.*.stream.` procedures to stream the export back to your client.");
         }

@@ -6,8 +6,8 @@ import apoc.export.util.CountingReader;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
 import apoc.load.util.XmlReadUtil.Import;
+import apoc.result.ExportProgressInfo;
 import apoc.result.MapResult;
-import apoc.result.ProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -50,9 +50,9 @@ public class Gexf {
 
     @Procedure(name = "apoc.import.gexf", mode = Mode.WRITE)
     @Description("Imports a graph from the provided GraphML file.")
-    public Stream<ProgressInfo> importGexf(
+    public Stream<ExportProgressInfo> importGexf(
             @Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name("config") Map<String, Object> config) {
-        ProgressInfo result = Util.inThread(pools, () -> {
+        ExportProgressInfo result = Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
             String file = null;
             String source = "binary";
@@ -60,7 +60,7 @@ public class Gexf {
                 file = (String) urlOrBinaryFile;
                 source = "file";
             }
-            ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, source, "gexf"));
+            ProgressReporter reporter = new ProgressReporter(null, null, new ExportProgressInfo(file, source, "gexf"));
             Import graphReader = new Import(db)
                     .reporter(reporter)
                     .batchSize(exportConfig.getBatchSize())
@@ -76,7 +76,7 @@ public class Gexf {
                 graphReader.parseXML(reader, terminationGuard);
             }
 
-            return reporter.getTotal();
+            return (ExportProgressInfo) reporter.getTotal();
         });
         return Stream.of(result);
     }
