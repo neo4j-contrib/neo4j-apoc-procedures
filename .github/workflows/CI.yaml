@@ -49,9 +49,9 @@ jobs:
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
-          NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
-          echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
-          echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
+          NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
+          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
+          echo "Found NEO4JVERSION=$NEO4JVERSION"
           NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-enterprise-debian-nightly"
           echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
@@ -62,7 +62,7 @@ jobs:
       - name: Compile Java
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI --init-script init.gradle clean
+          ./gradlew --no-daemon --info -Pneo4jVersionOverride=$NEO4JVERSION --init-script init.gradle clean
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -70,7 +70,7 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: Compile
-        run: ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI compileJava compileTestJava
+        run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava compileTestJava
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -118,9 +118,9 @@ jobs:
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
-          NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
-          echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
-          echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
+          NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
+          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
+          echo "Found NEO4JVERSION=$NEO4JVERSION"
           NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
           echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
@@ -131,7 +131,7 @@ jobs:
       - name: Init gradle
         run: |
           chmod +x gradlew
-          ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI -Pneo4jDockerEeOverride=$NEO4J_DOCKER_CE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE --init-script init.gradle
+          ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_CE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE --init-script init.gradle
 
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
