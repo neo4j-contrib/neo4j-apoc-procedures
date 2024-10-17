@@ -2,11 +2,11 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'maven-publish'
     id 'antlr'
     id "org.jetbrains.kotlin.jvm" version "1.8.0"
-    id "com.diffplug.spotless" version "6.7.2"
+    id "com.diffplug.spotless" version "6.22.0"
 }
 
 spotless {
@@ -30,6 +30,7 @@ compileKotlin {
 }
 
 generateGrammarSource {
+    dependsOn(compileKotlin)
     arguments += ["-package", "apoc.custom"]
 }
 
@@ -58,7 +59,7 @@ dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
-    antlr "org.antlr:antlr4:4.13.1", {
+    antlr "org.antlr:antlr4:4.13.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'

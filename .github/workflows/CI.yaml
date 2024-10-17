@@ -131,7 +131,7 @@ jobs:
       - name: Init gradle
         run: |
           chmod +x gradlew
-          ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_CE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE --init-script init.gradle
+          ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_EE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE --init-script init.gradle
 
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
