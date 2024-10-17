@@ -4,8 +4,7 @@ import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.result.ProgressInfo;
+import apoc.result.ImportProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.apache.arrow.memory.RootAllocator;
@@ -69,9 +68,9 @@ public class ImportArrow {
     
     @Procedure(name = "apoc.import.arrow", mode = Mode.WRITE)
     @Description("Imports arrow from the provided arrow file or byte array")
-    public Stream<ProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ImportProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        ProgressInfo result =
+        ImportProgressInfo result =
                 Util.inThread(pools, () -> {
                     String file = null;
                     String sourceInfo = "binary";
@@ -88,7 +87,7 @@ public class ImportArrow {
                     try (ArrowReader reader = getReader(input);
                          VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ExportProgressInfo(file, sourceInfo, "arrow"));
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "arrow"));
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
                         try {
                             while (hasElements(counter, reader, schemaRoot)) {
@@ -147,7 +146,7 @@ public class ImportArrow {
                             btx.close();
                         }
 
-                        return reporter.getTotal();
+                        return (ImportProgressInfo) reporter.getTotal();
                     }
                 });
 

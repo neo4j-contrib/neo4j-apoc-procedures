@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import static apoc.load.LoadJsonUtils.loadJsonStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
-public class LoadJson {
+public class LoadJsonExtended {
 
     @Context
     public TerminationGuard terminationGuard;

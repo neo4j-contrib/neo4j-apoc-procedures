@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -76,7 +77,9 @@ public class LoadJsonTest {
     }
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule().withSetting(GraphDatabaseSettings.memory_tracking, true);
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.memory_tracking, true)
+            .withSetting(GraphDatabaseInternalSettings.enable_experimental_cypher_versions, true);
 
     @Before
     public void setUp() throws IOException {
@@ -87,7 +90,7 @@ public class LoadJsonTest {
                 .setProperty(
                         "apoc.json.simpleJson.url",
                         ClassLoader.getSystemResource("map.json").toString());
-        TestUtil.registerProcedure(db, LoadJson.class);
+        TestUtil.registerProcedure(db, LoadJsonExtended.class);
 
         server = HttpServer.create(new InetSocketAddress(5353), 0);
         HttpContext staticContext = server.createContext("/");
@@ -105,7 +108,7 @@ public class LoadJsonTest {
     public void testLoadMultiJsonWithBinary() {
         testResult(
                 db,
-                "CALL apoc.load.jsonParams($url, null, null, null, $config)",
+                "CYPHER 25 CALL apoc.load.jsonParams($url, null, null, null, $config)",
                 map(
                         "url",
                         fileToBinary(
@@ -150,7 +153,7 @@ public class LoadJsonTest {
 
         testCall(
                 db,
-                "call apoc.load.jsonParams($url, $config, $payload)",
+                "CYPHER 25 CALL apoc.load.jsonParams($url, $config, $payload)",
                 map(
                         "payload",
                         "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
@@ -180,7 +183,7 @@ public class LoadJsonTest {
 
         testCall(
                 db,
-                "call apoc.load.jsonParams($url, $config, $json)",
+                "CYPHER 25 CALL apoc.load.jsonParams($url, $config, $json)",
                 map(
                         "json",
                         "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
