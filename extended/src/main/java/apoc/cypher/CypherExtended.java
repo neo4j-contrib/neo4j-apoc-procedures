@@ -2,6 +2,7 @@ package apoc.cypher;
 
 import apoc.Extended;
 import apoc.Pools;
+import apoc.result.CypherStatementMapResult;
 import apoc.result.MapResult;
 import apoc.util.CompressionAlgo;
 import apoc.util.EntityUtil;
@@ -368,7 +369,7 @@ public class CypherExtended {
 
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
-    public Stream<MapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
+    public Stream<CypherStatementMapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
         if (params == null) return runCypherQuery(tx, fragment, params);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
@@ -382,7 +383,7 @@ public class CypherExtended {
             terminationGuard.check();
             Map<String, Object> parallelParams = new HashMap<>(params);
             parallelParams.replace(key, v);
-            return tx.execute(statement, parallelParams).stream().map(MapResult::new);
+            return tx.execute(statement, parallelParams).stream().map(CypherStatementMapResult::new);
         });
 
         /*
@@ -453,7 +454,7 @@ public class CypherExtended {
 
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
-    public Stream<MapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
+    public Stream<CypherStatementMapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
         if (params == null) return runCypherQuery(tx, fragment, params);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
@@ -486,7 +487,7 @@ public class CypherExtended {
         }
         return futures.stream().flatMap(f -> {
             try {
-                return EntityUtil.anyRebind(tx, f.get()).stream().map(MapResult::new);
+                return EntityUtil.anyRebind(tx, f.get()).stream().map(CypherStatementMapResult::new);
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Error executing in parallel " + statement, e);
             }

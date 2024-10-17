@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -45,6 +46,7 @@ public class ImportArrowTest {
     
     @ClassRule 
     public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseInternalSettings.enable_experimental_cypher_versions, true)
         .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
 
@@ -67,7 +69,7 @@ public class ImportArrowTest {
 
     @Test
     public void testStreamRoundtripImportArrowAll() {
-        final byte[] bytes = db.executeTransactionally("CALL apoc.export.arrow.stream.all",
+        final byte[] bytes = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.stream.all",
                 Map.of(),
                 this::extractByteArray);
 
@@ -76,7 +78,7 @@ public class ImportArrowTest {
     
     @Test
     public void testFileRoundtripImportArrowAll() {
-        String file = db.executeTransactionally("CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
+        String file = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
                 Map.of(),
                 this::extractFileName);
         
@@ -85,7 +87,7 @@ public class ImportArrowTest {
     
     @Test
     public void testFileRoundtripImportArrowAllWithSmallBatchSize() {
-        String file = db.executeTransactionally("CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
+        String file = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
                 Map.of(),
                 this::extractFileName);
 

@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ProgressInfo;
+import apoc.result.ImportProgressInfo;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -52,10 +52,10 @@ public class ImportParquet {
 
     @Procedure(name = "apoc.import.parquet", mode = Mode.WRITE)
     @Description("Imports parquet from the provided file or binary")
-    public Stream<ProgressInfo> importParquet(
+    public Stream<ImportProgressInfo> importParquet(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        ProgressInfo result =
+        ImportProgressInfo result =
                 Util.inThread(pools, () -> {
 
                     String file = null;
@@ -69,7 +69,7 @@ public class ImportParquet {
                     final Map<Long, Long> idMapping = new HashMap<>();
                     try (ApocParquetReader reader = getReader(input, conf, urlAccessChecker)) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(file, sourceInfo, "parquet"));
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "parquet"));
 
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
 
@@ -116,7 +116,7 @@ public class ImportParquet {
                             btx.close();
                         }
 
-                        return reporter.getTotal();
+                        return (ImportProgressInfo) reporter.getTotal();
                     }
                 });
         return Stream.of(result);
