@@ -9,6 +9,7 @@ on:
 env:
   CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
+  ECR_NEO4J_DOCKER_URL: ${{ secrets.ECR_NEO4J_DOCKER_URL }}
 
 
 jobs:
@@ -35,18 +36,28 @@ jobs:
           CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
           echo "::add-mask::$CODEARTIFACT_TOKEN"
           echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+      
+      - name: Login in to AWS ECR
+        run: |
+          aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
 
-      - name: Determine latest neo4j CI version
+      - name: Determine latest neo4j CI version and docker nightly images
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
           NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
           echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
           echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
+          NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-enterprise-debian-nightly"
+          echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
+          echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
+          NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-community-debian-nightly"
+          echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
+          echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
 
       - name: Compile Java
         run: |
@@ -85,6 +96,10 @@ jobs:
           CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
           echo "::add-mask::$CODEARTIFACT_TOKEN"
           echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+      
+      - name: Login in to AWS ECR
+        run: |
+          aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
       - uses: actions/checkout@v2
       - name: Set up JDK 17
@@ -99,18 +114,24 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Determine latest neo4j CI version
+      - name: Determine latest neo4j CI version and docker nightly images
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
           NEO4J_VERSION_CI=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
           echo "NEO4J_VERSION_CI=$NEO4J_VERSION_CI" >> "$GITHUB_ENV"
           echo "Found NEO4j_VERSION_CI=$NEO4J_VERSION_CI"
+          NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
+          echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
+          echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
+          NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
+          echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
+          echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
 
       - name: Init gradle
         run: |
           chmod +x gradlew
-          ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI --init-script init.gradle
+          ./gradlew --info -Pneo4jVersionOverride=$NEO4J_VERSION_CI -Pneo4jDockerEeOverride=$NEO4J_DOCKER_CE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE --init-script init.gradle
 
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
