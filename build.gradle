@@ -28,7 +28,17 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-    mavenCentral()
+    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+        maven {
+            url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+            credentials {
+                username System.getenv('CODEARTIFACT_USERNAME')
+                password System.getenv('CODEARTIFACT_TOKEN')
+            }
+        }
+    } else {
+        mavenCentral()
+    }
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -43,7 +53,17 @@ subprojects {
         /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
     }*/
-        mavenCentral()
+        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+            maven {
+                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+                credentials {
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
+                }
+            }
+        } else {
+            mavenCentral()
+        }
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
@@ -133,7 +153,7 @@ ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "5.26.0"
     // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion + "-SNAPSHOT"
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.18.3'
     apacheArrowVersion = '15.0.0'
 }
