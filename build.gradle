@@ -154,7 +154,7 @@ ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "5.26.0"
     // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion + "-SNAPSHOT"
     testContainersVersion = '1.20.2'
     apacheArrowVersion = '15.0.0'
 }

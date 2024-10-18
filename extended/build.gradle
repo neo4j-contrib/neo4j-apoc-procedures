@@ -26,12 +26,17 @@ jar {
 }
 
 compileKotlin {
+    dependsOn(generateGrammarSource)
     kotlinOptions.jvmTarget = "17"
 }
 
 generateGrammarSource {
-    dependsOn(compileKotlin)
     arguments += ["-package", "apoc.custom"]
+}
+
+sourceSets.configureEach {
+    var generateGrammarSource = tasks.named(getTaskName("generate", "GrammarSource"))
+    java.srcDir(generateGrammarSource.map { files() })
 }
 
 javadoc {
@@ -55,6 +60,8 @@ task gitSubmoduleLoad {
 dependencies {
     // to fix unresolved imports with IntelliJ from version 2024.1.x
     compileOnly sourceSets.main.java
+
+
     
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
