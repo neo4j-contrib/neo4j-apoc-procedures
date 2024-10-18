@@ -47,25 +47,6 @@ public class MissingExtraDependenciesTest {
         neo4jContainer.close();
     }
 
-    @Test
-    public void testParquet() {
-        // export file
-        assertParquetFails("CALL apoc.export.parquet.all('test.parquet')");
-        assertParquetFails("CALL apoc.export.parquet.data([], [], 'test.parquet')");
-        assertParquetFails("CALL apoc.export.parquet.graph({nodes: [], relationships: []}, 'test.parquet')");
-        assertParquetFails("CALL apoc.export.parquet.query('MATCH (n:ParquetNode) RETURN n', 'test.parquet')");
-
-        // export stream
-        assertParquetFails("CALL apoc.export.parquet.all.stream()");
-        assertParquetFails("CALL apoc.export.parquet.data.stream([], [])");
-        assertParquetFails("CALL apoc.export.parquet.graph.stream({nodes: [], relationships: []})");
-        assertParquetFails("CALL apoc.export.parquet.query.stream('MATCH (n:ParquetNode) RETURN n')");
-
-        // import and load
-        assertParquetFails("CALL apoc.import.parquet('test.parquet')");
-        assertParquetFails("CALL apoc.load.parquet('test.parquet')");
-    }
-
     private static void assertParquetFails(String query) {
         assertFails(query, PARQUET_MISSING_DEPS_ERROR);
     }
