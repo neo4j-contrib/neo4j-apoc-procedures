@@ -47,10 +47,6 @@ public class MissingExtraDependenciesTest {
         neo4jContainer.close();
     }
 
-    private static void assertParquetFails(String query) {
-        assertFails(query, PARQUET_MISSING_DEPS_ERROR);
-    }
-
     @Test
     public void testCouchbase() {
         assertCouchbaseFails("CALL apoc.couchbase.get('host', 'bucket', 'documentId')");
