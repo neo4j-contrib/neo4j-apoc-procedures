@@ -18,7 +18,7 @@ All the following procedures can have the following APOC config, i.e. in `apoc.c
 | apoc.ml.openai.url | the OpenAI endpoint base url | `https://api.openai.com/v1` by default, 
     `https://api.anthropic.com/v1` if `apoc.ml.openai.type=<ANTHROPIC>`,
     or empty string if `apoc.ml.openai.type=<AZURE OR HUGGINGFACE>`
-| apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url | ""
+| apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url
 |===
 
 
