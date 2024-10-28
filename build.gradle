@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
+    id "org.jetbrains.kotlin.jvm" version "1.8.0" apply false
 }
 
 downloadLicenses {
@@ -28,7 +29,17 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-    mavenCentral()
+    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+        maven {
+            url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+            credentials {
+                username System.getenv('CODEARTIFACT_USERNAME')
+                password System.getenv('CODEARTIFACT_TOKEN')
+            }
+        }
+    } else {
+        mavenCentral()
+    }
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -43,7 +54,17 @@ subprojects {
         /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
     }*/
-        mavenCentral()
+        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+            maven {
+                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+                credentials {
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
+                }
+            }
+        } else {
+            mavenCentral()
+        }
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
@@ -58,7 +79,7 @@ subprojects {
 
     task mySourcesJar(type: Jar) {
         from sourceSets.main.allJava
-        classifier = 'sources'
+        archiveClassifier = 'sources'
     }
 
     task myJavadocJar(type: Jar) {
@@ -71,8 +92,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise-debian' : 'neo4j:5.24.1-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.24.1',
+                'neo4jDockerImage': project.hasProperty("neo4jDockerEeOverride") ? project.getProperty("neo4jDockerEeOverride") : 'neo4j:5.24.1-enterprise',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerCeOverride") ? project.getProperty("neo4jDockerCeOverride") : 'neo4j:5.24.1',
                 'coreDir': 'apoc-core/core',
                 'testDockerBundle': false
 
@@ -133,7 +154,7 @@ ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "5.24.1"
     // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.19.1'
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion + "-SNAPSHOT"
+    testContainersVersion = '1.20.2'
     apacheArrowVersion = '15.0.0'
 }
