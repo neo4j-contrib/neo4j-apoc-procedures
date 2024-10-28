@@ -22,7 +22,7 @@ import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
 import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.internal.kernel.api.procs.QualifiedName;
 import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
-import org.neo4j.kernel.api.CypherScope;
+import org.neo4j.kernel.api.QueryLanguage;
 import org.neo4j.kernel.api.ResourceMonitor;
 import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
@@ -243,7 +243,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
         QualifiedName name = signature.name();
         try {
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(CypherScope.CYPHER_5)
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
                 // we deregister and remove possible homonyms signatures overridden/overloaded
@@ -293,7 +293,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         try {
             QualifiedName name = signature.name();
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(CypherScope.CYPHER_5)
+            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
                 // we deregister and remove possible homonyms signatures overridden/overloaded

@@ -2,7 +2,7 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ProgressInfo;
+import apoc.result.ExportProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.QueueUtil;
@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 
-public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ProgressInfo>> {
+public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ExportProgressInfo>> {
 
     private String fileName;
     private final GraphDatabaseService db;
@@ -43,13 +43,13 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
         this.exportType = exportType;
     }
 
-    public Stream<ProgressInfo> export(IN data, ParquetConfig config) {
+    public Stream<ExportProgressInfo> export(IN data, ParquetConfig config) {
 
-        ProgressInfo progressInfo = new ProgressInfo(fileName, getSource(data), "parquet");
-        progressInfo.batchSize = config.getBatchSize();
+        ExportProgressInfo progressInfo = new ExportProgressInfo(fileName, getSource(data), "parquet");
+        progressInfo.setBatches(config.getBatchSize());
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
-        final BlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(10);
+        final BlockingQueue<ExportProgressInfo> queue = new ArrayBlockingQueue<>(10);
         Util.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
             int batchCount = 0;
             List<TYPE> rows = new ArrayList<>(config.getBatchSize());
@@ -76,12 +76,12 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
             } finally {
                 closeWriter();
                 reporter.done();
-                QueueUtil.put(queue, ProgressInfo.EMPTY, 10);
+                QueueUtil.put(queue, ExportProgressInfo.EMPTY, 10);
             }
             return true;
         });
 
-        QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, Integer.MAX_VALUE);
+        QueueBasedSpliterator<ExportProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ExportProgressInfo.EMPTY, terminationGuard, Integer.MAX_VALUE);
         return StreamSupport.stream(spliterator, false);
     }
 
