@@ -2,11 +2,11 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'maven-publish'
     id 'antlr'
-    id "org.jetbrains.kotlin.jvm" version "1.6.0"
-    id "com.diffplug.spotless" version "6.7.2"
+    id "org.jetbrains.kotlin.jvm" version "1.8.0"
+    id "com.diffplug.spotless" version "6.22.0"
 }
 
 spotless {
@@ -26,11 +26,17 @@ jar {
 }
 
 compileKotlin {
+    dependsOn(generateGrammarSource)
     kotlinOptions.jvmTarget = "17"
 }
 
 generateGrammarSource {
     arguments += ["-package", "apoc.custom"]
+}
+
+sourceSets.configureEach {
+    var generateGrammarSource = tasks.named(getTaskName("generate", "GrammarSource"))
+    java.srcDir(generateGrammarSource.map { files() })
 }
 
 javadoc {
@@ -58,7 +64,7 @@ dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
 
-    antlr "org.antlr:antlr4:4.13.1", {
+    antlr "org.antlr:antlr4:4.13.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
@@ -111,7 +117,7 @@ dependencies {
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.353' , withoutJacksons
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
-    compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
+    compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.8.0'
 
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
@@ -133,7 +139,7 @@ dependencies {
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testImplementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
-    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.6.0'
+    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.8.0'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
     testImplementation group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version: '5.6.0'
