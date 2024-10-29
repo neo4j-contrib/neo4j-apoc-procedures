@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
+    id "org.jetbrains.kotlin.jvm" version "1.8.0" apply false
 }
 
 downloadLicenses {
@@ -58,7 +59,7 @@ subprojects {
 
     task mySourcesJar(type: Jar) {
         from sourceSets.main.allJava
-        classifier = 'sources'
+        archiveClassifier = 'sources'
     }
 
     task myJavadocJar(type: Jar) {
