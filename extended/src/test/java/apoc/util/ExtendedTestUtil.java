@@ -11,6 +11,7 @@ import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.assertion.Assert;
+import org.neo4j.test.rule.DbmsRule;
 
 import java.util.Collections;
 import java.util.List;
@@ -140,5 +141,9 @@ public class ExtendedTestUtil {
             String actualErrMsg = e.getMessage();
             assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
         }
+    }
+
+    public static void clearDb(DbmsRule db) {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 }

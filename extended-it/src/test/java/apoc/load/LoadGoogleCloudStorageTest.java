@@ -1,37 +1,28 @@
-package apoc.s3;
+package apoc.load;
 
-import apoc.load.LoadCsv;
-import apoc.load.LoadDirectory;
-import apoc.load.LoadHtml;
-import apoc.load.LoadJson;
-import apoc.load.Xml;
 import apoc.load.xls.LoadXls;
+import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.xml.XmlTestUtils;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.assertRow;
-import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
+import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.MapUtil.map;
-import static apoc.util.S3ExtendedUtil.putToS3AndGetUrl;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -39,53 +30,62 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class LoadS3Test extends S3BaseExtendedTest {
+public class LoadGoogleCloudStorageTest {
 
-    @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public static GoogleCloudStorageContainerExtension gcs = new GoogleCloudStorageContainerExtension()
+            .withMountedResourceFile("test.csv", "/folder/test.csv")
+            .withMountedResourceFile("map.json", "/folder/map.json")
+            .withMountedResourceFile("xml/books.xml", "/folder/books.xml")
+            .withMountedResourceFile("load_test.xlsx", "/folder/load_test.xlsx")
+            .withMountedResourceFile("wikipedia.html", "/folder/wikipedia.html");
 
-    @Before
-    public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadDirectory.class, LoadJson.class, LoadHtml.class, LoadXls.class, Xml.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
-        putFolderToS3();
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        gcs.start();
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, LoadHtml.class, LoadXls.class,  Xml.class);
     }
 
-    @AfterAll
-    public void tearDownAll() {
+    @AfterClass
+    public static void tearDown() {
+        gcs.close();
         db.shutdown();
     }
 
     @Test
     public void testLoadCsv() {
-        String url = putToS3AndGetUrl(s3ExtendedContainer, EXTENDED_PATH + "src/test/resources/test.csv");
-        testResult(db, "CALL apoc.load.csv($url,{failOnError:false})", map("url", url), (r) -> {
+        String url = gcsUrl(gcs, "b/folder/o/test.csv?alt=media");
+
+        testResult(db, "CALL apoc.load.csv($url)", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
             assertRow(r, "Rana", "11", 1L);
             assertRow(r, "Selina", "18", 2L);
-            assertFalse(r.hasNext());
+            assertFalse("It should be the last record", r.hasNext());
         });
     }
 
-    @Test public void testLoadJson() {
-        String url = putToS3AndGetUrl(s3ExtendedContainer, EXTENDED_PATH + "src/test/resources/map.json");
-        testCall(db, "CALL apoc.load.json($url,'')",map("url", url),
-                (row) -> {
-                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
-                });
+    @Test
+    public void testLoadJSON() {
+        String url = gcsUrl(gcs, "b/folder/o/map.json?alt=media");
+        testCall(db, "CALL apoc.load.jsonArray($url, '$.foo')", map("url", url), (r) -> {
+            assertEquals(asList(1L,2L,3L), r.get("value"));
+        });
     }
 
-    @Test public void testLoadXml() {
-        String url = putToS3AndGetUrl(s3ExtendedContainer, EXTENDED_PATH + "src/test/resources/xml/books.xml");
+    @Test
+    public void testLoadXml() {
+        String url = gcsUrl(gcs, "b/folder/o/books.xml?alt=media");
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
             Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
         });
     }
 
-    @Test public void testLoadXls() {
-        String url = putToS3AndGetUrl(s3ExtendedContainer, EXTENDED_PATH + "src/test/resources/load_test.xlsx");
+    @Test
+    public void testLoadXls() {
+        String url = gcsUrl(gcs, "b/folder/o/load_test.xlsx?alt=media");
         testResult(db, "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",url), // 'file:load_test.xlsx'
                 (r) -> {
                     assertXlsRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
@@ -95,7 +95,7 @@ public class LoadS3Test extends S3BaseExtendedTest {
 
     @Test
     public void testLoadHtml() {
-        String url = putToS3AndGetUrl(s3ExtendedContainer, EXTENDED_PATH + "src/test/resources/wikipedia.html");
+        String url = gcsUrl(gcs, "b/folder/o/wikipedia.html?alt=media");
 
         Map<String, Object> query = map("links", "a[href]");
 
@@ -108,24 +108,6 @@ public class LoadS3Test extends S3BaseExtendedTest {
                 });
     }
 
-    private void putFolderToS3() {
-        StringBuilder csv= new StringBuilder(); // Faster
-        csv.append("name,age\r\n");
-        csv.append("Bonzo,20\r\n");
-        csv.append("Oronzo,45\r\n");
-        byte[] data = csv.toString().getBytes(StandardCharsets.UTF_8);
-
-        s3ExtendedContainer.putObjectToS3("test_folder/test.csv", data);
-
-        csv = new StringBuilder();
-        csv.append("name,age\r\n");
-        csv.append("Bobby,18\r\n");
-        csv.append("Maruccio,90\r\n");
-        data = csv.toString().getBytes(StandardCharsets.UTF_8);
-
-        s3ExtendedContainer.putObjectToS3("test_folder/test_1.csv", data);
-    }
-
     static void assertXlsRow(Result r, long lineNo, Object...data) {
         Map<String, Object> row = r.next();
         Map<String, Object> map = map(data);
@@ -135,5 +117,4 @@ public class LoadS3Test extends S3BaseExtendedTest {
         assertEquals(new ArrayList<>(map.values()), row.get("list"));
         assertEquals(lineNo, row.get("lineNo"));
     }
-
 }
