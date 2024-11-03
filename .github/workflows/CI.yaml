@@ -10,7 +10,7 @@ env:
   CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
   ECR_NEO4J_DOCKER_URL: ${{ secrets.ECR_NEO4J_DOCKER_URL }}
-  BRANCH_NAME: ${{ github.ref_name }}
+  BRANCH_NAME: ${{ github.event.pull_request.base.ref }}
 
 jobs:
   code-ql:
