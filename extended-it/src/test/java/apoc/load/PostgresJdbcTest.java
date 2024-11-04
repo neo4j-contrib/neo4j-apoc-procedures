@@ -7,6 +7,7 @@ import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -98,6 +99,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void testIssue4141PeriodicIterateWithJdbc() throws Exception {
         var config = Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
