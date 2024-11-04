@@ -21,7 +21,7 @@ allprojects {
 }
 
 apply plugin: 'java-library'
-if (System.env.CI != null)
+if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")
     apply from: 'teamcity-repository.gradle'
 
 repositories {
