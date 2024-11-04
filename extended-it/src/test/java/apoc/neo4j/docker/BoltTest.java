@@ -15,7 +15,6 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.graphdb.Entity;
@@ -46,7 +45,6 @@ import static org.neo4j.driver.Values.point;
  * @author AgileLARUS
  * @since 29.08.17
  */
-@Ignore
 public class BoltTest {
 
     public static String BOLT_URL;
