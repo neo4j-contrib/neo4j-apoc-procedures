@@ -53,24 +53,19 @@ jobs:
           NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
           echo "Found NEO4JVERSION=$NEO4JVERSION"
-          NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-enterprise-debian-nightly"
+          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
+            NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
+            NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
+          else
+            NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-community-debian-nightly"
+            NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-enterprise-debian-nightly"
+          fi
           echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
-          NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-community-debian-nightly"
           echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
-#          echo "Current branch BRANCH_NAME=$BRANCH_NAME"
-#          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
-#            NEO4JVERSION="$neo4j_version_base"
-#            NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
-#            NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
-#            CODEARTIFACT_DOWNLOAD_URL=""
-#          else
-#            NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
-#            NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-community-debian-nightly"
-#            NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-enterprise-debian-nightly"
-#            CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_DOWNLOAD_DEV_URL"
-#          fi
+          echo "Current branch BRANCH_NAME=$BRANCH_NAME"
+
 #          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
 #          echo "Found NEO4JVERSION=$NEO4JVERSION"
 #          echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
@@ -142,12 +137,30 @@ jobs:
           NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
           echo "Found NEO4JVERSION=$NEO4JVERSION"
-          NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
+          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
+            NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
+            NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
+          else
+            NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL:$neo4j_version_base-community-debian-nightly"
+            NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
+          fi
           echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
-          NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
           echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
+          echo "Current branch BRANCH_NAME=$BRANCH_NAME"
+               
+#               neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
+#          echo "neo4j_version_base=$neo4j_version_base"
+#          NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
+#          echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
+#          echo "Found NEO4JVERSION=$NEO4JVERSION"
+#          NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
+#          echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
+#          echo "Found NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE"
+#          NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
+#          echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
+#          echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
 #          echo "Current branch BRANCH_NAME=$BRANCH_NAME"
 #          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
 #            NEO4JVERSION="$neo4j_version_base"
