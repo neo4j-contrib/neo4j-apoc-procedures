@@ -31,6 +31,9 @@ ext {
         exclude group: 'org.apache.commons', module: 'commons-logging'
         exclude group: 'org.apache.commons', module: 'commons-text'
 
+        // apache commons-io
+        exclude group: 'commons-io', module: 'commons-io'
+        
         // reactor-core
         exclude group: 'io.projectreactor', module: 'reactor-core'
 
