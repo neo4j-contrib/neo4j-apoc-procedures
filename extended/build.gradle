@@ -88,7 +88,6 @@ dependencies {
     implementation project(':common')
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
-    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0', {
         exclude group: 'org.apache.commons', module: 'commons-io'
         exclude group: 'org.apache.commons', module: 'commons-lang3'
@@ -102,8 +101,12 @@ dependencies {
     // same version as the one included in  neo4j `lib`
     compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '5.25.0'
 
-    compileOnly group: 'org.apache.poi', name: 'poi', version: '5.1.0'
-    compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    compileOnly group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
+        exclude group: 'org.apache.commons', module: 'commons-collections4'
+    }
+    compileOnly group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0', {
+        exclude group: 'org.apache.commons', module: 'commons-collections4'
+    }
     compileOnly group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0', {
         exclude group: 'com.google.guava', module: 'guava'
     }
@@ -134,8 +137,12 @@ dependencies {
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
     testImplementation project(':test-utils')
     testImplementation project(':core')
-    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
-    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
+        exclude group: 'org.apache.commons', module: 'commons-collections4'
+    }
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0', {
+        exclude group: 'org.apache.commons', module: 'commons-collections4'
+    }
     testImplementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0'
     testImplementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0'
     testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
@@ -154,7 +161,9 @@ dependencies {
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
-    testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
+    testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1', {
+        exclude group: 'org.apache.commons', module: 'commons-collections4'
+    }
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
