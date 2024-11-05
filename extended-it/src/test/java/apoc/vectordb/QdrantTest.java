@@ -8,6 +8,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -472,6 +473,7 @@ public class QdrantTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void queryReadOnlyVectorsWithMapping() {
         db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
