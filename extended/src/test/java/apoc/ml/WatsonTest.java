@@ -35,7 +35,6 @@ import static org.mockserver.model.HttpResponse.response;
 public class WatsonTest {
 
     private static ClientAndServer mockServer;
-    private static final int PORT = PortFactory.findFreePort();
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
@@ -44,17 +43,18 @@ public class WatsonTest {
 
     @BeforeClass
     public static void startServer() throws Exception {
+        int port = PortFactory.findFreePort();
         TestUtil.registerProcedure(db, Watson.class);
         
         String path = "/generation/text";
-        apocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:1080" + path);
+        apocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:" + port + path);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, "fakeProjectId");
         
         File urlFileName = new File(getUrlFileName("watson.json").getFile());
         String body = FileUtils.readFileToString(urlFileName, UTF_8);
         
-        mockServer = startClientAndServer(PORT);
+        mockServer = startClientAndServer(port);
         mockServer.when(
                         request()
                                 .withMethod("POST")

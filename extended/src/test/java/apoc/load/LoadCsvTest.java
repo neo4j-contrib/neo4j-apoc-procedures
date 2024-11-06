@@ -47,7 +47,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone
 public class LoadCsvTest {
 
     private static ClientAndServer mockServer;
-    private static final int PORT = PortFactory.findFreePort();
+    private static int PORT;
     
     private static final List<Map<String, Object>> RESPONSE_BODY = List.of(
             Map.of("headFoo", "one", "headBar", "two"),
@@ -57,6 +57,7 @@ public class LoadCsvTest {
 
     @BeforeClass
     public static void startServer() {
+        PORT = PortFactory.findFreePort();
         mockServer = startClientAndServer(PORT);
     }
 
@@ -494,7 +495,7 @@ RETURN m.col_1,m.col_2,m.col_3
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
 
-        new MockServerClient("localhost", 1080)
+        new MockServerClient("localhost", PORT)
                 .when(
                         request()
                                 .withPath("/docs/csv")
@@ -511,7 +512,7 @@ RETURN m.col_1,m.col_2,m.col_3
                 );
 
         testResult(db, "CALL apoc.load.csv($url, {results:['map']}) YIELD map",
-                    map("url", "http://" + userPass + "@localhost:1080/docs/csv"),
+                    map("url", "http://" + userPass + "@localhost:" + PORT + "/docs/csv"),
                     (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
                 );
     }
@@ -521,7 +522,7 @@ RETURN m.col_1,m.col_2,m.col_3
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
 
-        new MockServerClient("localhost", 1080)
+        new MockServerClient("localhost", PORT)
                 .when(
                         request()
                                 .withMethod("POST")
@@ -539,7 +540,7 @@ RETURN m.col_1,m.col_2,m.col_3
                 );
 
         testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
-                    map("url", "http://" + userPass + "@localhost:1080/docs/csv",
+                    map("url", "http://" + userPass + "@localhost:" + PORT +"/docs/csv",
                         "header", map("method", "POST"),
                         "payload", "{\"query\":\"pagecache\",\"version\":\"3.5\"}"),
                     (row) -> assertEquals(RESPONSE_BODY, row.stream().map(i->i.get("map")).collect(Collectors.toList()))
@@ -551,7 +552,7 @@ RETURN m.col_1,m.col_2,m.col_3
         String userPass = "user:password";
         String token = Util.encodeUserColonPassToBase64(userPass);
 
-        new MockServerClient("localhost", 1080)
+        new MockServerClient("localhost", PORT)
                 .when(
                         request()
                                 .withMethod("POST")
@@ -570,7 +571,7 @@ RETURN m.col_1,m.col_2,m.col_3
                 );
 
         testResult(db, "CALL apoc.load.csvParams($url, $header, $payload, {results:['map','list','stringMap','strings']})",
-                    map("url", "http://localhost:1080/docs/csv",
+                    map("url", "http://localhost:" + PORT + "/docs/csv",
                         "header", map("method",
                                     "POST", "Authorization", "Basic " + token,
                                     "Content-Type", "application/json"),
