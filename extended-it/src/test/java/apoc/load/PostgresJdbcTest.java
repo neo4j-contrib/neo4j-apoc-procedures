@@ -17,6 +17,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -24,6 +25,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class PostgresJdbcTest extends AbstractJdbcTest {
 
@@ -132,19 +134,22 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         assertPgStatActivityHasOnlyActiveState();
     }
 
-    private static void assertPgStatActivityHasOnlyActiveState() throws Exception {
-        // connect to postgres and execute the query `select state from pg_stat_activity`
-        String psql = postgress.execInContainer(
-                "psql", "postgresql://test:test@localhost/test", "-c", "select state from pg_stat_activity;")
-                .toString();
-        
-        assertTrue("Current pg_stat_activity is: " + psql, psql.contains("active"));
-        
-        // the result without the https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4141 change
-        // is not deterministic, can be `too many clients already` or (not very often) `idle`
-        assertFalse("Current pg_stat_activity is: " + psql,
-                psql.contains("too many clients already") || psql.contains("idle"));
-
+    private static void assertPgStatActivityHasOnlyActiveState() {
+        assertEventually(() -> {
+            // connect to postgres and execute the query `select state from pg_stat_activity`
+            String psql = postgress.execInContainer(
+                            "psql", "postgresql://test:test@localhost/test", "-c", "select state from pg_stat_activity;")
+                    .toString();
+    
+            assertTrue("Current pg_stat_activity is: " + psql, psql.contains("active"));
+    
+            // the result without the https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4141 change
+            // is not deterministic, can be `too many clients already` or (not very often) `idle`
+            assertFalse("Current pg_stat_activity is: " + psql,
+                    psql.contains("too many clients already") || psql.contains("idle"));
+            
+            return true;
+        }, v -> v, 20L, TimeUnit.SECONDS);
     }
 
     private void assertPeriodicIterate(Result result) {
