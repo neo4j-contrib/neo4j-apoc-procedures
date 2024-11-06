@@ -9,6 +9,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.mockserver.socket.PortFactory;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -34,6 +35,7 @@ import static org.mockserver.model.HttpResponse.response;
 public class WatsonTest {
 
     private static ClientAndServer mockServer;
+    private static final int PORT = PortFactory.findFreePort();
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
@@ -52,7 +54,7 @@ public class WatsonTest {
         File urlFileName = new File(getUrlFileName("watson.json").getFile());
         String body = FileUtils.readFileToString(urlFileName, UTF_8);
         
-        mockServer = startClientAndServer(1080);
+        mockServer = startClientAndServer(PORT);
         mockServer.when(
                         request()
                                 .withMethod("POST")

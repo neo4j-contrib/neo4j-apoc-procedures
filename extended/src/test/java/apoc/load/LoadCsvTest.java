@@ -10,6 +10,7 @@ import org.junit.*;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
+import org.mockserver.socket.PortFactory;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
@@ -46,7 +47,8 @@ import static org.neo4j.configuration.GraphDatabaseSettings.db_temporal_timezone
 public class LoadCsvTest {
 
     private static ClientAndServer mockServer;
-
+    private static final int PORT = PortFactory.findFreePort();
+    
     private static final List<Map<String, Object>> RESPONSE_BODY = List.of(
             Map.of("headFoo", "one", "headBar", "two"),
             Map.of("headFoo", "three", "headBar", "four"),
@@ -55,7 +57,7 @@ public class LoadCsvTest {
 
     @BeforeClass
     public static void startServer() {
-        mockServer = startClientAndServer(1080);
+        mockServer = startClientAndServer(PORT);
     }
 
     @AfterClass
