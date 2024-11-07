@@ -51,8 +51,9 @@ public class GephiTest {
                 node(0, "Foo"), 
                 node(1, "Bar"), 
                 relationship(0, "KNOWS",0, 1));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p) yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p) yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST,
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
@@ -67,8 +68,9 @@ public class GephiTest {
                 node(0, "Foo"), 
                 node(1, "Bar"), 
                 relationship(0, "KNOWS",0, 1, "7.2"));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight') yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p,'weight') yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST, 
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
@@ -83,8 +85,9 @@ public class GephiTest {
                 node(0, "Foo"), 
                 node(1, "Bar"), 
                 relationship(0, "KNOWS",0, 1));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'test') yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p,'test') yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST,
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
@@ -99,8 +102,9 @@ public class GephiTest {
                 node(0, "Foo"), 
                 node(1, "Bar"), 
                 relationship(0, "KNOWS",0, 1, "7.2", Set.of("foo")));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['foo']) yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p,'weight',['foo']) yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST,
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
@@ -115,8 +119,9 @@ public class GephiTest {
                 node(0, "Foo"),
                 node(1, "Bar"),
                 relationship(0, "KNOWS",0, 1, "7.2"));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['faa','fee']) yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p,'weight',['faa','fee']) yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST,
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
@@ -131,8 +136,9 @@ public class GephiTest {
                 node(0, "Foo"),
                 node(1, "Bar"),
                 relationship(0, "KNOWS",0, 1, "7.2"));
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['directed','label']) yield nodes, relationships, format return *",
-                map("workspace", GEPHI_WORKSPACE),
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add($host,$workspace,p,'weight',['directed','label']) yield nodes, relationships, format return *",
+                map("host", gephiMock.HOST,
+                        "workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
                     assertEquals(1L, r.get("relationships"));
