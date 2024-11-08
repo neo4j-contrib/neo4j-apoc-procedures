@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 @Extended
 public class Store {
 
+    
     @Context
     public GraphDatabaseService db;
 
