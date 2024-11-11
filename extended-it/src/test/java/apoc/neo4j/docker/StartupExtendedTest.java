@@ -88,7 +88,9 @@ public class StartupExtendedTest {
                                                     Consumer<Session> sessionConsumer) {
         for (var version: Neo4jVersion.values()) {
 
-            try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)) {
+            try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
+                    .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true")
+            ) {
                 // add extra-deps before starting it
                 ExtendedTestContainerUtil.addExtraDependencies();
                 neo4jContainer.start();
@@ -110,14 +112,23 @@ public class StartupExtendedTest {
     }
 
     private void checkCoreProcsAndFuncsExistence(Session session) {
-        final List<String> functionNames = getNames(session, APOC_HELP_QUERY,
+        final List<String> functionCypher5Names = getNames(session, "CYPHER 5 " + APOC_HELP_QUERY,
                 Map.of("core", true, "type", "function") );
 
-        final List<String> procedureNames = getNames(session, APOC_HELP_QUERY,
+        final List<String> procedureCypher5Names = getNames(session, "CYPHER 5 " + APOC_HELP_QUERY,
                 Map.of("core", true, "type", "procedure") );
 
-        assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
-        assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
+        assertEquals(sorted(ApocSignatures.PROCEDURES_CYPHER_5), procedureCypher5Names);
+        assertEquals(sorted(ApocSignatures.FUNCTIONS_CYPHER_5), functionCypher5Names);
+        
+        final List<String> functionCypher25Names = getNames(session, "CYPHER 25 " + APOC_HELP_QUERY,
+                Map.of("core", true, "type", "function") );
+
+        final List<String> procedureCypher25Names = getNames(session, "CYPHER 25 " + APOC_HELP_QUERY,
+                Map.of("core", true, "type", "procedure") );
+
+        assertEquals(sorted(ApocSignatures.PROCEDURES_CYPHER_25), procedureCypher25Names);
+        assertEquals(sorted(ApocSignatures.FUNCTIONS_CYPHER_25), functionCypher25Names);
     }
 
     private static List<String> getNames(Session session, String query, Map<String, Object> params) {
