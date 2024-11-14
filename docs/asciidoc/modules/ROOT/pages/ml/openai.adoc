@@ -36,6 +36,7 @@ If present, they take precedence over the analogous APOC configs.
     By default, is `/embeddings`, `/completions` and `/chat/completions` for respectively the `apoc.ml.openai.embedding`, `apoc.ml.openai.completion` and `apoc.ml.openai.chat` procedures.
 | jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] of the response. 
     The default is `$` for the `apoc.ml.openai.chat` and `apoc.ml.openai.completion` procedures, and `$.data` for the `apoc.ml.openai.embedding` procedure.
+| failOnError | If true (default), the procedure fails in case of empty, blank or null input
 |===
 
 
