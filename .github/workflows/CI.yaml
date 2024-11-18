@@ -108,10 +108,10 @@ jobs:
           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
       - uses: actions/checkout@v2
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v2
         with:
-          java-version: '17.0.8'
+          java-version: '21'
           distribution: 'temurin'
       - uses: actions/cache@v2
         with:
