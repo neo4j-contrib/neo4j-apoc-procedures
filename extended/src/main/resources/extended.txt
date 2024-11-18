@@ -92,7 +92,6 @@ apoc.load.directory.async.removeAll
 apoc.load.driver
 apoc.load.html
 apoc.load.htmlPlainText
-apoc.load.jsonParams
 apoc.load.jdbc
 apoc.load.jdbcUpdate
 apoc.load.ldap
