@@ -1,5 +1,7 @@
 package apoc.convert;
 
+import static apoc.export.csv.CsvPropertyConverter.getPrototypeFor;
+
 import apoc.export.util.DurationValueSerializer;
 import apoc.export.util.PointSerializer;
 import apoc.export.util.TemporalSerializer;
@@ -10,6 +12,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import java.time.ZoneId;
+import java.time.temporal.Temporal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.spatial.Point;
@@ -22,17 +32,6 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
-import java.time.ZoneId;
-import java.time.temporal.Temporal;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static apoc.export.csv.CsvPropertyConverter.getPrototypeFor;
-
 public class ConvertExtendedUtil {
     private static final SimpleModule YAML_MODULE = new SimpleModule("Neo4jApocYamlSerializer");
 
@@ -41,6 +40,7 @@ public class ConvertExtendedUtil {
         YAML_MODULE.addSerializer(Temporal.class, new TemporalSerializer());
         YAML_MODULE.addSerializer(DurationValue.class, new DurationValueSerializer());
     }
+
     public static Object parse(String value, Map<String, Object> config) throws JsonProcessingException {
         YAMLFactory factory = new YAMLFactory();
 
@@ -63,18 +63,21 @@ public class ConvertExtendedUtil {
         }
 
         if (object instanceof Collection) {
-            return ((Collection<?>) object).stream()
-                    .map(i -> toValidYamlValue(i, field, mapping, start))
-                    .collect(Collectors.toList())
-                    .toArray(i -> new Object[] {});
+            return ((Collection<?>) object)
+                    .stream()
+                            .map(i -> toValidYamlValue(i, field, mapping, start))
+                            .collect(Collectors.toList())
+                            .toArray(i -> new Object[] {});
         }
         if (object instanceof Map) {
-            return ((Map<String, Object>) object).entrySet().stream()
-                    .collect(
-                            HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
-                            (mapAccumulator, entry) ->
-                                    mapAccumulator.put(entry.getKey(), toValidYamlValue(entry.getValue(), entry.getKey(), mapping, false)),
-                            HashMap::putAll);
+            return ((Map<String, Object>) object)
+                    .entrySet().stream()
+                            .collect(
+                                    HashMap::new, // workaround for https://bugs.openjdk.java.net/browse/JDK-8148463
+                                    (mapAccumulator, entry) -> mapAccumulator.put(
+                                            entry.getKey(),
+                                            toValidYamlValue(entry.getValue(), entry.getKey(), mapping, false)),
+                                    HashMap::putAll);
         }
 
         if (object != null && fieldName != null) {
@@ -102,7 +105,7 @@ public class ConvertExtendedUtil {
      */
     private static Object convertValue(String value, String typeName) {
         switch (typeName) {
-            // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
+                // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
             case "Point":
                 return getPointValue(value);
             case "LocalDateTime":
@@ -132,7 +135,7 @@ public class ConvertExtendedUtil {
             case "Long":
                 return Long.parseLong(value);
             case "Node":
-            case"Relationship":
+            case "Relationship":
                 return JsonUtil.parse(value, null, Map.class);
             case "NO_VALUE":
                 return null;
@@ -142,7 +145,7 @@ public class ConvertExtendedUtil {
                     value = StringUtils.removeStart(value, "[");
                     value = StringUtils.removeEnd(value, "]");
                     String array = typeName.replace("Array", "");
-                    final Object[] prototype = getPrototypeFor( array.toUpperCase() );
+                    final Object[] prototype = getPrototypeFor(array.toUpperCase());
                     return Arrays.stream(value.split(","))
                             .map(item -> convertValue(StringUtils.trim(item), array))
                             .collect(Collectors.toList())
@@ -156,10 +159,11 @@ public class ConvertExtendedUtil {
         try {
             return PointValue.parse(value);
         } catch (Neo4jException e) {
-            // fallback in case of double-quotes, e.g. {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
-            // we remove the double quotes before parsing the result, e.g. {crs:"wgs-84-3d",latitude:13.1,longitude:33.46789,height:100.0}
-            ObjectMapper objectMapper = new ObjectMapper()
-                    .disable(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature());
+            // fallback in case of double-quotes, e.g.
+            // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
+            // we remove the double quotes before parsing the result, e.g.
+            // {crs:"wgs-84-3d",latitude:13.1,longitude:33.46789,height:100.0}
+            ObjectMapper objectMapper = new ObjectMapper().disable(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature());
             try {
                 Map readValue = objectMapper.readValue(value, Map.class);
                 String stringWithoutKeyQuotes = objectMapper.writeValueAsString(readValue);
