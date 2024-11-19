@@ -58,18 +58,14 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
+import static apoc.export.arrow.ArrowUtils.FIELD_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
+import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
+
 @Extended
 public class ImportArrow {
-
-    // TODO: field similar to the one placed in ArrowUtils (placed in core)
-    //  when the Arrow procedures will be placed in extended remove these lines
-    //  and replace FIELD_ID with FIELD_ID.getName(), FIELD_LABELS with FIELD_LABELS.getName(), etc..
-    public static String FIELD_ID = "<id>";
-    public static String FIELD_LABELS = "labels";
-    public static String FIELD_SOURCE_ID = "<source.id>";
-    public static String FIELD_TARGET_ID = "<target.id>";
-    public static String FIELD_TYPE = "<type>";
-    // -- end ArrowUtils fields
 
     @Context
     public Pools pools;
