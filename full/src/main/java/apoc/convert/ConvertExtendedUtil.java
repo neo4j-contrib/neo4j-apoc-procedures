@@ -1,36 +1,46 @@
 package apoc.convert;
 
-import apoc.util.JsonUtil;
-import org.apache.commons.lang3.StringUtils;
-
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import org.neo4j.values.storable.PointValue;
-import org.neo4j.values.storable.TimeValue;
-import org.neo4j.values.storable.Values;
-import static apoc.export.csv.CsvPropertyConverter.getPrototypeFor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import apoc.export.util.DurationValueSerializer;
 import apoc.export.util.PointSerializer;
 import apoc.export.util.TemporalSerializer;
+import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.spatial.Point;
+import org.neo4j.values.storable.DateTimeValue;
+import org.neo4j.values.storable.DateValue;
 import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.LocalDateTimeValue;
+import org.neo4j.values.storable.LocalTimeValue;
+import org.neo4j.values.storable.PointValue;
+import org.neo4j.values.storable.TimeValue;
+import org.neo4j.values.storable.Values;
+
+import java.time.ZoneId;
 import java.time.temporal.Temporal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static apoc.export.csv.CsvPropertyConverter.getPrototypeFor;
 
 public class ConvertExtendedUtil {
+    private static final SimpleModule YAML_MODULE = new SimpleModule("Neo4jApocYamlSerializer");
+
+    static {
+        YAML_MODULE.addSerializer(Point.class, new PointSerializer());
+        YAML_MODULE.addSerializer(Temporal.class, new TemporalSerializer());
+        YAML_MODULE.addSerializer(DurationValue.class, new DurationValueSerializer());
+    }
     public static Object parse(String value, Map<String, Object> config) throws JsonProcessingException {
         YAMLFactory factory = new YAMLFactory();
 
@@ -121,7 +131,8 @@ public class ConvertExtendedUtil {
                 return Integer.parseInt(value);
             case "Long":
                 return Long.parseLong(value);
-            case "Node", "Relationship":
+            case "Node":
+            case"Relationship":
                 return JsonUtil.parse(value, null, Map.class);
             case "NO_VALUE":
                 return null;
@@ -138,6 +149,24 @@ public class ConvertExtendedUtil {
                             .toArray(prototype);
                 }
                 return value;
+        }
+    }
+
+    private static PointValue getPointValue(String value) {
+        try {
+            return PointValue.parse(value);
+        } catch (Neo4jException e) {
+            // fallback in case of double-quotes, e.g. {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
+            // we remove the double quotes before parsing the result, e.g. {crs:"wgs-84-3d",latitude:13.1,longitude:33.46789,height:100.0}
+            ObjectMapper objectMapper = new ObjectMapper()
+                    .disable(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature());
+            try {
+                Map readValue = objectMapper.readValue(value, Map.class);
+                String stringWithoutKeyQuotes = objectMapper.writeValueAsString(readValue);
+                return PointValue.parse(stringWithoutKeyQuotes);
+            } catch (JsonProcessingException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 }
