@@ -23,8 +23,6 @@ import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.configuration.GraphDatabaseSettings.TransactionStateMemoryAllocation.OFF_HEAP;
-import static org.neo4j.configuration.SettingValueParsers.BYTES;
 
 @Ignore("This test compare import/export procedures performances, we ignore it since it's slow and just log the times spent")
 public class ComparePerformancesTest {
@@ -36,8 +34,6 @@ public class ComparePerformancesTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.memory_tracking, true)
-            .withSetting(GraphDatabaseSettings.tx_state_memory_allocation, OFF_HEAP)
-            .withSetting(GraphDatabaseSettings.tx_state_max_off_heap_memory, BYTES.parse("4G"))
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     @Before

@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
-    id "org.jetbrains.kotlin.jvm" version "1.8.0" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.9.20" apply false
 }
 
 downloadLicenses {
@@ -73,8 +73,8 @@ subprojects {
 
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     task mySourcesJar(type: Jar) {
