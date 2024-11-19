@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static apoc.util.TestUtil.testCall;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class PromptIT {
@@ -66,8 +67,8 @@ public class PromptIT {
                 Map.of("query", "What movies did Tom Hanks play in?", "retries", 2L, "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-                    Assertions.assertThat(list).hasSize(12);
-                    Assertions.assertThat(list.stream()
+                    assertThat(list).hasSize(12);
+                    assertThat(list.stream()
                                     .map(m -> m.get("query"))
                                     .filter(Objects::nonNull)
                                     .map(Object::toString)
@@ -80,7 +81,7 @@ public class PromptIT {
     public void testSchema() {
         testResult(db, "CALL apoc.ml.schema({apiKey: $apiKey})", Map.of("apiKey", OPENAI_KEY), (r) -> {
             List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-            Assertions.assertThat(list).hasSize(1);
+            assertThat(list).hasSize(1);
         });
     }
 
@@ -96,8 +97,8 @@ public class PromptIT {
                         "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-                    Assertions.assertThat(list).hasSize((int) numOfQueries);
-                    Assertions.assertThat(list.stream()
+                    assertThat(list).hasSize((int) numOfQueries);
+                    assertThat(list.stream()
                                     .map(m -> m.get("query"))
                                     .filter(Objects::nonNull)
                                     .map(Object::toString)
@@ -118,8 +119,9 @@ public class PromptIT {
                 (r) -> {
 
                     String value = ((String) r.get("value")).toLowerCase();
-                    Assertions.assertThat(value).containsIgnoringCase("movie");
-                    Assertions.assertThat(value).containsAnyOf("person", "people");
+                    assertThat(value).containsIgnoringCase("movie");
+                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("person"),
+                                    s -> assertThat(s).contains("people"));
                 });
     }
 
@@ -134,8 +136,8 @@ public class PromptIT {
                 ),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
-                    Assertions.assertThat(value).containsIgnoringCase("movie");
-                    Assertions.assertThat(value).doesNotContainIgnoringCase("person", "people");
+                    assertThat(value).containsIgnoringCase("movie");
+                    assertThat(value).doesNotContainIgnoringCase("person", "people");
                 });
     }
 
@@ -150,7 +152,7 @@ public class PromptIT {
                     ),
                     (r) -> fail());
         } catch (Exception e) {
-            Assertions.assertThat(e.getMessage()).contains(" Variable `a` not defined");
+            assertThat(e.getMessage()).contains(" Variable `a` not defined");
         }
 
     }
@@ -166,7 +168,12 @@ public class PromptIT {
                 ),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
-                    Assertions.assertThat(value).containsAnyOf("does not contain", "empty", "undefined", "doesn't have");
+
+                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("does not contain"),
+                            s -> assertThat(s).contains("empty"),
+                            s -> assertThat(s).contains("undefined"),
+                            s -> assertThat(s).contains("doesn't have")
+                    );
                 });
     }
 }
