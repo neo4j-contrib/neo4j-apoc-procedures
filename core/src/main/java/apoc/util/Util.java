@@ -1313,8 +1313,10 @@ public class Util {
         } else {
             return ConstraintCategory.NODE;
         }
-    }    public static void setProperties(Entity entity, Map<String, Object> props) {
-        for (var entry: props.entrySet()) {
+    }
+
+    public static void setProperties(Entity entity, Map<String, Object> props) {
+        for (var entry : props.entrySet()) {
             entity.setProperty(entry.getKey(), entry.getValue());
         }
     }
@@ -1326,14 +1328,16 @@ public class Util {
      */
     public static Map<Object, List> listOfMapToMapOfLists(Map mapKeys, List<Map<String, Object>> vectors) {
         Map<Object, List> additionalBodies = new HashMap();
-        for (var vector: vectors) {
+        for (var vector : vectors) {
             mapKeys.forEach((from, to) -> {
                 mapEntryToList(additionalBodies, vector, from, to);
             });
         }
         return additionalBodies;
     }
-    private static void mapEntryToList(Map<Object, List> map, Map<String, Object> vector, Object keyFrom, Object keyTo) {
+
+    private static void mapEntryToList(
+            Map<Object, List> map, Map<String, Object> vector, Object keyFrom, Object keyTo) {
         Object item = vector.get(keyFrom);
         if (item == null) {
             return;
@@ -1353,7 +1357,7 @@ public class Util {
     public static float[] listOfNumbersToFloatArray(List<? extends Number> embedding) {
         float[] floats = new float[embedding.size()];
         int i = 0;
-        for (var item: embedding) {
+        for (var item : embedding) {
             floats[i] = item.floatValue();
             i++;
         }
