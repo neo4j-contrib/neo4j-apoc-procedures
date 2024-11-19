@@ -25,7 +25,8 @@ public class GoogleCloudStorageContainerExtension extends GenericContainer<Googl
         return this;
     }
 
-    public static String gcsUrl(GoogleCloudStorageContainerExtension gcs, String path) {
+    public static String gcsUrl(GoogleCloudStorageContainerExtension gcs, String file) {
+        String path = "b/folder/o/%s?alt=media".formatted(file);
         return String.format("http://%s:%d/storage/v1/%s", gcs.getContainerIpAddress(), gcs.getMappedPort(4443), path);
     }
 }
