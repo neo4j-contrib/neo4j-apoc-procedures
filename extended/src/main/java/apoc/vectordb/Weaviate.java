@@ -5,6 +5,7 @@ import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -240,7 +241,13 @@ public class Weaviate {
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
-                    Object getValue = ((Map<String, Map>) v).get("data").get("Get");
+                    Map<String, Map> mapResult = (Map<String, Map>) v;
+                    List<Map> errors = (List<Map>) mapResult.get("errors");
+                    if (!errors.isEmpty()) {
+                        String message = "An error occurred during Weaviate API response: \n" + StringUtils.join(errors, "\n");
+                        throw new RuntimeException(message);
+                    }
+                    Object getValue = mapResult.get("data").get("Get");
                     Object collectionValue = ((Map) getValue).get(collection);
                     return ((List<Map>) collectionValue).stream()
                             .map(i -> {
