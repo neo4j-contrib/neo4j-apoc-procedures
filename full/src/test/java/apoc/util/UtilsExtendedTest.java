@@ -30,7 +30,7 @@ public class UtilsExtendedTest {
 
     public static String checkEnvVar(String envKey) {
         String value = System.getenv(envKey);
-        Assume.assumeNotNull("No %s environment configured".formatted(envKey), value);
+        Assume.assumeNotNull(String.format("No %s environment configured", envKey), value);
         return value;
     }
 }
