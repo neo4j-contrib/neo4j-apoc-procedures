@@ -1,6 +1,9 @@
 package apoc.ml;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import apoc.coll.Coll;
 import apoc.meta.Meta;
@@ -12,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -22,15 +24,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-
-import static apoc.util.TestUtil.testCall;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class PromptIT {
 
@@ -109,19 +102,23 @@ public class PromptIT {
 
     @Test
     public void testSchemaFromQueries() {
-        List<String> queries = List.of("MATCH p=(n:Movie)--() RETURN p", "MATCH (n:Person) RETURN n", "MATCH (n:Movie) RETURN n", "MATCH p=(n)-[r]->() RETURN r");
+        List<String> queries = List.of(
+                "MATCH p=(n:Movie)--() RETURN p",
+                "MATCH (n:Person) RETURN n",
+                "MATCH (n:Movie) RETURN n",
+                "MATCH p=(n)-[r]->() RETURN r");
 
-        testCall(db, "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
                 Map.of(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
-                ),
+                        "apiKey", OPENAI_KEY),
                 (r) -> {
-
                     String value = ((String) r.get("value")).toLowerCase();
                     assertThat(value).containsIgnoringCase("movie");
-                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("person"),
-                                    s -> assertThat(s).contains("people"));
+                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("person"), s -> assertThat(s)
+                            .contains("people"));
                 });
     }
 
@@ -129,11 +126,12 @@ public class PromptIT {
     public void testSchemaFromQueriesWithSingleQuery() {
         List<String> queries = List.of("MATCH (n:Movie) RETURN n");
 
-        testCall(db, "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
                 Map.of(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
-                ),
+                        "apiKey", OPENAI_KEY),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
                     assertThat(value).containsIgnoringCase("movie");
@@ -145,35 +143,37 @@ public class PromptIT {
     public void testSchemaFromQueriesWithWrongQuery() {
         List<String> queries = List.of("MATCH (n:Movie) RETURN a");
         try {
-            testCall(db, "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+            testCall(
+                    db,
+                    "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
                     Map.of(
                             "queries", queries,
-                            "apiKey", OPENAI_KEY
-                    ),
+                            "apiKey", OPENAI_KEY),
                     (r) -> fail());
         } catch (Exception e) {
             assertThat(e.getMessage()).contains(" Variable `a` not defined");
         }
-
     }
 
     @Test
     public void testSchemaFromEmptyQueries() {
         List<String> queries = List.of("MATCH (n:Movie) RETURN 1");
 
-        testCall(db, "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
                 Map.of(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
-                ),
+                        "apiKey", OPENAI_KEY),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
 
-                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("does not contain"),
-                            s -> assertThat(s).contains("empty"),
-                            s -> assertThat(s).contains("undefined"),
-                            s -> assertThat(s).contains("doesn't have")
-                    );
+                    assertThat(value)
+                            .satisfiesAnyOf(
+                                    s -> assertThat(s).contains("does not contain"),
+                                    s -> assertThat(s).contains("empty"),
+                                    s -> assertThat(s).contains("undefined"),
+                                    s -> assertThat(s).contains("doesn't have"));
                 });
     }
 }
