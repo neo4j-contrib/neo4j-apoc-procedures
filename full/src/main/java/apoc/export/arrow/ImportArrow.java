@@ -1,5 +1,11 @@
 package apoc.export.arrow;
 
+import static apoc.export.arrow.ArrowUtils.FIELD_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
+import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
+import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
+
 import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.BatchTransaction;
@@ -57,12 +63,6 @@ import org.neo4j.values.storable.LocalTimeValue;
 import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
-
-import static apoc.export.arrow.ArrowUtils.FIELD_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
-import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
-import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
 
 @Extended
 public class ImportArrow {
