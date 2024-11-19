@@ -3,6 +3,8 @@ package apoc.vectordb;
 import java.util.Collections;
 import java.util.Map;
 
+
+
 public class VectorMappingConfig {
     enum MappingMode {
         READ_ONLY, UPDATE_EXISTING, CREATE_IF_MISSING

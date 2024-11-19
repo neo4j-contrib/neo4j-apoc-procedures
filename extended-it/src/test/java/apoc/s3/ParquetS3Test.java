@@ -2,6 +2,7 @@ package apoc.s3;
 
 import apoc.export.parquet.ParquetTestUtil;
 import apoc.util.collection.Iterators;
+import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -16,13 +17,13 @@ import java.util.Map;
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
 import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
-import static apoc.util.S3ExtendedUtil.putToS3AndGetUrl;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.s3.S3Util.putToS3AndGetUrl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class ParquetS3Test extends S3BaseExtendedTest {
+public class ParquetS3Test extends S3BaseTest {
 
     private final String EXPORT_FILENAME = "test_all.parquet";
 
@@ -60,7 +61,7 @@ public class ParquetS3Test extends S3BaseExtendedTest {
     public void testFileRoundtripParquetAllFromS3Url() {
         // given - when
         String filename = exportToParquetFile(EXPORT_FILENAME);
-        String url = putToS3AndGetUrl(s3ExtendedContainer, filename);
+        String url = putToS3AndGetUrl(s3Container, filename);
 
         // then
         final String query = "CALL apoc.load.parquet($url, $config) YIELD value " +
@@ -75,7 +76,7 @@ public class ParquetS3Test extends S3BaseExtendedTest {
     @Test
     public void testImportParquetFromS3Url() {
         String filename = exportToParquetFile(EXPORT_FILENAME);
-        String url = putToS3AndGetUrl(s3ExtendedContainer, filename);
+        String url = putToS3AndGetUrl(s3Container, filename);
 
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
         Long count = db.executeTransactionally("MATCH (n) RETURN count(n) AS count", Collections.emptyMap(),

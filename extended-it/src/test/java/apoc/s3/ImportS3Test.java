@@ -1,4 +1,4 @@
-package apoc.export;
+package apoc.s3;
 
 import apoc.export.arrow.ExportArrow;
 import apoc.export.arrow.ImportArrow;
@@ -24,6 +24,7 @@ import static apoc.export.arrow.ImportArrowTestUtil.ARROW_BASE_FOLDER;
 import static apoc.export.arrow.ImportArrowTestUtil.MAPPING_ALL;
 import static apoc.export.arrow.ImportArrowTestUtil.prepareDbForArrow;
 import static apoc.export.arrow.ImportArrowTestUtil.testImportCommon;
+import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
 import static apoc.util.ExtendedTestUtil.clearDb;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;
 import static apoc.util.s3.S3Util.putToS3AndGetUrl;
@@ -48,11 +49,7 @@ public class ImportS3Test extends S3BaseTest {
 
     @Test
     public void testImportArrow() {
-        String file = db.executeTransactionally("CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
-                Map.of(),
-                ImportArrowTestUtil::extractFileName);
-
-        String fileWithPath = ARROW_BASE_FOLDER + File.separator + file;
+        String fileWithPath = ARROW_BASE_FOLDER + File.separator + "test_all.arrow";
         String url = putToS3AndGetUrl(s3Container, fileWithPath);
 
         testImportCommon(db, url, MAPPING_ALL);
@@ -61,8 +58,7 @@ public class ImportS3Test extends S3BaseTest {
     @Test
     public void testImportGexf() {
         clearDb(db);
-        String file = Thread.currentThread().getContextClassLoader().getResource("gexf/data.gexf").toString();
-        String filename = file.substring(file.indexOf("build"));
+        String filename = EXTENDED_PATH + "src/test/resources/gexf/data.gexf";
         String url = putToS3AndGetUrl(s3Container, filename);
         testImportGexfCommon(db, url);
     }

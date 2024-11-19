@@ -1,5 +1,9 @@
-package apoc.load;
+package apoc.gc;
 
+import apoc.load.LoadCsv;
+import apoc.load.LoadHtml;
+import apoc.load.LoadJson;
+import apoc.load.Xml;
 import apoc.load.xls.LoadXls;
 import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
@@ -56,7 +60,7 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadCsv() {
-        String url = gcsUrl(gcs, "b/folder/o/test.csv?alt=media");
+        String url = gcsUrl(gcs, "test.csv");
 
         testResult(db, "CALL apoc.load.csv($url)", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
@@ -68,7 +72,7 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadJSON() {
-        String url = gcsUrl(gcs, "b/folder/o/map.json?alt=media");
+        String url = gcsUrl(gcs, "map.json");
         testCall(db, "CALL apoc.load.jsonArray($url, '$.foo')", map("url", url), (r) -> {
             assertEquals(asList(1L,2L,3L), r.get("value"));
         });
@@ -76,7 +80,7 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadXml() {
-        String url = gcsUrl(gcs, "b/folder/o/books.xml?alt=media");
+        String url = gcsUrl(gcs, "books.xml");
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
             Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
@@ -85,7 +89,7 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadXls() {
-        String url = gcsUrl(gcs, "b/folder/o/load_test.xlsx?alt=media");
+        String url = gcsUrl(gcs, "load_test.xlsx");
         testResult(db, "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",url), // 'file:load_test.xlsx'
                 (r) -> {
                     assertXlsRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
@@ -95,7 +99,7 @@ public class LoadGoogleCloudStorageTest {
 
     @Test
     public void testLoadHtml() {
-        String url = gcsUrl(gcs, "b/folder/o/wikipedia.html?alt=media");
+        String url = gcsUrl(gcs, "wikipedia.html");
 
         Map<String, Object> query = map("links", "a[href]");
 
