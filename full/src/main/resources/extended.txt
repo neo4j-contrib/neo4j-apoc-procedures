@@ -98,6 +98,8 @@ apoc.metrics.get
 apoc.metrics.list
 apoc.metrics.storage
 apoc.ml.cypher
+apoc.ml.fromCypher
+apoc.ml.fromQueries
 apoc.ml.query
 apoc.ml.schema
 apoc.ml.openai.chat
