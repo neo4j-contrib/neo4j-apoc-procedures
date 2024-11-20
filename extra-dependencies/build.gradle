@@ -15,7 +15,7 @@ configure(subprojects) {
 
 subprojects {
     group = 'org.neo4j.contrib'
-    version = '4.4.0.33'
+    version = '4.4.0.34'
 }
 
 task copyJars(type: Copy) {
