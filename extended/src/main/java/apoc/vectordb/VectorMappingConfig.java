@@ -15,6 +15,7 @@ public class VectorMappingConfig {
     public static final String EMBEDDING_KEY = "embeddingKey";
     public static final String SIMILARITY_KEY = "similarity";
     public static final String MODE_KEY = "mode";
+    public static final String NO_FIELDS_ERROR_MSG = "You have to define `field` list of parameter to be returned";
 
     private final String metadataKey;
     private final String entityKey;

@@ -11,4 +11,10 @@ public class ExtendedMapUtils {
     public static boolean isEmpty(final Map<?,?> map) {
         return map == null || map.isEmpty();
     }
+    
+    public static <K, V> V getObject(Map<? super K, V> map, K key) {
+        return map != null 
+                ? map.get(key)
+                : null;
+    }
 }

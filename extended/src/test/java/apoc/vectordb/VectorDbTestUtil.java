@@ -9,6 +9,7 @@ import org.neo4j.graphdb.Result;
 
 import java.util.Map;
 
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
@@ -113,5 +114,14 @@ public class VectorDbTestUtil {
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
         db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
         return openAIKey;
+    }
+
+    public static void assertMetadataOneResult(Result r) {
+        Map<String, Object> row = r.next();
+        Map<String, Object> metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertNotNull(metadata);
+        assertEquals("one", metadata.get("foo"));
+        row = r.next();
+        assertFalse(r.hasNext());
     }
 }
