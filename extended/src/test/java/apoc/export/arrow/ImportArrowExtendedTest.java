@@ -18,8 +18,8 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.export.arrow.ImportArrowTestUtil.ARROW_BASE_FOLDER;
-import static apoc.export.arrow.ImportArrowTestUtil.testImportCommon;
+import static apoc.export.arrow.ArrowTestUtil.ARROW_BASE_FOLDER;
+import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
 
 public class ImportArrowExtendedTest {
     private static File directory = new File(ARROW_BASE_FOLDER);
@@ -58,7 +58,7 @@ public class ImportArrowExtendedTest {
     public void testStreamRoundtripImportArrowAll() {
         final byte[] bytes = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.stream.all",
                 Map.of(),
-                ImportArrowTestUtil::extractByteArray);
+                ArrowTestUtil::extractByteArray);
 
         testImportCommon(db, bytes, MAPPING_ALL);
     }
@@ -67,7 +67,7 @@ public class ImportArrowExtendedTest {
     public void testFileRoundtripImportArrowAll() {
         String file = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
                 Map.of(),
-                ImportArrowTestUtil::extractFileName);
+                ArrowTestUtil::extractFileName);
         
         testImportCommon(db, file, MAPPING_ALL);
     }
@@ -76,7 +76,7 @@ public class ImportArrowExtendedTest {
     public void testFileRoundtripImportArrowAllWithSmallBatchSize() {
         String file = db.executeTransactionally("CYPHER 25 CALL apoc.export.arrow.all('test_all.arrow') YIELD file",
                 Map.of(),
-                ImportArrowTestUtil::extractFileName);
+                ArrowTestUtil::extractFileName);
 
         Map<String, Object> config = new HashMap<>(MAPPING_ALL);
         config.put("batchSize", 1);

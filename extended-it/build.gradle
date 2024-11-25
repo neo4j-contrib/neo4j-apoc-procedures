@@ -28,6 +28,8 @@ dependencies {
     }
 
     implementation project(":extended")
+    
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
     testImplementation project(':extended').sourceSets.main.allJava
 
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'

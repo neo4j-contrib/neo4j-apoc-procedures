@@ -15,9 +15,11 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.export.arrow.ImportArrowTestUtil.MAPPING_ALL;
-import static apoc.export.arrow.ImportArrowTestUtil.prepareDbForArrow;
-import static apoc.export.arrow.ImportArrowTestUtil.testImportCommon;
+import static apoc.export.arrow.ArrowTestUtil.MAPPING_ALL;
+import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
+import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
+//import static apoc.export.arrow.ArrowTestUtil.prepareDbForArrow;
+import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
 import static apoc.util.ExtendedTestUtil.clearDb;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
@@ -33,10 +35,9 @@ public class ImportGoogleCloudStorageTest {
     @BeforeClass
     public static void setUp() throws Exception {
         gcs.start();
-        TestUtil.registerProcedure(db, ExportArrow.class, ImportArrow.class, Meta.class, Gexf.class);
-        prepareDbForArrow(db);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+
+        beforeClassCommon(db);
+        createNodesForImportTests(db);
     }
 
     @Test

@@ -1,11 +1,5 @@
 package apoc.s3;
 
-import apoc.export.arrow.ExportArrow;
-import apoc.export.arrow.ImportArrow;
-import apoc.export.arrow.ImportArrowTestUtil;
-import apoc.load.Gexf;
-import apoc.meta.Meta;
-import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
