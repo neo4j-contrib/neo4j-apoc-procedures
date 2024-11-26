@@ -37,6 +37,9 @@ If present, they take precedence over the analogous APOC configs.
 | jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] of the response. 
     The default is `$` for the `apoc.ml.openai.chat` and `apoc.ml.openai.completion` procedures, and `$.data` for the `apoc.ml.openai.embedding` procedure.
 | failOnError | If true (default), the procedure fails in case of empty, blank or null input
+| enableBackOffRetries | If set to true, enables the backoff retry strategy for handling failures. (default: false)
+| backOffRetries | Sets the maximum number of retry attempts before the operation throws an exception. (default: 5)
+| exponentialBackoff | If set to true, applies an exponential progression to the wait time between retries. If set to false, the wait time increases linearly. (default: false)
 |===
 
 

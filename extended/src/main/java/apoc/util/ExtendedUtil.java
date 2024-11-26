@@ -5,12 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.collections.api.block.function.Function0;
 import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.ExecutionPlanDescription;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionType;
 import org.neo4j.graphdb.Result;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.values.storable.DateTimeValue;
 import org.neo4j.values.storable.DateValue;
@@ -30,14 +32,11 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.temporal.TemporalUnit;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
@@ -353,5 +352,57 @@ public class ExtendedUtil
         }
         return floats;
     }
-            
+
+    public static <T> T withBackOffRetries(
+            Supplier<T> func,
+            boolean retry,
+            int backoffRetry,
+            boolean exponential,
+            Consumer<Exception> exceptionHandler
+    ) {
+        T result = null;
+        backoffRetry = backoffRetry < 1 ? 5 : backoffRetry;
+        int countDown = backoffRetry;
+        exceptionHandler = Objects.requireNonNullElse(exceptionHandler, exe -> {});
+        while (true) {
+            try {
+                result = func.get();
+                break;
+            } catch (Exception e) {
+                if(!retry || countDown < 1) throw e;
+                exceptionHandler.accept(e);
+                countDown--;
+                backoffSleep(
+                        getDelay(backoffRetry, countDown, exponential)
+                );
+            }
+        }
+        return result;
+    }
+
+    private static void backoffSleep(long millis){
+        sleep(millis, "Operation interrupted during backoff");
+    }
+
+    public static void sleep(long millis, String interruptedMessage) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(interruptedMessage, ie);
+        }
+    }
+
+    private static long getDelay(Integer backoffRetry, Integer countDown, boolean exponential){
+        long sleepMultiplier = exponential ?
+                (long) Math.pow(2, backoffRetry - countDown) : // Exponential retry progression
+                backoffRetry - countDown; // Linear retry progression
+        return Math.min(
+                Duration.ofSeconds(1)
+                        .multipliedBy(sleepMultiplier)
+                        .toMillis(),
+                Duration.ofSeconds(30).toMillis() // Max 30s
+        );
+    }
+
 }
