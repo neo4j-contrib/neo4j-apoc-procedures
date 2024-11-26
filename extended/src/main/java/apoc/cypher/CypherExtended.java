@@ -193,25 +193,42 @@ public class CypherExtended {
             }
 
             if (!schemaOperation) {
+                // Periodic operations cannot be schema operations, so no need to check that here (will fail as invalid
+                // query)
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools , () -> {
+                    Util.inThread(pools, () -> {
                         try {
-                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
+                            return db.executeTransactionally(
+                                    stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
                         }
                     });
-                }
-                else {
-                    Util.inTx(db, pools, threadTx -> {
-                        try (Result result = threadTx.execute(stmt, params)) {
-                            return consumeResult(result, queue, addStatistics, tx, fileName);
-                        } catch (Exception e) {
-                            collectError(queue, reportError, e, fileName);
-                            return null;
+                } else {
+                    AtomicBoolean isSchemaError = new AtomicBoolean(false);
+                    try {
+                        Util.inTx(db, pools, threadTx -> {
+                            try (Result result = threadTx.execute(stmt, params)) {
+                                return consumeResult(result, queue, addStatistics, tx, fileName);
+                            } catch (Exception e) {
+                                // APOC historically skips schema operations
+                                if (!(e.getMessage().contains("Schema operations on database")
+                                        && e.getMessage().contains("are not allowed"))) {
+                                    collectError(queue, reportError, e, fileName);
+                                    return null;
+                                }
+                                isSchemaError.set(true);
+                                return null;
+                            }
+                        });
+                    } catch (Exception e) {
+                        // An error thrown by a schema operation
+                        if (isSchemaError.get()) {
+                            continue;
                         }
-                    });
+                        throw e;
+                    }
                 }
             }
         }
