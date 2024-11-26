@@ -1,24 +1,15 @@
 package apoc.gc;
 
-import apoc.export.arrow.ExportArrow;
-import apoc.export.arrow.ImportArrow;
-import apoc.load.Gexf;
-import apoc.meta.Meta;
 import apoc.util.GoogleCloudStorageContainerExtension;
-import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.export.arrow.ArrowTestUtil.MAPPING_ALL;
 import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
 import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
-//import static apoc.export.arrow.ArrowTestUtil.prepareDbForArrow;
 import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
 import static apoc.util.ExtendedTestUtil.clearDb;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;

@@ -111,11 +111,6 @@ public class ArrowTestUtil {
             Map.of("bffSince", "Duration", "place", "Point", "listInt", "LongArray", "born", "LocalDateTime")
     );
 
-//    public static void prepareDbForArrow(DbmsRule db) {
-////        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
-//        createNodesForImportTests(db);
-//    }
-
     public static void createNodesForImportTests(DbmsRule db) {
         db.executeTransactionally("CREATE (:Another {foo:1, listInt: [1,2]}), (:Another {bar:'Sam'})");
     }

@@ -7,22 +7,11 @@ import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.load.xls.LoadXls;
 import apoc.util.TestUtil;
-import com.azure.core.util.Context;
-import com.azure.storage.blob.*;
-import com.azure.storage.blob.sas.BlobSasPermission;
-import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
-import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
@@ -33,9 +22,6 @@ import static apoc.load.xls.LoadXlsTest.testLoadXlsCommon;
 import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
 import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.ExtendedITUtil.testLoadXmlCommon;
-import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 
 public class LoadAzureStorageTest extends AzureStorageBaseTest {
