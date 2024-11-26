@@ -60,7 +60,7 @@ task gitSubmoduleLoad {
 dependencies {
     // to fix unresolved imports with IntelliJ from version 2024.1.x
     compileOnly sourceSets.main.java
-
+    testImplementation sourceSets.main.java
 
     
     apt project(':processor')
