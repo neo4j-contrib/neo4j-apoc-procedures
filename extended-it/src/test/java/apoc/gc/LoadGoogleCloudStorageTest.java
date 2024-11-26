@@ -3,6 +3,7 @@ package apoc.gc;
 import apoc.load.LoadCsv;
 import apoc.load.LoadHtml;
 import apoc.load.LoadJson;
+import apoc.load.LoadJsonExtended;
 import apoc.load.Xml;
 import apoc.load.xls.LoadXls;
 import apoc.util.GoogleCloudStorageContainerExtension;
@@ -14,6 +15,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.load.LoadCsvTest.assertRow;
+import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -44,12 +47,14 @@ public class LoadGoogleCloudStorageTest {
             .withMountedResourceFile("wikipedia.html", "/folder/wikipedia.html");
 
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseInternalSettings.enable_experimental_cypher_versions, true);
+            
 
     @BeforeClass
     public static void setUp() throws Exception {
         gcs.start();
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, LoadHtml.class, LoadXls.class,  Xml.class);
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadJsonExtended.class, LoadHtml.class, LoadXls.class,  Xml.class);
     }
 
     @AfterClass
@@ -73,9 +78,7 @@ public class LoadGoogleCloudStorageTest {
     @Test
     public void testLoadJSON() {
         String url = gcsUrl(gcs, "map.json");
-        testCall(db, "CALL apoc.load.jsonArray($url, '$.foo')", map("url", url), (r) -> {
-            assertEquals(asList(1L,2L,3L), r.get("value"));
-        });
+        testLoadJsonCommon(db, url);
     }
 
     @Test
