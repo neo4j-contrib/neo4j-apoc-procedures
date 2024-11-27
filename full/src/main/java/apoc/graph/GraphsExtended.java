@@ -4,6 +4,12 @@ import apoc.Extended;
 import apoc.result.GraphResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -17,13 +23,6 @@ import org.neo4j.procedure.UserAggregationFunction;
 import org.neo4j.procedure.UserAggregationResult;
 import org.neo4j.procedure.UserAggregationUpdate;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 @Extended
 public class GraphsExtended {
 
@@ -32,15 +31,17 @@ public class GraphsExtended {
             "CALL apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove) YIELD nodes, relationships - returns a set of virtual nodes and relationships without the properties defined in nodePropertiesToRemove and relPropertiesToRemove")
     public Stream<GraphResult> fromData(
             @Name("value") Object value,
-            @Name(value = "nodePropertiesToRemove", defaultValue = "{}") Map<String, List<String>> nodePropertiesToRemove,
-            @Name(value = "relPropertiesToRemove", defaultValue = "{}") Map<String, List<String>> relPropertiesToRemove) {
-        
+            @Name(value = "nodePropertiesToRemove", defaultValue = "{}")
+                    Map<String, List<String>> nodePropertiesToRemove,
+            @Name(value = "relPropertiesToRemove", defaultValue = "{}")
+                    Map<String, List<String>> relPropertiesToRemove) {
+
         VirtualGraphExtractor extractor = new VirtualGraphExtractor(nodePropertiesToRemove, relPropertiesToRemove);
         extractor.extract(value);
-        GraphResult result = new GraphResult( extractor.nodes(), extractor.rels() );
+        GraphResult result = new GraphResult(extractor.nodes(), extractor.rels());
         return Stream.of(result);
     }
-    
+
     @UserAggregationFunction("apoc.graph.filterProperties")
     @Description(
             "apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove) - aggregation function which returns an object {node: [virtual nodes], relationships: [virtual relationships]} without the properties defined in nodePropertiesToRemove and relPropertiesToRemove")
@@ -57,9 +58,11 @@ public class GraphsExtended {
         @UserAggregationUpdate
         public void filterProperties(
                 @Name("value") Object value,
-                @Name(value = "nodePropertiesToRemove", defaultValue = "{}") Map<String, List<String>> nodePropertiesToRemove,
-                @Name(value = "relPropertiesToRemove", defaultValue = "{}") Map<String, List<String>> relPropertiesToRemove) {
-            
+                @Name(value = "nodePropertiesToRemove", defaultValue = "{}")
+                        Map<String, List<String>> nodePropertiesToRemove,
+                @Name(value = "relPropertiesToRemove", defaultValue = "{}")
+                        Map<String, List<String>> relPropertiesToRemove) {
+
             if (virtualGraphExtractor == null) {
                 virtualGraphExtractor = new VirtualGraphExtractor(nodePropertiesToRemove, relPropertiesToRemove);
             }
@@ -72,20 +75,20 @@ public class GraphsExtended {
             Collection<Relationship> relationships = virtualGraphExtractor.rels();
             return Map.of(
                     NODES, nodes,
-                    RELATIONSHIPS, relationships
-            );
+                    RELATIONSHIPS, relationships);
         }
     }
 
     public static class VirtualGraphExtractor {
         private static final String ALL_FILTER = "_all";
-        
+
         private final Map<Long, Node> nodes;
         private final Map<Long, Relationship> rels;
         private final Map<String, List<String>> nodePropertiesToRemove;
         private final Map<String, List<String>> relPropertiesToRemove;
 
-        public VirtualGraphExtractor(Map<String, List<String>> nodePropertiesToRemove, Map<String, List<String>> relPropertiesToRemove) {
+        public VirtualGraphExtractor(
+                Map<String, List<String>> nodePropertiesToRemove, Map<String, List<String>> relPropertiesToRemove) {
             this.nodes = new HashMap<>();
             this.rels = new HashMap<>();
             this.nodePropertiesToRemove = nodePropertiesToRemove;
@@ -99,26 +102,26 @@ public class GraphsExtended {
             if (value instanceof Node) {
                 Node node = (Node) value;
                 addVirtualNode(node);
-                
+
             } else if (value instanceof Relationship) {
                 Relationship rel = (Relationship) value;
                 addVirtualRel(rel);
-                
+
             } else if (value instanceof Path) {
                 Path path = (Path) value;
                 path.nodes().forEach(this::addVirtualNode);
                 path.relationships().forEach(this::addVirtualRel);
-                
+
             } else if (value instanceof Iterable) {
                 ((Iterable<?>) value).forEach(this::extract);
-                
+
             } else if (value instanceof Map<?, ?>) {
                 Map<?, ?> map = (Map<?, ?>) value;
                 map.values().forEach(this::extract);
-                
+
             } else if (value instanceof Iterator) {
                 ((Iterator<?>) value).forEachRemaining(this::extract);
-                
+
             } else if (value instanceof Object[]) {
                 Object[] array = (Object[]) value;
                 for (Object i : array) {
@@ -128,7 +131,7 @@ public class GraphsExtended {
         }
 
         /**
-         * We can use the elementId as a unique key for virtual nodes/relations, 
+         * We can use the elementId as a unique key for virtual nodes/relations,
          * as it is the same as the analogue for real nodes/relations.
          */
         private void addVirtualRel(Relationship rel) {
@@ -141,7 +144,7 @@ public class GraphsExtended {
 
         private Node createVirtualNode(Node startNode) {
             List<String> props = Iterables.asList(startNode.getPropertyKeys());
-            nodePropertiesToRemove.forEach((k,v) -> {
+            nodePropertiesToRemove.forEach((k, v) -> {
                 if (k.equals(ALL_FILTER) || startNode.hasLabel(Label.label(k))) {
                     props.removeAll(v);
                 }
@@ -156,10 +159,10 @@ public class GraphsExtended {
 
             Node endNode = rel.getEndNode();
             endNode = nodes.putIfAbsent(endNode.getId(), createVirtualNode(endNode));
-            
+
             Map<String, Object> props = rel.getAllProperties();
-            
-            relPropertiesToRemove.forEach((k,v) -> {
+
+            relPropertiesToRemove.forEach((k, v) -> {
                 if (k.equals(ALL_FILTER) || rel.isType(RelationshipType.withName(k))) {
                     v.forEach(props.keySet()::remove);
                 }

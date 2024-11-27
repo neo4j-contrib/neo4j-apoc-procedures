@@ -1,26 +1,24 @@
 package apoc.vectordb;
 
-
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
-import org.apache.commons.collections.MapUtils;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 
+import apoc.SystemPropertyKeys;
+import apoc.util.Util;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.collections.MapUtils;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+
 public class VectorDbUtil {
 
-    public static final String ERROR_READONLY_MAPPING = "The mapping is not possible with this procedure, as it is read-only.";
+    public static final String ERROR_READONLY_MAPPING =
+            "The mapping is not possible with this procedure, as it is read-only.";
 
     /**
      * we can configure the endpoint via config map or via hostOrKey parameter,
@@ -35,19 +33,20 @@ public class VectorDbUtil {
      * Result of `apoc.vectordb.*.get` and `apoc.vectordb.*.query` procedures
      */
     public static final class EmbeddingResult {
-        private final Object id;
-        private final Double score;
-        private final List<Double> vector;
-        private final Map<String, Object> metadata;
-        private final String text;
-        private final Node node;
-        private final Relationship rel;
+        public final Object id;
+        public final Double score;
+        public final List<Double> vector;
+        public final Map<String, Object> metadata;
+        public final String text;
+        public final Node node;
+        public final Relationship rel;
 
-        /**
-         *
-         */
         public EmbeddingResult(
-                Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text,
+                Object id,
+                Double score,
+                List<Double> vector,
+                Map<String, Object> metadata,
+                String text,
                 Node node,
                 Relationship rel) {
             this.id = id;
@@ -58,38 +57,14 @@ public class VectorDbUtil {
             this.node = node;
             this.rel = rel;
         }
-
-        public Object id() {
-            return id;
-        }
-
-        public Double score() {
-            return score;
-        }
-
-        public List<Double> vector() {
-            return vector;
-        }
-
-        public Map<String, Object> metadata() {
-            return metadata;
-        }
-
-        public String text() {
-            return text;
-        }
-
-        public Node node() {
-            return node;
-        }
-
-        public Relationship rel() {
-            return rel;
-        }
     }
-    
+
     public static Map<String, Object> getCommonVectorDbInfo(
-            String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl, VectorDbHandler handler) {
+            String hostOrKey,
+            String collection,
+            Map<String, Object> configuration,
+            String templateUrl,
+            VectorDbHandler handler) {
         Map<String, Object> config = new HashMap<>(configuration);
 
         Map<String, Object> props = withSystemDb(transaction -> {
@@ -102,23 +77,21 @@ public class VectorDbUtil {
         config.put(BASE_URL_KEY, url);
 
         Map mappingConfVal = (Map) config.get(MAPPING_KEY);
-        if ( MapUtils.isEmpty(mappingConfVal) ) {
+        if (MapUtils.isEmpty(mappingConfVal)) {
             String mappingStoreVal = (String) props.get(MAPPING_KEY);
             if (mappingStoreVal != null) {
-                config.put( MAPPING_KEY, Util.fromJson(mappingStoreVal, Map.class) );
+                config.put(MAPPING_KEY, Util.fromJson(mappingStoreVal, Map.class));
             }
         }
 
         String credentials = (String) props.get(SystemPropertyKeys.credentials.name());
         if (credentials != null) {
             Object credentialsObj = Util.fromJson(credentials, Object.class);
-            
+
             config = handler.getCredentials(credentialsObj, config);
         }
 
-        String endpoint = String.format(templateUrl, 
-                url, collection
-        );
+        String endpoint = String.format(templateUrl, url, collection);
         getEndpoint(config, endpoint);
 
         return config;
@@ -133,9 +106,8 @@ public class VectorDbUtil {
 
     public static void checkMappingConf(Map<String, Object> configuration, String procName) {
         if (configuration.containsKey(MAPPING_KEY)) {
-            throw new RuntimeException(ERROR_READONLY_MAPPING + "\n" +
-                                       "Try the equivalent procedure, which is the " + procName);
+            throw new RuntimeException(
+                    ERROR_READONLY_MAPPING + "\n" + "Try the equivalent procedure, which is the " + procName);
         }
     }
-
 }

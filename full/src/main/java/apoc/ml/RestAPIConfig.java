@@ -1,6 +1,5 @@
 package apoc.ml;
 
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,11 +12,11 @@ public class RestAPIConfig {
     public static final String JSON_PATH_KEY = "jsonPath";
     public static final String BODY_KEY = "body";
     public static final String BASE_URL_KEY = "baseUrl";
-    
+
     // used internally to handle multiple endpoints, like in `apoc.vectordb.weaviate.get`
     // the config documented is the `endpoint` one
     private final String baseUrl;
-    
+
     private Map<String, Object> headers;
     private Map body;
     private String endpoint;
@@ -26,7 +25,7 @@ public class RestAPIConfig {
     public RestAPIConfig(Map<String, Object> config) {
         this(config, Map.of(), Map.of());
     }
-    
+
     public RestAPIConfig(Map<String, Object> config, Map additionalHeaders, Map additionalBodies) {
         if (config == null) {
             config = Collections.emptyMap();
@@ -42,8 +41,9 @@ public class RestAPIConfig {
         this.jsonPath = (String) config.get(JSON_PATH_KEY);
         this.body = populateBody(config, additionalBodies);
     }
-    
-    private static Map<String, Object> populateHeaders(Map<String, Object> config, Map additionalHeaders, String httpMethod) {
+
+    private static Map<String, Object> populateHeaders(
+            Map<String, Object> config, Map additionalHeaders, String httpMethod) {
         Map headerConf = (Map<String, Object>) config.getOrDefault(HEADERS_KEY, new HashMap<>());
         headerConf.putIfAbsent("content-type", "application/json");
         headerConf.putIfAbsent(METHOD_KEY, httpMethod);
@@ -55,7 +55,7 @@ public class RestAPIConfig {
         Map bodyConf = (Map<String, Object>) config.getOrDefault(BODY_KEY, new HashMap<>());
 
         // if we force body to be null, e.g. with Http GET operations that doesn't allow payloads,
-        // we skip additional body addition 
+        // we skip additional body addition
         if (bodyConf != null) {
             additionalBodies.forEach(bodyConf::putIfAbsent);
         }
@@ -73,7 +73,7 @@ public class RestAPIConfig {
     public String getEndpoint() {
         return endpoint;
     }
-    
+
     public String getBaseUrl() {
         return baseUrl;
     }

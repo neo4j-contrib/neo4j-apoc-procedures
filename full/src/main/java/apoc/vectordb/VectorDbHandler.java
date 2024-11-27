@@ -1,10 +1,9 @@
 package apoc.vectordb;
 
+import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 
 public interface VectorDbHandler {
     default Map<String, Object> getCredentials(Object credentialsObj, Map<String, Object> config) {
@@ -15,7 +14,9 @@ public interface VectorDbHandler {
     }
 
     String getUrl(String hostOrKey);
+
     VectorEmbeddingHandler getEmbedding();
+
     String getLabel();
 
     enum Type {

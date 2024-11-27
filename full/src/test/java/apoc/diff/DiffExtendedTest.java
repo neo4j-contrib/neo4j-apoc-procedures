@@ -1,7 +1,15 @@
 package apoc.diff;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import apoc.create.Create;
 import apoc.util.TestUtil;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -14,15 +22,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class DiffExtendedTest {
 
@@ -68,7 +67,7 @@ public class DiffExtendedTest {
         TestUtil.testCall(
                 db,
                 "CREATE ()-[rel1:REL $propRel1]->(), ()-[rel2:REL $propRel2]->()\n"
-                + "RETURN apoc.diff.relationships(rel1, rel2) AS result",
+                        + "RETURN apoc.diff.relationships(rel1, rel2) AS result",
                 Map.of(
                         "propRel1",
                         Map.of("name", "Charlie", "alpha", "one", "born", 1999, "grocery_list", list),
@@ -93,33 +92,31 @@ public class DiffExtendedTest {
 
     @Test
     public void relationshipsDiffering() {
-        String query = "MATCH (leftNode:Node2Start)-[rel2]->(), (rightNode:Node3Start)-[rel3]->() " +
-                       "RETURN apoc.diff.relationships(rel2, rel3) as diff";
+        String query = "MATCH (leftNode:Node2Start)-[rel2]->(), (rightNode:Node3Start)-[rel3]->() "
+                + "RETURN apoc.diff.relationships(rel2, rel3) as diff";
         commonAssertionDifferentRels(query);
     }
 
     @Test
     public void shouldBeDiffWithVirtualRelationships() {
-        String query = "MATCH (start1:Node1Start)-[rel1]->(end1), (start2:Node2Start)-[rel2]->(end2)\n" +
-                       "WITH apoc.create.vRelationship(start1, type(rel1), {prop1: 'val1', prop2: 2, prop4: 'four'}, end1) AS relA,\n" +
-                       "    apoc.create.vRelationship(start2, type(rel2), {prop1: 'val1', prop3: '3', prop4: 'for'}, end2) AS relB\n" +
-                       "RETURN apoc.diff.relationships(relA, relB) as diff";
+        String query = "MATCH (start1:Node1Start)-[rel1]->(end1), (start2:Node2Start)-[rel2]->(end2)\n"
+                + "WITH apoc.create.vRelationship(start1, type(rel1), {prop1: 'val1', prop2: 2, prop4: 'four'}, end1) AS relA,\n"
+                + "    apoc.create.vRelationship(start2, type(rel2), {prop1: 'val1', prop3: '3', prop4: 'for'}, end2) AS relB\n"
+                + "RETURN apoc.diff.relationships(relA, relB) as diff";
         commonAssertionDifferentRels(query);
     }
 
     @Test
     public void shouldBeSameWithVirtualRelationships() {
-        String query = "MATCH (start:Node1Start)-[rel]->(end)" +
-                       "WITH apoc.create.vRelationship(start, type(rel), {prop1: 'val1', prop2: 2}, end) AS rel "
-                       + "RETURN apoc.diff.relationships(rel, rel) as diff";
+        String query = "MATCH (start:Node1Start)-[rel]->(end)"
+                + "WITH apoc.create.vRelationship(start, type(rel), {prop1: 'val1', prop2: 2}, end) AS rel "
+                + "RETURN apoc.diff.relationships(rel, rel) as diff";
         commonAssertionSameRels(query);
     }
 
     private void commonAssertionDifferentRels(String query) {
-        Map<String, Object> result = db.executeTransactionally(
-                query,
-                Map.of(),
-                r -> Iterators.single(r.columnAs("diff")));
+        Map<String, Object> result =
+                db.executeTransactionally(query, Map.of(), r -> Iterators.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
