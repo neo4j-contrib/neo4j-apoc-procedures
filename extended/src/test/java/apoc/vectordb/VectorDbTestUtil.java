@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 public class VectorDbTestUtil {
     
-    enum EntityType { NODE, REL, FALSE }
+    public enum EntityType { NODE, REL, FALSE }
     
     public static void dropAndDeleteAll(GraphDatabaseService db) {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");

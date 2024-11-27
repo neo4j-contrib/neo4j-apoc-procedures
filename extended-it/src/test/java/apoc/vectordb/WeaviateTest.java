@@ -4,6 +4,7 @@ import apoc.ml.Prompt;
 import apoc.util.ExtendedTestUtil;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.util.WeaviateTestUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -15,7 +16,6 @@ import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
-import org.testcontainers.weaviate.WeaviateContainer;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,21 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static apoc.util.WeaviateTestUtil.ADMIN_AUTHORIZATION;
+import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
+import static apoc.util.WeaviateTestUtil.ADMIN_KEY;
+import static apoc.util.WeaviateTestUtil.COLLECTION_NAME;
+import static apoc.util.WeaviateTestUtil.FIELDS;
+import static apoc.util.WeaviateTestUtil.HOST;
+import static apoc.util.WeaviateTestUtil.ID_1;
+import static apoc.util.WeaviateTestUtil.ID_2;
+import static apoc.util.WeaviateTestUtil.READONLY_AUTHORIZATION;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_CONTAINER;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_CREATE_COLLECTION_APOC;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_DELETE_COLLECTION_APOC;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_DELETE_VECTOR_APOC;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_QUERY_APOC;
+import static apoc.util.WeaviateTestUtil.WEAVIATE_UPSERT_QUERY;
 import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
@@ -37,12 +52,17 @@ import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
-import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static apoc.vectordb.VectorMappingConfig.*;
+import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
+import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
+import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MappingMode;
+import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
+import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -54,29 +74,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 
 
 public class WeaviateTest {
-    private static final List<String> FIELDS = List.of("city", "foo");
-    private static final String ADMIN_KEY = "jane-secret-key";
-    private static final String READONLY_KEY = "ian-secret-key";
-    private static final String COLLECTION_NAME = "TestCollection";
 
-    private static final WeaviateContainer WEAVIATE_CONTAINER = new WeaviateContainer("semitechnologies/weaviate:1.24.5")
-            .withEnv("AUTHENTICATION_APIKEY_ENABLED", "true")
-            .withEnv("AUTHENTICATION_APIKEY_ALLOWED_KEYS", ADMIN_KEY + "," + READONLY_KEY)
-            .withEnv("AUTHENTICATION_APIKEY_USERS", "jane@doe.com,ian-smith")
-            
-            .withEnv("AUTHORIZATION_ADMINLIST_ENABLED", "true")
-            .withEnv("AUTHORIZATION_ADMINLIST_USERS", "jane@doe.com,john@doe.com")
-            .withEnv("AUTHORIZATION_ADMINLIST_READONLY_USERS", "ian-smith,roberta@doe.com");
-
-    private static final Map<String, String> ADMIN_AUTHORIZATION = getAuthHeader(ADMIN_KEY);
-    private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
-    private static final Map<String, Object> ADMIN_HEADER_CONF = map(HEADERS_KEY, ADMIN_AUTHORIZATION);
-    
-    private static final String ID_1 = "8ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308";
-    private static final String ID_2 = "9ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308";
-    
-    private static String HOST;
-    
     @ClassRule
     public static TemporaryFolder storeDir = new TemporaryFolder();
 
@@ -96,23 +94,14 @@ public class WeaviateTest {
 
         TestUtil.registerProcedure(db, Weaviate.class, VectorDb.class, Prompt.class);
 
-        testCall(db, "CALL apoc.vectordb.weaviate.createCollection($host, 'TestCollection', 'cosine', 4, $conf)",
+        testCall(db, WEAVIATE_CREATE_COLLECTION_APOC,
                 MapUtil.map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("TestCollection", value.get("class"));
                 });
 
-        testResult(db, """
-                        CALL apoc.vectordb.weaviate.upsert($host, 'TestCollection',
-                        [
-                            {id: $id1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
-                            {id: $id2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}},
-                            {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
-                            {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ],
-                        $conf)
-                        """,
+        testResult(db, WEAVIATE_UPSERT_QUERY,
                 MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
@@ -124,9 +113,7 @@ public class WeaviateTest {
                 });
         
         // -- delete vector
-        testCall(db, "CALL apoc.vectordb.weaviate.delete($host, 'TestCollection', " +
-                     "['7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308', '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309']" +
-                     ", $conf) ",
+        testCall(db, WEAVIATE_DELETE_VECTOR_APOC,
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     List value = (List) r.get("value");
@@ -136,7 +123,7 @@ public class WeaviateTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        testCallEmpty(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, $collectionName, $conf)",
+        testCallEmpty(db, WEAVIATE_DELETE_COLLECTION_APOC,
                 MapUtil.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
         );
 
@@ -209,20 +196,9 @@ public class WeaviateTest {
 
     @Test
     public void queryVectors() {
-        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
-                       " YIELD score, vector, id, metadata RETURN * ORDER BY id",
+        testResult(db, WEAVIATE_QUERY_APOC,
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
-                r -> {
-                    Map<String, Object> row = r.next();
-                    assertBerlinResult(row, ID_1, FALSE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-
-                    row = r.next();
-                    assertLondonResult(row, ID_2, FALSE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-                }); 
+                WeaviateTestUtil::queryVectorsAssertions);
     }
 
     @Test
