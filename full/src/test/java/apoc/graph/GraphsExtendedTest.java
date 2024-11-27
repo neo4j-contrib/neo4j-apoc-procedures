@@ -43,9 +43,7 @@ public class GraphsExtendedTest {
     public static void setUp() {
         TestUtil.registerProcedure(db, GraphsExtended.class, Create.class, Maps.class, Graphs.class);
         
-        db.executeTransactionally("""
-                CREATE (:Person $propsPerson1)-[:REL $propsRel1]->(:Movie $propsMovie1),
-                 (:Person $propsPerson2)-[:REL $propsRel2]->(:Movie $propsMovie2)""",
+        db.executeTransactionally("CREATE (:Person $propsPerson1)-[:REL $propsRel1]->(:Movie $propsMovie1), (:Person $propsPerson2)-[:REL $propsRel2]->(:Movie $propsMovie2)",
                 map("propsPerson1", propsPerson1,
                         "propsPerson2", propsPerson2,
                         "propsMovie1", propsMovie1,
@@ -54,10 +52,9 @@ public class GraphsExtendedTest {
                         "propsRel2", propsRel2));
 
         db.executeTransactionally(
-                """
-                        CREATE (a:Foo {idNode: 11, remove: 1})-[r1:MY_REL {idRel: 11, remove: 1}]->(b:Bar {idNode: 22, remove: 1})-[r2:ANOTHER_REL {idRel: 22, remove: 1}]->(c:Baz {idNode: 33, remove: 1})\s
-                        WITH b, c\s
-                        CREATE (b)-[:REL_TWO {idRel: 33, remove: 1}]->(c), (b)-[:REL_THREE {idRel: 44, remove: 1}]->(c), (b)-[:REL_FOUR {idRel: 55, remove: 1}]->(c)""");
+                "CREATE (a:Foo {idNode: 11, remove: 1})-[r1:MY_REL {idRel: 11, remove: 1}]->(b:Bar {idNode: 22, remove: 1})-[r2:ANOTHER_REL {idRel: 22, remove: 1}]->(c:Baz {idNode: 33, remove: 1})" +
+                " WITH b, c " +
+                "CREATE (b)-[:REL_TWO {idRel: 33, remove: 1}]->(c), (b)-[:REL_THREE {idRel: 44, remove: 1}]->(c), (b)-[:REL_FOUR {idRel: 55, remove: 1}]->(c)");
 
         db.executeTransactionally(
                 "CREATE (a:Foo {idNode: 44, remove: 1})-[r1:MY_REL {idRel: 66, remove: 1}]->(b:Bar {idNode: 55, remove: 1})-[r2:ANOTHER_REL {idRel: 77, remove: 1}]->(c:Baz {idNode: 66, remove: 1})");
@@ -71,20 +68,18 @@ public class GraphsExtendedTest {
     public void testFilterPropertiesConsistentWithManualFilteringAndDoesNotChangeOriginalEntities() {
         // check that the apoc.graph.filterProperties and the query used here: https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3937
         // produce the same result
-        testCall(db, """
-                match path=(:Person)-[:REL]->(:Movie)
-                with collect(path) as paths
-                call apoc.graph.fromPaths(paths,"results",{}) yield graph
-                with graph.nodes as nodes, graph.relationships as rels
-                with rels, apoc.map.fromPairs([n in nodes | [coalesce(n.tmdbId, n.name), apoc.create.vNode(labels(n), apoc.map.removeKeys(properties(n), ['plotEmbedding', 'posterEmbedding', 'plot', 'bio'] ) )]]) as nodes
-                return apoc.map.values(nodes, keys(nodes)) AS nodes,
-                    [r in rels | apoc.create.vRelationship(nodes[coalesce(startNode(r).tmdbId,startNode(r).name)], type(r), properties(r), nodes[coalesce(endNode(r).tmdbId,endNode(r).name)])] AS relationships""",
+        testCall(db, "match path=(:Person)-[:REL]->(:Movie)\n" +
+                     "with collect(path) as paths\n" +
+                     "call apoc.graph.fromPaths(paths,\"results\",{}) yield graph\n" +
+                     "with graph.nodes as nodes, graph.relationships as rels\n" +
+                     "with rels, apoc.map.fromPairs([n in nodes | [coalesce(n.tmdbId, n.name), apoc.create.vNode(labels(n), apoc.map.removeKeys(properties(n), ['plotEmbedding', 'posterEmbedding', 'plot', 'bio'] ) )]]) as nodes\n" +
+                     "return apoc.map.values(nodes, keys(nodes)) AS nodes,\n" +
+                     "    [r in rels | apoc.create.vRelationship(nodes[coalesce(startNode(r).tmdbId,startNode(r).name)], type(r), properties(r), nodes[coalesce(endNode(r).tmdbId,endNode(r).name)])] AS relationships",
                 this::commonFilterPropertiesAssertions);
         
-        testCall(db, """
-                MATCH path=(:Person)-[:REL]->(:Movie)
-                WITH apoc.graph.filterProperties(path, {_all: ['plotEmbedding', 'posterEmbedding', 'plot', 'bio']}) as graph
-                RETURN graph.nodes AS nodes, graph.relationships AS relationships""",
+        testCall(db, "MATCH path=(:Person)-[:REL]->(:Movie)" +
+                     "WITH apoc.graph.filterProperties(path, {_all: ['plotEmbedding', 'posterEmbedding', 'plot', 'bio']}) as graph" +
+                     "RETURN graph.nodes AS nodes, graph.relationships AS relationships",
                 this::commonFilterPropertiesAssertions);
         
         // check that original nodes haven't changed
@@ -114,20 +109,18 @@ public class GraphsExtendedTest {
     @Test
     public void testFilterPropertiesProcedure() {
         
-        testCall(db, """
-                MATCH path=(:Person)-[:REL]->(:Movie)
-                WITH collect(path) AS paths
-                CALL apoc.graph.filterProperties(paths, {_all: ['plotEmbedding', 'posterEmbedding', 'plot', 'bio']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH path=(:Person)-[:REL]->(:Movie)\n" +
+                     "WITH collect(path) AS paths\n" +
+                     "CALL apoc.graph.filterProperties(paths, {_all: ['plotEmbedding', 'posterEmbedding', 'plot', 'bio']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 this::commonFilterPropertiesAssertions);
         
-        testCall(db, """
-                MATCH path=(:Person)-[:REL]->(:Movie)
-                WITH collect(path) AS paths
-                CALL apoc.graph.filterProperties(paths, {Movie: ['posterEmbedding'], Person: ['posterEmbedding', 'plotEmbedding', 'plot', 'bio']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH path=(:Person)-[:REL]->(:Movie)\n" +
+                     "WITH collect(path) AS paths\n" +
+                     "CALL apoc.graph.filterProperties(paths, {Movie: ['posterEmbedding'], Person: ['posterEmbedding', 'plotEmbedding', 'plot', 'bio']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 this::commonFilterPropertiesAssertions);
     }
 
@@ -166,18 +159,16 @@ public class GraphsExtendedTest {
         Set<Object> expectedIdNodes = Set.of(11L, 22L, 33L, 44L, 55L, 66L);
         Set<Object> expectedIdRels = Set.of(11L, 22L, 33L, 44L, 55L, 66L, 77L);
         
-        testCall(db, """
-                MATCH path=(:Foo)--(:Bar)--(:Baz)
-                WITH collect(path) AS paths
-                CALL apoc.graph.filterProperties(paths, {_all: ['remove']}, {_all: ['remove']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""", 
+        testCall(db, "MATCH path=(:Foo)--(:Bar)--(:Baz)\n" +
+                     "WITH collect(path) AS paths\n" +
+                     "CALL apoc.graph.filterProperties(paths, {_all: ['remove']}, {_all: ['remove']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships", 
                 r -> assertNodeAndRelIdProps(r, expectedIdNodes, expectedIdRels));
         
-        testCall(db, """
-                MATCH path=(:Foo)--(:Bar)--(:Baz)
-                WITH apoc.graph.filterProperties(path, {_all: ['remove']}, {_all: ['remove']}) as graph
-                RETURN graph.nodes AS nodes, graph.relationships AS relationships""",
+        testCall(db, "MATCH path=(:Foo)--(:Bar)--(:Baz)\n" +
+                     "WITH apoc.graph.filterProperties(path, {_all: ['remove']}, {_all: ['remove']}) as graph\n" +
+                     "RETURN graph.nodes AS nodes, graph.relationships AS relationships",
                 r -> assertNodeAndRelIdProps(r, expectedIdNodes, expectedIdRels));
     }
 
@@ -186,25 +177,22 @@ public class GraphsExtendedTest {
         Set<Object> expectedIdNodes = Set.of(100L, 99L, 88L, 77L);
         Set<Object> expectedIdRels = Set.of(99L, 88L);
         
-        testCall(db, """
-                MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)
-                CALL apoc.graph.filterProperties([p1, p2], {_all: ['remove']}, {_all: ['remove']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)\n" +
+                     "CALL apoc.graph.filterProperties([p1, p2], {_all: ['remove']}, {_all: ['remove']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 r -> assertNodeAndRelIdProps(r, expectedIdNodes, expectedIdRels));
         
-        testCall(db, """
-                MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)
-                CALL apoc.graph.filterProperties([{key1: p1, key2: [p1, p2]}], {_all: ['remove']}, {_all: ['remove']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)\n" +
+                     "CALL apoc.graph.filterProperties([{key1: p1, key2: [p1, p2]}], {_all: ['remove']}, {_all: ['remove']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 r -> assertNodeAndRelIdProps(r, expectedIdNodes, expectedIdRels));
         
-        testCall(db, """
-                MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)
-                CALL apoc.graph.filterProperties([{key2: {subKey: [p1, p2]}}], {_all: ['remove']}, {_all: ['remove']})
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH p1=(:One)--(:Two), p2=(:Two)--(:Three)\n" +
+                     "CALL apoc.graph.filterProperties([{key2: {subKey: [p1, p2]}}], {_all: ['remove']}, {_all: ['remove']})\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 r -> assertNodeAndRelIdProps(r, expectedIdNodes, expectedIdRels));
     }
 
@@ -224,18 +212,16 @@ public class GraphsExtendedTest {
 
     @Test
     public void testFilterPropertiesWithEmptyNodeAndRelPropertiesToRemove() {
-        testCall(db, """
-                MATCH path=(:Person)-[:REL]->(:Movie)
-                WITH collect(path) AS paths
-                CALL apoc.graph.filterProperties(paths)
-                YIELD nodes, relationships
-                RETURN nodes, relationships""",
+        testCall(db, "MATCH path=(:Person)-[:REL]->(:Movie)\n" +
+                     "WITH collect(path) AS paths\n" +
+                     "CALL apoc.graph.filterProperties(paths)\n" +
+                     "YIELD nodes, relationships\n" +
+                     "RETURN nodes, relationships",
                 this::assertEmptyFilter);
 
-        testCall(db, """
-                MATCH path=(:Person)-[:REL]->(:Movie)
-                WITH apoc.graph.filterProperties(path) as graph
-                RETURN graph.nodes AS nodes, graph.relationships AS relationships""",
+        testCall(db, "MATCH path=(:Person)-[:REL]->(:Movie)\n" +
+                     "WITH apoc.graph.filterProperties(path) as graph\n" +
+                     "RETURN graph.nodes AS nodes, graph.relationships AS relationships",
                 this::assertEmptyFilter);
     }
 

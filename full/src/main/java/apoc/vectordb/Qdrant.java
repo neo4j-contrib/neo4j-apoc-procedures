@@ -5,7 +5,6 @@ import apoc.ml.RestAPIConfig;
 import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -16,6 +15,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
@@ -37,9 +37,6 @@ public class Qdrant {
     @Context
     public GraphDatabaseService db;
     
-    @Context
-    public URLAccessChecker urlAccessChecker;
-
     @Procedure("apoc.vectordb.qdrant.createCollection")
     @Description("apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
@@ -56,7 +53,7 @@ public class Qdrant {
                 "distance", similarity
         ));
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
@@ -73,7 +70,7 @@ public class Qdrant {
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
@@ -98,10 +95,10 @@ public class Qdrant {
                     map.putIfAbsent("payload", map.remove("metadata"));
                     return map;
                 })
-                .toList();
+                .collect(Collectors.toList());
         Map<String, Object> additionalBodies = Map.of("points", point);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
@@ -120,7 +117,7 @@ public class Qdrant {
 
         Map<String, Object> additionalBodies = Map.of("points", ids);
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(apiConfig, urlAccessChecker)
+        return executeRequest(apiConfig)
                 .map(v -> (Map<String,Object>) v)
                 .map(MapResult::new);
     }
@@ -152,7 +149,7 @@ public class Qdrant {
         }
         
         VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.query")
@@ -186,7 +183,7 @@ public class Qdrant {
         }
         
         VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx);
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx);
     }
 
     private Map<String, Object> getVectorDbInfo(

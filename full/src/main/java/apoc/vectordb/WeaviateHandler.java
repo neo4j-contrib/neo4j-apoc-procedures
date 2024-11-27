@@ -5,6 +5,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
@@ -42,7 +43,7 @@ public class WeaviateHandler implements VectorDbHandler {
 
         @Override
         public VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<Double> vector, Object filter, long limit, String collection) {
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
             config.putIfAbsent(METHOD_KEY, "POST");
             VectorEmbeddingConfig vectorEmbeddingConfig = getVectorEmbeddingConfig(config);
 
@@ -58,13 +59,11 @@ public class WeaviateHandler implements VectorDbHandler {
 
             String includeVector = (fields.contains("vector") && vectorEmbeddingConfig.isAllResults()) ? ",vector" : "";
             String additional = "_additional {id, distance " + includeVector  + "}";
-            String query = """
-                  {
-                      Get {
-                        %s(limit: %s, nearVector: {vector: %s } %s) {%s  %s}
-                      }
-                  }
-                    """.formatted(
+            String query = String.format("{\n" +
+                           "    Get {\n" +
+                           "      %s(limit: %s, nearVector: {vector: %s } %s) {%s  %s}\n" +
+                           "    }\n" +
+                           "}",
                     collection, limit, vector, filter, fieldList, additional
             );
 

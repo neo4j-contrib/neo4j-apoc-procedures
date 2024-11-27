@@ -1,7 +1,6 @@
 package apoc.vectordb;
 
 
-import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
 import org.apache.commons.collections.MapUtils;
@@ -12,6 +11,7 @@ import org.neo4j.graphdb.Relationship;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
@@ -34,10 +34,59 @@ public class VectorDbUtil {
     /**
      * Result of `apoc.vectordb.*.get` and `apoc.vectordb.*.query` procedures
      */
-    public record EmbeddingResult(
-            Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text,
-            Node node,
-            Relationship rel) {}
+    public static final class EmbeddingResult {
+        private final Object id;
+        private final Double score;
+        private final List<Double> vector;
+        private final Map<String, Object> metadata;
+        private final String text;
+        private final Node node;
+        private final Relationship rel;
+
+        /**
+         *
+         */
+        public EmbeddingResult(
+                Object id, Double score, List<Double> vector, Map<String, Object> metadata, String text,
+                Node node,
+                Relationship rel) {
+            this.id = id;
+            this.score = score;
+            this.vector = vector;
+            this.metadata = metadata;
+            this.text = text;
+            this.node = node;
+            this.rel = rel;
+        }
+
+        public Object id() {
+            return id;
+        }
+
+        public Double score() {
+            return score;
+        }
+
+        public List<Double> vector() {
+            return vector;
+        }
+
+        public Map<String, Object> metadata() {
+            return metadata;
+        }
+
+        public String text() {
+            return text;
+        }
+
+        public Node node() {
+            return node;
+        }
+
+        public Relationship rel() {
+            return rel;
+        }
+    }
     
     public static Map<String, Object> getCommonVectorDbInfo(
             String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl, VectorDbHandler handler) {
@@ -60,14 +109,16 @@ public class VectorDbUtil {
             }
         }
 
-        String credentials = (String) props.get(ExtendedSystemPropertyKeys.credentials.name());
+        String credentials = (String) props.get(SystemPropertyKeys.credentials.name());
         if (credentials != null) {
             Object credentialsObj = Util.fromJson(credentials, Object.class);
             
             config = handler.getCredentials(credentialsObj, config);
         }
 
-        String endpoint = templateUrl.formatted(url, collection);
+        String endpoint = String.format(templateUrl, 
+                url, collection
+        );
         getEndpoint(config, endpoint);
 
         return config;
@@ -77,7 +128,7 @@ public class VectorDbUtil {
         if (props.isEmpty()) {
             return handler.getUrl(hostOrKey);
         }
-        return (String) props.get(ExtendedSystemPropertyKeys.host.name());
+        return (String) props.get(SystemPropertyKeys.host.name());
     }
 
     public static void checkMappingConf(Map<String, Object> configuration, String procName) {

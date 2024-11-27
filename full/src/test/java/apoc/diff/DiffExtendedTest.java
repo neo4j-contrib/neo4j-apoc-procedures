@@ -2,7 +2,6 @@ package apoc.diff;
 
 import apoc.create.Create;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -12,6 +11,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -100,11 +100,10 @@ public class DiffExtendedTest {
 
     @Test
     public void shouldBeDiffWithVirtualRelationships() {
-        String query = """
-                MATCH (start1:Node1Start)-[rel1]->(end1), (start2:Node2Start)-[rel2]->(end2)
-                WITH apoc.create.vRelationship(start1, type(rel1), {prop1: 'val1', prop2: 2, prop4: 'four'}, end1) AS relA,
-                    apoc.create.vRelationship(start2, type(rel2), {prop1: 'val1', prop3: '3', prop4: 'for'}, end2) AS relB
-                RETURN apoc.diff.relationships(relA, relB) as diff""";
+        String query = "MATCH (start1:Node1Start)-[rel1]->(end1), (start2:Node2Start)-[rel2]->(end2)\n" +
+                       "WITH apoc.create.vRelationship(start1, type(rel1), {prop1: 'val1', prop2: 2, prop4: 'four'}, end1) AS relA,\n" +
+                       "    apoc.create.vRelationship(start2, type(rel2), {prop1: 'val1', prop3: '3', prop4: 'for'}, end2) AS relB\n" +
+                       "RETURN apoc.diff.relationships(relA, relB) as diff";
         commonAssertionDifferentRels(query);
     }
 

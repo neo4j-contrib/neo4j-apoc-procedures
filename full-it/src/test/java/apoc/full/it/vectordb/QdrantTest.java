@@ -2,6 +2,9 @@ package apoc.full.it.vectordb;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.vectordb.Qdrant;
+import apoc.vectordb.VectorDb;
+import apoc.vectordb.VectorDbTestUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -81,14 +84,12 @@ public class QdrantTest {
                     assertEquals("ok", value.get("status"));
                 });
 
-        testCall(db, """
-                        CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',
-                        [
-                            {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
-                            {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
-                        ],
-                        $conf)
-                        """,
+        testCall(db, "CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',\n" +
+                     "[\n" +
+                     "    {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: \"Berlin\", foo: \"one\"}},\n" +
+                     "    {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: \"London\", foo: \"two\"}}\n" +
+                     "],\n" +
+                     "$conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -155,14 +156,12 @@ public class QdrantTest {
 
     @Test
     public void deleteVector() {
-        testCall(db, """
-                        CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',
-                        [
-                            {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
-                            {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ],
-                        $conf)
-                        """,
+        testCall(db, "CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',\n" +
+                     "[\n" +
+                     "    {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}},\n" +
+                     "    {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}}\n" +
+                     "],\n" +
+                     "$conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -227,12 +226,11 @@ public class QdrantTest {
 
     @Test
     public void queryVectorsWithFilter() {
-        testResult(db, """
-                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],
-                        { must:
-                            [ { key: "city", match: { value: "London" } } ]
-                        },
-                        5, $conf) YIELD metadata, id""",
+        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],\n" +
+                       "{ must:\n" +
+                       "    [ { key: \"city\", match: { value: \"London\" } } ]\n" +
+                       "},\n" +
+                       "5, $conf) YIELD metadata, id",
                 map("host", HOST,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),
@@ -243,8 +241,7 @@ public class QdrantTest {
 
     @Test
     public void queryVectorsWithLimit() {
-        testResult(db, """
-                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+        testResult(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id",
                 map("host", HOST,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),

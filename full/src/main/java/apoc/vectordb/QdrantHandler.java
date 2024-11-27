@@ -5,6 +5,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.ml.RestAPIConfig.JSON_PATH_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
@@ -34,7 +35,7 @@ public class QdrantHandler implements VectorDbHandler {
 
         @Override
         public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
             config.putIfAbsent(METHOD_KEY, "POST");
 
             Map<String, Object> additionalBodies = map("ids", ids);
@@ -46,7 +47,7 @@ public class QdrantHandler implements VectorDbHandler {
         public VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext,
                                                List<Double> vector, Object filter, long limit,
                                                String collection) {
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
 
             Map<String, Object> additionalBodies = map("vector", vector,
                     "filter", filter,

@@ -2,6 +2,9 @@ package apoc.full.it.vectordb;
 
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.vectordb.VectorDb;
+import apoc.vectordb.VectorDbTestUtil;
+import apoc.vectordb.Weaviate;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -90,16 +93,12 @@ public class WeaviateTest {
                     assertEquals("TestCollection", value.get("class"));
                 });
 
-        testResult(db, """
-                        CALL apoc.vectordb.weaviate.upsert($host, 'TestCollection',
-                        [
-                            {id: $id1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
-                            {id: $id2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}},
-                            {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
-                            {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ],
-                        $conf)
-                        """,
+        testResult(db, "CALL apoc.vectordb.weaviate.upsert($host, 'TestCollection', [\n" +
+                       "    {id: $id1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: \"Berlin\", foo: \"one\"}},\n" +
+                       "    {id: $id2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: \"London\", foo: \"two\"}},\n" +
+                       "    {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}},\n" +
+                       "    {id: '7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309', vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}}\n" +
+                       "], $conf)",
                 MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
@@ -224,10 +223,9 @@ public class WeaviateTest {
 
     @Test
     public void queryVectorsWithFilter() {
-        testResult(db, """
-                        CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7],
-                        '{operator: Equal, valueString: "London", path: ["city"]}',
-                        5, $conf) YIELD metadata, id RETURN * ORDER BY id""",
+        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7],\n" +
+                       "                        '{operator: Equal, valueString: \"London\", path: [\"city\"]}',\n" +
+                       "                        5, $conf) YIELD metadata, id RETURN * ORDER BY id",
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), ID_2, FALSE);
@@ -236,8 +234,7 @@ public class WeaviateTest {
 
     @Test
     public void queryVectorsWithLimit() {
-        testResult(db, """
-                        CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id RETURN * ORDER BY id""",
+        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id RETURN * ORDER BY id",
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);

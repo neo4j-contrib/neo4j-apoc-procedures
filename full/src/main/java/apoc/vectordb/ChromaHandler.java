@@ -6,6 +6,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 
@@ -33,7 +34,7 @@ public class ChromaHandler implements VectorDbHandler {
                                                  ProcedureCallContext procedureCallContext,
                                                  List<T> ids) {
 
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
 
             VectorEmbeddingConfig conf = new VectorEmbeddingConfig(config);
             Map<String, Object> additionalBodies = map("ids", ids);
@@ -49,7 +50,7 @@ public class ChromaHandler implements VectorDbHandler {
                                                long limit,
                                                String collection) {
 
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
 
             VectorEmbeddingConfig conf = new VectorEmbeddingConfig(config);
             Map<String, Object> additionalBodies = map("query_embeddings", List.of(vector),

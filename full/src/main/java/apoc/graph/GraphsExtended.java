@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.result.GraphResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import apoc.util.collection.Iterables;
+import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -80,8 +80,8 @@ public class GraphsExtended {
     public static class VirtualGraphExtractor {
         private static final String ALL_FILTER = "_all";
         
-        private final Map<String, Node> nodes;
-        private final Map<String, Relationship> rels;
+        private final Map<Long, Node> nodes;
+        private final Map<Long, Relationship> rels;
         private final Map<String, List<String>> nodePropertiesToRemove;
         private final Map<String, List<String>> relPropertiesToRemove;
 
@@ -96,26 +96,31 @@ public class GraphsExtended {
             if (value == null) {
                 return;
             }
-            if (value instanceof Node node) {
+            if (value instanceof Node) {
+                Node node = (Node) value;
                 addVirtualNode(node);
                 
-            } else if (value instanceof Relationship rel) {
+            } else if (value instanceof Relationship) {
+                Relationship rel = (Relationship) value;
                 addVirtualRel(rel);
                 
-            } else if (value instanceof Path path) {
+            } else if (value instanceof Path) {
+                Path path = (Path) value;
                 path.nodes().forEach(this::addVirtualNode);
                 path.relationships().forEach(this::addVirtualRel);
                 
             } else if (value instanceof Iterable) {
                 ((Iterable<?>) value).forEach(this::extract);
                 
-            } else if (value instanceof Map<?,?> map) {
+            } else if (value instanceof Map<?, ?>) {
+                Map<?, ?> map = (Map<?, ?>) value;
                 map.values().forEach(this::extract);
                 
             } else if (value instanceof Iterator) {
                 ((Iterator<?>) value).forEachRemaining(this::extract);
                 
-            } else if (value instanceof Object[] array) {
+            } else if (value instanceof Object[]) {
+                Object[] array = (Object[]) value;
                 for (Object i : array) {
                     extract(i);
                 }
@@ -127,11 +132,11 @@ public class GraphsExtended {
          * as it is the same as the analogue for real nodes/relations.
          */
         private void addVirtualRel(Relationship rel) {
-            rels.putIfAbsent(rel.getElementId(), createVirtualRel(rel));
+            rels.putIfAbsent(rel.getId(), createVirtualRel(rel));
         }
 
         private void addVirtualNode(Node node) {
-            nodes.putIfAbsent(node.getElementId(), createVirtualNode(node));
+            nodes.putIfAbsent(node.getId(), createVirtualNode(node));
         }
 
         private Node createVirtualNode(Node startNode) {
@@ -147,10 +152,10 @@ public class GraphsExtended {
 
         private Relationship createVirtualRel(Relationship rel) {
             Node startNode = rel.getStartNode();
-            startNode = nodes.putIfAbsent(startNode.getElementId(), createVirtualNode(startNode));
+            startNode = nodes.putIfAbsent(startNode.getId(), createVirtualNode(startNode));
 
             Node endNode = rel.getEndNode();
-            endNode = nodes.putIfAbsent(endNode.getElementId(), createVirtualNode(endNode));
+            endNode = nodes.putIfAbsent(endNode.getId(), createVirtualNode(endNode));
             
             Map<String, Object> props = rel.getAllProperties();
             

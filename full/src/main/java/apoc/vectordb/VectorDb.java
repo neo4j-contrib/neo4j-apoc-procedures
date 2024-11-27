@@ -1,7 +1,6 @@
 package apoc.vectordb;
 
 import apoc.Extended;
-import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ObjectResult;
@@ -9,7 +8,6 @@ import apoc.util.JsonUtil;
 import apoc.util.SystemDbUtil;
 import apoc.util.Util;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -18,7 +16,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.procedure.Admin;
@@ -32,12 +30,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.util.ExtendedUtil.listOfNumbersToFloatArray;
-import static apoc.util.ExtendedUtil.setProperties;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.util.SystemDbUtil.withSystemDb;
+import static apoc.util.Util.listOfNumbersToFloatArray;
+import static apoc.util.Util.setProperties;
 import static apoc.vectordb.VectorDbUtil.*;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
@@ -48,9 +47,6 @@ import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 @Extended
 public class VectorDb {
 
-    @Context
-    public URLAccessChecker urlAccessChecker;
-    
     @Context
     public GraphDatabaseService db;
     
@@ -86,29 +82,27 @@ public class VectorDb {
 
         getEndpoint(configuration, host);
         VectorEmbeddingConfig restAPIConfig = new VectorEmbeddingConfig(configuration);
-        return getEmbeddingResultStream(restAPIConfig, procedureCallContext, urlAccessChecker, tx);
+        return getEmbeddingResultStream(restAPIConfig, procedureCallContext, tx);
     }
 
     public static Stream<EmbeddingResult> getEmbeddingResultStream(VectorEmbeddingConfig conf,
                                                                    ProcedureCallContext procedureCallContext,
-                                                                   URLAccessChecker urlAccessChecker,
                                                                    Transaction tx) throws Exception {
-        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx, v -> ((List<Map>) v).stream());
+        return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> ((List<Map>) v).stream());
     }
     
     public static Stream<EmbeddingResult> getEmbeddingResultStream(VectorEmbeddingConfig conf,
                                                                    ProcedureCallContext procedureCallContext,
-                                                                   URLAccessChecker urlAccessChecker,
                                                                    Transaction tx,
                                                                    Function<Object, Stream<Map>> objectMapper) throws Exception {
-        List<String> fields = procedureCallContext.outputFields().toList();
+        List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
 
         boolean hasVector = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
 
         VectorMappingConfig mapping = conf.getMapping();
 
-        return executeRequest(conf.getApiConfig(), urlAccessChecker)
+        return executeRequest(conf.getApiConfig())
                 .flatMap(objectMapper)
                 .map(m -> getEmbeddingResult(conf, tx, hasVector, hasMetadata, mapping, m));
     }
@@ -190,8 +184,8 @@ public class VectorDb {
         }
 
         if (embedding == null) {
-            String embeddingErrMsg = "The embedding value is null. Make sure you execute `YIELD embedding` on the procedure and you configured `%s: true`"
-                    .formatted(ALL_RESULTS_KEY);
+            String embeddingErrMsg = String.format("The embedding value is null. Make sure you execute `YIELD embedding` on the procedure and you configured `%s: true`",
+                    ALL_RESULTS_KEY);
             throw new RuntimeException(embeddingErrMsg);
         }
 
@@ -207,11 +201,11 @@ public class VectorDb {
 
         getEndpoint(configuration, host);
         RestAPIConfig restAPIConfig = new RestAPIConfig(configuration);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(ObjectResult::new);
     }
 
-    public static Stream<Object> executeRequest(RestAPIConfig apiConfig, URLAccessChecker urlAccessChecker) throws Exception {
+    public static Stream<Object> executeRequest(RestAPIConfig apiConfig) throws Exception {
         Map<String, Object> headers = apiConfig.getHeaders();
         Map<String, Object> configBody = apiConfig.getBody();
         String body = configBody == null
@@ -223,7 +217,7 @@ public class VectorDb {
             throw new RuntimeException("Endpoint must be specified");
         }
 
-        return JsonUtil.loadJson(endpoint, headers, body, apiConfig.getJsonPath(), true, List.of(), urlAccessChecker);
+        return JsonUtil.loadJson(endpoint, headers, body, apiConfig.getJsonPath(), true, List.of());
     }
 
     @Admin
@@ -246,11 +240,11 @@ public class VectorDb {
             Object credentials = config.get("credentials");
 
             if (host != null) {
-                node.setProperty(ExtendedSystemPropertyKeys.host.name(), host);
+                node.setProperty(SystemPropertyKeys.host.name(), host);
             }
             
             if (credentials != null) {
-                node.setProperty( ExtendedSystemPropertyKeys.credentials.name(), Util.toJson(credentials) );
+                node.setProperty( SystemPropertyKeys.credentials.name(), Util.toJson(credentials) );
             }
 
             if (mapping != null) {

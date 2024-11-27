@@ -1,7 +1,8 @@
 package apoc.full.it.vectordb;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.vectordb.ChromaDb;
+import apoc.vectordb.VectorDb;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -71,13 +72,11 @@ public class ChromaDbTest {
                     COLL_ID.set((String) value.get("id"));
                 });
 
-        testCall(db, """
-                        CALL apoc.vectordb.chroma.upsert($host, $collection,
-                        [
-                            {id: '1', vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}, text: 'ajeje'},
-                            {id: '2', vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}, text: 'brazorf'}
-                        ])
-                        """,
+        testCall(db, "CALL apoc.vectordb.chroma.upsert($host, $collection,\n" +
+                     "                        [\n" +
+                     "                            {id: '1', vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: \"Berlin\", foo: \"one\"}, text: 'ajeje'},\n" +
+                     "                            {id: '2', vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: \"London\", foo: \"two\"}, text: 'brazorf'}\n" +
+                     "                        ])",
                 map("host", HOST, "collection", COLL_ID.get()),
                 r -> {
                     assertNull(r.get("value"));
@@ -128,12 +127,10 @@ public class ChromaDbTest {
     
     @Test
     public void deleteVector() {
-        testCall(db, """
-                        CALL apoc.vectordb.chroma.upsert($host, $collection,
-                        [
-                            {id: 3, embedding: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ])
-                        """,
+        testCall(db, "CALL apoc.vectordb.chroma.upsert($host, $collection,\n" +
+                     "[\n" +
+                     "    {id: 3, embedding: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}}\n" +
+                     "])",
                 map("host", HOST, "collection", COLL_ID.get()),
                 r -> {
                     assertNull(r.get("value"));
@@ -206,8 +203,7 @@ public class ChromaDbTest {
 
     @Test
     public void queryVectorsWithFilter() {
-        testResult(db, """
-                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {city: 'London'}, 5, $conf) YIELD metadata, id""",
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {city: 'London'}, 5, $conf) YIELD metadata, id",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     assertLondonResult(r.next(), FALSE);
@@ -216,8 +212,7 @@ public class ChromaDbTest {
 
     @Test
     public void queryVectorsWithLimit() {
-        testResult(db, """
-                        CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+        testResult(db, "CALL apoc.vectordb.chroma.query($host, $collection, [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id",
                 map("host", HOST, "collection", COLL_ID.get(), "conf", map(ALL_RESULTS_KEY, true)),
                 r -> {
                     assertBerlinResult(r.next(), FALSE);

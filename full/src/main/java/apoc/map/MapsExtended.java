@@ -42,10 +42,11 @@ public class MapsExtended {
                             e -> renameKeyRecursively(e.getValue(), keyFrom, keyTo))
                     );
         }
-        if (object instanceof List<?> subList) {
+        if (object instanceof List<?>) {
+            List<?> subList = (List<?>) object;
             return subList.stream()
                     .map(v -> renameKeyRecursively(v, keyFrom, keyTo))
-                    .toList();
+                    .collect(Collectors.toList());
         }
         return object;
     }

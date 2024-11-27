@@ -7,7 +7,6 @@ import apoc.result.MapResult;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -18,11 +17,12 @@ import org.neo4j.procedure.Procedure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.*;
-import static apoc.util.ExtendedUtil.listOfMapToMapOfLists;
 import static apoc.util.MapUtil.map;
+import static apoc.util.Util.listOfMapToMapOfLists;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
@@ -42,9 +42,6 @@ public class ChromaDb {
     @Context
     public GraphDatabaseService db;
 
-    @Context
-    public URLAccessChecker urlAccessChecker;
-
     @Procedure("apoc.vectordb.chroma.createCollection")
     @Description("apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
@@ -60,7 +57,7 @@ public class ChromaDb {
                 "size", size);
         Map<String, Object> additionalBodies = Map.of("name", collection, "metadata", metadata);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>)v)
                 .map(MapResult::new);
     }
@@ -76,7 +73,7 @@ public class ChromaDb {
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>)v)
                 .map(MapResult::new);
     }
@@ -103,7 +100,7 @@ public class ChromaDb {
         additionalBodies.compute( "ids", (k,v) -> getStringIds(v) );
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig, urlAccessChecker)
+        return executeRequest(restAPIConfig)
                 .map(v -> (Map<String,Object>)v)
                 .map(MapResult::new);
     }
@@ -118,7 +115,7 @@ public class ChromaDb {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
-        return executeRequest(apiConfig.getApiConfig(), urlAccessChecker)
+        return executeRequest(apiConfig.getApiConfig())
                 .map(v -> (List) v)
                 .map(ListResult::new);
     }
@@ -150,7 +147,7 @@ public class ChromaDb {
         }
 
         VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx,
                 v -> listToMap((Map) v).stream());
     }
 
@@ -185,7 +182,7 @@ public class ChromaDb {
         }
 
         VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, urlAccessChecker, tx,
+        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx,
                 v -> listOfListsToMap((Map) v).stream());
     }
 
@@ -250,7 +247,7 @@ public class ChromaDb {
     }
     
     private List<String> getStringIds(List<Object> ids) {
-        return ids.stream().map(Object::toString).toList();
+        return ids.stream().map(Object::toString).collect(Collectors.toList());
     }
 
 }
