@@ -1,4 +1,4 @@
-package apoc.vectordb;
+package apoc.full.it.vectordb;
 
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;

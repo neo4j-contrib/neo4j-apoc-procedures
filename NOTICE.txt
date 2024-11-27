@@ -78,9 +78,9 @@ Apache-2.0
   curator-client-5.2.0.jar
   curator-framework-5.2.0.jar
   curator-recipes-5.2.0.jar
-  docker-java-api-3.2.13.jar
-  docker-java-transport-3.2.13.jar
-  docker-java-transport-zerodep-3.2.13.jar
+  docker-java-api-3.3.6.jar
+  docker-java-transport-3.3.6.jar
+  docker-java-transport-zerodep-3.3.6.jar
   ehcache-3.3.1.jar
   error_prone_annotations-2.18.0.jar
   failureaccess-1.0.1.jar
@@ -163,6 +163,7 @@ Apache-2.0
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.770.jar
+  jna-5.13.0.jar
   jna-5.9.0.jar
   jnr-constants-0.9.9.jar
   jnr-ffi-2.1.7.jar
@@ -434,6 +435,7 @@ LGPL 2.1
   javassist-3.25.0-GA.jar
 
 LGPL-2.1-or-later
+  jna-5.13.0.jar
   jna-5.9.0.jar
 
 MIT
@@ -445,6 +447,7 @@ MIT
   bcutil-jdk18on-1.78.jar
   cassandra-1.17.6.jar
   checker-qual-3.42.0.jar
+  chromadb-1.19.7.jar
   couchbase-1.17.6.jar
   database-commons-1.17.6.jar
   duct-tape-1.0.8.jar
@@ -462,12 +465,14 @@ MIT
   mysql-1.17.6.jar
   neo4j-1.17.6.jar
   postgresql-1.17.6.jar
+  qdrant-1.19.7.jar
   reactive-streams-1.0.4.jar
   slf4j-api-1.7.36.jar
   slf4j-api-2.0.11.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar
-  testcontainers-1.17.6.jar
+  testcontainers-1.19.7.jar
+  weaviate-1.19.7.jar
 
 MPL 1.1
   javassist-3.25.0-GA.jar
