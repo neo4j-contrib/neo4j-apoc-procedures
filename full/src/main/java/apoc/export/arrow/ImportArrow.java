@@ -113,27 +113,27 @@ public class ImportArrow {
                                         },
                                         HashMap::putAll);
 
-                        String relType = (String) row.remove(FIELD_TYPE);
+                        String relType = (String) row.remove(FIELD_TYPE.getName());
                         if (relType == null) {
                             // is node
-                            String[] stringLabels = (String[]) row.remove(FIELD_LABELS);
+                            String[] stringLabels = (String[]) row.remove(FIELD_LABELS.getName());
                             Label[] labels = Optional.ofNullable(stringLabels)
                                     .map(l -> Arrays.stream(l).map(Label::label).toArray(Label[]::new))
                                     .orElse(new Label[] {});
                             final Node node = btx.getTransaction().createNode(labels);
 
-                            long id = (long) row.remove(FIELD_ID);
+                            long id = (long) row.remove(FIELD_ID.getName());
                             idMapping.put(id, node.getId());
 
                             addProps(row, node);
                             reporter.update(1, 0, row.size());
                         } else {
                             // is relationship
-                            long sourceId = (long) row.remove(FIELD_SOURCE_ID);
+                            long sourceId = (long) row.remove(FIELD_SOURCE_ID.getName());
                             Long idSource = idMapping.get(sourceId);
                             final Node source = btx.getTransaction().getNodeById(idSource);
 
-                            long targetId = (long) row.remove(FIELD_TARGET_ID);
+                            long targetId = (long) row.remove(FIELD_TARGET_ID.getName());
                             Long idTarget = idMapping.get(targetId);
                             final Node target = btx.getTransaction().getNodeById(idTarget);
 
@@ -269,7 +269,6 @@ public class ImportArrow {
      */
     private static Object convertValue(String value, String typeName) {
         switch (typeName) {
-                // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
             case "Point":
                 return getPointValue(value);
             case "LocalDateTime":
@@ -323,7 +322,7 @@ public class ImportArrow {
     private static PointValue getPointValue(String value) {
         try {
             return PointValue.parse(value);
-        } catch (Neo4jException e) {
+        } catch (RuntimeException e) {
             // fallback in case of double-quotes, e.g.
             // {"crs":"wgs-84-3d","latitude":13.1,"longitude":33.46789,"height":100.0}
             // we remove the double quotes before parsing the result, e.g.

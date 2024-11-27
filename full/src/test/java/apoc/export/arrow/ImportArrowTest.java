@@ -39,9 +39,8 @@ public class ImportArrowTest {
         directory.mkdirs();
     }
 
-    private final Map<String, Object> MAPPING_ALL = Map.of(
-            "mapping",
-            Map.of("bffSince", "Duration", "place", "Point", "listInt", "LongArray", "born", "LocalDateTime"));
+    private final Map<String, Object> MAPPING_ALL =
+            Map.of("mapping", Map.of("bffSince", "Duration", "place", "Point", "listInt", "LongArray", "born", "LocalDateTime"));
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
