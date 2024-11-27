@@ -25,21 +25,19 @@ import static apoc.util.Util.map;
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.VirtualNode;
-import org.neo4j.graphdb.*;
-import org.neo4j.procedure.Procedure;
-import org.neo4j.procedure.*;
-import us.fatehi.utility.datasource.DatabaseConnectionSource;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.neo4j.graphdb.*;
+import org.neo4j.procedure.*;
+import org.neo4j.procedure.Procedure;
 import schemacrawler.schema.*;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
-import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
 import schemacrawler.tools.utility.SchemaCrawlerUtility;
+import us.fatehi.utility.datasource.DatabaseConnectionSource;
 
 @Extended
 public class Model {
@@ -81,13 +79,12 @@ public class Model {
             throws Exception {
         String url = getUrlOrKey(urlOrKey);
 
-        SchemaCrawlerOptionsBuilder optionsBuilder =
-                SchemaCrawlerOptionsBuilder.builder().withSchemaInfoLevel(SchemaInfoLevelBuilder.standard());
-        SchemaCrawlerOptions options = optionsBuilder.toOptions();
+        SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
 
-        DatabaseConnectionSource connectionSource = (DatabaseConnectionSource) getConnection( url, new LoadJdbcConfig(config), DatabaseConnectionSource.class );
+        DatabaseConnectionSource connectionSource = (DatabaseConnectionSource)
+                getConnection(url, new LoadJdbcConfig(config), DatabaseConnectionSource.class);
         Catalog catalog = SchemaCrawlerUtility.getCatalog(connectionSource, options);
-        
+
         DatabaseModel databaseModel = new DatabaseModel();
 
         ModelConfig modelConfig = new ModelConfig(config != null ? config : Collections.emptyMap());

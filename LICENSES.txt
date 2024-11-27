@@ -1918,7 +1918,7 @@ Eclipse Public License - v 1.0
   eclipse-collections-10.4.0.jar
   eclipse-collections-api-10.4.0.jar
   junit-4.13.2.jar
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.22.2.jar
 ------------------------------------------------------------------------------
 
 Eclipse Public License - v 1.0

@@ -359,7 +359,7 @@ Eclipse Public License - v 1.0
   eclipse-collections-10.4.0.jar
   eclipse-collections-api-10.4.0.jar
   junit-4.13.2.jar
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.22.2.jar
 
 Eclipse Public License - v 1.0
   logback-classic-1.2.10.jar
@@ -388,13 +388,13 @@ Eclipse Public License - v 2.0
   osgi-resource-locator-1.0.3.jar
 
 GNU General Public License
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.22.2.jar
 
 GNU General Public License (GPL), version 2, with the Classpath exception
   jnr-posix-3.0.44.jar
 
 GNU Lesser General Public License
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.22.2.jar
 
 GNU Lesser General Public License
   logback-classic-1.2.10.jar
