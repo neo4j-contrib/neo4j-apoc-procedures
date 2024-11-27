@@ -64,7 +64,26 @@ public class StartupExtendedTest {
         // we check that with apoc-extended jar and all extra-dependencies jars every procedure/function is detected
         // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
         startContainerSessionWithExtraDeps((version) -> createDB(version, List.of(EXTENDED), true),
-                this::checkExtendedProcsAndFuncsExistence);
+                session -> {
+                    // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
+                    final List<String> actualExtNamesCypher5 = getNames(session, "CYPHER 5 SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc.' RETURN name");
+                    final List<String> functionExtNamesCypher5 = getNames(session, "CYPHER 5 SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc.' RETURN name");
+
+                    List<String> procsAndFuncsCypher5 = new ArrayList<>();
+                    procsAndFuncsCypher5.addAll(actualExtNamesCypher5);
+                    procsAndFuncsCypher5.addAll(functionExtNamesCypher5);
+                    
+                    assertEquals(sorted(EXPECTED_EXTENDED_NAMES_CYPHER_5), sorted(procsAndFuncsCypher5));
+                    
+                    final List<String> actualExtNamesCypher25 = getNames(session, "CYPHER 25 SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc.' RETURN name");
+                    final List<String> functionExtNamesCypher25 = getNames(session, "CYPHER 25 SHOW FUNCTIONS YIELD name WHERE name STARTS WITH 'apoc.' RETURN name");
+
+                    List<String> procsAndFuncsCypher25 = new ArrayList<>();
+                    procsAndFuncsCypher25.addAll(actualExtNamesCypher25);
+                    procsAndFuncsCypher25.addAll(functionExtNamesCypher25);
+                    
+                    assertEquals(sorted(EXPECTED_EXTENDED_NAMES_CYPHER_25), sorted(procsAndFuncsCypher25));
+                });
     }
 
     @Test
@@ -88,7 +107,6 @@ public class StartupExtendedTest {
 
                 final Session session = neo4jContainer.getSession();
 
-                neo4jContainer.dumpLogs();
                 sessionConsumer.accept(session);
             } catch (Exception ex) {
                 // if Testcontainers wasn't able to retrieve the docker image we ignore the test
@@ -139,8 +157,8 @@ public class StartupExtendedTest {
         procsAndFuncsCypher5.addAll(functionExtNamesCypher5);
 
         List<String> procsAndFuncsCypher25 = new ArrayList<>();
-        procsAndFuncsCypher5.addAll(actualExtNamesCypher25);
-        procsAndFuncsCypher5.addAll(functionExtNamesCypher25);
+        procsAndFuncsCypher25.addAll(actualExtNamesCypher25);
+        procsAndFuncsCypher25.addAll(functionExtNamesCypher25);
 
         assertEquals(sorted(EXPECTED_EXTENDED_NAMES_CYPHER_5), sorted(procsAndFuncsCypher5));
         assertEquals(sorted(EXPECTED_EXTENDED_NAMES_CYPHER_25), sorted(procsAndFuncsCypher25));
