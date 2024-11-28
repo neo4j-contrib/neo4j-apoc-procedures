@@ -38,15 +38,34 @@ import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+// TODO - creare classe DataVirtualizationCatalogNewProcedureTest con i cambiamenti sottostanti
 public class DataVirtualizationCatalogTest {
+    
+    /* TODO - 
+        private static GraphDatabaseService sysDb;
+        private static GraphDatabaseService db;
+        private static DatabaseManagementService databaseManagementService;
+     */
 
     public static JdbcDatabaseContainer mysql;
 
+    // TODO rimuovere
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
+    // TODO nella nuova classe
+    /*
+        @Rule
+    public static TemporaryFolder storeDir = new TemporaryFolder();
+     */
+
     @Before
     public void setUp() throws Exception {
+        /* TODO -
+                databaseManagementService = startDbWithCustomApocConfigs(storeDir);
+                db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+                sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+         */
         TestUtil.registerProcedure(db, DataVirtualizationCatalog.class, Jdbc.class, LoadCsv.class, Create.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
@@ -84,10 +103,21 @@ public class DataVirtualizationCatalogTest {
             assertEquals(List.of("$name", "$age"), row.get("params"));
         };
 
+        // TODO - cambiare tutti i `testCall(db` in `testCallEventually(sysDb`, 
+        //  `testCallEventually` sta in TestUtil
+        
+        /* TODO - CAMBIARE i apoc.dv.catalog.add in apoc.dv.catalog.install('neo4j', ....
+              ad esempio questa diventa
+                  testCallEventually(sysDb, "CALL apoc.dv.catalog.install('neo4j', $name, $map)",
+                                  Map.of("name", name, "map", map),
+                                  assertCatalogContent); 
+        */
         testCall(db, "CALL apoc.dv.catalog.add($name, $map)",
                 Map.of("name", name, "map", map),
                 assertCatalogContent);
 
+        // todo - stessa cosa per le altre procedure, 
+        //  quindi questo diventa testCallEventually(sysDb, 'neo4j', "CALL apoc.dv.catalog.show('neo4j')"
         testCall(db, "CALL apoc.dv.catalog.list()",
                 assertCatalogContent);
 
@@ -106,6 +136,7 @@ public class DataVirtualizationCatalogTest {
 
         String hookNodeName = "node to test linking";
 
+        // TODO - i db.executeTransactionally dovrebbero rimanere tali e quali, in teoria
         db.executeTransactionally("create (:Hook {name: $hookNodeName})", Map.of("hookNodeName", hookNodeName));
 
         final String relType = "LINKED_TO";
