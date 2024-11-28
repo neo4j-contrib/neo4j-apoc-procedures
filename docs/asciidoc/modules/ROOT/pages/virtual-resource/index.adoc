@@ -2,6 +2,8 @@
 = Virtual Resource
 :description: This chapter describes how to handle external data sources as virtual resource without persisting them in the database
 
+include::partial$systemdbonly.note.adoc[]
+
 [NOTE]
 ====
 There are situations where we would like to enrich/complement the results of a cypher query in a Neo4j graph with additional
@@ -40,10 +42,11 @@ image::apoc.dv.imported-graph-from-RDB.png[scaledwidth="100%"]
 == Managing a Virtualized Resource via JDBC
 
 === Creating a Virtualized Resource (JDBC)
-Before we can query a Virtualized Resource, we need to define it. We do this using the `apoc.dv.catalog.add` procedure.
-The procedure takes two parameters:
+Before we can query a Virtualized Resource, we need to define it. We do this using the `apoc.dv.catalog.install` procedure.
+The procedure takes three parameters:
 
 * a name that uniquely identifies the virtualized resource and can be used to query that resource
+* the database name where we want to use the resource (default is `'neo4j'`)
 * a set of parameters indicating the type of the resource (type), the access point (url), the parameterised query
 that will be run on the access point (query) and the labels that will be applied to the generated virtual nodes (labels).
 
@@ -56,7 +59,7 @@ Here is the cypher that creates such virtualized resource:
 
 [source,cypher]
 ----
-CALL apoc.dv.catalog.add("fr-towns-by-dept", {
+CALL apoc.dv.catalog.install("fr-towns-by-dept", "neo4j", {
   type: "JDBC",
   url: "jdbc:postgresql://localhost/communes?user=jb&password=jb",
   labels: ["Town","PopulatedPlace"],
@@ -124,11 +127,11 @@ RETURN path
 ----
 
 === Listing the Virtualized Resource Catalog
-The apoc.dv.catalog.list procedure returns a list with all the existing Virtualized resources and their descriptions. It takes no parameters.
+The apoc.dv.catalog.list procedure returns a list with all the existing Virtualized resources and their descriptions. It accepts one parameter: i.e. the database name where we want to use the resource (default is 'neo4j').
 
 [source,cypher]
 ----
-CALL apoc.dv.catalog.list()
+CALL apoc.dv.catalog.show()
 ----
 
 === Removing Virtualized Resources from the Catalog
@@ -136,7 +139,7 @@ When a Virtualized Resource is no longer needed it can be removed from the catal
 
 [source,cypher]
 ----
-CALL apoc.dv.catalog.remove("vr-name")
+CALL apoc.dv.catalog.drop("vr-name", <dbName>)
 ----
 
 === Export metadata
@@ -165,7 +168,7 @@ Here is the cypher that creates such virtualized resource:
 
 [source,cypher]
 ----
-CALL apoc.dv.catalog.add("prod-details-by-id", {
+CALL apoc.dv.catalog.install("prod-details-by-id", "neo4j", {
   type: "CSV",
   url: "http://data.neo4j.com/northwind/products.csv",
   labels: ["ProductDetails"],
