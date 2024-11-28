@@ -34,7 +34,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class ImportArrowTest {
+public class ImportArrowExtendedTest {
     private static File directory = new File("target/arrowImport");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -53,7 +53,7 @@ public class ImportArrowTest {
 
     @BeforeClass
     public static void beforeClass() {
-        TestUtil.registerProcedure(db, ExportArrow.class, ImportArrow.class, Meta.class);
+        TestUtil.registerProcedure(db, ExportArrowExtended.class, ImportArrow.class, Meta.class);
     }
 
     @Before

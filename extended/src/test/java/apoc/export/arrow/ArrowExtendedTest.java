@@ -19,7 +19,7 @@
 package apoc.export.arrow;
 
 import apoc.graph.Graphs;
-import apoc.load.LoadArrow;
+import apoc.load.arrow.*;
 import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
@@ -50,7 +50,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 
-public class ArrowTest {
+public class ArrowExtendedTest {
 
     private static File directory = new File("target/arrow import");
 
@@ -128,7 +128,7 @@ public class ArrowTest {
     public static void beforeClass() {
         db.executeTransactionally(
                 "CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
-        TestUtil.registerProcedure(db, ExportArrow.class, LoadArrow.class, Graphs.class, Meta.class);
+        TestUtil.registerProcedure(db, ExportArrowExtended.class, LoadArrowExtended.class, Graphs.class, Meta.class);
     }
 
     @AfterClass
