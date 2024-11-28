@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class ExportArrow {
+public class ExportArrowExtended {
 
     @Context
     public Transaction tx;
@@ -63,8 +63,7 @@ public class ExportArrow {
     public TerminationGuard terminationGuard;
 
     @NotThreadSafe
-    @Procedure(name = "apoc.export.arrow.stream.all", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.stream.all")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the full database as an arrow byte array.")
     public Stream<ByteArrayResult> all(
@@ -75,10 +74,7 @@ public class ExportArrow {
     }
 
     @NotThreadSafe
-    @Procedure(
-            name = "apoc.export.arrow.stream.graph",
-            deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.stream.graph")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the given graph as an arrow byte array.")
     public Stream<ByteArrayResult> graph(
@@ -104,10 +100,7 @@ public class ExportArrow {
     }
 
     @NotThreadSafe
-    @Procedure(
-            name = "apoc.export.arrow.stream.query",
-            deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.stream.query")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the given Cypher query as an arrow byte array.")
     public Stream<ByteArrayResult> query(
@@ -122,8 +115,7 @@ public class ExportArrow {
     }
 
     @NotThreadSafe
-    @Procedure(name = "apoc.export.arrow.all", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.all")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the full database as an arrow file.")
     public Stream<ExportProgressInfo> all(
@@ -135,8 +127,7 @@ public class ExportArrow {
     }
 
     @NotThreadSafe
-    @Procedure(name = "apoc.export.arrow.graph", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.graph")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the given graph as an arrow file.")
     public Stream<ExportProgressInfo> graph(
@@ -164,8 +155,7 @@ public class ExportArrow {
     }
 
     @NotThreadSafe
-    @Procedure(name = "apoc.export.arrow.query", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.export.arrow.query")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Exports the results from the given Cypher query as an arrow file.")
     public Stream<ExportProgressInfo> query(

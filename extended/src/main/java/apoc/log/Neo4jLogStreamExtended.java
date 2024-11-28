@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @author moxious
  * @since 27.02.19
  */
-public class Neo4jLogStream {
+public class Neo4jLogStreamExtended {
 
     public static class FileEntry implements Comparable<FileEntry> {
         @Description("The line number.")
@@ -67,9 +67,7 @@ public class Neo4jLogStream {
     @Admin
     @Procedure(
             name = "apoc.log.stream",
-            mode = Mode.DBMS,
-            deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+            mode = Mode.DBMS)
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Returns the file contents from the given log, optionally returning only the last n lines.\n"
             + "This procedure requires users to have an admin role.")
