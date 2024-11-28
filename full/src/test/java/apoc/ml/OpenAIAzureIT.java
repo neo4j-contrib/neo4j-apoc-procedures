@@ -71,12 +71,9 @@ public class OpenAIAzureIT {
     public void chatCompletion() {
         testCall(
                 db,
-                """
-            CALL apoc.ml.openai.chat([
-            {role:"system", content:"Only answer with a single word"},
-            {role:"user", content:"What planet do humans live on?"}
-            ], $apiKey, $conf)
-            """,
+                "CALL apoc.ml.openai.chat([\n" + "{role:\"system\", content:\"Only answer with a single word\"},\n"
+                        + "{role:\"user\", content:\"What planet do humans live on?\"}\n"
+                        + "], $apiKey, $conf)",
                 getParams(OPENAI_COMPLETION_URL),
                 (row) -> assertChatCompletion(row, "gpt-35-turbo"));
     }
