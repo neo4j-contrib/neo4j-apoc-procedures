@@ -1,0 +1,45 @@
+= apoc.export.arrow.stream.query
+:description: This section contains reference documentation for the apoc.export.arrow.stream.query procedure.
+
+label:procedure[]
+
+[.emphasis]
+`apoc.export.arrow.stream.query(query ANY, config MAP<STRING, ANY>)` - exports the given Cypher query as an arrow byte array.
+
+[NOTE]
+====
+This procedure is not considered safe to run from multiple threads.
+It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
+For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
+====
+
+== Signature
+
+[source]
+----
+apoc.export.arrow.stream.query(query :: ANY, config = {} :: MAP) :: (value :: LIST<INTEGER>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|query|ANY|null
+|config|MAP|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|LIST<INTEGER>
+|===
+
+== Config parameters
+include::partial$usage/config/apoc.export.arrow.stream.query.adoc[]
+
+[[usage-apoc.export.arrow.stream.query]]
+== Usage Examples
+include::partial$usage/apoc.export.arrow.stream.query.adoc[]
+
+xref::export/arrow.adoc[More documentation of apoc.export.arrow.stream.query,role=more information]

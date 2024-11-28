@@ -1,0 +1,45 @@
+= apoc.export.arrow.stream.graph
+:description: This section contains reference documentation for the apoc.export.arrow.stream.graph procedure.
+
+label:procedure[]
+
+[.emphasis]
+`apoc.export.arrow.stream.graph(graph ANY, config MAP<STRING, ANY>)` - exports the given graph as an arrow byte array.
+
+[NOTE]
+====
+This procedure is not considered safe to run from multiple threads.
+It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
+For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
+====
+s
+== Signature
+
+[source]
+----
+apoc.export.arrow.stream.graph(graph :: ANY, config = {} :: MAP) :: (value :: LIST<INTEGER>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|graph|ANY|null
+|config|MAP|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|LIST<INTEGER>
+|===
+
+== Config parameters
+include::partial$usage/config/apoc.export.arrow.stream.graph.adoc[]
+
+[[usage-apoc.export.arrow.stream.graph]]
+== Usage Examples
+include::partial$usage/apoc.export.arrow.stream.graph.adoc[]
+
+xref::export/arrow.adoc[More documentation of apoc.export.arrow.stream.graph,role=more information]

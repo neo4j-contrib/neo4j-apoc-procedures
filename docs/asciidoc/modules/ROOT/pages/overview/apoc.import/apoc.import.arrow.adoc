@@ -92,7 +92,7 @@ CALL apoc.load.arrow(fileOrBinary, {mapping: {durationProp: 'Duration'}})
 Or with the import procedure:
 [source,cypher]
 ----
-CALL apoc.import.parquet(fileOrBinary, {mapping: {durationProp: 'Duration'}})
+CALL apoc.import.arrow(fileOrBinary, {mapping: {durationProp: 'Duration'}})
 ----
 
 The mapping value types can be one of the following:

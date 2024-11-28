@@ -1,0 +1,57 @@
+= apoc.export.arrow.query
+:description: This section contains reference documentation for the apoc.export.arrow.query procedure.
+
+label:procedure[]
+
+[.emphasis]
+`apoc.export.arrow.query(file STRING, query STRING, config MAP<STRING, ANY>)` - exports the results from the given Cypher query as an arrow file.
+
+[NOTE]
+====
+This procedure is not considered safe to run from multiple threads.
+It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
+For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
+====
+
+== Signature
+
+[source]
+----
+apoc.export.arrow.query(file :: STRING, query :: STRING, config = {} :: MAP) :: (file :: STRING, source :: STRING, format :: STRING, nodes :: INTEGER, relationships :: INTEGER, properties :: INTEGER, time :: INTEGER, rows :: INTEGER, batchSize :: INTEGER, batches :: INTEGER, done :: BOOLEAN, data :: ANY)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|file|STRING|null
+|query|STRING|null
+|config|MAP|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|file|STRING
+|source|STRING
+|format|STRING
+|nodes|INTEGER
+|relationships|INTEGER
+|properties|INTEGER
+|time|INTEGER
+|rows|INTEGER
+|batchSize|INTEGER
+|batches|INTEGER
+|done|BOOLEAN
+|data|STRING
+|===
+
+== Config parameters
+include::partial$usage/config/apoc.export.arrow.query.adoc[]
+
+[[usage-apoc.export.arrow.query]]
+== Usage Examples
+include::partial$usage/apoc.export.arrow.query.adoc[]
+
+xref::export/arrow.adoc[More documentation of apoc.export.arrow.query,role=more information]
