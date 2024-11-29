@@ -99,7 +99,11 @@ class Neo4jContainerExtension(dockerImage: String): Neo4jContainer<Neo4jContaine
     }
 
     fun withKafka(kafka: KafkaContainer): Neo4jContainerExtension? {
-        return kafka.network?.let { withKafka(it, kafka.networkAliases?.map { "$it:9092" }.joinToString(",")) }
+        return kafka.network?.let { 
+            kafka.networkAliases?.map { "$it:9092" }?.let { 
+                it1 -> withKafka(it, it1.joinToString(",")) 
+            } 
+        }
     }
 
     fun withKafka(network: Network, bootstrapServers: String): Neo4jContainerExtension {
