@@ -18,6 +18,7 @@
  */
 package apoc.export.arrow;
 
+import apoc.Extended;
 import apoc.Pools;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.result.ByteArrayResult;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@Extended
 public class ExportArrowExtended {
 
     @Context

@@ -18,6 +18,7 @@
  */
 package apoc.log;
 
+import apoc.Extended;
 import apoc.util.FileUtils;
 import org.neo4j.kernel.api.QueryLanguage;
 import org.neo4j.kernel.api.procedure.QueryLanguageScope;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
  * @author moxious
  * @since 27.02.19
  */
+@Extended
 public class Neo4jLogStreamExtended {
 
     public static class FileEntry implements Comparable<FileEntry> {
