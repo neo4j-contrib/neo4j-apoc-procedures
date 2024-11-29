@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package apoc.load;
+package apoc.load.arrow;
 
+import apoc.Extended;
 import apoc.result.LoadDataMapResult;
 import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
@@ -58,7 +59,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class LoadArrow {
+@Extended
+public class LoadArrowExtended {
 
     @Context
     public URLAccessChecker urlAccessChecker;
@@ -101,8 +103,7 @@ public class LoadArrow {
         }
     }
 
-    @Procedure(name = "apoc.load.arrow.stream", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.load.arrow.stream")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow byte array.")
     public Stream<LoadDataMapResult> stream(
@@ -123,8 +124,7 @@ public class LoadArrow {
                 });
     }
 
-    @Procedure(name = "apoc.load.arrow", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.load.arrow")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow file.")
     public Stream<LoadDataMapResult> file(
@@ -163,7 +163,7 @@ public class LoadArrow {
 
     private static Object getObject(Object object) {
         if (object instanceof Collection) {
-            return ((Collection<?>) object).stream().map(LoadArrow::getObject).collect(Collectors.toList());
+            return ((Collection<?>) object).stream().map(LoadArrowExtended::getObject).collect(Collectors.toList());
         }
         if (object instanceof Map) {
             return ((Map<String, Object>) object)

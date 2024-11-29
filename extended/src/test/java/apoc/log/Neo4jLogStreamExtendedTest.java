@@ -37,7 +37,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertTrue;
 
-public class Neo4jLogStreamTest {
+public class Neo4jLogStreamExtendedTest {
 
     private GraphDatabaseService db;
     private DatabaseManagementService dbManagementService;
@@ -50,7 +50,7 @@ public class Neo4jLogStreamTest {
                 .build();
         apocConfig().setProperty("server.directories.logs", "");
         db = dbManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
-        TestUtil.registerProcedure(db, Neo4jLogStream.class);
+        TestUtil.registerProcedure(db, Neo4jLogStreamExtended.class);
     }
 
     @After
