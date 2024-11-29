@@ -18,6 +18,7 @@
  */
 package apoc.load;
 
+import apoc.Extended;
 import apoc.result.LoadDataMapResult;
 import apoc.util.CompressionAlgo;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 import static apoc.load.LoadJsonUtils.loadJsonStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
+@Extended
 public class LoadJsonExtended {
 
     @Context
