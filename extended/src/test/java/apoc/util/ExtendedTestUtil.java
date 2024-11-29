@@ -12,6 +12,9 @@ import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.assertion.Assert;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +142,15 @@ public class ExtendedTestUtil {
         } catch (Exception e) {
             String actualErrMsg = e.getMessage();
             assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
+        }
+    }
+
+    public static String getLogFileContent() {
+        try {
+            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
+            return Files.readString(logFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
