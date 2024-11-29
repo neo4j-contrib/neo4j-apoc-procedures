@@ -18,20 +18,13 @@
  */
 package apoc.export.arrow;
 
-import apoc.graph.Graphs;
 import apoc.load.arrow.*;
-import apoc.meta.Meta;
-import apoc.util.JsonUtil;
-import apoc.util.TestUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -40,7 +33,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
