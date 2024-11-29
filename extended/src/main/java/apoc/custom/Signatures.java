@@ -3,6 +3,7 @@ package apoc.custom;
 import apoc.util.JsonUtil;
 import org.antlr.v4.runtime.*;
 import org.neo4j.internal.kernel.api.procs.*;
+import org.neo4j.kernel.api.QueryLanguage;
 import org.neo4j.procedure.Mode;
 
 import java.util.ArrayList;
@@ -118,7 +119,18 @@ public class Signatures {
         boolean isBuiltIn = false;
         boolean internal = false;
         boolean threadsafe = false;
-        return new UserFunctionSignature(name, inputSignatures, type, deprecated, description, "apoc.custom", caseInsensitive, isBuiltIn, internal, threadsafe);
+        return new UserFunctionSignature(
+                name, 
+                inputSignatures, 
+                type, 
+                false,
+                deprecated, 
+                description, 
+                "apoc.custom",
+                caseInsensitive, 
+                isBuiltIn, 
+                internal, 
+                threadsafe);
     }
 
     private DefaultParameterValue defaultValue(SignatureParser.DefaultValueContext defaultValue, Neo4jTypes.AnyType type) {
@@ -230,6 +242,7 @@ public class Signatures {
                 outputSignature,
                 mode,
                 admin,
+                false,
                 deprecated,
                 description,
                 warning,
@@ -238,6 +251,7 @@ public class Signatures {
                 systemProcedure,
                 internal,
                 allowExpiredCredentials,
-                threadSafe);
+                threadSafe,
+                QueryLanguage.ALL);
     }
 }

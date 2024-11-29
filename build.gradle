@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
-    id "org.jetbrains.kotlin.jvm" version "1.8.0" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.9.20" apply false
 }
 
 downloadLicenses {
@@ -15,7 +15,7 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '5.26.0'
+    version = '2024.12.0'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
@@ -73,8 +73,8 @@ subprojects {
 
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     task mySourcesJar(type: Jar) {
@@ -92,8 +92,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage': project.hasProperty("neo4jDockerEeOverride") ? project.getProperty("neo4jDockerEeOverride") : 'neo4j:5.26.0-enterprise',
-                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerCeOverride") ? project.getProperty("neo4jDockerCeOverride") : 'neo4j:5.26.0',
+                'neo4jDockerImage': project.hasProperty("neo4jDockerEeOverride") ? project.getProperty("neo4jDockerEeOverride") : 'neo4j:2024.12.0-enterprise',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerCeOverride") ? project.getProperty("neo4jDockerCeOverride") : 'neo4j:2024.12.0',
                 'coreDir': 'apoc-core/core',
                 'testDockerBundle': false
 
@@ -152,9 +152,9 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "5.26.0"
+    neo4jVersion = "2024.12.0"
     // instead we apply the override logic here
-    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion + "-SNAPSHOT"
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.20.2'
     apacheArrowVersion = '15.0.0'
 }

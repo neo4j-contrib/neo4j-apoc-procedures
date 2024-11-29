@@ -71,6 +71,7 @@ public class CypherProceduresUtil {
                 new QualifiedName(prefix, name),
                 inputs,
                 typeof((String) node.getProperty(ExtendedSystemPropertyKeys.output.name())),
+                false,
                 null,
                 description,
                 "apoc.custom",

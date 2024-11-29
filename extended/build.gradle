@@ -5,7 +5,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'maven-publish'
     id 'antlr'
-    id "org.jetbrains.kotlin.jvm" version "1.8.0"
+    id "org.jetbrains.kotlin.jvm" version "1.9.20"
     id "com.diffplug.spotless" version "6.22.0"
 }
 
@@ -27,7 +27,7 @@ jar {
 
 compileKotlin {
     dependsOn(generateGrammarSource)
-    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.jvmTarget = "21"
 }
 
 generateGrammarSource {
@@ -163,8 +163,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 task copyImportFiles {
