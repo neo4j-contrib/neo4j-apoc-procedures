@@ -68,9 +68,14 @@ public class VectorDbUtil {
         Map<String, Object> config = new HashMap<>(configuration);
 
         Map<String, Object> props = withSystemDb(transaction -> {
-            Label label = Label.label(handler.getLabel());
-            Node node = transaction.findNode(label, SystemPropertyKeys.name.name(), hostOrKey);
-            return node == null ? Map.of() : node.getAllProperties();
+            try {
+                Label label = Label.label(handler.getLabel());
+                Node node = transaction.findNode(label, SystemPropertyKeys.name.name(), hostOrKey);
+                return node == null ? Map.of() : node.getAllProperties();
+            } catch (Exception e) {
+                // Fallback in case of null keys/values
+                return Map.of();
+            }
         });
 
         String url = getUrl(hostOrKey, handler, props);
