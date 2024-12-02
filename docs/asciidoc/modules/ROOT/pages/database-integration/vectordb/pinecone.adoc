@@ -3,10 +3,11 @@
 
 [NOTE]
 ====
-The procedures create/drop/handle an index, instead of a collection like the other vectordb procedures,
-since in Pinecone a collection is a static and non-queryable copy of an index.
+In Pinecone a collection is a static and non-queryable copy of an index,
+therefore, unlike other vector dbs, the Pinecone procedures work on indexes instead of collections.
 
-Anyway, the create / delete index procedures are named `.createCollection` and `.deleteCollection` to be consistent with the other.
+However, the vectordb procedures to handle CRUD operations on collections are usually named `apoc.ml.<vdbname>.createCollection` and `apoc.ml.<vdbname>.deleteCollection`,
+so to be consistent, the Pinecone index procedures are named `apoc.ml.pinecone.createCollection` and `apoc.ml.pinecone.deleteCollection`.
 ====
 
 Here is a list of all available Pinecone procedures:
