@@ -449,7 +449,7 @@ public class CypherExtendedTest {
     public void testRunFileWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFileCommon(failingFile, cypherError);
     }
 
@@ -597,7 +597,7 @@ public class CypherExtendedTest {
     public void testRunFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFilesCommon(failingFile, cypherError);
     }
 
