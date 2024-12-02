@@ -15,12 +15,7 @@ public interface VectorEmbeddingHandler {
                                       List<T> ids,
                                       String collection);
 
-    VectorEmbeddingConfig fromQuery(Map<String, Object> config,
-                                    ProcedureCallContext procedureCallContext,
-                                    List<Double> vector,
-                                    Object filter,
-                                    long limit,
-                                    String collection);
+    VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<Double> vector, Object filter, long limit, String index);
 
     default VectorEmbeddingConfig populateApiBodyRequest(VectorEmbeddingConfig config,
                                                         Map<String, Object> additionalBodies) {
