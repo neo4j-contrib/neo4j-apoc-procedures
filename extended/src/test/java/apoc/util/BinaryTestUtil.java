@@ -11,15 +11,15 @@ public class BinaryTestUtil {
     public static byte[] fileToBinary(File file, String compression) {
         try {
             final String data = FileUtils.readFileToString(file, UTF_8);
-            return compression.equals(CompressionAlgo.NONE.name()) 
+            return compression.equals(CompressionAlgoExtended.NONE.name()) 
                     ? data.getBytes(UTF_8)
-                    : CompressionAlgo.valueOf(compression).compress(data, UTF_8);
+                    : CompressionAlgoExtended.valueOf(compression).compress(data, UTF_8);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static String readFileToString(File file, Charset charset, CompressionAlgo compression) {
+    public static String readFileToString(File file, Charset charset, CompressionAlgoExtended compression) {
         try {
             return compression.isNone() ?
                     TestUtil.readFileToString(file, charset)

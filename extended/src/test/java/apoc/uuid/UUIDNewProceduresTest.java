@@ -2,9 +2,9 @@ package apoc.uuid;
 
 import apoc.create.Create;
 import apoc.periodic.Periodic;
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.SystemDbTestUtil.*;
 import static apoc.util.SystemDbUtil.*;
 import static apoc.util.TestUtil.*;
@@ -130,7 +130,7 @@ public class UUIDNewProceduresTest {
 
         TestUtil.testCall(sysDb, "CALL apoc.uuid.drop('Mario')",
                 (row) -> assertResult(row, "Mario", false,
-                        Util.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, true)));
+                        UtilExtended.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, true)));
     }
 
     @Test
@@ -220,7 +220,7 @@ public class UUIDNewProceduresTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Bar", true,
-                        Util.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, false)));
+                        UtilExtended.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, false)));
     }
 
     @Test
@@ -280,10 +280,10 @@ public class UUIDNewProceduresTest {
 
         testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
-                        Util.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
+                        UtilExtended.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
         testCall(sysDb, "CALL apoc.uuid.drop('Test')",
                 (row) -> assertResult(row, "Test", false,
-                        Util.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
+                        UtilExtended.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false)));
     }
 
     @Test
@@ -344,10 +344,10 @@ public class UUIDNewProceduresTest {
                     // then
                     Map<String, Object> row = result.next();
                     assertResult(row, "Bar", false,
-                            Util.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, false));
+                            UtilExtended.map(UUID_PROPERTY_KEY, "uuid", ADD_TO_SET_LABELS_KEY, false));
                     row = result.next();
                     assertResult(row, "Test", false,
-                            Util.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false));
+                            UtilExtended.map(UUID_PROPERTY_KEY, "foo", ADD_TO_SET_LABELS_KEY, false));
                 });
 
         testCallCountEventually(db, "CALL apoc.uuid.list", 0, TIMEOUT);
@@ -500,14 +500,14 @@ public class UUIDNewProceduresTest {
     // we have to set `apoc.uuid.refresh`
     @Test
     public void testUuidRefreshNotSet() {
-        apocConfig().setProperty(APOC_UUID_REFRESH, null);
+        extendedApocConfig().setProperty(APOC_UUID_REFRESH, null);
         try {
             testCall(sysDb, "CALL apoc.uuid.setup('AnotherLabel')",
                     r -> fail("Should fail because apoc.uuid.refresh is not set"));
         } catch (RuntimeException e) {
             assertThat(e.getMessage(), Matchers.containsString(UUID_NOT_SET));
         }
-        apocConfig().setProperty(APOC_UUID_REFRESH, PROCEDURE_DEFAULT_REFRESH);
+        extendedApocConfig().setProperty(APOC_UUID_REFRESH, PROCEDURE_DEFAULT_REFRESH);
     }
     
     @Test
@@ -524,7 +524,7 @@ public class UUIDNewProceduresTest {
         // wait time greater than the refresh one, to make sure UUIDHandler.checkAndRestoreUuidProperty() has been executed
         Thread.sleep(PROCEDURE_DEFAULT_REFRESH + 100);
         
-        final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
+        final String logFileContent = Files.readString(new File(FileUtilsExtended.getLogDirectory(), "debug.log").toPath());
 
         assertFalse("Actual debug.log content:\n" + logFileContent, logFileContent.contains("NotFoundException"));
     }

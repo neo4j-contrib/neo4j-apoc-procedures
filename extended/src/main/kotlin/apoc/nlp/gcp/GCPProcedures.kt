@@ -9,7 +9,7 @@ import apoc.nlp.NLPHelperFunctions.verifyKey
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualGraph
+import apoc.result.VirtualGraphExtended
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
@@ -47,7 +47,7 @@ class GCPProcedures {
     @Description("Creates a (virtual) entity graph for provided text")
     fun entitiesGraph(@Name("source") source: Any,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<VirtualGraph> {
+            : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -89,7 +89,7 @@ class GCPProcedures {
     @Description("Classifies a document into categories.")
     fun classifyGraph(@Name("source") source: Any,
                       @Name(value = "config", defaultValue = "{}") config: Map<String, Any>)
-            : Stream<VirtualGraph> {
+            : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)

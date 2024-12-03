@@ -1,6 +1,6 @@
 package apoc.custom;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.junit.Test;
@@ -72,7 +72,7 @@ public class SignatureTest {
 
     @Test
     public void parseManySignatures() throws IOException {
-        InputStream signatures = Util.class.getClassLoader().getResourceAsStream("signatures.csv");
+        InputStream signatures = UtilExtended.class.getClassLoader().getResourceAsStream("signatures.csv");
         try (CSVReader reader = new CSVReaderBuilder(new InputStreamReader(signatures)).withSkipLines(1).build()) {
             for (String[] line : reader) {
                 try {

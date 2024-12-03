@@ -1,11 +1,11 @@
 package apoc.nlp.gcp
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.DocumentToGraphExtended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
@@ -21,7 +21,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
         val ID_MAPPINGS = mapOf("name" to "text")
     }
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -31,9 +31,10 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
             val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
-            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+            val virtualNode =
+                VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
 
-            val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
+            val documentToNodes = DocumentToGraphExtended.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
@@ -56,7 +57,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
                         setProperties(entityNode, item)
                         entityNodes.add(entityNode)
 
-                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
+                        DocumentToGraphExtended.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
@@ -72,7 +73,7 @@ data class GCPVirtualEntitiesGraph(private val results: List<NodeValueErrorMapRe
             allRelationships.addAll(relationships)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 
     private fun idValues(item: Map<String, Any>) = ID_MAPPINGS.map { (key, value) -> value to item[key].toString() }.toMap()

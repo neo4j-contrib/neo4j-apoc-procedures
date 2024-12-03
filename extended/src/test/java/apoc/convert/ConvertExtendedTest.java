@@ -1,7 +1,7 @@
 package apoc.convert;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class ConvertExtendedTest {
     
     @Test
     public void testToYamlDockerCompose() {
-        String expected = Util.readResourceFile("yml/docker-compose-convert.yml");
+        String expected = UtilExtended.readResourceFile("yml/docker-compose-convert.yml");
 
         testCall(
                 db, """
@@ -500,7 +500,7 @@ public class ConvertExtendedTest {
 
     @Test
     public void testFromYamlDockerCompose() {
-        String fromYaml = Util.readResourceFile("yml/docker-compose-convert.yml");
+        String fromYaml = UtilExtended.readResourceFile("yml/docker-compose-convert.yml");
 
         Map<String, Object> expected = Map.of(
                 "version", 3.7,
@@ -538,7 +538,7 @@ public class ConvertExtendedTest {
     public void testFromYaml() {
         testCall(
                 db, """
-                        RETURN apoc.convert.fromYaml("a: 42 
+                        RETURN apoc.convert.fromYaml("a: 42
                         b: foo") AS value""",
                 (row) -> {
                     Map<String, Object> expected = Map.of("a", 42, "b", "foo");

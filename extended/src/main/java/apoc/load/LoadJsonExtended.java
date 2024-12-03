@@ -19,8 +19,8 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.result.LoadDataMapResult;
-import apoc.util.CompressionAlgo;
+import apoc.result.LoadDataMapResultExtended;
+import apoc.util.CompressionAlgoExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.kernel.api.QueryLanguage;
 import org.neo4j.kernel.api.procedure.QueryLanguageScope;
@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.load.LoadJsonUtils.loadJsonStream;
-import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.load.LoadJsonUtilsExtended.loadJsonStream;
+import static apoc.util.CompressionConfigExtended.COMPRESSION;
 
 @Extended
 public class LoadJsonExtended {
@@ -53,7 +53,7 @@ public class LoadJsonExtended {
     @Description(
             "Loads parameters from a JSON URL (e.g. web-API) as a stream of values if the given JSON file is a `LIST<ANY>`.\n"
                     + "If the given JSON file is a `MAP`, this procedure imports a single value instead.")
-    public Stream<LoadDataMapResult> jsonParams(
+    public Stream<LoadDataMapResultExtended> jsonParams(
             @Name(
                             value = "urlOrKeyOrBinary",
                             description = "The name of the file or binary data to import the data from.")
@@ -81,7 +81,7 @@ public class LoadJsonExtended {
                     Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
-        String compressionAlgo = (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name());
+        String compressionAlgo = (String) config.getOrDefault(COMPRESSION, CompressionAlgoExtended.NONE.name());
         List<String> pathOptions = (List<String>) config.get("pathOptions");
         return loadJsonStream(
                 urlOrKeyOrBinary,

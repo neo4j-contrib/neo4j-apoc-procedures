@@ -25,8 +25,8 @@ public class UrlResolver {
     }
 
     public String getConfiguredUrl(String prefix, String key) {
-        String url = Util.getLoadUrlByConfigFile(prefix, key, "url")
-                .orElse(Util.getLoadUrlByConfigFile(prefix, key, "host")
+        String url = UtilExtended.getLoadUrlByConfigFile(prefix, key, "url")
+                .orElse(UtilExtended.getLoadUrlByConfigFile(prefix, key, "host")
                         .map(this::resolveHost)
                         .orElse(null));
         return url;

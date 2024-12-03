@@ -2,9 +2,9 @@ package apoc.ml.aws;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.result.MapResultExtended;
+import apoc.util.JsonUtilExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.ml.aws.AWSConfig.JSON_PATH;
 import static apoc.ml.aws.SageMakerConfig.ENDPOINT_NAME_KEY;
-import static apoc.util.JsonUtil.OBJECT_MAPPER;
+import static apoc.util.JsonUtilExtended.OBJECT_MAPPER;
 
 @Extended
 public class SageMaker {
@@ -32,23 +32,23 @@ public class SageMaker {
     
     @Procedure("apoc.ml.sagemaker.custom")
     @Description("apoc.ml.sagemaker.chat(body, $conf) - To create a customizable SageMaker call")
-    public Stream<MapResult> custom(@Name(value = "body") Object body,
-                                    @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+    public Stream<MapResultExtended> custom(@Name(value = "body") Object body,
+                                            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
         AWSConfig conf = new SageMakerConfig(configuration);
 
         return executeRequestReturningMap(body, conf)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.ml.sagemaker.chat")
     @Description("apoc.ml.sagemaker.chat(messages, $conf) - Prompts the chat completion API")
-    public Stream<MapResult> chatCompletion(
+    public Stream<MapResultExtended> chatCompletion(
             @Name("messages") List<Map<String, String>> messages,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
 
         var config = new HashMap<>(configuration);
         config.putIfAbsent(ENDPOINT_NAME_KEY,  "Endpoint-Distilbart-xsum-1-1-1");
-        config.putIfAbsent(HEADERS_KEY, Util.map("Content-Type", "application/x-text"));
+        config.putIfAbsent(HEADERS_KEY, UtilExtended.map("Content-Type", "application/x-text"));
         
         AWSConfig conf = new SageMakerConfig(config);
 
@@ -61,21 +61,21 @@ public class SageMaker {
                             ? message.get("content")
                             : message;
                     return executeRequestReturningMap(body, conf)
-                            .map(MapResult::new);
+                            .map(MapResultExtended::new);
                 });
     }
 
     @Procedure("apoc.ml.sagemaker.completion")
     @Description("apoc.ml.sagemaker.completion(prompt, $conf) - Prompts the completion API")
-    public Stream<MapResult> completion(@Name("prompt") String prompt,
-                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+    public Stream<MapResultExtended> completion(@Name("prompt") String prompt,
+                                                @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
         var config = new HashMap<>(configuration);
         config.putIfAbsent(ENDPOINT_NAME_KEY,  "Endpoint-GPT-2-1");
         config.putIfAbsent(HEADERS_KEY,  Map.of("Content-Type", "application/x-text"));
         AWSConfig conf = new SageMakerConfig(config);
 
         return executeRequestReturningMap(prompt, conf)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.ml.sagemaker.embedding")
@@ -118,7 +118,7 @@ public class SageMaker {
                 AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString, headers, "sagemaker");
             }
 
-            return JsonUtil.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
+            return JsonUtilExtended.loadJson(conf.getEndpoint(), conf.getHeaders(), bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
             
         } catch (IOException e) {
             throw new RuntimeException(e);

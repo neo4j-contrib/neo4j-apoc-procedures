@@ -1,6 +1,6 @@
 package apoc.util;
 
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +9,13 @@ import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.ExecutionPlanDescription;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionType;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.IndexType;
 import org.neo4j.procedure.Mode;
 import org.neo4j.values.storable.DateTimeValue;
 import org.neo4j.values.storable.DateValue;
@@ -41,19 +46,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
-import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
-import static apoc.util.Util.getAllQueryProcs;
+import static apoc.export.cypher.formatter.CypherFormatterUtilsExtended.formatProperties;
+import static apoc.export.cypher.formatter.CypherFormatterUtilsExtended.formatToString;
+import static apoc.util.UtilExtended.getAllQueryProcs;
 
 public class ExtendedUtil
 {
     public static String dateFormat( TemporalAccessor value, String format){
-        return Util.getFormat(format).format(value);
+        return UtilExtended.getFormat(format).format(value);
     }
 
     public static double doubleValue( Entity pc, String prop, Number defaultValue) {
-        return Util.toDouble(pc.getProperty(prop, defaultValue));
+        return UtilExtended.toDouble(pc.getProperty(prop, defaultValue));
     }
 
     public static Duration durationParse(String value) {
@@ -186,7 +192,7 @@ public class ExtendedUtil
             case "long":
                 return Long.parseLong(value);
             case "node", "relationship":
-                return JsonUtil.parse(value, null, Map.class);
+                return JsonUtilExtended.parse(value, null, Map.class);
             case "no_value":
             case "NO_VALUE":
                 return null;
@@ -281,7 +287,7 @@ public class ExtendedUtil
                 // check if sub-procedures have valid mode
                 final Set<String> procNames = db.executeTransactionally("SHOW PROCEDURES YIELD name, mode where mode in $modes return name",
                         Map.of("modes", modes),
-                        r -> Iterators.asSet(r.columnAs("name")));
+                        r -> IteratorsExtended.asSet(r.columnAs("name")));
 
                 return procNames.containsAll(queryProcNames);
             }
@@ -299,7 +305,7 @@ public class ExtendedUtil
             consumer.run();
         } catch (Exception e) {
             if (retry >= maxRetries) throw e;
-            Util.sleep(100);
+            UtilExtended.sleep(100);
             retry++;
             retryRunnable(maxRetries, retry, consumer);
         }
@@ -352,6 +358,40 @@ public class ExtendedUtil
             i++;
         }
         return floats;
+    }
+
+
+    /*
+     * Get all indexes from Neo4j
+     * Currently filters out vector indexes
+     * When vector indexes are supported, this can be changed to transaction.schema().getIndexes()
+     */
+    public static Iterable<IndexDefinition> getIndexes(Transaction transaction) {
+        return StreamSupport.stream(transaction.schema().getIndexes().spliterator(), false)
+                .filter(indexDefinition -> indexDefinition.getIndexType() != IndexType.VECTOR)
+                .toList();
+    }
+
+    /*
+     * Get all indexes from Neo4j for a given label
+     * Currently filters out vector indexes
+     * When vector indexes are supported, this can be changed to transaction.schema().getIndexes(label)
+     */
+    public static Iterable<IndexDefinition> getIndexes(Transaction transaction, Label label) {
+        return StreamSupport.stream(transaction.schema().getIndexes(label).spliterator(), false)
+                .filter(indexDefinition -> indexDefinition.getIndexType() != IndexType.VECTOR)
+                .toList();
+    }
+
+    /*
+     * Get all indexes from Neo4j for a given relationship type
+     * Currently filters out vector indexes
+     * When vector indexes are supported, this can be changed to transaction.schema().getIndexes(relType)
+     */
+    public static Iterable<IndexDefinition> getIndexes(Transaction transaction, RelationshipType relType) {
+        return StreamSupport.stream(transaction.schema().getIndexes(relType).spliterator(), false)
+                .filter(indexDefinition -> indexDefinition.getIndexType() != IndexType.VECTOR)
+                .toList();
     }
             
 }

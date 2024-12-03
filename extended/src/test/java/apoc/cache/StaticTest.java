@@ -13,7 +13,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.*;
 
 /**

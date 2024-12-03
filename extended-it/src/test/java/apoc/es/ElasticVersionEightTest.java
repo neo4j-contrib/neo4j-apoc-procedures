@@ -1,8 +1,8 @@
 package apoc.es;
 
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import org.junit.BeforeClass;
@@ -22,7 +22,7 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
     @BeforeClass
     public static void setUp() throws Exception {
         Map<String, Object> config = Map.of("headers", basicAuthHeader, VERSION_KEY, ElasticSearchHandler.Version.EIGHT.name());
-        Map<String, Object> params = Util.map("index", ES_INDEX,
+        Map<String, Object> params = UtilExtended.map("index", ES_INDEX,
                 "id", ES_ID, "type", ES_TYPE, "config", config);
         
         String tag = "8.14.3";
@@ -180,7 +180,7 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
 
         payloads.forEach(payload -> {
             try {
-                Map mapPayload = JsonUtil.OBJECT_MAPPER.readValue(payload.getRight(), Map.class);
+                Map mapPayload = JsonUtilExtended.OBJECT_MAPPER.readValue(payload.getRight(), Map.class);
                 paramsWithBasicAuth.put("payload", mapPayload);
                 paramsWithBasicAuth.put("index", payload.getLeft());
                 TestUtil.testCall(db, "CALL apoc.es.put($host, $index, null, null, null, $payload, $config)",
@@ -197,7 +197,7 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
     }
 
     private void setPayload(String payload, Map<String, Object> params) throws JsonProcessingException {
-        Map<String, Object> mapPayload = JsonUtil.OBJECT_MAPPER.readValue(payload, Map.class);
+        Map<String, Object> mapPayload = JsonUtilExtended.OBJECT_MAPPER.readValue(payload, Map.class);
         params.put("payload", mapPayload);
     }
 

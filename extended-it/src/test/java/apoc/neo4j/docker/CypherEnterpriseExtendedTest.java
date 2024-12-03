@@ -2,8 +2,8 @@ package apoc.neo4j.docker;
 
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil.ApocPackage;
-import apoc.util.collection.Iterables;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IterablesExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -25,7 +25,7 @@ import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
@@ -407,7 +407,7 @@ public class CypherEnterpriseExtendedTest {
         // check that the procedure's SET operations work properly
         testResult(session,
                 "MATCH p=(:Result {updated:true})-[:REL {updated: 1}]->(:Other {updated: 'true'}) RETURN *",
-                r -> assertEquals(4L, Iterators.count(r))
+                r -> assertEquals(4L, IteratorsExtended.count(r))
         );
     }
 
@@ -438,7 +438,7 @@ public class CypherEnterpriseExtendedTest {
 
     public void assertOtherNodeAndRel(long id, Map<String, Object> result) {
         Node n = (Node) result.get("o");
-        assertEquals(List.of("Other"), Iterables.asList(n.labels()));
+        assertEquals(List.of("Other"), IterablesExtended.asList(n.labels()));
         assertEquals(Map.of("idOther", id), n.asMap());
 
         Relationship rel = (Relationship) result.get("r");
@@ -471,7 +471,7 @@ public class CypherEnterpriseExtendedTest {
 
     public void assertReturnQueryNode(long id, Map<String, Node> result) {
         Node n = result.get("n");
-        assertEquals(List.of("ReturnQuery"), Iterables.asList(n.labels()));
+        assertEquals(List.of("ReturnQuery"), IterablesExtended.asList(n.labels()));
         assertEquals(Map.of("id", id), n.asMap());
     }
 
@@ -482,7 +482,7 @@ public class CypherEnterpriseExtendedTest {
         assertEquals(1, result.size());
 
         Node n = result.get("n");
-        assertEquals(List.of("Result"), Iterables.asList(n.labels()));
+        assertEquals(List.of("Result"), IterablesExtended.asList(n.labels()));
         assertEquals(Map.of("id", id, "updated", true), n.asMap());
         
         assertEquals(SET_RETURN_FILE, row.get("fileName"));

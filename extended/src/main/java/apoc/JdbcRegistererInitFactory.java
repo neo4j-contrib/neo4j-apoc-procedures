@@ -1,8 +1,8 @@
 package apoc;
 
 import apoc.load.Jdbc;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
@@ -27,12 +27,12 @@ public class JdbcRegistererInitFactory extends ExtensionFactory<JdbcRegistererIn
             @Override
             public void init() throws Exception {
                 // we need to await initialization of ExtendedApocConfig. Unfortunately Neo4j's internal service loading tooling does *not* honor the order of service loader META-INF/services files.
-                Util.newDaemonThread(() -> {
+                UtilExtended.newDaemonThread(() -> {
                     ExtendedApocConfig extendedApocConfig = dependencies.extendedApocConfig();
                     while (!extendedApocConfig.isInitialized()) {
-                        Util.sleep(10);
+                        UtilExtended.sleep(10);
                     }
-                    Iterators.stream(extendedApocConfig.getKeys("apoc.jdbc"))
+                    IteratorsExtended.stream(extendedApocConfig.getKeys("apoc.jdbc"))
                             .filter(k -> k.endsWith("driver"))
                             .forEach( Jdbc::loadDriver );
                 }).start();

@@ -20,18 +20,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceProvider
-public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
+public class ExtendedApocGlobalComponents implements ApocGlobalComponentsService {
 
     private final Map<GraphDatabaseService,CypherProceduresHandler> cypherProcedureHandlers = new ConcurrentHashMap<>();
 
     @Override
-    public Map<String, Lifecycle> getServices(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
+    public Map<String, Lifecycle> getServices(GraphDatabaseAPI db, ExtendedApocExtensionFactory.Dependencies dependencies) {
 
 
         CypherProceduresHandler cypherProcedureHandler = new CypherProceduresHandler(
                 db,
                 dependencies.scheduler(),
-                dependencies.apocConfig(),
+                dependencies.extendedApocConfig(),
                 dependencies.log().getUserLog(CypherProcedures.class),
                 dependencies.globalProceduresRegistry()
         );
@@ -47,7 +47,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
                 "uuid", new UuidHandler(db,
                         dependencies.databaseManagementService(),
                         dependencies.log().getUserLog(Uuid.class),
-                        dependencies.apocConfig(),
+                        dependencies.extendedApocConfig(),
                         dependencies.scheduler(),
                         dependencies.pools()),
 
@@ -65,7 +65,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
     }
 
     @Override
-    public Iterable<AvailabilityListener> getListeners(GraphDatabaseAPI db, ApocExtensionFactory.Dependencies dependencies) {
+    public Iterable<AvailabilityListener> getListeners(GraphDatabaseAPI db, ExtendedApocExtensionFactory.Dependencies dependencies) {
         CypherProceduresHandler cypherProceduresHandler = cypherProcedureHandlers.get(db);
         return cypherProceduresHandler==null ? Collections.emptyList() : Collections.singleton(cypherProceduresHandler);
     }

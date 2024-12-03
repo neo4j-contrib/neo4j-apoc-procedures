@@ -1,10 +1,11 @@
 package apoc.export.xls;
 
-import apoc.ApocConfig;
-import apoc.export.util.ExportConfig;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.result.ProgressInfo;
+import apoc.ExtendedApocConfig;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.export.util.ExportConfigExtended;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.result.ProgressInfoExtended;
 import apoc.util.ExtendedListUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.poi.ss.usermodel.Cell;
@@ -16,7 +17,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -43,29 +43,29 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.FileUtils.getOutputStream;
+import static apoc.util.FileUtilsExtended.getOutputStream;
 
 public class ExportXlsHandler {
     public static final String XLS_MISSING_DEPS_ERROR = "Cannot find the needed jar into the plugins folder in order to use . \n" +
                                                         "Please see the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.export/apoc.export.xls.all/#_install_dependencies";
 
 
-    public static Stream<ExportProgressInfo> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ApocConfig apocConfig, GraphDatabaseService db) throws IOException {
-        ExportConfig c = new ExportConfig(configMap);
+    public static Stream<ExportProgressInfoExtended> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ExtendedApocConfig apocConfig, GraphDatabaseService db) throws IOException {
+        ExportConfigExtended c = new ExportConfigExtended(configMap);
         apocConfig.checkWriteAllowed(c, fileName);
         try (Transaction tx = db.beginTx();
              OutputStream out = getOutputStream(fileName, c);
              SXSSFWorkbook wb = new SXSSFWorkbook(-1)) {
 
             XlsExportConfig config = new XlsExportConfig(configMap);
-            ProgressInfo progressInfo = new ExportProgressInfo(fileName, source, "xls");
+            ProgressInfoExtended progressInfo = new ExportProgressInfoExtended(fileName, source, "xls");
             progressInfo.setBatches(config.getBatchSize());
-            ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+            ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, progressInfo);
 
             Map<Class, CellStyle> styles = buildCellStyles(config, wb);
 
-            if (data instanceof SubGraph) {
-                dumpSubGraph((SubGraph) data, config, reporter, wb, styles);
+            if (data instanceof SubGraphExtended) {
+                dumpSubGraph((SubGraphExtended) data, config, reporter, wb, styles);
 
             } else if (data instanceof Result) {
                 Result result = (Result) data;
@@ -78,7 +78,7 @@ public class ExportXlsHandler {
             wb.dispose();
             reporter.done();
             tx.commit();
-            return Stream.of((ExportProgressInfo) reporter.getTotal());
+            return Stream.of((ExportProgressInfoExtended) reporter.getTotal());
         }
     }
 
@@ -108,7 +108,7 @@ public class ExportXlsHandler {
         }
     }
 
-    private static void dumpSubGraph(SubGraph subgraph, XlsExportConfig config, ProgressReporter reporter, SXSSFWorkbook wb, Map<Class, CellStyle> styles) {
+    private static void dumpSubGraph(SubGraphExtended subgraph, XlsExportConfig config, ProgressReporterExtended reporter, SXSSFWorkbook wb, Map<Class, CellStyle> styles) {
         // what's in the triple used below?
         // left: sheet instance
         // middle: list of "magic" property keys: <id> for nodes, <startNodeId> and <endNodeId> for rels
@@ -166,7 +166,7 @@ public class ExportXlsHandler {
         return styles;
     }
 
-    private static void createRowForEntity(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, Entity entity, String sheetName, ProgressReporter reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
+    private static void createRowForEntity(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, Entity entity, String sheetName, ProgressReporterExtended reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
         Triple<SXSSFSheet, List<String>, List<String>> triple = sheetAndPropsForName.computeIfAbsent(sheetName, s -> {
             SXSSFSheet sheet = (SXSSFSheet) wb.createSheet(sheetName);
             sheet.trackAllColumnsForAutoSizing();

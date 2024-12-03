@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.unboundid.ldap.sdk.*;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchScope;
@@ -19,7 +19,7 @@ import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 
 @Extended
 public class LoadLdap {
@@ -40,13 +40,13 @@ public class LoadLdap {
         if (conn instanceof String) {
             //String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
             String key = "apoc.loadldap.%s.config".formatted(conn);
-            String value = apocConfig().getString(key);
+            String value = extendedApocConfig().getString(key);
             // format <ldaphost:port> <logindn> <loginpw>
             if (value == null) {
                 // fallback: if `apoc.loadldap.<LDAP_KEY>.config` is not set
                 // we check for a config with key `apoc.loadldap<LDAP_KEY>.config`
                 String keyOld = "apoc.loadldap%s.config".formatted(conn);
-                value = apocConfig().getString(keyOld);
+                value = extendedApocConfig().getString(keyOld);
 
                 // if the value is set and log == null (that is, not from the test LoadLdapTest.testLoadLDAPConfig),
                 // we print a log warn, since the correct way should be with a dot before <LDAP_KEY>
@@ -114,7 +114,7 @@ public class LoadLdap {
 
             this.loginDN = (String) connParms.get(LDAP_LOGIN_DN_P);
             this.password = (String) connParms.get(LDAP_LOGIN_PW_P);
-            this.ssl = Util.toBoolean(connParms.get(LDAP_SSL));
+            this.ssl = UtilExtended.toBoolean(connParms.get(LDAP_SSL));
         }
 
         public Stream<LDAPResult> executeSearch(Map<String, Object> search) {

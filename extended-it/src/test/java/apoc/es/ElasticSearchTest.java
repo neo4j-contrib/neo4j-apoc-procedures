@@ -1,9 +1,8 @@
 package apoc.es;
 
-import apoc.es.ElasticSearch;
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
@@ -21,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -96,7 +95,7 @@ public abstract class ElasticSearchTest {
      */
     static Map<String, Object> createDefaultProcedureParametersWithPayloadAndId(String payload, String id) {
         try {
-            Map mapPayload = JsonUtil.OBJECT_MAPPER.readValue(payload, Map.class);
+            Map mapPayload = JsonUtilExtended.OBJECT_MAPPER.readValue(payload, Map.class);
             return addPayloadAndIdToParams(paramsWithBasicAuth, mapPayload, id);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -104,7 +103,7 @@ public abstract class ElasticSearchTest {
     }
     
     static Map<String, Object> addPayloadAndIdToParams(Map<String, Object> params, Object payload, String id) {
-        return Util.merge(params, Util.map("payload", payload, "id", id));
+        return UtilExtended.merge(params, UtilExtended.map("payload", payload, "id", id));
     }
 
     private static void insertDocuments() throws JsonProcessingException {
@@ -289,9 +288,9 @@ public abstract class ElasticSearchTest {
      */
     @Test
     public void testPutUpdateDocument() throws IOException{
-        Map<String, Object> doc = JsonUtil.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
+        Map<String, Object> doc = JsonUtilExtended.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
         doc.put("tags", Arrays.asList("awesome"));
-        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(JsonUtil.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
+        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(JsonUtilExtended.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
         TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value", params, r -> {
             Object updated = extractValueFromResponse(r, "$.result");
             assertEquals("updated", updated);
@@ -307,7 +306,7 @@ public abstract class ElasticSearchTest {
     public void testPutUpdateDocumentWithAuthHeader() throws IOException{
         String tags = UUID.randomUUID().toString();
         
-        Map<String, Object> doc = JsonUtil.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
+        Map<String, Object> doc = JsonUtilExtended.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
         doc.put("tags", Arrays.asList(tags));
         Map<String, Object> params = addPayloadAndIdToParams(paramsWithBasicAuth, doc, ES_ID);
         TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value",
@@ -330,8 +329,8 @@ public abstract class ElasticSearchTest {
         String index = UUID.randomUUID().toString();
         String type = getEsType();
         String id = UUID.randomUUID().toString();
-        Map payload = JsonUtil.OBJECT_MAPPER.readValue("{\"ajeje\":\"Brazorf\"}", Map.class);
-        Map params = Util.map("host", HTTP_HOST_ADDRESS,
+        Map payload = JsonUtilExtended.OBJECT_MAPPER.readValue("{\"ajeje\":\"Brazorf\"}", Map.class);
+        Map params = UtilExtended.map("host", HTTP_HOST_ADDRESS,
                 "index", index,
                 "suffix", index,
                 "type", type,
@@ -362,8 +361,8 @@ public abstract class ElasticSearchTest {
     public void testPostCreateDocumentWithAuthHeader() throws IOException {
         String index = UUID.randomUUID().toString();
         String type = getEsType();
-        Map payload = JsonUtil.OBJECT_MAPPER.readValue("{\"ajeje\":\"Brazorf\"}", Map.class);
-        Map params = Util.map("host", elastic.getHttpHostAddress(),
+        Map payload = JsonUtilExtended.OBJECT_MAPPER.readValue("{\"ajeje\":\"Brazorf\"}", Map.class);
+        Map params = UtilExtended.map("host", elastic.getHttpHostAddress(),
                 "index", index,
                 "type", type,
                 "payload", payload,

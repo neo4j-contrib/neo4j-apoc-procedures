@@ -1,8 +1,8 @@
 package apoc.load.xls;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.MapUtil.map;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -48,7 +48,7 @@ public class LoadXlsTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @AfterAll
@@ -67,7 +67,7 @@ public class LoadXlsTest {
         BiFunction<String,Boolean,Long> query = (sheet,header) -> db.executeTransactionally(
                 "CALL apoc.load.xls($url,$sheet,{header:$header}) yield map return count(*) as c",
                 map("header",header,"sheet",sheet,"url", brokenHeader ),
-                result -> Iterators.single(result.columnAs("c")));
+                result -> IteratorsExtended.single(result.columnAs("c")));
 
         try {
             query.apply("temp",true);
@@ -234,27 +234,27 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10", "2018/10/05", "Alan"), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10", "Data", "2018/10/05","Name", "Alan"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10", "Data", "2018/10/05","Name", "Alan"), row.get("map"));
                     assertTrue( r.hasNext());
                     row = r.next();
                     assertEquals(1L, row.get("lineNo"));
                     assertEquals(asList("2018-09-10", date, "Jack"), row.get("list"));
-                    assertEquals(Util.map("Date", "2018-09-10", "Data",  date,  "Name", "Jack"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018-09-10", "Data",  date,  "Name", "Jack"), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(2L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10 12:10:10", date, date), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10 12:10:10", "Data", date, "Name", date), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10 12:10:10", "Data", date, "Name", date), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(3L, row.get("lineNo"));
                     assertEquals(asList(null, date, time), row.get("list"));
-                    assertEquals(Util.map("Date", null, "Data", date, "Name", time), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", null, "Data", date, "Name", time), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(4L, row.get("lineNo"));
                     assertEquals(asList("2011-01-01T12:00:00.05381+01:00", null, null), row.get("list"));
-                    assertEquals(Util.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
     }
@@ -271,27 +271,27 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10", "2018/10/05", "Alan"), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10", "Data", "2018/10/05", "Name", "Alan"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10", "Data", "2018/10/05", "Name", "Alan"), row.get("map"));
                     assertTrue("Should have another row", r.hasNext());
                     row = r.next();
                     assertEquals(1L, row.get("lineNo"));
                     assertEquals(asList(elementExpected, date, "Jack"), row.get("list"));
-                    assertEquals(Util.map("Date", elementExpected, "Data",  date,  "Name", "Jack"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", elementExpected, "Data",  date,  "Name", "Jack"), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(2L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10 12:10:10", date, date), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10 12:10:10", "Data", date, "Name", date), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10 12:10:10", "Data", date, "Name", date), row.get("map"));
                     assertTrue(r.hasNext());
                     row = r.next();
                     assertEquals(3L, row.get("lineNo"));
                     assertEquals(asList(null, date, time), row.get("list"));
-                    assertEquals(Util.map("Date", null, "Data", date, "Name", time), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", null, "Data", date, "Name", time), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(4L, row.get("lineNo"));
                     assertEquals(asList("2011-01-01T12:00:00.05381+01:00", null, null), row.get("list"));
-                    assertEquals(Util.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
     }
@@ -312,27 +312,27 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10", localDate, "Alan"), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10", "Data", localDate, "Name", "Alan"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10", "Data", localDate, "Name", "Alan"), row.get("map"));
                     assertTrue("Should have another row", r.hasNext());
                     row = r.next();
                     assertEquals(1L, row.get("lineNo"));
                     assertEquals(asList(localDateTimeValue, LocalDate1, "Jack"), row.get("list"));
-                    assertEquals(Util.map("Date", localDateTimeValue, "Data",  LocalDate1,  "Name", "Jack"), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", localDateTimeValue, "Data",  LocalDate1,  "Name", "Jack"), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(2L, row.get("lineNo"));
                     assertEquals(asList("2018/05/10 12:10:10", LocalDate1, localDateTimeValue1), row.get("list"));
-                    assertEquals(Util.map("Date", "2018/05/10 12:10:10", "Data", LocalDate1, "Name", localDateTimeValue1), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2018/05/10 12:10:10", "Data", LocalDate1, "Name", localDateTimeValue1), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(3L, row.get("lineNo"));
                     assertEquals(asList(null, LocalDate1, time), row.get("list"));
-                    assertEquals(Util.map("Date", null, "Data", LocalDate1, "Name", time), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", null, "Data", LocalDate1, "Name", time), row.get("map"));
                     assertTrue("Should have another row",r.hasNext());
                     row = r.next();
                     assertEquals(4L, row.get("lineNo"));
                     assertEquals(asList("2011-01-01T12:00:00.05381+01:00", null, null), row.get("list"));
-                    assertEquals(Util.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", "2011-01-01T12:00:00.05381+01:00", "Data", null, "Name", null), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
     }
@@ -350,12 +350,12 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList(localDateTimeValue), row.get("list"));
-                    assertEquals(Util.map("Date", localDateTimeValue), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", localDateTimeValue), row.get("map"));
                     assertTrue("Should have another row", r.hasNext());
                     row = r.next();
                     assertEquals(1L, row.get("lineNo"));
                     assertEquals(asList(localDateTimeValue1), row.get("list"));
-                    assertEquals(Util.map("Date", localDateTimeValue1), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", localDateTimeValue1), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
     }
@@ -372,7 +372,7 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList(zonedDateTime), row.get("list"));
-                    assertEquals(Util.map("Date", zonedDateTime), row.get("map"));
+                    assertEquals(UtilExtended.map("Date", zonedDateTime), row.get("map"));
                     assertFalse("Should not have another row", r.hasNext());
                 });
     }

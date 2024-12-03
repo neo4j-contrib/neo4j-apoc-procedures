@@ -10,7 +10,7 @@ import static apoc.gephi.GephiMock.Node.node;
 import static apoc.gephi.GephiMock.Relationship.relationship;
 import static apoc.util.TestUtil.registerProcedure;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static org.junit.Assert.assertEquals;
 
 /**

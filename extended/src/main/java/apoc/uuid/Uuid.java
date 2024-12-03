@@ -1,11 +1,11 @@
 package apoc.uuid;
 
-import static apoc.util.Util.quote;
+import static apoc.util.UtilExtended.quote;
 
 import apoc.Extended;
 import apoc.ExtendedApocConfig;
-import apoc.Pools;
-import apoc.util.Util;
+import apoc.PoolsExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
@@ -26,7 +26,7 @@ public class Uuid {
     public GraphDatabaseService db;
 
     @Context
-    public Pools pools;
+    public PoolsExtended pools;
 
     @Context
     public UuidHandler uuidHandler;
@@ -113,10 +113,10 @@ public class Uuid {
 
     }
 
-    public static Map<String, Object> setExistingNodes(GraphDatabaseService db, Pools pools, String label, UuidConfig uuidConfig) {
+    public static Map<String, Object> setExistingNodes(GraphDatabaseService db, PoolsExtended pools, String label, UuidConfig uuidConfig) {
         final String uuidFunctionName = getUuidFunctionName();
 
-        return Util.inTx(db, pools, txInThread -> {
+        return UtilExtended.inTx(db, pools, txInThread -> {
                     String iterate = "MATCH (n:" + sanitizeAndQuote(label) + ") RETURN id(n) AS id";
                     String action = "MATCH (n) WHERE id(n) = id SET n." + sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = " + uuidFunctionName + "()";
                     return txInThread.execute(

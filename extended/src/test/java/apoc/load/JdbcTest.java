@@ -1,10 +1,10 @@
 package apoc.load;
 
 import apoc.periodic.Periodic;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.ExpectedException;
@@ -24,8 +24,8 @@ import java.sql.Types;
 import java.time.ZoneId;
 import java.util.Map;
 
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.MapUtil.map;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
@@ -47,9 +47,9 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Before
     public void setUp() throws Exception {
-        apocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
-        apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
-        apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
+        extendedApocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
+        extendedApocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
+        extendedApocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
         TestUtil.registerProcedure(db,Jdbc.class, Periodic.class);
         createPersonTableAndData();
     }
@@ -102,7 +102,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcSelectColumnNames() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT NAME, HIRE_DATE AS DATE FROM PERSON')",
-                (row) -> assertEquals(Util.map("NAME", "John", "DATE", AbstractJdbcTest.hireDate.toLocalDate()), row.get("row")));
+                (row) -> assertEquals(UtilExtended.map("NAME", "John", "DATE", AbstractJdbcTest.hireDate.toLocalDate()), row.get("row")));
     }
 
     @Test
@@ -121,7 +121,7 @@ public class JdbcTest extends AbstractJdbcTest {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], $config)",
                 map("config", map("timezone", asiaTokio.toString())),
                 (row) -> {
-                    Map<String, Object> expected = MapUtil.map("NAME", "John", "SURNAME", null,
+                    Map<String, Object> expected = MapUtilExtended.map("NAME", "John", "SURNAME", null,
                             "HIRE_DATE", AbstractJdbcTest.hireDate.toLocalDate(),
                             "EFFECTIVE_FROM_DATE", AbstractJdbcTest.effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime().toZonedDateTime(), // todo investigate why by only changing the procedure mode returned class type changes
                             "TEST_TIME", AbstractJdbcTest.time.toLocalTime(),
@@ -182,38 +182,38 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcUpdate() throws Exception {
         testCall(db, "CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET SURNAME = ? WHERE NAME = ?', ['DOE', 'John'])",
-                (row) -> assertEquals(Util.map("count", 1 ), row.get("row")));
+                (row) -> assertEquals(UtilExtended.map("count", 1 ), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcUpdateParams() throws Exception {
         testCall(db, "CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET SURNAME = ? WHERE NAME = ?',['John','John'])",
-                (row) -> assertEquals(Util.map("count", 1 ), row.get("row")));
+                (row) -> assertEquals(UtilExtended.map("count", 1 ), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcWithSpecialCharWithAuthentication() {
-        db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB"));
+        db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})", UtilExtended.map("url","jdbc:derby:derbyDB"));
     }
 
     @Test
     public void testLoadJdbcUpdateParamsUrlWithSpecialCharWithAuthentication() throws Exception {
         testCall(db, "CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})",
-                (row) -> assertEquals(Util.map("count", 1 ), row.get("row")));
+                (row) -> assertEquals(UtilExtended.map("count", 1 ), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcUrlWithSpecialCharWithEmptyUserWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
-        TestUtil.singleResultFirstColumn(db,"CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB"));
+        TestUtil.singleResultFirstColumn(db,"CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'',password:'Ap0c!#Db'}})", UtilExtended.map("url","jdbc:derby:derbyDB"));
     }
 
     @Test
     public void testLoadJdbcUrlWithSpecialCharWithoutUserWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
-        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{password:'Ap0c!#Db'}})", Util.map("url", "jdbc:derby:derbyDB"));
+        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{password:'Ap0c!#Db'}})", UtilExtended.map("url", "jdbc:derby:derbyDB"));
 
     }
 
@@ -237,7 +237,7 @@ public class JdbcTest extends AbstractJdbcTest {
                 "RETURN *";
         testCall(db,
                 query,
-                Util.map("url", "jdbc:derby:derbyDB"),
+                UtilExtended.map("url", "jdbc:derby:derbyDB"),
                 (row) -> {
                     try (Statement stmt = conn.createStatement()) {
                         stmt.execute("select count(*) as size from person");
@@ -252,14 +252,14 @@ public class JdbcTest extends AbstractJdbcTest {
     public void testLoadJdbcUrlWithSpecialCharWithEmptyPasswordWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
-        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:''}})", Util.map("url","jdbc:derby:derbyDB"));
+        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:''}})", UtilExtended.map("url","jdbc:derby:derbyDB"));
     }
 
     @Test
     public void testLoadJdbcUrlWithSpecialCharWithoutPasswordWithAuthentication() throws Exception {
         thrown.expect(QueryExecutionException.class);
         thrown.expectMessage("In config param credentials must be passed both user and password.");
-        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc'}})", Util.map("url","jdbc:derby:derbyDB"));
+        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc'}})", UtilExtended.map("url","jdbc:derby:derbyDB"));
     }
 
     @Test
@@ -267,8 +267,8 @@ public class JdbcTest extends AbstractJdbcTest {
         final String jdbc = "CALL apoc.load.jdbc($url, 'PERSON',[]) YIELD row RETURN row";
         final String create = "CREATE (p:Person) SET p += row";
         testResult(db, "CALL apoc.periodic.iterate($jdbcQuery, $createQuery, {params: $params})",
-                Util.map("params", Util.map("url", "jdbc:derby:derbyDB"), "jdbcQuery", jdbc, "createQuery", create), result -> {
-                    Map<String, Object> row = Iterators.single(result);
+                UtilExtended.map("params", UtilExtended.map("url", "jdbc:derby:derbyDB"), "jdbcQuery", jdbc, "createQuery", create), result -> {
+                    Map<String, Object> row = IteratorsExtended.single(result);
                     assertEquals(1L, row.get("batches"));
                     assertEquals(1L, row.get("total"));
                 });

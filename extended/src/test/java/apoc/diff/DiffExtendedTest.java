@@ -2,7 +2,7 @@ package apoc.diff;
 
 import apoc.create.Create;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -120,7 +120,7 @@ public class DiffExtendedTest {
         Map<String, Object> result = db.executeTransactionally(
                 query,
                 Map.of(),
-                r -> Iterators.single(r.columnAs("diff")));
+                r -> IteratorsExtended.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");
@@ -145,7 +145,7 @@ public class DiffExtendedTest {
 
     private void commonAssertionSameRels(String query) {
         Map<String, Object> result =
-                db.executeTransactionally(query, Map.of(), r -> Iterators.single(r.columnAs("diff")));
+                db.executeTransactionally(query, Map.of(), r -> IteratorsExtended.single(r.columnAs("diff")));
         assertNotNull(result);
 
         HashMap<String, Object> leftOnly = (HashMap<String, Object>) result.get("leftOnly");

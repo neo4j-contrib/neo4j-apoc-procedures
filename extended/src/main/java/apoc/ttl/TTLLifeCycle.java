@@ -1,8 +1,8 @@
 package apoc.ttl;
 
 import apoc.TTLConfig;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -47,7 +47,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
     public void expireNodes(long limit) {
         try {
-            if (!Util.isWriteableInstance(db)) return;
+            if (!UtilExtended.isWriteableInstance(db)) return;
 
             final String matchTTL = "MATCH (t:TTL) WHERE t.ttl < timestamp() ";
             final String queryRels = matchTTL + "WITH t MATCH (t)-[r]-() WITH r LIMIT $limit DELETE r RETURN r";
@@ -73,7 +73,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
      */
     private long deleteEntities(long limit, String query, long deleted) {
         long currDeleted = db.executeTransactionally(query, Map.of("limit", limit),
-                Iterators::count);
+                IteratorsExtended::count);
         
         if (currDeleted > 0) {
             deleted += currDeleted;

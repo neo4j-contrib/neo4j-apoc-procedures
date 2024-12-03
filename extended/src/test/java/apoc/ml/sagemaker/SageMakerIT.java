@@ -2,7 +2,7 @@ package apoc.ml.sagemaker;
 
 import apoc.ml.aws.SageMaker;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
@@ -67,10 +67,10 @@ public class SageMakerIT {
 
     @Before
     public void before() throws Exception {
-        apocConfig().setProperty(APOC_AWS_KEY_ID, keyId);
-        apocConfig().setProperty(APOC_AWS_SECRET_KEY, secretKey);
-        apocConfig().setProperty("apoc.http.timeout.connect", 3_000);
-        apocConfig().setProperty("apoc.http.timeout.read", 3_000);
+        extendedApocConfig().setProperty(APOC_AWS_KEY_ID, keyId);
+        extendedApocConfig().setProperty(APOC_AWS_SECRET_KEY, secretKey);
+        extendedApocConfig().setProperty("apoc.http.timeout.connect", 3_000);
+        extendedApocConfig().setProperty("apoc.http.timeout.read", 3_000);
     }
     
     @Test
@@ -78,7 +78,7 @@ public class SageMakerIT {
         assertEventually(() -> {
             try {
                 return db.executeTransactionally(SAGEMAKER_CUSTOM_PROC, PARAMS, r -> {
-                    Map value = Iterators.single(r.columnAs("value"));
+                    Map value = IteratorsExtended.single(r.columnAs("value"));
                     String generatedText = (String) value.get("generated_text");
                     assertThat(generatedText).contains(BODY);
                     return true;
@@ -99,7 +99,7 @@ public class SageMakerIT {
                                 Map.of(ENDPOINT_NAME_KEY, "Endpoint-Distilbart-xsum-1-1-1",
                                         REGION_CONF_KEY, "us-east-1"
                                 )), r -> {
-                            Map value = Iterators.single(r.columnAs("value"));
+                            Map value = IteratorsExtended.single(r.columnAs("value"));
                             assertTrue(value.get("summary_text") instanceof String);
                             return true;
                         });
@@ -115,7 +115,7 @@ public class SageMakerIT {
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.completion($prompt, $conf)", 
                         Map.of("prompt", BODY, "conf", CONFIG), 
                         r -> {
-                    Map value = Iterators.single(r.columnAs("value"));
+                    Map value = IteratorsExtended.single(r.columnAs("value"));
                     String generatedText = (String) value.get("generated_text");
                     assertThat(generatedText).contains(BODY);
                     return true;

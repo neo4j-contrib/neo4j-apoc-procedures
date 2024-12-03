@@ -2,9 +2,9 @@ package apoc.cypher;
 
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import apoc.util.Utils;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -32,13 +32,13 @@ import java.util.stream.IntStream;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
@@ -61,7 +61,7 @@ public class CypherExtendedTest {
 
     @BeforeClass
     public static void setUp() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, Cypher.class, CypherExtended.class, Utils.class, CypherFunctions.class, Timeboxed.class, Strings.class);
     }
 
@@ -98,7 +98,7 @@ public class CypherExtendedTest {
                         "CALL apoc.cypher.parallel2('RETURN a.name + $t as title', {a: people, t: $suffix}, 'a')\n" +
                         " YIELD value RETURN value.title as title", map("suffix", suffix),
                 r -> {
-                    final Set<String> actual = Iterators.asSet(r.columnAs("title"));
+                    final Set<String> actual = IteratorsExtended.asSet(r.columnAs("title"));
                     assertEquals(expected, actual);
                 });
         
@@ -106,7 +106,7 @@ public class CypherExtendedTest {
                 "CALL apoc.cypher.parallel('RETURN a.name + $t as title',{a: people, t: $suffix},'a')\n" +
                         " yield value RETURN value.title as title", map("suffix", suffix),
                 r -> {
-                    final Set<String> actual = Iterators.asSet(r.columnAs("title"));
+                    final Set<String> actual = IteratorsExtended.asSet(r.columnAs("title"));
                     assertEquals(expected, actual);
                 });
     }
@@ -115,20 +115,20 @@ public class CypherExtendedTest {
     public void testParallel() throws Exception {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.parallel('UNWIND range(0,9) as b RETURN b',{a:range(1,$size)},'a')", map("size", size),
-                r -> assertEquals( size * 10,Iterators.count(r) ));
+                r -> assertEquals( size * 10, IteratorsExtended.count(r) ));
     }
 
     @Test
     public void testMapParallel() throws Exception {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,$size))", map("size", size),
-                r -> assertEquals( size * 10,Iterators.count(r) ));
+                r -> assertEquals( size * 10, IteratorsExtended.count(r) ));
     }
     @Test @Ignore("flaky")
     public void testMapParallel2() throws Exception {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,$size),10)", map("size", size),
-                r -> assertEquals( size * 10,Iterators.count(r) ));
+                r -> assertEquals( size * 10, IteratorsExtended.count(r) ));
     }
     @Test
     public void testParallel2() throws Exception {
@@ -142,7 +142,7 @@ public class CypherExtendedTest {
     }
 
     private long toLong(Object value) {
-    	return Util.toLong(value);
+    	return UtilExtended.toLong(value);
     }
 
     @Test
@@ -257,7 +257,7 @@ public class CypherExtendedTest {
                     "CALL apoc.cypher.mapParallel2(\"MATCH (_)-[:Link]->(p1)<-[:Link]-(p2)\n" +
                     "RETURN  p2.title as title\", {}, pages, 1) yield value\n" +
                     "RETURN value.title limit 5",
-                r -> assertEquals(5, Iterators.count(r)));
+                r -> assertEquals(5, IteratorsExtended.count(r)));
     }
 
     @Test
@@ -726,7 +726,7 @@ public class CypherExtendedTest {
 
         testResult(db, cypher,
                 result -> {
-                    Map<String, Object> single = Iterators.single(result);
+                    Map<String, Object> single = IteratorsExtended.single(result);
                     assertEquals(50l, single.get("total"));
                 });
 

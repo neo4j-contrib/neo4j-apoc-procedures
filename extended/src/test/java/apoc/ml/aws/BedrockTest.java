@@ -1,7 +1,7 @@
 package apoc.ml.aws;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.AfterClass;
@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ml.MLUtil.*;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.ml.aws.BedrockTestUtil.*;
@@ -56,7 +56,7 @@ public class BedrockTest {
     @BeforeClass
     public static void startServer() {
         TestUtil.registerProcedure(db, Bedrock.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 
         mockServer = startClientAndServer(PORT);
 
@@ -125,7 +125,7 @@ public class BedrockTest {
         testResult(db, "call apoc.ml.bedrock.list($conf)", 
                 getParams(Map.of(), LIST_MODELS_JSON),
                 r -> {
-                    List<Map<String, Object>> rows = Iterators.asList(r);
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(r);
                     assertEquals(2, rows.size());
                     r.forEachRemaining(row -> {
                         String modelArn = (String) row.get("modelArn");

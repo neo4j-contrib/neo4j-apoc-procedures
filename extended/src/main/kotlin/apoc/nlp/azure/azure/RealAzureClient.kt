@@ -1,7 +1,7 @@
 package apoc.nlp.azure
 
 import apoc.result.NodeWithMapResult
-import apoc.util.JsonUtil
+import apoc.util.JsonUtilExtended
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 import java.io.DataOutputStream
@@ -43,10 +43,10 @@ class RealAzureClient(private val baseUrl: String, private val key: String, priv
         connection.doOutput = true
 
         connection.setRequestProperty("Content-Type", "application/json")
-        DataOutputStream(connection.outputStream).use { it.write(JsonUtil.writeValueAsBytes(mapOf("documents" to convertInput(data)))) }
+        DataOutputStream(connection.outputStream).use { it.write(JsonUtilExtended.writeValueAsBytes(mapOf("documents" to convertInput(data)))) }
 
         return connection.inputStream
-                .use { JsonUtil.OBJECT_MAPPER.readValue(it, Any::class.java) }
+                .use { JsonUtilExtended.OBJECT_MAPPER.readValue(it, Any::class.java) }
                 .let { result ->
                     val documents = (result as Map<String, Any?>)["documents"] as List<Map<String, Any?>>
                     documents.map { it as Map<String, Any> }

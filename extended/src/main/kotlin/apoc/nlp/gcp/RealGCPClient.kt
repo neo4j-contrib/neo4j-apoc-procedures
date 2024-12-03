@@ -1,7 +1,7 @@
 package apoc.nlp.gcp
 
 import apoc.result.NodeValueErrorMapResult
-import apoc.util.JsonUtil
+import apoc.util.JsonUtilExtended
 import org.neo4j.graphdb.Node
 import org.neo4j.logging.Log
 import java.io.DataOutputStream
@@ -21,7 +21,7 @@ class RealGCPClient(config: Map<String, Any>, private val log: Log) : GCPClient 
     private val nodeProperty = config.getOrDefault("nodeProperty", "text").toString()
 
     companion object {
-        @JvmStatic val MAPPER = JsonUtil.OBJECT_MAPPER!!
+        @JvmStatic val MAPPER = JsonUtilExtended.OBJECT_MAPPER!!
     }
 
     private fun postData(method: String, data: String): Map<String, Any?> {

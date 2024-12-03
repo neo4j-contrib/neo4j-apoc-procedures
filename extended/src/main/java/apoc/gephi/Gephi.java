@@ -1,12 +1,12 @@
 package apoc.gephi;
 
 import apoc.Extended;
-import apoc.graph.GraphsUtils;
-import apoc.result.ExportProgressInfo;
+import apoc.graph.GraphsUtilsExtended;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.util.ExtendedUtil;
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import apoc.util.UrlResolver;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.graphdb.Entity;
@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 
 /**
  * @author mh
@@ -42,7 +42,7 @@ public class Gephi {
     }
 
     public static double doubleValue(Entity pc, String prop, Number defaultValue) {
-       return Util.toDouble(pc.getProperty(prop, defaultValue));
+       return UtilExtended.toDouble(pc.getProperty(prop, defaultValue));
 
     }
 
@@ -52,18 +52,18 @@ public class Gephi {
     // TODO configure property-filters or transfer all properties
     @Procedure
     @Description("apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams passed in data to Gephi")
-    public Stream<ExportProgressInfo> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data, @Name(value = "weightproperty",defaultValue = "null") String weightproperty, @Name(value = "exportproperties",defaultValue = "[]") List<String> exportproperties) {
+    public Stream<ExportProgressInfoExtended> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data, @Name(value = "weightproperty",defaultValue = "null") String weightproperty, @Name(value = "exportproperties",defaultValue = "[]") List<String> exportproperties) {
         if (workspace == null) workspace = "workspace0";
-        String url = getGephiUrl(keyOrUrl)+"/"+Util.encodeUrlComponent(workspace)+"?operation=updateGraph";
+        String url = getGephiUrl(keyOrUrl)+"/"+ UtilExtended.encodeUrlComponent(workspace)+"?operation=updateGraph";
         long start = System.currentTimeMillis();
         HashSet<Node> nodes = new HashSet<>(1000);
         HashSet<Relationship> rels = new HashSet<>(10000);
         List<String> propertyNames = new ArrayList<>(exportproperties);
         propertyNames.removeAll(RESERVED);
-        if (GraphsUtils.extract(data, nodes, rels)) {
+        if (GraphsUtilsExtended.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
-            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload, "", true, null, null, urlAccessChecker).count();
-            return Stream.of(new ExportProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
+            JsonUtilExtended.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload, "", true, null, null, urlAccessChecker).count();
+            return Stream.of(new ExportProgressInfoExtended(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
     }
@@ -74,13 +74,13 @@ public class Gephi {
 
     private Stream<String> toGraphStream(Collection<? extends Entity> source, String operation,String weightproperty, String[] exportproperties) {
         Map<String,Map<String,Object>> colors=new HashMap<>();
-        return source.stream().map(n -> map(operation, data(n,colors,weightproperty, exportproperties))).map(Util::toJson);
+        return source.stream().map(n -> map(operation, data(n,colors,weightproperty, exportproperties))).map(UtilExtended::toJson);
     }
 
     private Map<String, Object> data(Entity pc, Map<String, Map<String, Object>> colors, String weightproperty, String[] exportproperties) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
-            String labels = Util.labelString(n);
+            String labels = UtilExtended.labelString(n);
             Map<String, Object> attributes = map("label", caption(n), "TYPE", labels);
             attributes.putAll(positions());
             attributes.putAll(color(labels,colors));

@@ -8,7 +8,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.load.LoadCsvTest.assertRow;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;

@@ -18,7 +18,7 @@
  */
 package apoc.export.arrow;
 
-import apoc.Pools;
+import apoc.PoolsExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService;
 public class ExportResultStreamStrategy implements ExportArrowStreamStrategy<Result>, ExportResultStrategy {
 
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
 
@@ -44,7 +44,7 @@ public class ExportResultStreamStrategy implements ExportArrowStreamStrategy<Res
     private Schema schema;
 
     public ExportResultStreamStrategy(
-            GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+            GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger) {
         this.db = db;
         this.pools = pools;
         this.terminationGuard = terminationGuard;

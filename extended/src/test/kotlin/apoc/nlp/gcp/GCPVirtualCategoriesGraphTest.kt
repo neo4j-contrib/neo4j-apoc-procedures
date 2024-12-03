@@ -3,7 +3,7 @@ package apoc.nlp.gcp
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -20,7 +20,8 @@ class GCPVirtualCategoriesGraphTest {
 
     @Test
     fun `create virtual graph from result with one category`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 NodeValueErrorMapResult(null, mapOf("categories" to listOf(
@@ -41,12 +42,14 @@ class GCPVirtualCategoriesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(labels.toTypedArray(), properties), RELATIONSHIP_TYPE.name(), mapOf("score" to 0.75))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode,
+            VirtualNodeExtended(labels.toTypedArray(), properties), RELATIONSHIP_TYPE.name(), mapOf("score" to 0.75))))
     }
 
     @Test
     fun `create virtual graph from result with multiple categories`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 NodeValueErrorMapResult(null, mapOf("categories" to listOf(
@@ -61,8 +64,12 @@ class GCPVirtualCategoriesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val publicHealthNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Health/Public Health"))
-        val medicalNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Health/Medical Facilities & Services"))
+        val publicHealthNode =
+            VirtualNodeExtended(arrayOf(LABEL), mapOf("text" to "/Health/Public Health"))
+        val medicalNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Health/Medical Facilities & Services")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(publicHealthNode.labels.toList(), publicHealthNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(medicalNode.labels.toList(), medicalNode.allProperties)))
@@ -76,7 +83,8 @@ class GCPVirtualCategoriesGraphTest {
 
     @Test
     fun `create virtual graph from result with duplicate entities`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 NodeValueErrorMapResult(null, mapOf("categories" to listOf(
@@ -91,7 +99,8 @@ class GCPVirtualCategoriesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val publicHealthNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Health/Public Health"))
+        val publicHealthNode =
+            VirtualNodeExtended(arrayOf(LABEL), mapOf("text" to "/Health/Public Health"))
 
         assertThat(nodes, hasItem(NodeMatcher(publicHealthNode.labels.toList(), publicHealthNode.allProperties)))
 
@@ -103,8 +112,10 @@ class GCPVirtualCategoriesGraphTest {
 
     @Test
     fun `create virtual graph from result with multiple source nodes`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 NodeValueErrorMapResult(null, mapOf("categories" to listOf(
@@ -124,10 +135,22 @@ class GCPVirtualCategoriesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val outdoorsNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Outdoors"))
-        val paintballNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Paintball"))
-        val musicNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio"))
-        val classicalNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music"))
+        val outdoorsNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Outdoors")
+        )
+        val paintballNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Paintball")
+        )
+        val musicNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio")
+        )
+        val classicalNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(outdoorsNode.labels.toList(), outdoorsNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(paintballNode.labels.toList(), paintballNode.allProperties)))
@@ -158,8 +181,10 @@ class GCPVirtualCategoriesGraphTest {
                 )), mapOf())
         )
 
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.0).create()
 
@@ -168,10 +193,22 @@ class GCPVirtualCategoriesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val outdoorsNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Outdoors"))
-        val paintballNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Paintball"))
-        val musicNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio"))
-        val classicalNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music"))
+        val outdoorsNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Outdoors")
+        )
+        val paintballNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Paintball")
+        )
+        val musicNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio")
+        )
+        val classicalNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(outdoorsNode.labels.toList(), outdoorsNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(paintballNode.labels.toList(), paintballNode.allProperties)))
@@ -204,8 +241,10 @@ class GCPVirtualCategoriesGraphTest {
                 )), mapOf())
         )
 
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = GCPVirtualClassificationGraph(res, listOf(sourceNode1, sourceNode2), RELATIONSHIP_TYPE,RELATIONSHIP_PROPERTY, 0.75).create()
 
@@ -214,10 +253,22 @@ class GCPVirtualCategoriesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val outdoorsNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Outdoors"))
-        val paintballNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Hobbies & Leisure/Paintball"))
-        val musicNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio"))
-        val classicalNode = VirtualNode(arrayOf(LABEL), mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music"))
+        val outdoorsNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Outdoors")
+        )
+        val paintballNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Hobbies & Leisure/Paintball")
+        )
+        val musicNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio")
+        )
+        val classicalNode = VirtualNodeExtended(
+            arrayOf(LABEL),
+            mapOf("text" to "/Arts & Entertainment/Music & Audio/Classical Music")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(outdoorsNode.labels.toList(), outdoorsNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(paintballNode.labels.toList(), paintballNode.allProperties)))

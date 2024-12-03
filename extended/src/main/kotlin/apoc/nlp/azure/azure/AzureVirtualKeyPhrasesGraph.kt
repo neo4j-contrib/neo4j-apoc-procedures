@@ -1,10 +1,10 @@
 package apoc.nlp.azure
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.DocumentToGraphExtended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap
 
@@ -16,7 +16,7 @@ data class AzureVirtualKeyPhrasesGraph(private val results: List<Map<String, Any
         val LABEL = Label { "KeyPhrase" }
     }
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -26,9 +26,10 @@ data class AzureVirtualKeyPhrasesGraph(private val results: List<Map<String, Any
         sourceNodes.forEach { sourceNode ->
             val document = extractDocument(sourceNode) as List<String>
             val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
-            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+            val virtualNode =
+                VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
 
-            val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
+            val documentToNodes = DocumentToGraphExtended.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
@@ -48,7 +49,7 @@ data class AzureVirtualKeyPhrasesGraph(private val results: List<Map<String, Any
                     entityNode.setProperty("text", item)
                     entityNodes.add(entityNode)
 
-                    DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
+                    apoc.graph.DocumentToGraphExtended.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                     relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, entityNode, relType))
 
@@ -62,7 +63,7 @@ data class AzureVirtualKeyPhrasesGraph(private val results: List<Map<String, Any
             allRelationships.addAll(relationships)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 
     private fun labels() = arrayOf(LABEL)

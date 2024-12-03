@@ -1,9 +1,8 @@
 package apoc.custom;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
 import apoc.util.SystemDbUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
@@ -29,8 +28,8 @@ import static apoc.ExtendedSystemPropertyKeys.mode;
 import static apoc.ExtendedSystemPropertyKeys.output;
 import static apoc.ExtendedSystemPropertyKeys.outputs;
 import static apoc.ExtendedSystemPropertyKeys.prefix;
-import static apoc.SystemPropertyKeys.database;
-import static apoc.SystemPropertyKeys.name;
+import static apoc.ExtendedSystemPropertyKeys.database;
+import static apoc.ExtendedSystemPropertyKeys.name;
 import static apoc.custom.CypherProceduresUtil.qualifiedName;
 import static apoc.util.SystemDbUtil.getSystemNodes;
 import static apoc.util.SystemDbUtil.withSystemDb;
@@ -40,13 +39,13 @@ public class CypherHandlerNewProcedure {
 
     public static void installProcedure(String databaseName, ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, ApocCypherProcedures, Procedure,
+            Node node = UtilExtended.mergeNode(tx, ApocCypherProcedures, Procedure,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),
                     Pair.of(prefix.name(), signature.name().namespace())
             );
             node.setProperty(description.name(), signature.description().orElse(null));
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(ExtendedSystemPropertyKeys.statement.name(), statement);
             node.setProperty(inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(mode.name(), signature.mode().name());
@@ -57,13 +56,13 @@ public class CypherHandlerNewProcedure {
 
     public static void installFunction(String databaseName, UserFunctionSignature signature, String statement, boolean forceSingle) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, ApocCypherProcedures, Function,
+            Node node = UtilExtended.mergeNode(tx, ApocCypherProcedures, Function,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),
                     Pair.of(prefix.name(), signature.name().namespace())
             );
             node.setProperty(description.name(), signature.description().orElse(null));
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(ExtendedSystemPropertyKeys.statement.name(), statement);
             node.setProperty(inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(output.name(), signature.outputType().toString());
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
@@ -105,7 +104,7 @@ public class CypherHandlerNewProcedure {
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
             getCustomNodes(databaseName, tx,
-                    Map.of(SystemPropertyKeys.name.name(), qName.name(),
+                    Map.of(ExtendedSystemPropertyKeys.name.name(), qName.name(),
                             prefix.name(), qName.namespace())
             )
                     .stream()
@@ -120,8 +119,8 @@ public class CypherHandlerNewProcedure {
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
             getCustomNodes(databaseName, tx,
-                    Map.of(SystemPropertyKeys.database.name(), databaseName,
-                            SystemPropertyKeys.name.name(), qName.name(),
+                    Map.of(ExtendedSystemPropertyKeys.database.name(), databaseName,
+                            ExtendedSystemPropertyKeys.name.name(), qName.name(),
                             prefix.name(), qName.namespace())
             ).stream().filter(n -> n.hasLabel(Procedure)).forEach(node -> {
                 node.delete();
@@ -147,7 +146,7 @@ public class CypherHandlerNewProcedure {
             fs.defaultValue().map(defVal -> map.put("default", defVal.value()));
             return map;
         }).collect(Collectors.toList());
-        return Util.toJson(mapped);
+        return UtilExtended.toJson(mapped);
     }
 
     private static void setLastUpdate(Transaction tx, String databaseName) {

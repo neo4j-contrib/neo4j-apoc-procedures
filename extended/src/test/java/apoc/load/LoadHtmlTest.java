@@ -20,14 +20,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.load.LoadHtml.INVALID_CONFIG_ERR;
 import static apoc.load.LoadHtml.KEY_ERROR;
 import static apoc.load.LoadHtml.UNSUPPORTED_CHARSET_ERR;
 import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LIST;
 import static apoc.load.LoadHtmlConfig.FailSilently.WITH_LOG;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -79,7 +79,7 @@ public class LoadHtmlTest {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, LoadHtml.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @AfterAll

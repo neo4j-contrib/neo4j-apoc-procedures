@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ml.MLUtil.*;
 import static apoc.ml.aws.AWSConfig.HEADERS_KEY;
 import static apoc.util.TestUtil.getUrlFileName;
@@ -49,7 +49,7 @@ public class SageMakerTest {
     @BeforeClass
     public static void startServer() {
         TestUtil.registerProcedure(db, SageMaker.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
 
         mockServer = startClientAndServer(PORT);
 

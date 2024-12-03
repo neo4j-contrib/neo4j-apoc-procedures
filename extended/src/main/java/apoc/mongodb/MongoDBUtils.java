@@ -1,7 +1,7 @@
 package apoc.mongodb;
 
-import apoc.util.JsonUtil;
-import apoc.util.MissingDependencyException;
+import apoc.util.JsonUtilExtended;
+import apoc.util.MissingDependencyExceptionExtended;
 import org.bson.Document;
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class MongoDBUtils {
         }
         String json = query instanceof String
                 ? (String) query
-                : JsonUtil.writeValueAsString(query);
+                : JsonUtilExtended.writeValueAsString(query);
         
         json = adaptLegacyDocuments(json);
         
@@ -48,7 +48,7 @@ public class MongoDBUtils {
         try {
             return new MongoDbConfig(config);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(MONGO_MISSING_DEPS_ERROR);
+            throw new MissingDependencyExceptionExtended(MONGO_MISSING_DEPS_ERROR);
         }
     }
 }

@@ -1,7 +1,7 @@
 package apoc.ml;
 
 
-import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 
 import java.util.Collection;
 import java.util.Map;
@@ -27,7 +27,7 @@ public abstract class VertexAIHandler {
     
     public abstract String getJsonPath();
     
-    public String getFullUrl(Map<String, Object> configuration, ApocConfig apocConfig, String defaultModel, String project) {
+    public String getFullUrl(Map<String, Object> configuration, ExtendedApocConfig apocConfig, String defaultModel, String project) {
         String model = configuration.getOrDefault(MODEL_CONF_KEY, defaultModel).toString();
         String region = configuration.getOrDefault("region", DEFAULT_REGION).toString();
         String resource = configuration.getOrDefault(RESOURCE_CONF_KEY, getDefaultResource()).toString();
@@ -43,7 +43,7 @@ public abstract class VertexAIHandler {
                 .replace("{resource}", resource);
     }
 
-    private String getUrlTemplate(Map<String, Object> procConfig, ApocConfig apocConfig) {
+    private String getUrlTemplate(Map<String, Object> procConfig, ExtendedApocConfig apocConfig) {
         return (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
                 apocConfig.getString(APOC_ML_VERTEXAI_URL, System.getProperty(APOC_ML_VERTEXAI_URL, DEFAULT_BASE_URL)));
     }

@@ -2,7 +2,7 @@ package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -13,7 +13,8 @@ import org.neo4j.graphdb.RelationshipType
 class AzureVirtualKeyPhrasesGraphTest {
     @Test
     fun `create virtual graph from result with one key phrase`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("foo")
@@ -32,12 +33,14 @@ class AzureVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "KEY_PHRASE")))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode,
+            VirtualNodeExtended(barLabels.toTypedArray(), barProperties), "KEY_PHRASE")))
     }
 
     @Test
     fun `create virtual graph from result with multiple key phrases`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook"))
@@ -49,8 +52,14 @@ class AzureVirtualKeyPhrasesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -64,7 +73,8 @@ class AzureVirtualKeyPhrasesGraphTest {
 
     @Test
     fun `create virtual graph from result with duplicate entities`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "keyPhrases" to listOf("The Matrix", "The Matrix"))
@@ -76,7 +86,10 @@ class AzureVirtualKeyPhrasesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
 
@@ -88,8 +101,10 @@ class AzureVirtualKeyPhrasesGraphTest {
 
     @Test
     fun `create virtual graph from result with multiple source nodes`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 mapOf("id" to sourceNode1.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook")),
@@ -103,10 +118,22 @@ class AzureVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf( Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val toyStoryNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Toy Story"))
-        val titanicNode = VirtualNode(arrayOf( Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
+        val toyStoryNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Toy Story")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Titanic")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -125,8 +152,10 @@ class AzureVirtualKeyPhrasesGraphTest {
 
     @Test
     fun `create virtual graph from result with multiple source nodes with overlapping entities`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 mapOf("id" to sourceNode1.id.toString(), "keyPhrases" to listOf("The Matrix", "The Notebook")),
@@ -139,10 +168,22 @@ class AzureVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
-        val topBoyNode = VirtualNode(arrayOf( Label{"KeyPhrase"}), mapOf("text" to "Top Boy"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Titanic")
+        )
+        val topBoyNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Top Boy")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

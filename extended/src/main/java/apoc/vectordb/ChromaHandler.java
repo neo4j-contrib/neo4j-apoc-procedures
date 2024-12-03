@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 
 public class ChromaHandler implements VectorDbHandler {
     @Override

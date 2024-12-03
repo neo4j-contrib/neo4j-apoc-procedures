@@ -2,23 +2,19 @@ rootProject.name = 'apoc'
 
 include("extended")
 include ("extended-it")
-include ':core', ':common', ':processor', ':test-utils'
+include ':core', ':processor', ':test-utils'
 project(':core').projectDir = new File(rootDir, 'apoc-core/core')
-project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
 
 startParameter.excludedTaskNames = [
         ':core:build',
-        ':common:build',
         ':processor:build',
         ':test-utils:build',
         ':core:test',
-        ':common:test',
         ':processor:test',
         ':test-utils:test',
         ':core:publish',
-        ':common:publish',
         ':test-utils:publish',
         // the :core:shadowJar should be used only for integration tests with both core and extended jars
         // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.agg.Rollup.NULL_ROLLUP;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 
 public class RollupTestUtil {
     public static final String CATEGORY_ID = "CategoryID";

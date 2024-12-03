@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static apoc.mongodb.MongoDBColl.ERROR_MESSAGE;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;

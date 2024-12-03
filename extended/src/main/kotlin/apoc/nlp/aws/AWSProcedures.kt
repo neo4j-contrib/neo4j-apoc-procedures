@@ -8,8 +8,8 @@ import apoc.nlp.NLPHelperFunctions.partition
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeWithMapResult
-import apoc.result.VirtualGraph
-import apoc.util.JsonUtil
+import apoc.result.VirtualGraphExtended
+import apoc.util.JsonUtilExtended
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
@@ -53,7 +53,7 @@ class AWSProcedures {
     @Procedure(value = "apoc.nlp.aws.entities.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) entity graph for provided text")
     fun entitiesGraph(@Name("source") source: Any,
-                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -95,7 +95,7 @@ class AWSProcedures {
     @Procedure(value = "apoc.nlp.aws.keyPhrases.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) key phrases graph for provided text")
     fun keyPhrasesGraph(@Name("source") source: Any,
-                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -137,7 +137,7 @@ class AWSProcedures {
     @Procedure(value = "apoc.nlp.aws.sentiment.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) sentiment graph for provided text")
     fun sentimentGraph(@Name("source") source: Any,
-                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -163,7 +163,7 @@ class AWSProcedures {
         fun transformResults(index: Int, node: Node, res: BatchDetectEntitiesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
-                NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
+                NodeWithMapResult.withResult(node, JsonUtilExtended.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
             } else {
                 val err = res.errorList.find { error -> error.index == index }
                 NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
@@ -173,7 +173,7 @@ class AWSProcedures {
         fun transformResults(index: Int, node: Node, res: BatchDetectKeyPhrasesResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
-                NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
+                NodeWithMapResult.withResult(node, JsonUtilExtended.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
             } else {
                 val err = res.errorList.find { error -> error.index == index }
                 NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))
@@ -183,7 +183,7 @@ class AWSProcedures {
         fun transformResults(index: Int, node: Node, res: BatchDetectSentimentResult): NodeWithMapResult {
             val result = res.resultList.find { result -> result.index == index }
             return if (result != null) {
-                NodeWithMapResult.withResult(node, JsonUtil.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
+                NodeWithMapResult.withResult(node, JsonUtilExtended.OBJECT_MAPPER!!.convertValue(result, Map::class.java) as Map<String, Any?>)
             } else {
                 val err = res.errorList.find { error -> error.index == index }
                 NodeWithMapResult.withError(node, mapOf("code" to err?.errorCode, "message" to err?.errorMessage))

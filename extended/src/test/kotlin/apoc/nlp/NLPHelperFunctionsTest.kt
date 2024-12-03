@@ -1,6 +1,6 @@
 package apoc.nlp
 
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -8,18 +8,43 @@ class NLPHelperFunctionsTest {
     @Test
     fun `should partition sources`() {
         assertEquals(
-                listOf(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3)), listOf(VirtualNode(4))),
-                NLPHelperFunctions.partition(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3), VirtualNode(4)), 3)
+                listOf(listOf(
+                    VirtualNodeExtended(1),
+                    VirtualNodeExtended(2),
+                    VirtualNodeExtended(3)
+                ), listOf(VirtualNodeExtended(4))),
+                NLPHelperFunctions.partition(listOf(
+                    VirtualNodeExtended(1),
+                    VirtualNodeExtended(2),
+                    VirtualNodeExtended(3),
+                    VirtualNodeExtended(4)
+                ), 3)
         )
 
         assertEquals(
-                listOf(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3))),
-                NLPHelperFunctions.partition(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3)), 3)
+                listOf(listOf(
+                    VirtualNodeExtended(1),
+                    VirtualNodeExtended(2),
+                    VirtualNodeExtended(3)
+                )),
+                NLPHelperFunctions.partition(listOf(
+                    VirtualNodeExtended(1),
+                    VirtualNodeExtended(2),
+                    VirtualNodeExtended(3)
+                ), 3)
         )
 
         assertEquals(
-                listOf(listOf(VirtualNode(1)), listOf(VirtualNode(2)), listOf(VirtualNode(3))),
-                NLPHelperFunctions.partition(listOf(VirtualNode(1), VirtualNode(2), VirtualNode(3)), 1)
+                listOf(listOf(VirtualNodeExtended(1)), listOf(
+                    VirtualNodeExtended(
+                        2
+                    )
+                ), listOf(VirtualNodeExtended(3))),
+                NLPHelperFunctions.partition(listOf(
+                    VirtualNodeExtended(1),
+                    VirtualNodeExtended(2),
+                    VirtualNodeExtended(3)
+                ), 1)
         )
     }
 

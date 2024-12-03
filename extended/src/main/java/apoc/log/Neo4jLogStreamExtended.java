@@ -19,7 +19,7 @@
 package apoc.log;
 
 import apoc.Extended;
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import org.neo4j.kernel.api.QueryLanguage;
 import org.neo4j.kernel.api.procedure.QueryLanguageScope;
 import org.neo4j.procedure.Admin;
@@ -78,7 +78,7 @@ public class Neo4jLogStreamExtended {
             @Name(value = "config", defaultValue = "{}", description = "{ last :: INTEGER }")
                     Map<String, Object> config) {
 
-        File logDir = FileUtils.getLogDirectory();
+        File logDir = FileUtilsExtended.getLogDirectory();
 
         if (logDir == null) {
             throw new RuntimeException("Neo4j configured server.directories.logs points to a directory that "

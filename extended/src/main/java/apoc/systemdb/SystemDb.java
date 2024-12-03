@@ -1,19 +1,19 @@
 package apoc.systemdb;
 
-import apoc.ApocConfig;
 import apoc.Description;
 import apoc.Extended;
-import apoc.export.cypher.ExportFileManager;
-import apoc.export.cypher.FileManagerFactory;
-import apoc.export.util.ExportConfig;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.result.ProgressInfo;
-import apoc.result.RowResult;
-import apoc.result.VirtualNode;
-import apoc.result.VirtualRelationship;
+import apoc.ExtendedApocConfig;
+import apoc.export.cypher.ExportFileManagerExtended;
+import apoc.export.cypher.FileManagerFactoryExtended;
+import apoc.export.util.ExportConfigExtended;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.result.ProgressInfoExtended;
+import apoc.result.RowResultExtended;
+import apoc.result.VirtualNodeExtended;
+import apoc.result.VirtualRelationshipExtended;
 import apoc.systemdb.metadata.ExportMetadata;
-import apoc.util.collection.Iterables;
+import apoc.util.collection.IterablesExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -45,7 +45,7 @@ public class SystemDb {
     public static final String USER_SENSITIVE_PROP = "credentials";
 
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
 
     @Context
     public GraphDatabaseService db;
@@ -63,14 +63,14 @@ public class SystemDb {
     @Admin
     @Procedure(name = "apoc.systemdb.export.metadata")
     @Description("apoc.systemdb.export.metadata($conf) - export the apoc feature saved in system db (that is: customProcedures, triggers, uuids, and dvCatalogs) in multiple files called <FILE_NAME>.<FEATURE_NAME>.<DB_NAME>.cypher")
-    public Stream<ExportProgressInfo> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<ExportProgressInfoExtended> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         final SystemDbConfig conf = new SystemDbConfig(config);
         final String fileName = conf.getFileName();
         apocConfig.checkWriteAllowed(null, fileName);
 
-        ProgressInfo progressInfo = new ExportProgressInfo(fileName, null, "cypher");
-        ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true, ExportConfig.EMPTY);
+        ProgressInfoExtended progressInfo = new ExportProgressInfoExtended(fileName, null, "cypher");
+        ProgressReporterExtended progressReporter = new ProgressReporterExtended(null, null, progressInfo);
+        ExportFileManagerExtended cypherFileManager = FileManagerFactoryExtended.createFileManager(fileName + ".cypher", true, ExportConfigExtended.EMPTY);
         withSystemDbTransaction(tx -> {
             tx.getAllNodes()
                     .stream()
@@ -93,7 +93,7 @@ public class SystemDb {
         });
 
         progressReporter.done();
-        return Stream.of((ExportProgressInfo) progressReporter.getTotal());
+        return Stream.of((ExportProgressInfoExtended) progressReporter.getTotal());
     }
 
     @Admin
@@ -106,23 +106,23 @@ public class SystemDb {
                 props.keySet()
                         .removeAll(Set.of(REMOTE_SENSITIVE_PROP, USER_SENSITIVE_PROP));
                 
-                virtualNodes.put(-node.getId(), new VirtualNode(-node.getId(), Iterables.asArray(Label.class, node.getLabels()), props));
+                virtualNodes.put(-node.getId(), new VirtualNodeExtended(-node.getId(), IterablesExtended.asArray(Label.class, node.getLabels()), props));
             }
 
-            List<Relationship> relationships = tx.getAllRelationships().stream().map(rel -> new VirtualRelationship(
+            List<Relationship> relationships = tx.getAllRelationships().stream().map(rel -> new VirtualRelationshipExtended(
                     -rel.getId(),
                     virtualNodes.get(-rel.getStartNodeId()),
                     virtualNodes.get(-rel.getEndNodeId()),
                     rel.getType(),
                     rel.getAllProperties())).collect(Collectors.toList()
             );
-            return Stream.of(new NodesAndRelationshipsResult(Iterables.asList(virtualNodes.values()), relationships) );
+            return Stream.of(new NodesAndRelationshipsResult(IterablesExtended.asList(virtualNodes.values()), relationships) );
         });
     }
 
     @Admin
     @Procedure
-    public Stream<RowResult> execute(@Name("DDL commands, either a string or a list of strings") Object ddlStringOrList, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
+    public Stream<RowResultExtended> execute(@Name("DDL commands, either a string or a list of strings") Object ddlStringOrList, @Name(value="params", defaultValue = "{}") Map<String ,Object> params) {
         List<String> commands;
         if (ddlStringOrList instanceof String) {
             commands = Collections.singletonList((String)ddlStringOrList);
@@ -133,7 +133,7 @@ public class SystemDb {
         }
 
         Transaction tx = apocConfig.getSystemDb().beginTx();  // we can't use try-with-resources otherwise tx gets closed too early
-        return commands.stream().flatMap(command -> tx.execute(command, params).stream().map(RowResult::new)).onClose(() -> {
+        return commands.stream().flatMap(command -> tx.execute(command, params).stream().map(RowResultExtended::new)).onClose(() -> {
             boolean isOpen = ((TransactionImpl) tx).isOpen(); // no other way to check if a tx is still open
             if (isOpen) {
                 tx.commit();

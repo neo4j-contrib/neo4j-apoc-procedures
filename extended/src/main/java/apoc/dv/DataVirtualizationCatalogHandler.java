@@ -2,9 +2,8 @@ package apoc.dv;
 
 import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.util.JsonUtilExtended;
+import apoc.util.UtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -41,10 +40,10 @@ public class DataVirtualizationCatalogHandler {
 
     public VirtualizedResource add(VirtualizedResource vr) {
         return withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, ExtendedSystemLabels.DataVirtualizationCatalog, null,
-                    Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), vr.name));
-            node.setProperty( ExtendedSystemPropertyKeys.data.name(), JsonUtil.writeValueAsString(vr));
+            Node node = UtilExtended.mergeNode(tx, ExtendedSystemLabels.DataVirtualizationCatalog, null,
+                    Pair.of(ExtendedSystemPropertyKeys.database.name(), db.databaseName()),
+                    Pair.of(ExtendedSystemPropertyKeys.name.name(), vr.name));
+            node.setProperty( ExtendedSystemPropertyKeys.data.name(), JsonUtilExtended.writeValueAsString(vr));
             return vr;
         });
     }
@@ -52,8 +51,8 @@ public class DataVirtualizationCatalogHandler {
     public VirtualizedResource get(String name) {
         return withSystemDb(tx -> {
             final List<Node> nodes = tx.findNodes(ExtendedSystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
+                            ExtendedSystemPropertyKeys.database.name(), db.databaseName(),
+                            ExtendedSystemPropertyKeys.name.name(), name)
                 .stream()
                 .collect(Collectors.toList());
             if (nodes.size() > 1) {
@@ -61,7 +60,7 @@ public class DataVirtualizationCatalogHandler {
             }
             try {
                 Node node = nodes.get(0);
-                Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(ExtendedSystemPropertyKeys.data.name()).toString(), Map.class);
+                Map<String, Object> map = JsonUtilExtended.OBJECT_MAPPER.readValue(node.getProperty(ExtendedSystemPropertyKeys.data.name()).toString(), Map.class);
                 return VirtualizedResource.from(name, map);
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
@@ -72,8 +71,8 @@ public class DataVirtualizationCatalogHandler {
     public Stream<VirtualizedResource> remove(String name) {
         withSystemDb(tx -> {
             tx.findNodes(ExtendedSystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name)
+                            ExtendedSystemPropertyKeys.database.name(), db.databaseName(),
+                            ExtendedSystemPropertyKeys.name.name(), name)
                 .stream()
                 .forEach(Node::delete);
             return null;
@@ -84,12 +83,12 @@ public class DataVirtualizationCatalogHandler {
     public Stream<VirtualizedResource> list() {
         return withSystemDb(tx ->
                 tx.findNodes(ExtendedSystemLabels.DataVirtualizationCatalog,
-                    SystemPropertyKeys.database.name(), db.databaseName())
+                                ExtendedSystemPropertyKeys.database.name(), db.databaseName())
                 .stream()
                 .map(node -> {
                     try {
-                        Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(node.getProperty(ExtendedSystemPropertyKeys.data.name()).toString(), Map.class);
-                        String name = node.getProperty(SystemPropertyKeys.name.name()).toString();
+                        Map<String, Object> map = JsonUtilExtended.OBJECT_MAPPER.readValue(node.getProperty(ExtendedSystemPropertyKeys.data.name()).toString(), Map.class);
+                        String name = node.getProperty(ExtendedSystemPropertyKeys.name.name()).toString();
                         return VirtualizedResource.from(name, map);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);

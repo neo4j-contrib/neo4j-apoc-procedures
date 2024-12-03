@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.bson.Document;
 
 import java.util.Collections;
@@ -25,15 +25,15 @@ public class MongoDbConfig {
 
     public MongoDbConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
-        this.compatibleValues = Util.toBoolean(config.getOrDefault("compatibleValues", true));
-        this.extractReferences = Util.toBoolean(config.getOrDefault("extractReferences", false));
-        this.objectIdAsMap = Util.toBoolean(config.getOrDefault("objectIdAsMap", true));
+        this.compatibleValues = UtilExtended.toBoolean(config.getOrDefault("compatibleValues", true));
+        this.extractReferences = UtilExtended.toBoolean(config.getOrDefault("extractReferences", false));
+        this.objectIdAsMap = UtilExtended.toBoolean(config.getOrDefault("objectIdAsMap", true));
         this.idFieldName = (String) config.getOrDefault("idFieldName", "_id");
         this.collection = (String) config.getOrDefault("collection", "");
         this.project = getDocument(config.get("project"));
         this.sort = getDocument(config.get("sort"));
-        this.skip = Util.toInteger(config.getOrDefault("skip", 0));
-        this.limit = Util.toInteger(config.getOrDefault("limit", 0));
+        this.skip = UtilExtended.toInteger(config.getOrDefault("skip", 0));
+        this.limit = UtilExtended.toInteger(config.getOrDefault("limit", 0));
     }
 
     public boolean isCompatibleValues() {

@@ -1,7 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ml.OpenAI.APIKEY_CONF_KEY;
 import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.*;
@@ -45,8 +45,8 @@ public class OpenAILLMaticIT {
 
     @Before
     public void setUp() throws Exception {
-        apocConfig().setProperty("apoc.http.timeout.connect", 30_000);
-        apocConfig().setProperty("apoc.http.timeout.read", 30_000);
+        extendedApocConfig().setProperty("apoc.http.timeout.connect", 30_000);
+        extendedApocConfig().setProperty("apoc.http.timeout.read", 30_000);
         
         localAIUrl = System.getenv("LLM_MATIC_URL");
         Assume.assumeNotNull("No LLM_MATIC_URL environment configured", localAIUrl);
@@ -122,7 +122,7 @@ public class OpenAILLMaticIT {
     }
 
     private Map<String, Object> getParams(String model) {
-        return Util.map(APIKEY_CONF_KEY, "ignored",
+        return UtilExtended.map(APIKEY_CONF_KEY, "ignored",
                 "conf", Map.of(
                         ENDPOINT_CONF_KEY, localAIUrl,
                         MODEL_CONF_KEY, model

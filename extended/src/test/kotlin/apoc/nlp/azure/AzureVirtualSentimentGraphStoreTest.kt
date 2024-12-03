@@ -1,7 +1,7 @@
 package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -21,7 +21,8 @@ class AzureVirtualSentimentGraphStoreTest {
     @Test
     fun `create virtual graph from result with one entity`() {
         neo4j.beginTx().use {
-            val sourceNode = VirtualNode(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+            val sourceNode =
+                VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
             val res = listOf(
                     mapOf("id" to sourceNode.id.toString(), "score" to 0.75)

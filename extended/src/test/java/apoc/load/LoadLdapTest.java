@@ -1,7 +1,7 @@
 package apoc.load;
 
 
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import apoc.util.TestUtil;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -24,7 +24,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -98,7 +98,7 @@ public class LoadLdapTest {
 
     private static String getLogFileContent() {
         try {
-            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
+            File logFile = new File(FileUtilsExtended.getLogDirectory(), "debug.log");
             return Files.readString(logFile.toPath());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -111,19 +111,19 @@ public class LoadLdapTest {
                 "localhost:" + ldapConnection.getConnectedPort(),
                 BIND_DSN,
                 BIND_PWD);
-        apocConfig().setProperty(key, ldapValue);
+        extendedApocConfig().setProperty(key, ldapValue);
 
         testCall(db, "call apoc.load.ldap($conn, $search)",
                 Map.of("conn", "myldap", "search", searchParams),
                 this::testLoadAssertionCommon);
 
         // remove current config to prevent multiple confs in other tests
-        apocConfig().getConfig().clearProperty(key);
+        extendedApocConfig().getConfig().clearProperty(key);
     }
 
     @Test
     public void testLoadLDAPWithWrongApocConfig() {
-        apocConfig().setProperty("apoc.loadldap.mykey.config", "host logindn pwd");
+        extendedApocConfig().setProperty("apoc.loadldap.mykey.config", "host logindn pwd");
 
         String expected = "No apoc.loadldap.wrongKey.config ldap access configuration specified";
         try {

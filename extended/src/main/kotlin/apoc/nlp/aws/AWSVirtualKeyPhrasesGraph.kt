@@ -1,10 +1,10 @@
 package apoc.nlp.aws
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.DocumentToGraphExtended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
@@ -22,7 +22,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
         val ID_KEYS = listOf("text")
     }
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -32,9 +32,10 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
             val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
-            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+            val virtualNode =
+                VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
 
-            val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
+            val documentToNodes = DocumentToGraphExtended.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
@@ -57,7 +58,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
                         setProperties(keyPhraseNode, item)
                         entityNodes.add(keyPhraseNode)
 
-                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(keyPhraseNode)
+                        apoc.graph.DocumentToGraphExtended.getNodesWithSameLabels(virtualNodes, labels).add(keyPhraseNode)
 
                         val nodeAndScore = Pair(keyPhraseNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
@@ -73,7 +74,7 @@ data class AWSVirtualKeyPhrasesGraph(private val detectEntitiesResult: BatchDete
             allRelationships.addAll(relationships)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 
     private fun idValues(item: Map<String, Any>) = ID_KEYS.map { it to item[it].toString() }.toMap()

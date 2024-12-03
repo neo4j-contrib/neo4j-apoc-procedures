@@ -18,14 +18,14 @@
  */
 package apoc.export.arrow;
 
-import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.util.collection.Iterables;
+import apoc.PoolsExtended;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.util.collection.IterablesExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
-import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -38,11 +38,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
-public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph>, ExportGraphStrategy {
+public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraphExtended>, ExportGraphStrategy {
 
     private final String fileName;
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
 
@@ -51,7 +51,7 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
     private Schema schema;
 
     public ExportGraphFileStrategy(
-            String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+            String fileName, GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger) {
         this.fileName = fileName;
         this.db = db;
         this.pools = pools;
@@ -61,8 +61,8 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
     }
 
     @Override
-    public Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, SubGraph subGraph) {
-        return Stream.concat(Iterables.stream(subGraph.getNodes()), Iterables.stream(subGraph.getRelationships()))
+    public Iterator<Map<String, Object>> toIterator(ProgressReporterExtended reporter, SubGraphExtended subGraph) {
+        return Stream.concat(IterablesExtended.stream(subGraph.getNodes()), IterablesExtended.stream(subGraph.getRelationships()))
                 .map(entity -> {
                     reporter.update(entity instanceof Node ? 1 : 0, entity instanceof Relationship ? 1 : 0, 0);
                     return this.entityToMap(entity);
@@ -71,14 +71,14 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
     }
 
     @Override
-    public String getSource(SubGraph subGraph) {
+    public String getSource(SubGraphExtended subGraph) {
         return String.format(
                 "graph: nodes(%d), rels(%d)",
-                Iterables.count(subGraph.getNodes()), Iterables.count(subGraph.getRelationships()));
+                IterablesExtended.count(subGraph.getNodes()), IterablesExtended.count(subGraph.getRelationships()));
     }
 
     @Override
-    public Stream<ExportProgressInfo> export(SubGraph data, ArrowConfig config) {
+    public Stream<ExportProgressInfoExtended> export(SubGraphExtended data, ArrowConfig config) {
         schemaFor(List.of(createConfigMap(data, config)));
         return ExportArrowFileStrategy.super.export(data, config);
     }

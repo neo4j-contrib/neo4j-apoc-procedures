@@ -1,7 +1,7 @@
 package apoc.mongodb;
 
 import apoc.graph.Graphs;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import apoc.util.TestUtil;
 import apoc.util.UrlResolver;
 import com.mongodb.client.MongoClient;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -91,7 +91,7 @@ public class MongoDBTest extends MongoTestBase {
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
         try (MongoDbCollInterface coll = MongoDbCollInterface.Factory.create(url, "test", "person", false, false, false)) {
-            Map<String, Object> document = coll.first(MapUtil.map("name", "Andrea Santurbano"));
+            Map<String, Object> document = coll.first(MapUtilExtended.map("name", "Andrea Santurbano"));
             assertTrue(document.get("_id") instanceof String);
             Collection<String> bought = (Collection<String>) document.get("bought");
             assertEquals(2, bought.size());
@@ -107,7 +107,7 @@ public class MongoDBTest extends MongoTestBase {
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
         try (MongoDbCollInterface coll = MongoDbCollInterface.Factory.create(url, "test", "test", true, false, true)) {
-            Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
+            Map<String, Object> document = coll.first(MapUtilExtended.map("name", "testDocument"));
             assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
             assertEquals(LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), document.get("date"));
             assertEquals(longValue, document.get("longValue"));

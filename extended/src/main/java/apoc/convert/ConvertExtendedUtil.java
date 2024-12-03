@@ -1,8 +1,10 @@
 package apoc.convert;
 
-import apoc.export.util.DurationValueSerializer;
-import apoc.export.util.PointSerializer;
-import apoc.export.util.TemporalSerializer;
+import apoc.export.util.DurationValueSerializerExtended;
+import apoc.export.util.PointSerializerExtended;
+import apoc.export.util.TemporalSerializerExtended;
+import apoc.util.collection.IterablesExtended;
+import apoc.util.collection.IteratorsExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -11,7 +13,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.values.storable.DurationValue;
 
+import java.lang.reflect.Array;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,9 +28,9 @@ public class ConvertExtendedUtil {
     public static final String MAPPING_KEY = "mapping";
 
     static {
-        YAML_MODULE.addSerializer(Point.class, new PointSerializer());
-        YAML_MODULE.addSerializer(Temporal.class, new TemporalSerializer());
-        YAML_MODULE.addSerializer(DurationValue.class, new DurationValueSerializer());
+        YAML_MODULE.addSerializer(Point.class, new PointSerializerExtended());
+        YAML_MODULE.addSerializer(Temporal.class, new TemporalSerializerExtended());
+        YAML_MODULE.addSerializer(DurationValue.class, new DurationValueSerializerExtended());
     }
 
     /**
@@ -57,4 +64,31 @@ public class ConvertExtendedUtil {
         return objectMapper.readValue(value, Object.class);
     }
 
+    public static List convertToListExtended(Object list) {
+        if (list == null) return null;
+        else if (list instanceof List) return (List) list;
+        else if (list instanceof Collection) return new ArrayList((Collection) list);
+        else if (list instanceof Iterable) return IterablesExtended.asList((Iterable) list);
+        else if (list instanceof Iterator) return IteratorsExtended.asList((Iterator) list);
+        else if (list.getClass().isArray()) {
+            return convertArrayToListExtended(list);
+        }
+        return Collections.singletonList(list);
+    }
+
+    public static List convertArrayToListExtended(Object list) {
+        final Object[] objectArray;
+        if (list.getClass().getComponentType().isPrimitive()) {
+            int length = Array.getLength(list);
+            objectArray = new Object[length];
+            for (int i = 0; i < length; i++) {
+                objectArray[i] = Array.get(list, i);
+            }
+        } else {
+            objectArray = (Object[]) list;
+        }
+        List result = new ArrayList<>(objectArray.length);
+        Collections.addAll(result, objectArray);
+        return result;
+    }
 }

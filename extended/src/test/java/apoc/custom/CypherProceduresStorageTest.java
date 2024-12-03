@@ -1,9 +1,9 @@
 package apoc.custom;
 
 import apoc.path.PathExplorer;
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,10 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.custom.CypherProcedureTestUtil.QUERY_CREATE;
 import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -414,7 +413,7 @@ public class CypherProceduresStorageTest {
         testCallIssue1744();
         restartDb();
 
-        final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
+        final String logFileContent = Files.readString(new File(FileUtilsExtended.getLogDirectory(), "debug.log").toPath());
         assertFalse(logFileContent.contains("Could not register function: custom.vantagepoint_within_area"));
         assertFalse(logFileContent.contains("Could not register procedure: custom.vantagepoint_within_area"));
         testCallIssue1744();
@@ -461,7 +460,7 @@ public class CypherProceduresStorageTest {
 
         restartDb();
 
-        final String logFileContent = Files.readString(new File(FileUtils.getLogDirectory(), "debug.log").toPath());
+        final String logFileContent = Files.readString(new File(FileUtilsExtended.getLogDirectory(), "debug.log").toPath());
         assertFalse(logFileContent.contains("Could not register function: custom.vantagepoint_within_area"));
         assertFalse(logFileContent.contains("Could not register procedure: custom.vantagepoint_within_area"));
 
@@ -542,7 +541,7 @@ public class CypherProceduresStorageTest {
         TestUtil.testResult(db, "call apoc.custom.list() YIELD name RETURN name ORDER BY name",
                 row -> {
                     final List<String> sumFun1 = List.of("sumFun1", "sumFun2");
-                    assertEquals(sumFun1, Iterators.asList(row.columnAs("name")));
+                    assertEquals(sumFun1, IteratorsExtended.asList(row.columnAs("name")));
                 });
 
         TestUtil.testCall(db, String.format("RETURN %s()", "custom.sumFun1"), (row) -> assertNull(row.get("answer")));
@@ -574,7 +573,7 @@ public class CypherProceduresStorageTest {
         TestUtil.testResult(db, "call apoc.custom.list() YIELD name RETURN name ORDER BY name",
                 row -> {
                     final List<String> sumFun1 = List.of("sum1", "sum2");
-                    assertEquals(sumFun1, Iterators.asList(row.columnAs("name")));
+                    assertEquals(sumFun1, IteratorsExtended.asList(row.columnAs("name")));
                 });
 
         TestUtil.testCall(db, String.format("CALL %s", "custom.sum1"), (row) -> assertNull(row.get("answer")));
@@ -643,7 +642,7 @@ public class CypherProceduresStorageTest {
         TestUtil.testResult(db, "call apoc.custom.list",
                 row -> {
                     final Set<String> sumFun1 = Set.of("map", "map_list", "map_result", "map_result_list");
-                    assertEquals(sumFun1, Iterators.asSet(row.columnAs("name")));
+                    assertEquals(sumFun1, IteratorsExtended.asSet(row.columnAs("name")));
                 });
 
         // then

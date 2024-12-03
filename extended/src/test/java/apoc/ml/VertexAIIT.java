@@ -1,7 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
@@ -75,7 +75,7 @@ public class VertexAIIT {
         testResult(db, "CALL apoc.ml.vertexai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $project)",
                 parameters,
                 r -> {
-                    Set<String> actual = Iterators.asSet(r.columnAs("text"));
+                    Set<String> actual = IteratorsExtended.asSet(r.columnAs("text"));
 
                     Set<String> expected = new HashSet<>() {{
                         add(null); add(null); add("Some Text"); add("Other Text");

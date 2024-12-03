@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Arrays;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -155,7 +155,7 @@ public class CouchbaseManager {
     }
 
     protected static Configuration getKeyMap(String hostOrKey) {
-        Configuration couchbaseConfig = apocConfig().getConfig().subset("apoc." + COUCHBASE_CONFIG_KEY + hostOrKey);
+        Configuration couchbaseConfig = extendedApocConfig().getConfig().subset("apoc." + COUCHBASE_CONFIG_KEY + hostOrKey);
 
         if (couchbaseConfig.isEmpty()) {
             throw new RuntimeException("Please check apoc.conf file 'apoc.couchbase." + hostOrKey + "' is missing");

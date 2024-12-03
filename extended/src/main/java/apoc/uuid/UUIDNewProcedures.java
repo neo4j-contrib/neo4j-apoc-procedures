@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -39,7 +39,7 @@ public class UUIDNewProcedures {
     }
 
     private void checkRefreshConfigSet() {
-        if (!apocConfig().getConfig().containsKey(APOC_UUID_REFRESH)) {
+        if (!extendedApocConfig().getConfig().containsKey(APOC_UUID_REFRESH)) {
             throw new RuntimeException(UUID_NOT_SET);
         }
     }

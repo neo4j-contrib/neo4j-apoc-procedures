@@ -19,9 +19,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static org.junit.Assert.assertEquals;
 
 @Ignore("This test compare import/export procedures performances, we ignore it since it's slow and just log the times spent")
@@ -39,8 +39,8 @@ public class ComparePerformancesTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ImportParquet.class, ExportParquet.class, ExportCSV.class, Meta.class, ImportCsv.class, LoadParquet.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
 
         IntStream.range(0, 50)
                 .forEach(__-> db.executeTransactionally("UNWIND range(0, 19999) as id WITH id " +

@@ -1,6 +1,7 @@
 package apoc.vectordb;
 
 import apoc.ml.RestAPIConfig;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 
@@ -14,7 +15,7 @@ import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
 
 public class PineconeHandler implements VectorDbHandler {
@@ -49,7 +50,7 @@ public class PineconeHandler implements VectorDbHandler {
 
         /**
          * "method" should be "GET", but is null as a workaround.
-         *  Since with `method: POST` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+         *  Since with `method: POST` the {@link UtilExtended#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
          *  that makes the request to respond 200 OK, but returns an empty result 
          */
         @Override

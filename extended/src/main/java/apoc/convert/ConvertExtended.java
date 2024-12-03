@@ -1,8 +1,8 @@
 package apoc.convert;
 
 import apoc.Extended;
-import apoc.meta.Types;
-import apoc.util.collection.Iterables;
+import apoc.meta.TypesExtended;
+import apoc.util.collection.IterablesExtended;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -19,8 +19,8 @@ import static apoc.convert.ConvertExtendedUtil.MAPPING_KEY;
 import static apoc.convert.ConvertExtendedUtil.getYamlFactory;
 import static apoc.convert.ConvertExtendedUtil.parse;
 import static apoc.util.ExtendedUtil.toValidYamlValue;
-import static apoc.util.Util.labelStrings;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.labelStrings;
+import static apoc.util.UtilExtended.map;
 
 @Extended
 public class ConvertExtended {
@@ -49,16 +49,16 @@ public class ConvertExtended {
      * which handle complex types, like list/map of nodes/rels/paths
      */
     private Object writeYamlResult(Object value) {
-        Types type = Types.of(value);
+        TypesExtended type = TypesExtended.of(value);
         return switch (type) {
             case NODE -> nodeToMap((Node) value);
             case RELATIONSHIP -> relToMap((Relationship) value);
             
-            case PATH -> writeYamlResult(Iterables.stream((Path) value)
+            case PATH -> writeYamlResult(IterablesExtended.stream((Path) value)
                     .map(i -> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
                     .collect(Collectors.toList()));
             
-            case LIST -> ConvertUtils.convertToList(value).stream()
+            case LIST -> ConvertExtendedUtil.convertToListExtended(value).stream()
                     .map(this::writeYamlResult)
                     .collect(Collectors.toList());
             

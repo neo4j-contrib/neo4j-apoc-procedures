@@ -25,9 +25,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertArrayEquals;
@@ -63,8 +63,8 @@ public class ImportArrowExtendedTest {
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace', 'Qwe'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         db.executeTransactionally("CREATE (:Another {foo:1, listInt: [1,2]}), (:Another {bar:'Sam'})");
 
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     @Test

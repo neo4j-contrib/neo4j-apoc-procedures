@@ -1,7 +1,7 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.export.util.ProgressReporter;
+import apoc.export.util.ProgressReporterExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
 
@@ -14,7 +14,7 @@ import static apoc.util.ExtendedUtil.toCypherMap;
 public class ExportUuid implements ExportMetadata {
 
     @Override
-    public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
+    public List<Pair<String, String>> export(Node node, ProgressReporterExtended progressReporter) {
         Map<String, Object> map = new HashMap<>();
         final String labelName = (String) node.getProperty( ExtendedSystemPropertyKeys.label.name());
         final String property = (String) node.getProperty(ExtendedSystemPropertyKeys.propertyName.name());

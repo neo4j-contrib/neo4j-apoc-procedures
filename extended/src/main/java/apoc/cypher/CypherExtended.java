@@ -1,16 +1,16 @@
 package apoc.cypher;
 
 import apoc.Extended;
-import apoc.Pools;
-import apoc.result.CypherStatementMapResult;
-import apoc.result.MapResult;
-import apoc.util.CompressionAlgo;
-import apoc.util.EntityUtil;
-import apoc.util.FileUtils;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.PoolsExtended;
+import apoc.result.CypherStatementMapResultExtended;
+import apoc.result.MapResultExtended;
+import apoc.util.CompressionAlgoExtended;
+import apoc.util.EntityUtilExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.QueueBasedSpliteratorExtended;
+import apoc.util.QueueUtilExtended;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionType;
@@ -45,10 +45,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.cypher.CypherUtils.runCypherQuery;
-import static apoc.util.MapUtil.map;
-import static apoc.util.Util.param;
-import static apoc.util.Util.quote;
+import static apoc.cypher.CypherExtendedUtils.runCypherExtendedQuery;
+import static apoc.util.MapUtilExtended.map;
+import static apoc.util.UtilExtended.param;
+import static apoc.util.UtilExtended.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
@@ -79,7 +79,7 @@ public class CypherExtended {
     public TerminationGuard terminationGuard;
 
     @Context
-    public Pools pools;
+    public PoolsExtended pools;
 
     @Context
     public URLAccessChecker urlAccessChecker;
@@ -117,15 +117,15 @@ public class CypherExtended {
 
     // This runs the files sequentially
     private Stream<RowResult> runFiles(List<String> fileNames, Map<String, Object> config, Map<String, Object> parameters, boolean schemaOperation, boolean defaultStatistics) {
-        boolean reportError = Util.toBoolean(config.get("reportError"));
-        boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics", defaultStatistics));
-        int timeout = Util.toInteger(config.getOrDefault("timeout",10));
-        int queueCapacity = Util.toInteger(config.getOrDefault("queueCapacity",100));
+        boolean reportError = UtilExtended.toBoolean(config.get("reportError"));
+        boolean addStatistics = UtilExtended.toBoolean(config.getOrDefault("statistics", defaultStatistics));
+        int timeout = UtilExtended.toInteger(config.getOrDefault("timeout",10));
+        int queueCapacity = UtilExtended.toInteger(config.getOrDefault("queueCapacity",100));
         var result = fileNames.stream().flatMap(fileName -> {
             final Reader reader = readerForFile(fileName);
             final Scanner scanner = createScannerFor(reader);
             return runManyStatements(scanner, parameters, schemaOperation, addStatistics, timeout, queueCapacity, reportError, fileName)
-                    .onClose(() -> Util.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
+                    .onClose(() -> UtilExtended.close(scanner, (e) -> log.info("Cannot close the scanner for file " + fileName + " because the following exception", e)));
         });
 
         return result;
@@ -153,7 +153,7 @@ public class CypherExtended {
                 runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
             }
         }, RowResult.TOMBSTONE);
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
+        return StreamSupport.stream(new QueueBasedSpliteratorExtended<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
     }
 
 
@@ -163,7 +163,7 @@ public class CypherExtended {
            wait in the pool's job queue.
          */
         BlockingQueue<T> queue = new ArrayBlockingQueue<>(queueCapacity);
-        Util.newDaemonThread(() -> {
+        UtilExtended.newDaemonThread(() -> {
             try {
                 action.accept(queue);
             } finally {
@@ -195,7 +195,7 @@ public class CypherExtended {
             if (!schemaOperation) {
                 // Periodic operations cannot be schema operations, so no need to check that here (will fail as invalid query)
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools, () -> {
+                    UtilExtended.inThread(pools, () -> {
                         try {
                             return db.executeTransactionally(
                                     stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
@@ -207,7 +207,7 @@ public class CypherExtended {
                 } else {
                     AtomicBoolean isSchemaError = new AtomicBoolean(false);
                     try {
-                        Util.inTx(db, pools, threadTx -> {
+                        UtilExtended.inTx(db, pools, threadTx -> {
                             try (Result result = threadTx.execute(stmt, params)) {
                                 return consumeResult(result, queue, addStatistics, tx, fileName);
                             } catch (Exception e) {
@@ -239,7 +239,7 @@ public class CypherExtended {
         }
         String error = e.getMessage();
         RowResult result = new RowResult(-1, Map.of("error", error), fileName);
-        QueueUtil.put(queue, result, 10);
+        QueueUtilExtended.put(queue, result, 10);
     }
 
     private Scanner createScannerFor(Reader reader) {
@@ -260,7 +260,7 @@ public class CypherExtended {
                 return;
             }
             if (schemaOperation) {
-                Util.inTx(db, pools, txInThread -> {
+                UtilExtended.inTx(db, pools, txInThread -> {
                     try (Result result = txInThread.execute(stmt, params)) {
                         return consumeResult(result, queue, addStatistics, tx, fileName);
                     } catch (Exception e) {
@@ -286,7 +286,7 @@ public class CypherExtended {
             AtomicBoolean closed = new AtomicBoolean(false);
             while (isOpenAndHasNext(result, closed)) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(transaction, result.next());
+                Map<String, Object> res = EntityUtilExtended.anyRebind(transaction, result.next());
                 queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {
@@ -367,7 +367,7 @@ public class CypherExtended {
     }
     private Reader readerForFile(@Name("file") String fileName) {
         try {
-            return FileUtils.readerFor(fileName, CompressionAlgo.NONE.name(), urlAccessChecker);
+            return FileUtilsExtended.readerFor(fileName, CompressionAlgoExtended.NONE.name(), urlAccessChecker);
         } catch (Exception e) {
             throw new RuntimeException("Error accessing file "+fileName,e);
         }
@@ -385,8 +385,8 @@ public class CypherExtended {
 
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
-    public Stream<CypherStatementMapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+    public Stream<CypherStatementMapResultExtended> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
+        if (params == null) return runCypherExtendedQuery(tx, fragment, params);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -399,7 +399,7 @@ public class CypherExtended {
             terminationGuard.check();
             Map<String, Object> parallelParams = new HashMap<>(params);
             parallelParams.replace(key, v);
-            return tx.execute(statement, parallelParams).stream().map(CypherStatementMapResult::new);
+            return tx.execute(statement, parallelParams).stream().map(CypherStatementMapResultExtended::new);
         });
 
         /*
@@ -418,26 +418,26 @@ public class CypherExtended {
     @Deprecated
     @Procedure(deprecatedBy = "Cypher subqueries like: `CYPHER runtime=parallel CALL {...} ... ` or `CALL {...} IN CONCURRENT TRANSACTIONS ... `")
     @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
-    public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
+    public Stream<MapResultExtended> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         tx.execute("EXPLAIN " + statement).close();
-        return Util.partitionSubList(data, PARTITIONS,null)
-                .flatMap((partition) -> Iterators.asList(tx.execute(statement, parallelParams(params, "_", partition))).stream())
-                .map(MapResult::new);
+        return UtilExtended.partitionSubList(data, PARTITIONS,null)
+                .flatMap((partition) -> IteratorsExtended.asList(tx.execute(statement, parallelParams(params, "_", partition))).stream())
+                .map(MapResultExtended::new);
     }
 
     @Deprecated
     @Procedure(deprecatedBy = "Cypher subqueries like: `CYPHER runtime=parallel CALL {...} ... ` or `CALL {...} IN CONCURRENT TRANSACTIONS ... `")
     @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
-    public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions,@Name(value = "timeout",defaultValue = "10") long timeout) {
+    public Stream<MapResultExtended> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions, @Name(value = "timeout",defaultValue = "10") long timeout) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         tx.execute("EXPLAIN " + statement).close();
         int queueCapacity = 100000;
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(queueCapacity);
         ArrayBlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(queueCapacity);
         ArrayBlockingQueue<Result> results = new ArrayBlockingQueue<>(queueCapacity);
-        Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
-        Util.inFuture(pools, () -> {
+        Stream<List<Object>> parallelPartitions = UtilExtended.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
+        UtilExtended.inFuture(pools, () -> {
             long total = parallelPartitions
                     .map((List<Object> partition) -> {
                         Transaction transaction = db.beginTx();
@@ -454,11 +454,11 @@ public class CypherExtended {
             return total;
         });
 
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
-                .map(rowResult -> new MapResult(rowResult.result))
+        return StreamSupport.stream(new QueueBasedSpliteratorExtended<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
+                .map(rowResult -> new MapResultExtended(rowResult.result))
                 .onClose(() -> {
-                    transactions.forEach(i -> Util.close(i));
-                    results.forEach(i -> Util.close(i));
+                    transactions.forEach(i -> UtilExtended.close(i));
+                    results.forEach(i -> UtilExtended.close(i));
                 });
     }
 
@@ -472,8 +472,8 @@ public class CypherExtended {
 
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
-    public Stream<CypherStatementMapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+    public Stream<CypherStatementMapResultExtended> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
+        if (params == null) return runCypherExtendedQuery(tx, fragment, params);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);
@@ -505,7 +505,7 @@ public class CypherExtended {
         }
         return futures.stream().flatMap(f -> {
             try {
-                return EntityUtil.anyRebind(tx, f.get()).stream().map(CypherStatementMapResult::new);
+                return EntityUtilExtended.anyRebind(tx, f.get()).stream().map(CypherStatementMapResultExtended::new);
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Error executing in parallel " + statement, e);
             }
@@ -513,7 +513,7 @@ public class CypherExtended {
     }
 
     public static String withParamsAndIterator(String fragment, Collection<String> params, String iterator) {
-        String with = Util.withMapping(params.stream().filter((c) -> !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
+        String with = UtilExtended.withMapping(params.stream().filter((c) -> !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
         return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
     }
 
@@ -521,7 +521,7 @@ public class CypherExtended {
         return pools.getDefaultExecutorService().submit(
                 () -> {
                     terminationGuard.check();
-                    return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result));
+                    return db.executeTransactionally(statement, parallelParams(params, key, partition), result -> IteratorsExtended.asList(result));
                 }
         );
     }

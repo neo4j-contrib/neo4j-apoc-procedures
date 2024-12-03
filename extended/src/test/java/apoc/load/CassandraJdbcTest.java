@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.AfterClass;
@@ -44,17 +44,17 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbc() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc($url,'\"PERSON\"')", Util.map("url", getUrl(),
-                "config", Util.map("schema", "test",
-                        "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))),
+        testCall(db, "CALL apoc.load.jdbc($url,'\"PERSON\"')", UtilExtended.map("url", getUrl(),
+                "config", UtilExtended.map("schema", "test",
+                        "credentials", UtilExtended.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))),
                 (row) -> assertResult(row));
     }
 
     @Test
     public void testLoadJdbcSelect() throws Exception {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\"')",
-                Util.map("url", getUrl(),
-                        "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
+                UtilExtended.map("url", getUrl(),
+                        "config", UtilExtended.map("schema", "test", "credentials", UtilExtended.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
                 (row) -> assertResult(row));
     }
@@ -62,12 +62,12 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcUpdate() throws Exception {
         TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE \"PERSON\" SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'])",
-                Util.map("url", getUrl(),
-                    "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
+                UtilExtended.map("url", getUrl(),
+                    "config", UtilExtended.map("schema", "test","credentials", UtilExtended.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ));
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
-                Util.map("url", getUrl(),
-                        "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
+                UtilExtended.map("url", getUrl(),
+                        "config", UtilExtended.map("schema", "test", "credentials", UtilExtended.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
                 (r) -> {
                     Map<String, Object> row = (Map<String, Object>) r.get("row");
@@ -82,8 +82,8 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcParams() throws Exception {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
-                Util.map("url", getUrl(),
-                        "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
+                UtilExtended.map("url", getUrl(),
+                        "config", UtilExtended.map("schema", "test", "credentials", UtilExtended.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
                 (row) -> assertResult(row));
     }
@@ -94,7 +94,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Override
     public void assertResult(Map<String, Object> row) {
-        Map<String, Object> expected = Util.map("NAME", "John", "SURNAME", null, "EFFECTIVE_FROM_DATE",
+        Map<String, Object> expected = UtilExtended.map("NAME", "John", "SURNAME", null, "EFFECTIVE_FROM_DATE",
                 effectiveFromDate.toLocalDateTime());
         assertEquals(expected, row.get("row"));
     }

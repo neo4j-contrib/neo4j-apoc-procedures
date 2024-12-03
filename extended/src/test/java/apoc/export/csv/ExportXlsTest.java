@@ -3,11 +3,11 @@ package apoc.export.csv;
 import apoc.export.xls.ExportXls;
 import apoc.graph.Graphs;
 import apoc.load.xls.LoadXls;
-import apoc.util.CompressionAlgo;
-import apoc.util.CompressionConfig;
+import apoc.util.CompressionAlgoExtended;
+import apoc.util.CompressionConfigExtended;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterables;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IterablesExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -34,10 +34,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.MapUtil.map;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -56,8 +56,8 @@ public class ExportXlsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportXls.class, LoadXls.class, Graphs.class);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c'],location:point({longitude: 11.8064153, latitude: 48.1716114}),dob:date({ year:1984, month:10, day:11 }), created: datetime()})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
         db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
     }
@@ -79,7 +79,7 @@ public class ExportXlsTest {
 
     @Test
     public void testExportAllXlsWithCompression() {
-        final CompressionAlgo algo = CompressionAlgo.GZIP;
+        final CompressionAlgoExtended algo = CompressionAlgoExtended.GZIP;
         String fileName = "all.xlsx.gz";
         TestUtil.testCall(db, "CALL apoc.export.xls.all($file, $config)",
                 map("file", fileName, "config", map("compression", algo.name())),
@@ -89,9 +89,9 @@ public class ExportXlsTest {
 
         // check xls through load.xls
         TestUtil.testResult(db, "CALL apoc.load.xls($file, 'Address', $config)",
-                map("file", fileName, "config", map(CompressionConfig.COMPRESSION, algo.name())),
+                map("file", fileName, "config", map(CompressionConfigExtended.COMPRESSION, algo.name())),
                 (r) -> {
-                    final Set<Object> actual = Iterators.stream(r.<Map>columnAs("map"))
+                    final Set<Object> actual = IteratorsExtended.stream(r.<Map>columnAs("map"))
                             .map(i -> Optional.ofNullable(i.get("name")).orElse(""))
                             .collect(Collectors.toSet());
                     assertEquals(3,actual.size());
@@ -140,7 +140,7 @@ public class ExportXlsTest {
                 map("file", fileName, "conf", map("headerNodeId", nodeId,
                         "headerRelationshipId", relId, "headerStartNodeId", startNodeId, "headerEndNodeId", endNodeId)),
                 (r) -> assertResults(fileName, r, "graph", 208L, 2L, 206));
-        assertExcelFileForGraph(fileName, nodeId, List.of(relId, startNodeId, endNodeId), CompressionAlgo.NONE);
+        assertExcelFileForGraph(fileName, nodeId, List.of(relId, startNodeId, endNodeId), CompressionAlgoExtended.NONE);
         db.executeTransactionally("MATCH (n:Test) DETACH DELETE n");
     }
 
@@ -213,27 +213,27 @@ public class ExportXlsTest {
     }
 
     private void assertExcelFileForGraph(String fileName) {
-        assertExcelFileForGraph(fileName, CompressionAlgo.NONE);
+        assertExcelFileForGraph(fileName, CompressionAlgoExtended.NONE);
     }
 
-    private void assertExcelFileForGraph(String fileName, CompressionAlgo algo) {
+    private void assertExcelFileForGraph(String fileName, CompressionAlgoExtended algo) {
         assertExcelFileForGraph(fileName, "<nodeId>", List.of("<relationshipId>", "<startNodeId>", "<endNodeId>"), algo);
     }
 
-    private void assertExcelFileForGraph(String fileName, String headerNode, List<String> headerRel, CompressionAlgo algo) {
+    private void assertExcelFileForGraph(String fileName, String headerNode, List<String> headerRel, CompressionAlgoExtended algo) {
         try (InputStream fileInputStream = Files.newInputStream(new File(directory, fileName).toPath());
              InputStream inp = algo.getInputStream(fileInputStream);
              Transaction tx = db.beginTx()) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
-            assertEquals(Iterables.count(tx.getAllLabelsInUse()) + Iterables.count(tx.getAllRelationshipTypesInUse()), numberOfSheets);
+            assertEquals(IterablesExtended.count(tx.getAllLabelsInUse()) + IterablesExtended.count(tx.getAllRelationshipTypesInUse()), numberOfSheets);
 
             for (Label label: tx.getAllLabelsInUse()) {
-                long numberOfNodes = Iterators.count(tx.findNodes(label));
+                long numberOfNodes = IteratorsExtended.count(tx.findNodes(label));
                 Sheet sheet = wb.getSheet(label.name());
                 assertEquals(numberOfNodes, sheet.getLastRowNum());
-                final Set<String> actual = Iterators.stream(sheet.getRow(0).cellIterator()).map(Cell::getStringCellValue).collect(Collectors.toSet());
+                final Set<String> actual = IteratorsExtended.stream(sheet.getRow(0).cellIterator()).map(Cell::getStringCellValue).collect(Collectors.toSet());
                 final Set<String> expected = StreamSupport.stream(tx.getAllNodes().spliterator(), false)
                         .filter(node -> node.hasLabel(label))
                         .flatMap(i -> StreamSupport.stream(i.getPropertyKeys().spliterator(), false))
@@ -245,7 +245,7 @@ public class ExportXlsTest {
                 long numberOfRels = tx.getAllRelationships().stream().filter(rel -> rel.isType(relType)).count();
                 Sheet sheet = wb.getSheet(relType.name());
                 assertEquals(numberOfRels, sheet.getLastRowNum());
-                final Set<String> actual = Iterators.stream(sheet.getRow(0).cellIterator()).map(Cell::getStringCellValue).collect(Collectors.toSet());
+                final Set<String> actual = IteratorsExtended.stream(sheet.getRow(0).cellIterator()).map(Cell::getStringCellValue).collect(Collectors.toSet());
                 final Set<String> expected = StreamSupport.stream(tx.getAllRelationships().spliterator(), false)
                         .filter(rel -> rel.isType(relType))
                         .flatMap(i -> StreamSupport.stream(i.getPropertyKeys().spliterator(), false))

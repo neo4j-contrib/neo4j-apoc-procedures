@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package apoc.util.s3;
+
+public class S3ParamsExtended {
+
+    private final String accessKey;
+    private final String secretKey;
+    private final String sessionToken;
+    private final String endpoint;
+    private final String bucket;
+    private final String key;
+    private final String region;
+
+    public S3ParamsExtended(
+            String accessKey,
+            String secretKey,
+            String sessionToken,
+            String endpoint,
+            String bucket,
+            String key,
+            String region) {
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
+        this.sessionToken = sessionToken;
+        this.endpoint = endpoint;
+        this.bucket = bucket;
+        this.key = key;
+        this.region = region;
+    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+}

@@ -3,7 +3,7 @@ package apoc.load;
 import apoc.periodic.Periodic;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -53,25 +53,25 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbc() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc($url,'PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
-                "config", Util.map("schema", "test",
-                        "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+        testCall(db, "CALL apoc.load.jdbc($url,'PERSON',[], $config)", UtilExtended.map("url", postgress.getJdbcUrl(),
+                "config", UtilExtended.map("schema", "test",
+                        "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
     }
 
     @Test
     public void testLoadJdbSelect() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
-                "config", Util.map("schema", "test",
-                        "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON',[], $config)", UtilExtended.map("url", postgress.getJdbcUrl(),
+                "config", UtilExtended.map("schema", "test",
+                        "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
     }
 
     @Test
     public void testLoadJdbSelectWithArrays() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM ARRAY_TABLE',[], $config)", Util.map("url", postgress.getJdbcUrl(),
-                        "config", Util.map("schema", "test",
-                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM ARRAY_TABLE',[], $config)", UtilExtended.map("url", postgress.getJdbcUrl(),
+                        "config", UtilExtended.map("schema", "test",
+                                "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (result) -> {
                     Map<String, Object> row = (Map<String, Object>)result.get("row");
                     assertEquals("John", row.get("NAME"));
@@ -85,27 +85,27 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     @Test
     public void testLoadJdbcUpdate() throws Exception {
         testCall(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE PERSON SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'], $config)",
-                Util.map("url", postgress.getJdbcUrl(),
-                        "config", Util.map("schema", "test",
-                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
-                (row) -> assertEquals( Util.map("count", 1 ), row.get("row")));
+                UtilExtended.map("url", postgress.getJdbcUrl(),
+                        "config", UtilExtended.map("schema", "test",
+                                "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (row) -> assertEquals( UtilExtended.map("count", 1 ), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcParams() throws Exception {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON WHERE \"NAME\" = ?',['John'], $config)", //  YIELD row RETURN row
-                Util.map("url", postgress.getJdbcUrl(),
-                        "config", Util.map("schema", "test",
-                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                UtilExtended.map("url", postgress.getJdbcUrl(),
+                        "config", UtilExtended.map("schema", "test",
+                                "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
     }
 
     @Test
     @Ignore("flaky")
     public void testIssue4141PeriodicIterateWithJdbc() throws Exception {
-        var config = Util.map("url", postgress.getJdbcUrl(),
-                "config", Util.map("schema", "test",
-                        "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword())));
+        var config = UtilExtended.map("url", postgress.getJdbcUrl(),
+                "config", UtilExtended.map("schema", "test",
+                        "credentials", UtilExtended.map("user", postgress.getUsername(), "password", postgress.getPassword())));
 
         String query = "WITH range(0, 100) as list UNWIND list as l CREATE (n:MyNode{id: l})";
 

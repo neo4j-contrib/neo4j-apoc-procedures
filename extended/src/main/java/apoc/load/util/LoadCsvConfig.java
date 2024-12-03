@@ -1,15 +1,15 @@
 package apoc.load.util;
 
-import apoc.load.Mapping;
-import apoc.util.CompressionConfig;
+import apoc.load.MappingExtended;
+import apoc.util.CompressionConfigExtended;
 
 import java.util.*;
 
-import static apoc.util.Util.parseCharFromConfig;
+import static apoc.util.UtilExtended.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
-public class LoadCsvConfig extends CompressionConfig {
+public class LoadCsvConfig extends CompressionConfigExtended {
 
     public static final char DEFAULT_ARRAY_SEP = ';';
     public static final String DEFAULT_SEP = ",";
@@ -28,12 +28,12 @@ public class LoadCsvConfig extends CompressionConfig {
     private boolean failOnError;
     private boolean ignoreQuotations;
 
-    private EnumSet<Results> results;
+    private EnumSet<ResultsExtended> results;
 
     private List<String> ignore;
     private List<String> nullValues;
     private Map<String, Map<String, Object>> mapping;
-    private Map<String, Mapping> mappings;
+    private Map<String, MappingExtended> mappings;
 
     public LoadCsvConfig(Map<String, Object> config) {
         super(config);
@@ -51,10 +51,10 @@ public class LoadCsvConfig extends CompressionConfig {
         failOnError = (boolean) config.getOrDefault("failOnError", true);
         ignoreQuotations = (boolean) config.getOrDefault("ignoreQuotations", false);
 
-        results = EnumSet.noneOf(Results.class);
+        results = EnumSet.noneOf(ResultsExtended.class);
         List<String> resultList = (List<String>) config.getOrDefault("results", asList("map","list"));
         for (String result : resultList) {
-            results.add(Results.valueOf(result));
+            results.add(ResultsExtended.valueOf(result));
         }
 
         ignore = (List<String>) config.getOrDefault("ignore", emptyList());
@@ -75,12 +75,12 @@ public class LoadCsvConfig extends CompressionConfig {
     }
 
 
-    private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
+    private Map<String, MappingExtended> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
-        HashMap<String, Mapping> result = new HashMap<>(mapping.size());
+        HashMap<String, MappingExtended> result = new HashMap<>(mapping.size());
         for (Map.Entry<String, Map<String, Object>> entry : mapping.entrySet()) {
             String name = entry.getKey();
-            result.put(name, new Mapping(name, entry.getValue(), arraySep, ignore.contains(name)));
+            result.put(name, new MappingExtended(name, entry.getValue(), arraySep, ignore.contains(name)));
         }
         return result;
     }
@@ -105,7 +105,7 @@ public class LoadCsvConfig extends CompressionConfig {
         return failOnError;
     }
 
-    public EnumSet<Results> getResults() {
+    public EnumSet<ResultsExtended> getResults() {
         return results;
     }
 
@@ -117,7 +117,7 @@ public class LoadCsvConfig extends CompressionConfig {
         return nullValues;
     }
 
-    public Map<String, Mapping> getMappings() {
+    public Map<String, MappingExtended> getMappings() {
         return mappings;
     }
 

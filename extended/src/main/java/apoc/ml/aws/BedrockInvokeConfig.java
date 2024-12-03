@@ -1,6 +1,6 @@
 package apoc.ml.aws;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public class BedrockInvokeConfig extends AWSConfig {
 
     public BedrockInvokeConfig(Map<String, Object> config) {
         super(config);
-        this.openAICompatible = Util.toBoolean(config.get(OPEN_AI_COMPATIBLE));
+        this.openAICompatible = UtilExtended.toBoolean(config.get(OPEN_AI_COMPATIBLE));
     }
 
     @Override

@@ -1,6 +1,6 @@
 package apoc.nlp
 
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
 import org.hamcrest.StringDescription
@@ -15,7 +15,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertFalse(matcher.matches(VirtualNode(arrayOf(Label { "Human" }), properties)))
+        assertFalse(matcher.matches(
+            VirtualNodeExtended(
+                arrayOf(Label { "Human" }),
+                properties
+            )
+        ))
     }
 
     @Test
@@ -24,7 +29,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf("id" to 5678L))))
+        assertFalse(matcher.matches(
+            VirtualNodeExtended(
+                labels.toTypedArray(),
+                mapOf("id" to 5678L)
+            )
+        ))
     }
 
     @Test
@@ -33,7 +43,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertFalse(matcher.matches(VirtualNode(arrayOf(Label { "Human" }), mapOf("id" to 5678L))))
+        assertFalse(matcher.matches(
+            VirtualNodeExtended(
+                arrayOf(Label { "Human" }),
+                mapOf("id" to 5678L)
+            )
+        ))
     }
 
     @Test
@@ -42,7 +57,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertTrue(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
+        assertTrue(matcher.matches(
+            VirtualNodeExtended(
+                labels.toTypedArray(),
+                properties
+            )
+        ))
     }
 
     @Test
@@ -51,7 +71,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(listOf(), properties)
 
-        assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
+        assertFalse(matcher.matches(
+            VirtualNodeExtended(
+                labels.toTypedArray(),
+                properties
+            )
+        ))
     }
 
     @Test
@@ -60,7 +85,7 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertFalse(matcher.matches(VirtualNode(arrayOf(), properties)))
+        assertFalse(matcher.matches(VirtualNodeExtended(arrayOf(), properties)))
     }
 
     @Test
@@ -70,7 +95,7 @@ class NodeMatcherTest {
 
         val description = StringDescription()
         matcher.describeTo(description)
-        assertTrue(matcher.matches(VirtualNode(arrayOf(), properties)))
+        assertTrue(matcher.matches(VirtualNodeExtended(arrayOf(), properties)))
     }
 
     @Test
@@ -79,7 +104,12 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, mapOf())
 
-        assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), properties)))
+        assertFalse(matcher.matches(
+            VirtualNodeExtended(
+                labels.toTypedArray(),
+                properties
+            )
+        ))
     }
 
     @Test
@@ -88,7 +118,7 @@ class NodeMatcherTest {
         val properties = mapOf("id" to 1234L)
         val matcher = NodeMatcher(labels, properties)
 
-        assertFalse(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf())))
+        assertFalse(matcher.matches(VirtualNodeExtended(labels.toTypedArray(), mapOf())))
     }
 
     @Test
@@ -96,7 +126,7 @@ class NodeMatcherTest {
         val labels = listOf(Label { "Person" })
         val matcher = NodeMatcher(labels, mapOf())
 
-        assertTrue(matcher.matches(VirtualNode(labels.toTypedArray(), mapOf())))
+        assertTrue(matcher.matches(VirtualNodeExtended(labels.toTypedArray(), mapOf())))
     }
 
 }

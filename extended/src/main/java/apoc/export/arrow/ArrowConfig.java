@@ -18,7 +18,7 @@
  */
 package apoc.export.arrow;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class ArrowConfig {
 
     public ArrowConfig(Map<String, Object> config) {
         this.config = config == null ? Collections.emptyMap() : config;
-        this.batchSize = Util.toInteger(this.config.getOrDefault("batchSize", 2000));
+        this.batchSize = UtilExtended.toInteger(this.config.getOrDefault("batchSize", 2000));
     }
 
     public int getBatchSize() {

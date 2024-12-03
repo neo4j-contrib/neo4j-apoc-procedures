@@ -2,7 +2,7 @@ package apoc.model;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
-import apoc.result.VirtualNode;
+import apoc.result.VirtualNodeExtended;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.*;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import static apoc.load.util.JdbcUtil.getConnection;
 import static apoc.load.util.JdbcUtil.getUrlOrKey;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 
 @Extended
 public class Model {
@@ -30,7 +30,7 @@ public class Model {
 
     private Node createNode(String label, String name, boolean virtual) {
         if (virtual) {
-            return new VirtualNode(new Label[]{Label.label(label)}, map("name", name));
+            return new VirtualNodeExtended(new Label[]{Label.label(label)}, map("name", name));
         } else {
             Node node = tx.createNode();
             node.addLabel(Label.label(label));

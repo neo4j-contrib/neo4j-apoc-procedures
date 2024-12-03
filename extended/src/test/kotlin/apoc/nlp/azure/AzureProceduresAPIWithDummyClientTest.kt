@@ -3,7 +3,7 @@ package apoc.nlp.azure
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.nlp.NplUtils.commonNlpInit
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import apoc.util.TestUtil
 import org.junit.Assert.assertTrue
 import org.hamcrest.MatcherAssert.assertThat
@@ -143,8 +143,16 @@ class AzureProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-node-${sourceNodeId}-batch-1", "type" to "Location")), "ENTITY", mapOf("score" to 0.2))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime")), "ENTITY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels1.toTypedArray(),
+                    mapOf("text" to "token-1-node-${sourceNodeId}-batch-1", "type" to "Location")
+                ), "ENTITY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-2-node-${sourceNodeId}-batch-1", "type" to "DateTime")
+                ), "ENTITY", mapOf("score" to 0.1))))
         }
     }
 
@@ -258,8 +266,16 @@ class AzureProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-node-${sourceNodeId}-batch-1")), "KEY_PHRASE")))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1")), "KEY_PHRASE")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "keyPhrase-1-node-${sourceNodeId}-batch-1")
+                ), "KEY_PHRASE")))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "keyPhrase-2-node-${sourceNodeId}-batch-1")
+                ), "KEY_PHRASE")))
         }
     }
 
@@ -299,7 +315,11 @@ class AzureProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location")), "HAS_ENTITY", mapOf("azureScore" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-1-node-${sourceNodeId}-batch-0", "type" to "Location")
+                ), "HAS_ENTITY", mapOf("azureScore" to 0.2))))
         }
     }
 

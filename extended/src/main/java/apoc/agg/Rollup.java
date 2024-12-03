@@ -2,7 +2,7 @@ package apoc.agg;
 
 import apoc.Extended;
 import apoc.util.ExtendedListUtils;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -67,7 +67,7 @@ public class Rollup {
                 @Name(value = "aggKeys") List<String> aggKeys,
                 @Name(value = "config", defaultValue = "{}")  Map<String, Object> config) {
 
-            boolean cube = Util.toBoolean(config.get("cube"));
+            boolean cube = UtilExtended.toBoolean(config.get("cube"));
             
             Entity entity = (Entity) value;
             

@@ -1,8 +1,8 @@
 package apoc.nlp.aws
 
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
 import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.Node
@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Transaction
 data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: BatchDetectSentimentResult, private val sourceNodes: List<Node>): NLPVirtualGraph() {
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = AWSProcedures.transformResults(index, sourceNode, detectEntitiesResult).value
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -27,7 +27,8 @@ data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: Bat
                 sourceNode.setProperty("sentimentScore", score)
                 sourceNode
             } else {
-                val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                val virtualNode =
+                    VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
                 virtualNode.setProperty("sentiment", sentiment)
                 virtualNode.setProperty("sentimentScore", score)
                 virtualNode
@@ -36,7 +37,7 @@ data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: Bat
             allNodes.add(node)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 
     companion object {

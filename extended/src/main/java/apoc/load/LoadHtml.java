@@ -1,9 +1,9 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.MissingDependencyException;
-import apoc.util.FileUtils;
+import apoc.result.MapResultExtended;
+import apoc.util.MissingDependencyExceptionExtended;
+import apoc.util.FileUtilsExtended;
 
 import java.net.URISyntaxException;
 import java.nio.charset.UnsupportedCharsetException;
@@ -59,17 +59,17 @@ public class LoadHtml {
 
     @Procedure
     @Description("apoc.load.htmlPlainText('urlOrHtml',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
-    public Stream<MapResult> htmlPlainText(@Name("urlOrHtml") String urlOrHtml, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResultExtended> htmlPlainText(@Name("urlOrHtml") String urlOrHtml, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         return readHtmlPage(urlOrHtml, query, config, HtmlResultInterface.Type.PLAIN_TEXT);
     }
 
     @Procedure
     @Description("apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map")
-    public Stream<MapResult> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResultExtended> html(@Name("url") String url, @Name(value = "query",defaultValue = "{}") Map<String, String> query, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         return readHtmlPage(url, query, config, HtmlResultInterface.Type.DEFAULT);
     }
 
-    private Stream<MapResult> readHtmlPage(String url, Map<String, String> query, Map<String, Object> conf, HtmlResultInterface.Type type) {
+    private Stream<MapResultExtended> readHtmlPage(String url, Map<String, String> query, Map<String, Object> conf, HtmlResultInterface.Type type) {
         LoadHtmlConfig config = new LoadHtmlConfig(conf);
         try {
             // baseUri is used to resolve relative paths
@@ -88,7 +88,7 @@ public class LoadHtml {
                 output.put(KEY_ERROR, errorList);
             }
 
-            return Stream.of(new MapResult(output));
+            return Stream.of(new MapResultExtended(output));
         } catch (UnsupportedCharsetException e) {
             throw new RuntimeException(UNSUPPORTED_CHARSET_ERR + config.getCharset());
         } catch (IllegalArgumentException | ClassCastException e) {
@@ -110,7 +110,7 @@ public class LoadHtml {
             case CHROME:
                 return withSeleniumBrowser(() -> getChromeInputStream(url, query, config, isHeadless, isAcceptInsecureCerts));
             default:
-                return FileUtils.inputStreamFor(url, null, null, null, urlAccessChecker);
+                return FileUtilsExtended.inputStreamFor(url, null, null, null, urlAccessChecker);
         }
     }
 
@@ -192,7 +192,7 @@ public class LoadHtml {
         try {
             return action.get();
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(SELENIUM_MISSING_DEPS_ERROR);
+            throw new MissingDependencyExceptionExtended(SELENIUM_MISSING_DEPS_ERROR);
         }
     }
 

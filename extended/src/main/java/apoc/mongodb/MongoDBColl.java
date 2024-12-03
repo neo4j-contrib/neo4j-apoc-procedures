@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;
@@ -289,8 +289,8 @@ class MongoDBColl implements MongoDbCollInterface {
                 .stream(it.spliterator(), false)
                 .map(doc -> this.documentToPackableMap(doc))
                 .onClose(() -> {
-                        Util.close(result.iterator());
-                        Util.close(mongoClient);
+                        UtilExtended.close(result.iterator());
+                        UtilExtended.close(mongoClient);
                 });
     }
 

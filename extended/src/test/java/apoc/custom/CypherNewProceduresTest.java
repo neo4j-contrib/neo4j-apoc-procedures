@@ -1,7 +1,7 @@
 package apoc.custom;
 
-import apoc.RegisterComponentFactory;
-import apoc.SystemPropertyKeys;
+import apoc.ExtendedSystemPropertyKeys;
+import apoc.ExtendedRegisterComponentFactory;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -597,13 +597,13 @@ public class CypherNewProceduresTest {
         // remove the node in systemdb
         GraphDatabaseService systemDb = databaseManagementService.database("system");
         try (Transaction tx = systemDb.beginTx()) {
-            Node node = tx.findNode(ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            Node node = tx.findNode(ApocCypherProcedures, ExtendedSystemPropertyKeys.name.name(), "answer");
             node.delete();
             tx.commit();
         }
 
         // refresh procedures
-        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(ExtendedRegisterComponentFactory.RegisterComponentLifecycle.class);
         CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
         cypherProceduresHandler.restoreProceduresAndFunctions();
 
@@ -624,13 +624,13 @@ public class CypherNewProceduresTest {
         // remove the node in systemdb
         GraphDatabaseService systemDb = databaseManagementService.database("system");
         try (Transaction tx = systemDb.beginTx()) {
-            Node node = tx.findNode(ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            Node node = tx.findNode(ApocCypherProcedures, ExtendedSystemPropertyKeys.name.name(), "answer");
             node.delete();
             tx.commit();
         }
 
         // refresh procedures
-        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(ExtendedRegisterComponentFactory.RegisterComponentLifecycle.class);
         CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
         cypherProceduresHandler.restoreProceduresAndFunctions();
 

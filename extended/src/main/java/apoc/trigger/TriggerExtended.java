@@ -2,9 +2,9 @@ package apoc.trigger;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.coll.SetBackedList;
-import apoc.result.VirtualNode;
-import apoc.result.VirtualRelationship;
+import apoc.coll.SetBackedListExtended;
+import apoc.result.VirtualNodeExtended;
+import apoc.result.VirtualRelationshipExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -74,12 +74,12 @@ TriggerExtended {
                             }
                         }
                     }
-                    if (!nodeSet.isEmpty()) return new SetBackedList<>(nodeSet);
+                    if (!nodeSet.isEmpty()) return new SetBackedListExtended<>(nodeSet);
                 } else if (list.get(0) instanceof Node) {
                     if (labelString==null) {
                         Set<Node> nodeSet = new HashSet<>(map.size()*list.size());
                         map.values().forEach((l) -> nodeSet.addAll((Collection<Node>)l));
-                        return new SetBackedList<>(nodeSet);
+                        return new SetBackedListExtended<>(nodeSet);
                     }
                 }
             }
@@ -125,7 +125,7 @@ TriggerExtended {
                 .map(Optional::get)
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
-        return new VirtualNode(labels, props);
+        return new VirtualNodeExtended(labels, props);
     }
     
     @UserFunction
@@ -140,6 +140,6 @@ TriggerExtended {
                 .map(Optional::get)
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
         
-        return new VirtualRelationship(rel.getStartNode(), rel.getEndNode(), rel.getType(), props);
+        return new VirtualRelationshipExtended(rel.getStartNode(), rel.getEndNode(), rel.getType(), props);
     }
 }

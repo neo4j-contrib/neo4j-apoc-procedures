@@ -16,7 +16,7 @@ public class TTLConfigTest
 {
     @Test
     public void ttlDisabled() {
-        ApocConfig apocConfig = mock(ApocConfig.class);
+        ExtendedApocConfig apocConfig = mock(ExtendedApocConfig.class);
         Configuration config = mock(Configuration.class);
 
         when(apocConfig.getConfig()).thenReturn(config);
@@ -33,7 +33,7 @@ public class TTLConfigTest
 
     @Test
     public void ttlDisabledForOurDatabase() {
-        ApocConfig apocConfig = mock(ApocConfig.class);
+        ExtendedApocConfig apocConfig = mock(ExtendedApocConfig.class);
         Configuration config = mock(Configuration.class);
 
         when(apocConfig.getConfig()).thenReturn(config);
@@ -50,7 +50,7 @@ public class TTLConfigTest
 
     @Test
     public void ttlEnabledForOurDatabaseOverridesGlobalSettings() {
-        ApocConfig apocConfig = mock(ApocConfig.class);
+        ExtendedApocConfig apocConfig = mock(ExtendedApocConfig.class);
         Configuration config = mock(Configuration.class);
 
         when(apocConfig.getConfig()).thenReturn(config);

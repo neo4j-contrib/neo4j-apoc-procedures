@@ -19,7 +19,7 @@
 package apoc.log;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public class Neo4jLogStreamExtendedTest {
     public void testLogStream() {
         testResult(db, "CYPHER 25 CALL apoc.log.stream('debug.log')", res -> {
             final String wholeFile =
-                    Iterators.stream(res.<String>columnAs("line")).collect(Collectors.joining(""));
+                    IteratorsExtended.stream(res.<String>columnAs("line")).collect(Collectors.joining(""));
             assertTrue(wholeFile.contains("apoc.import.file.enabled=false"));
         });
     }

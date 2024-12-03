@@ -1,8 +1,8 @@
 package apoc.nlp.azure
 
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.Transaction
@@ -11,7 +11,7 @@ data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<Strin
     override fun extractDocument(index: Int, sourceNode: Node) : Any? = extractDocument(-1, sourceNode)
     private fun extractDocument(sourceNode: Node) : Any? = results.find { result -> result["id"] == sourceNode.id.toString()  }
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -25,7 +25,8 @@ data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<Strin
                 sourceNode.setProperty("sentimentScore", score)
                 sourceNode
             } else {
-                val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+                val virtualNode =
+                    VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
                 virtualNode.setProperty("sentimentScore", score)
                 virtualNode
             }
@@ -33,6 +34,6 @@ data class AzureVirtualSentimentVirtualGraph(private val results: List<Map<Strin
             allNodes.add(node)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 }

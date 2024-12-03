@@ -1,12 +1,11 @@
 package apoc.cache;
 
-import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.ExtendedApocConfig;
 import apoc.result.KeyValueResult;
-import apoc.result.ObjectResult;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.result.ObjectResultExtended;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 
@@ -23,10 +22,7 @@ public class Static {
 
     @Context
     public GraphDatabaseAPI db;
-
-    @Context
-    public ApocConfig apocConfig;
-
+    
     @Context
     public ExtendedApocConfig extendedApocConfig;
 
@@ -48,8 +44,8 @@ public class Static {
 
         HashMap<String, Object> result = new HashMap<>();
         String configPrefix = prefix.isEmpty() ? "apoc.static": "apoc.static." + prefix;
-        Iterators.stream(extendedApocConfig.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), apocConfig.getString(s)));
-        result.putAll(Util.subMap(storage, prefix));
+        IteratorsExtended.stream(extendedApocConfig.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), extendedApocConfig.getString(s)));
+        result.putAll(UtilExtended.subMap(storage, prefix));
         return result;
     }
 
@@ -61,14 +57,14 @@ public class Static {
     }
 
     private Object fromConfig(@Name("key") String key) {
-        return apocConfig.getString("apoc.static."+key);
+        return extendedApocConfig.getString("apoc.static."+key);
     }
 
     @Procedure("apoc.static.set")
     @Description("apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value")
-    public Stream<ObjectResult> set(@Name("key") String key, @Name("value") Object value) {
+    public Stream<ObjectResultExtended> set(@Name("key") String key, @Name("value") Object value) {
         Object previous = value == null ? storage.remove(key) : storage.put(key, value);
-        return Stream.of(new ObjectResult(previous==null ? fromConfig(key) : previous));
+        return Stream.of(new ObjectResultExtended(previous==null ? fromConfig(key) : previous));
     }
 
     public static void clear() {

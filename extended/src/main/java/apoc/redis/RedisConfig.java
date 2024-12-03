@@ -1,7 +1,7 @@
 package apoc.redis;
 
-import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.util.MissingDependencyExceptionExtended;
+import apoc.util.UtilExtended;
 
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -32,7 +32,7 @@ public class RedisConfig {
                 Constructor<?> constructor = redisConnectionClass.getConstructor(String.class, RedisConfig.class);
                 return (RedisConnection) constructor.newInstance(uri, redisConfig);
             } catch (NoClassDefFoundError e) {
-                throw new MissingDependencyException(REDIS_MISSING_DEPS_ERROR);
+                throw new MissingDependencyExceptionExtended(REDIS_MISSING_DEPS_ERROR);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -53,8 +53,8 @@ public class RedisConfig {
         this.charset = Charset.forName((String) config.getOrDefault("charset", "UTF-8"));
         this.timeout = Duration.ofSeconds((long) config.getOrDefault("timeout", DEFAULT_TIMEOUT));
         this.scriptCharset = Charset.forName((String) config.getOrDefault("scriptCharset", "UTF-8"));
-        this.autoReconnect = Util.toBoolean(config.getOrDefault("autoReconnect", true));
-        this.right = Util.toBoolean(config.getOrDefault("right", true));
+        this.autoReconnect = UtilExtended.toBoolean(config.getOrDefault("autoReconnect", true));
+        this.right = UtilExtended.toBoolean(config.getOrDefault("right", true));
         this.codec = Codec.valueOf((config.getOrDefault("codec", Codec.STRING.name()).toString().toUpperCase()));
     }
 

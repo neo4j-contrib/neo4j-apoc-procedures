@@ -18,11 +18,11 @@
  */
 package apoc.export.arrow;
 
-import apoc.util.Util;
-import apoc.util.collection.Iterables;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IterablesExtended;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
-import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -85,7 +85,7 @@ public interface ExportGraphStrategy {
         Map<String, Object> flattened = new HashMap<>();
         flattened.put(FIELD_ID.getName(), entity.getId());
         if (entity instanceof Node) {
-            flattened.put(FIELD_LABELS.getName(), Util.labelStrings((Node) entity));
+            flattened.put(FIELD_LABELS.getName(), UtilExtended.labelStrings((Node) entity));
         } else {
             Relationship rel = (Relationship) entity;
             flattened.put(FIELD_TYPE.getName(), rel.getType().name());
@@ -96,10 +96,10 @@ public interface ExportGraphStrategy {
         return flattened;
     }
 
-    default Map<String, Object> createConfigMap(SubGraph subGraph, ArrowConfig config) {
+    default Map<String, Object> createConfigMap(SubGraphExtended subGraph, ArrowConfig config) {
         final List<String> allLabelsInUse =
-                Iterables.stream(subGraph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList());
-        final List<String> allRelationshipTypesInUse = Iterables.stream(subGraph.getAllRelationshipTypesInUse())
+                IterablesExtended.stream(subGraph.getAllLabelsInUse()).map(Label::name).collect(Collectors.toList());
+        final List<String> allRelationshipTypesInUse = IterablesExtended.stream(subGraph.getAllRelationshipTypesInUse())
                 .map(RelationshipType::name)
                 .collect(Collectors.toList());
         Map<String, Object> configMap = new HashMap<>();

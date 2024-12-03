@@ -1,6 +1,6 @@
 package apoc.util;
 
-import apoc.util.collection.Iterables;
+import apoc.util.collection.IterablesExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -55,13 +55,13 @@ public class ExtendedTestUtil {
                 .map(Label::label)
                 .collect(Collectors.toSet());
         
-        assertEquals(expectedStartLabelSet, Iterables.asSet(startNode.getLabels()));
+        assertEquals(expectedStartLabelSet, IterablesExtended.asSet(startNode.getLabels()));
         assertMapEquals(expectedStartNodeProps, startNode.getAllProperties());
 
         Set<Label> expectedEndLabelSet = expectedEndNodeLabels.stream()
                 .map(Label::label)
                 .collect(Collectors.toSet());
-        assertEquals(expectedEndLabelSet, Iterables.asSet(endNode.getLabels()));
+        assertEquals(expectedEndLabelSet, IterablesExtended.asSet(endNode.getLabels()));
         assertMapEquals(expectedEndNodeProps, endNode.getAllProperties());
     }
 

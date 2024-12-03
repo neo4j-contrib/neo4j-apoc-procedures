@@ -2,7 +2,7 @@ package apoc.load;
 
 import apoc.util.s3.MySQLContainerExtension;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -91,11 +91,11 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         // with the config {timezone: 'UTC'} and `preserveInstants=true&connectionTimeZone=SERVER` to make the result deterministic,
         // since `TIMESTAMP` values are automatically converted from the session time zone to UTC for storage, and vice versa.
         testCall(db, "CALL apoc.load.jdbc($url, $table, [], {timezone: 'UTC'})",
-                Util.map(
+                UtilExtended.map(
                         "url", mysql.getJdbcUrl() + "&preserveInstants=true&connectionTimeZone=SERVER",
                         "table", "country"),
                 row -> {
-                    Map<String, Object> expected = Util.map(
+                    Map<String, Object> expected = UtilExtended.map(
                             "Code", "NLD",
                             "Name", "Netherlands",
                             "Continent", "Europe",
@@ -125,7 +125,7 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
 
     private static void testIssue3496(DbmsRule db, MySQLContainerExtension mysql) {
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT DATE(NOW()), NOW(), CURDATE(), CURTIME(), UTC_DATE(), UTC_TIME(), UTC_TIMESTAMP(), DATE(UTC_TIMESTAMP());')", 
-                Util.map("url", mysql.getJdbcUrl()),
+                UtilExtended.map("url", mysql.getJdbcUrl()),
                 r -> {
                     Map row = (Map) r.get("row");
                     assertEquals(8, row.size());

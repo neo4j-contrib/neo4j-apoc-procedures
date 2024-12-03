@@ -2,7 +2,7 @@ package apoc.agg;
 
 import apoc.map.Maps;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -72,7 +72,7 @@ public class MultiStatsTest {
                             sumWcc, avgWcc, countWcc,
                             sumAnother, avgAnother, countAnother,
                             sumLpa, avgLpa, countLpa""", Map.of(),
-                Iterators::asList);
+                IteratorsExtended::asList);
 
         List multiStatsResult = db.executeTransactionally("""
                 match (p:Person)
@@ -91,7 +91,7 @@ public class MultiStatsTest {
                     data.wcc[toString(p.wcc)].sum AS sumWcc,
                     data.louvain[toString(p.louvain)].sum AS sumLouvain,
                     data.lpa[toString(p.lpa)].sum AS sumLpa
-                """, Map.of(), Iterators::asList);
+                """, Map.of(), IteratorsExtended::asList);
 
         assertEquals(multiAggregationResult, multiStatsResult);
         

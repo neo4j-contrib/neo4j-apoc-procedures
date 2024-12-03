@@ -4,7 +4,7 @@ import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import apoc.util.s3.S3BaseTest;
 import apoc.xml.XmlTestUtils;
 import org.junit.Assert;
@@ -22,7 +22,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -73,7 +73,7 @@ public class LoadS3Test extends S3BaseTest {
         String url = s3Container.putFile(EXTENDED_PATH +  "src/test/resources/xml/books.xml");
         url = removeRegionFromUrl(url);
 
-        testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
+        testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", UtilExtended.map("url", url), (r) -> {
             Object value = Iterables.single(r.values());
             Assert.assertEquals(XmlTestUtils.XML_XPATH_AS_NESTED_MAP, value);
         });

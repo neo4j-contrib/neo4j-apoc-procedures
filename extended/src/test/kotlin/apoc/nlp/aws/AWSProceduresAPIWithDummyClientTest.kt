@@ -3,7 +3,7 @@ package apoc.nlp.aws
 import apoc.nlp.NodeMatcher
 import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import apoc.util.TestUtil
 import org.junit.Assert
 import org.junit.Assert.assertTrue
@@ -136,7 +136,11 @@ class AWSProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")), "HAS_ENTITY", mapOf("myScore" to 0.7F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-2-index-0-batch-0", "type" to "ORGANIZATION")
+                ), "HAS_ENTITY", mapOf("myScore" to 0.7F))))
         }
     }
 
@@ -179,8 +183,16 @@ class AWSProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM")), "ENTITY", mapOf("score" to 0.5F))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION")), "ENTITY", mapOf("score" to 0.7F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels1.toTypedArray(),
+                    mapOf("text" to "token-1-index-0-batch-1", "type" to "COMMERCIAL_ITEM")
+                ), "ENTITY", mapOf("score" to 0.5F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-2-index-0-batch-1", "type" to "ORGANIZATION")
+                ), "ENTITY", mapOf("score" to 0.7F))))
         }
     }
 
@@ -319,9 +331,17 @@ class AWSProceduresAPIWithDummyClientTest {
 
         Assert.assertEquals(2, relationships.size)
         assertThat(relationships, 
-            hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-1-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.3F))))
+            hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "keyPhrase-1-index-0-batch-1")
+                ), "KEY_PHRASE", mapOf("score" to 0.3F))))
         assertThat(relationships,
-            hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-1")), "KEY_PHRASE", mapOf("score" to 0.4F))))
+            hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "keyPhrase-2-index-0-batch-1")
+                ), "KEY_PHRASE", mapOf("score" to 0.4F))))
     }
 
     @Test
@@ -359,7 +379,11 @@ class AWSProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "keyPhrase-2-index-0-batch-0"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "keyPhrase-2-index-0-batch-0")), "HAS_KEY_PHRASE", mapOf("myScore" to 0.4F))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "keyPhrase-2-index-0-batch-0")
+                ), "HAS_KEY_PHRASE", mapOf("myScore" to 0.4F))))
         }
     }
 
@@ -404,7 +428,8 @@ class AWSProceduresAPIWithDummyClientTest {
         var virtualSourceNode: Node? = null
         neo4j.executeTransactionally("MATCH (a:Article7) RETURN a", emptyMap()) {
             sourceNode = it.next()["a"] as Node
-            virtualSourceNode = VirtualNode(sourceNode, sourceNode!!.propertyKeys.toList())
+            virtualSourceNode =
+                VirtualNodeExtended(sourceNode, sourceNode!!.propertyKeys.toList())
         }
 
         neo4j.executeTransactionally("""

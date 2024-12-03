@@ -1,8 +1,7 @@
 package apoc.custom;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.kernel.api.procs.DefaultParameterValue;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
@@ -45,7 +44,7 @@ public class CypherProceduresUtil {
     }
 
     public static CustomProcedureInfo getFunctionInfo(Node node) {
-        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+        String statement = (String) node.getProperty(ExtendedSystemPropertyKeys.statement.name());
         boolean forceSingle = (boolean) node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name(), false);
         UserFunctionSignature signature = getUserFunctionSignature(node);
 
@@ -53,14 +52,14 @@ public class CypherProceduresUtil {
     }
 
     public static CustomProcedureInfo getProcedureInfo(Node node) {
-        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+        String statement = (String) node.getProperty(ExtendedSystemPropertyKeys.statement.name());
         ProcedureSignature signature = getProcedureSignature(node);
 
         return CustomProcedureInfo.getCustomProcedureInfo(signature, statement);
     }
 
     public static UserFunctionSignature getUserFunctionSignature(Node node) {
-        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
+        String name = (String) node.getProperty(ExtendedSystemPropertyKeys.name.name());
         String description = (String) node.getProperty(ExtendedSystemPropertyKeys.description.name(), null);
         String[] prefix = (String[]) node.getProperty(ExtendedSystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
@@ -83,7 +82,7 @@ public class CypherProceduresUtil {
     }
 
     public static ProcedureSignature getProcedureSignature(Node node) {
-        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
+        String name = (String) node.getProperty(ExtendedSystemPropertyKeys.name.name());
         String description = (String) node.getProperty( ExtendedSystemPropertyKeys.description.name(), null);
         String[] prefix = (String[]) node.getProperty(ExtendedSystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
@@ -109,7 +108,7 @@ public class CypherProceduresUtil {
     }
 
     public static List<FieldSignature> deserializeSignatures(String s) {
-        List<Map<String, Object>> mapped = Util.fromJson(s, List.class);
+        List<Map<String, Object>> mapped = UtilExtended.fromJson(s, List.class);
         if (mapped.isEmpty()) return ProcedureSignature.VOID;
         return mapped.stream().map(map -> {
             String typeString = (String) map.get("type");

@@ -3,7 +3,7 @@ package apoc.ttl;
 import apoc.periodic.Periodic;
 import apoc.util.DbmsTestUtil;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 
 import java.io.IOException;
 import java.util.Map;
@@ -67,9 +67,9 @@ public class TTLTest {
 
     private static boolean isNodeCountConsistent(int foo, int bar) {
         try (Transaction tx = db.beginTx()) {
-            boolean isNotCountConsistent = foo == Iterators.count(tx.findNodes(Label.label("Foo")))
-                    && bar == Iterators.count(tx.findNodes(Label.label("Bar")))
-                    && foo + bar == Iterators.count(tx.findNodes(Label.label("TTL")));
+            boolean isNotCountConsistent = foo == IteratorsExtended.count(tx.findNodes(Label.label("Foo")))
+                    && bar == IteratorsExtended.count(tx.findNodes(Label.label("Bar")))
+                    && foo + bar == IteratorsExtended.count(tx.findNodes(Label.label("TTL")));
             tx.commit();
             return isNotCountConsistent;
         }

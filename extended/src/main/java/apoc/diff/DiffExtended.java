@@ -2,7 +2,7 @@ package apoc.diff;
 
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Description;
@@ -24,8 +24,8 @@ public class DiffExtended {
     @UserFunction("apoc.diff.relationships")
     @Description("Returns a Map detailing the property differences between the two given relationships")
     public Map<String, Object> relationships(@Name("leftRel") Relationship leftRel, @Name("rightRel") Relationship rightRel) {
-        leftRel = Util.rebind(tx, leftRel);
-        rightRel = Util.rebind(tx, rightRel);
+        leftRel = UtilExtended.rebind(tx, leftRel);
+        rightRel = UtilExtended.rebind(tx, rightRel);
         Map<String, Object> allLeftProperties = leftRel.getAllProperties();
         Map<String, Object> allRightProperties = rightRel.getAllProperties();
 

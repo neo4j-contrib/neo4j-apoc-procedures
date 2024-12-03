@@ -1,9 +1,9 @@
 package apoc.ml;
 
-import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.JsonUtil;
+import apoc.ExtendedApocConfig;
+import apoc.result.MapResultExtended;
+import apoc.util.JsonUtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
@@ -37,7 +37,7 @@ public class OpenAI {
     public static final String GPT_4O_MODEL = "gpt-4o";
 
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
 
     @Context
     public URLAccessChecker urlAccessChecker;
@@ -56,7 +56,7 @@ public class OpenAI {
         }
     }
 
-    static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ApocConfig apocConfig, URLAccessChecker urlAccessChecker) throws JsonProcessingException, MalformedURLException {
+    static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ExtendedApocConfig apocConfig, URLAccessChecker urlAccessChecker) throws JsonProcessingException, MalformedURLException {
         apiKey = (String) configuration.getOrDefault(APIKEY_CONF_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API Key must not be empty");
@@ -81,13 +81,13 @@ public class OpenAI {
         headers.put("Content-Type", "application/json");
         apiType.addApiKey(headers, apiKey);
 
-        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(configForPayload);
+        String payload = JsonUtilExtended.OBJECT_MAPPER.writeValueAsString(configForPayload);
         
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
         var url = apiType.getFullUrl(path, configuration, apocConfig);
-        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
+        return JsonUtilExtended.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
     }
 
     private static void handleAPIProvider(OpenAIRequestHandler.Type type,
@@ -156,7 +156,7 @@ public class OpenAI {
         );
     }
 
-    static <T> Stream<T> getEmbeddingResult(List<String> texts, String apiKey, Map<String, Object> configuration, ApocConfig apocConfig, URLAccessChecker urlAccessChecker,
+    static <T> Stream<T> getEmbeddingResult(List<String> texts, String apiKey, Map<String, Object> configuration, ExtendedApocConfig apocConfig, URLAccessChecker urlAccessChecker,
                                             BiFunction<Map, String, T> embeddingMapping, Function<String, T> nullMapping) throws JsonProcessingException, MalformedURLException {
         if (texts == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
@@ -185,7 +185,7 @@ public class OpenAI {
 
     @Procedure("apoc.ml.openai.completion")
     @Description("apoc.ml.openai.completion(prompt, api_key, configuration) - prompts the completion API")
-    public Stream<MapResult> completion(@Name("prompt") String prompt, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> completion(@Name("prompt") String prompt, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         // https://platform.openai.com/docs/api-reference/completions/create
     /*
     { "id": "cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7",
@@ -198,18 +198,18 @@ public class OpenAI {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
         return executeRequest(apiKey, configuration, "completions", "gpt-3.5-turbo-instruct", "prompt", prompt, "$", apocConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v).map(MapResult::new);
+                .map(v -> (Map<String,Object>)v).map(MapResultExtended::new);
     }
 
     @Procedure("apoc.ml.openai.chat")
     @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
-    public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         if (messages == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
         configuration.putIfAbsent("model", GPT_4O_MODEL);
         return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
-                .map(v -> (Map<String,Object>)v).map(MapResult::new);
+                .map(v -> (Map<String,Object>)v).map(MapResultExtended::new);
         // https://platform.openai.com/docs/api-reference/chat/create
     /*
     { 'id': 'chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve', 'object': 'chat.completion', 'created': 1677649420, 'model': 'gpt-3.5-turbo',

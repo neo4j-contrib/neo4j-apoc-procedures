@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.bson.Document;
 
 import java.io.Closeable;
@@ -31,7 +31,7 @@ public interface MongoDbCollInterface extends Closeable {
     long delete(Document query);
 
     default void safeClose() {
-        Util.close(this);
+        UtilExtended.close(this);
     }
 
     class Factory {

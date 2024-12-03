@@ -1,12 +1,12 @@
 package apoc.export.parquet;
 
-import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.util.FileUtils;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
-import apoc.util.Util;
+import apoc.PoolsExtended;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.QueueBasedSpliteratorExtended;
+import apoc.util.QueueUtilExtended;
+import apoc.util.UtilExtended;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
 import org.apache.parquet.schema.MessageType;
@@ -24,17 +24,17 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 
-public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ExportProgressInfo>> {
+public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ExportProgressInfoExtended>> {
 
     private String fileName;
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
     private final ParquetExportType exportType;
     ParquetWriter writer;
 
-    public ExportParquetFileStrategy(String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
+    public ExportParquetFileStrategy(String fileName, GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
         this.fileName = fileName;
         this.db = db;
         this.pools = pools;
@@ -43,22 +43,22 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
         this.exportType = exportType;
     }
 
-    public Stream<ExportProgressInfo> export(IN data, ParquetConfig config) {
+    public Stream<ExportProgressInfoExtended> export(IN data, ParquetConfig config) {
 
-        ExportProgressInfo progressInfo = new ExportProgressInfo(fileName, getSource(data), "parquet");
+        ExportProgressInfoExtended progressInfo = new ExportProgressInfoExtended(fileName, getSource(data), "parquet");
         progressInfo.setBatches(config.getBatchSize());
-        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+        ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, progressInfo);
 
-        final BlockingQueue<ExportProgressInfo> queue = new ArrayBlockingQueue<>(10);
-        Util.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
+        final BlockingQueue<ExportProgressInfoExtended> queue = new ArrayBlockingQueue<>(10);
+        UtilExtended.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
             int batchCount = 0;
             List<TYPE> rows = new ArrayList<>(config.getBatchSize());
-            ParquetBufferedWriter parquetBufferedWriter = new ParquetBufferedWriter(FileUtils.getOutputStream(fileName));
+            ParquetBufferedWriter parquetBufferedWriter = new ParquetBufferedWriter(FileUtilsExtended.getOutputStream(fileName));
             ExampleParquetWriter.Builder builder = ExampleParquetWriter.builder(parquetBufferedWriter);
 
             try {
                 Iterator<TYPE> it = toIterator(reporter, data);
-                while (!Util.transactionIsTerminated(terminationGuard) && it.hasNext()) {
+                while (!UtilExtended.transactionIsTerminated(terminationGuard) && it.hasNext()) {
                     rows.add(it.next());
 
                     if (batchCount > 0 && batchCount % config.getBatchSize() == 0) {
@@ -69,19 +69,19 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
                 if (!rows.isEmpty()) {
                     writeBatch(builder, rows, data, config);
                 }
-                QueueUtil.put(queue, progressInfo, 10);
+                QueueUtilExtended.put(queue, progressInfo, 10);
                 return true;
             } catch (Exception e) {
                 logger.error("Exception while extracting Parquet data:", e);
             } finally {
                 closeWriter();
                 reporter.done();
-                QueueUtil.put(queue, ExportProgressInfo.EMPTY, 10);
+                QueueUtilExtended.put(queue, ExportProgressInfoExtended.EMPTY, 10);
             }
             return true;
         });
 
-        QueueBasedSpliterator<ExportProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ExportProgressInfo.EMPTY, terminationGuard, Integer.MAX_VALUE);
+        QueueBasedSpliteratorExtended<ExportProgressInfoExtended> spliterator = new QueueBasedSpliteratorExtended<>(queue, ExportProgressInfoExtended.EMPTY, terminationGuard, Integer.MAX_VALUE);
         return StreamSupport.stream(spliterator, false);
     }
 
@@ -105,5 +105,5 @@ public abstract class ExportParquetFileStrategy<TYPE, IN> implements ExportParqu
 
     public abstract String getSource(IN data);
 
-    public abstract Iterator<TYPE> toIterator(ProgressReporter reporter, IN data);
+    public abstract Iterator<TYPE> toIterator(ProgressReporterExtended reporter, IN data);
 }

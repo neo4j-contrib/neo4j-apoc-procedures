@@ -4,7 +4,7 @@ import apoc.create.Create;
 import apoc.periodic.Periodic;
 import apoc.util.DbmsTestUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -111,7 +111,7 @@ public class UUIDTest {
 
         TestUtil.testCall(db, "CALL apoc.uuid.remove('Mario')",
                 (row) -> assertResult(row, "Mario", false,
-                        Util.map("uuidProperty", "uuid", "addToSetLabels", true)));
+                        UtilExtended.map("uuidProperty", "uuid", "addToSetLabels", true)));
     }
 
     @Test
@@ -200,7 +200,7 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Bar", true,
-                        Util.map("uuidProperty", "uuid", "addToSetLabels", false)));
+                        UtilExtended.map("uuidProperty", "uuid", "addToSetLabels", false)));
     }
 
     @Test
@@ -229,10 +229,10 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
-                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
+                        UtilExtended.map("uuidProperty", "foo", "addToSetLabels", false)));
         TestUtil.testCall(db, "CALL apoc.uuid.remove('Test')",
                 (row) -> assertResult(row, "Test", false,
-                        Util.map("uuidProperty", "foo", "addToSetLabels", false)));
+                        UtilExtended.map("uuidProperty", "foo", "addToSetLabels", false)));
     }
 
     @Test

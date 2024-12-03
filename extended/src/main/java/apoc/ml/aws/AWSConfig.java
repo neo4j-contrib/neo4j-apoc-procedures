@@ -3,9 +3,9 @@ package apoc.ml.aws;
 import java.util.HashMap;
 import java.util.Map;
 
-import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ml.MLUtil.*;
 
 public abstract class AWSConfig {
@@ -33,8 +33,8 @@ public abstract class AWSConfig {
     protected AWSConfig(Map<String, Object> config) {
         config = config == null ? Map.of() : config;
         
-        this.keyId = apocConfig().getString(APOC_AWS_KEY_ID, (String) config.get(KEY_ID));
-        this.secretKey = apocConfig().getString(APOC_AWS_SECRET_KEY, (String) config.get(SECRET_KEY));
+        this.keyId = extendedApocConfig().getString(APOC_AWS_KEY_ID, (String) config.get(KEY_ID));
+        this.secretKey = extendedApocConfig().getString(APOC_AWS_SECRET_KEY, (String) config.get(SECRET_KEY));
         
         this.region = (String) config.getOrDefault(REGION_CONF_KEY, "us-east-1");
         this.endpoint = getEndpoint(config, getDefaultEndpoint(config));

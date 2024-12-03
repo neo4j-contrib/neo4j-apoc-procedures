@@ -7,7 +7,6 @@ import org.neo4j.driver.AuthTokens;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.extendedApocConfig;
 
 /**
@@ -37,9 +36,9 @@ public class UriResolver {
     private String getConfiguredUri(String key) {
         String keyUrl = "apoc." + this.prefix + "." + key + ".url";
         if (extendedApocConfig().containsKey("apoc.bolt.url")) {
-            key = apocConfig().getString("apoc.bolt.url");
+            key = extendedApocConfig().getString("apoc.bolt.url");
         } else if (extendedApocConfig().containsKey(keyUrl)) {
-            key = apocConfig().getString(keyUrl, key);
+            key = extendedApocConfig().getString(keyUrl, key);
         }
         return key;
     }

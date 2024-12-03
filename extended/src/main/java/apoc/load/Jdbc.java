@@ -2,8 +2,8 @@ package apoc.load;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
-import apoc.result.RowResult;
-import apoc.util.MapUtil;
+import apoc.result.RowResultExtended;
+import apoc.util.MapUtilExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -62,13 +62,13 @@ public class Jdbc {
 
     @Procedure(mode = Mode.READ)
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
-    public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
+    public Stream<RowResultExtended> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
+    private Stream<RowResultExtended> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
         String url = getUrlOrKey(urlOrKey);
         String query = getSqlOrKey(tableOrSelect);
@@ -85,7 +85,7 @@ public class Jdbc {
                     Iterator<Map<String, Object>> supplier = new ResultSetIterator(log, rs, true, loadJdbcConfig);
                     Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                     return StreamSupport.stream(spliterator, false)
-                            .map(RowResult::new)
+                            .map(RowResultExtended::new)
                             .onClose(() -> closeIt(log, stmt, connection));
                 } catch (Exception sqle) {
                     closeIt(log, stmt);
@@ -105,12 +105,12 @@ public class Jdbc {
 
     @Procedure(mode = Mode.DBMS)
     @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
-    public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<RowResultExtended> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         log.info( String.format( "Executing SQL update: %s", query ) );
         return executeUpdate(urlOrKey, query, config, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
+    private Stream<RowResultExtended> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
@@ -122,9 +122,9 @@ public class Jdbc {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     int updateCount = stmt.executeUpdate();
                     closeIt(log, stmt, connection);
-                    Map<String, Object> result = MapUtil.map("count", updateCount);
+                    Map<String, Object> result = MapUtilExtended.map("count", updateCount);
                     return Stream.of(result)
-                            .map(RowResult::new);
+                            .map(RowResultExtended::new);
                 } catch(Exception sqle) {
                     closeIt(log,stmt);
                     throw sqle;

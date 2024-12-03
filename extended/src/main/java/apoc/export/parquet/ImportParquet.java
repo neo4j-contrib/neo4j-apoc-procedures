@@ -1,11 +1,11 @@
 package apoc.export.parquet;
 
 import apoc.Extended;
-import apoc.Pools;
+import apoc.PoolsExtended;
 import apoc.export.util.BatchTransaction;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
-import apoc.util.Util;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ImportProgressInfoExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -42,7 +42,7 @@ public class ImportParquet {
     public GraphDatabaseService db;
 
     @Context
-    public Pools pools;
+    public PoolsExtended pools;
 
     @Context
     public Log log;
@@ -52,11 +52,11 @@ public class ImportParquet {
 
     @Procedure(name = "apoc.import.parquet", mode = Mode.WRITE)
     @Description("Imports parquet from the provided file or binary")
-    public Stream<ImportProgressInfo> importParquet(
+    public Stream<ImportProgressInfoExtended> importParquet(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        ImportProgressInfo result =
-                Util.inThread(pools, () -> {
+        ImportProgressInfoExtended result =
+                UtilExtended.inThread(pools, () -> {
 
                     String file = null;
                     String sourceInfo = "binary";
@@ -69,7 +69,7 @@ public class ImportParquet {
                     final Map<Long, Long> idMapping = new HashMap<>();
                     try (ApocParquetReader reader = getReader(input, conf, urlAccessChecker)) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "parquet"));
+                        final ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, new ImportProgressInfoExtended(file, sourceInfo, "parquet"));
 
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
 
@@ -116,7 +116,7 @@ public class ImportParquet {
                             btx.close();
                         }
 
-                        return (ImportProgressInfo) reporter.getTotal();
+                        return (ImportProgressInfoExtended) reporter.getTotal();
                     }
                 });
         return Stream.of(result);
