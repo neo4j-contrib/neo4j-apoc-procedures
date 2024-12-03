@@ -93,15 +93,15 @@ abstract class OpenAIRequestHandler {
             headers.put("Authorization", "Bearer " + apiKey);
         }
     }
-    
+
     static class Custom extends OpenAi {
         public Custom() {
             super(null);
         }
+
         @Override
         public String getDefaultUrl() {
             throw new RuntimeException(ERROR_MSG_MISSING_ENDPOINT);
-
         }
     }
 }

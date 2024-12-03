@@ -20,8 +20,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
-
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -73,12 +71,12 @@ public class OpenAI {
                 config.put(key, inputs);
         }
         OpenAIRequestHandler apiType = type.get();
-        
+
         final Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        
+
         apiType.addApiKey(headers, apiKey);
-        
+
         String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
 
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
@@ -108,20 +106,23 @@ public class OpenAI {
           "model": "text-embedding-ada-002",
           "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
         */
-        
-        return getEmbeddingResult(texts, apiKey, configuration, apocConfig,
-                (map, text) -> {
-                    Long index = (Long) map.get("index");
-                    return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
-                }
-        );
+
+        return getEmbeddingResult(texts, apiKey, configuration, apocConfig, (map, text) -> {
+            Long index = (Long) map.get("index");
+            return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
+        });
     }
 
-    public static <T> Stream<T> getEmbeddingResult(List<String> texts, String apiKey, Map<String, Object> configuration, ApocConfig apocConfig, BiFunction<Map, String, T> embeddingMapping)
+    public static <T> Stream<T> getEmbeddingResult(
+            List<String> texts,
+            String apiKey,
+            Map<String, Object> configuration,
+            ApocConfig apocConfig,
+            BiFunction<Map, String, T> embeddingMapping)
             throws JsonProcessingException, MalformedURLException {
         Stream<Object> resultStream = executeRequest(
                 apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data", apocConfig);
-        
+
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
