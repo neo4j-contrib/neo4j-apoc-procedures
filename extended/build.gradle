@@ -178,6 +178,7 @@ dependencies {
     testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: '1.6.0'
     testImplementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
     testImplementation group: 'org.testcontainers', name: 'kafka', version: testContainersVersion
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
