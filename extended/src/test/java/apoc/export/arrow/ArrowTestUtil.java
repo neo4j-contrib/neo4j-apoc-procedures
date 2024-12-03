@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertArrayEquals;
