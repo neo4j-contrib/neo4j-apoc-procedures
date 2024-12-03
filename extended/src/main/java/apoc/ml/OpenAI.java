@@ -149,9 +149,9 @@ public class OpenAI {
       "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
     */
         boolean failOnError = isFailOnError(configuration);
-        if (!checkNullInput(texts, failOnError)) return Stream.empty();
+        if (checkNullInput(texts, failOnError)) return Stream.empty();
         texts = texts.stream().filter(StringUtils::isNotBlank).toList();
-        if (!checkEmptyInput(texts, failOnError)) return Stream.empty();
+        if (checkEmptyInput(texts, failOnError)) return Stream.empty();
         return getEmbeddingResult(texts, apiKey, configuration, apocConfig, urlAccessChecker,
                 (map, text) -> {
                     Long index = (Long) map.get("index");
@@ -201,7 +201,7 @@ public class OpenAI {
     }
     */
         boolean failOnError = isFailOnError(configuration);
-        if(!checkBlankInput(prompt, failOnError)) return Stream.empty();
+        if(checkBlankInput(prompt, failOnError)) return Stream.empty();
         return executeRequest(apiKey, configuration, "completions", "gpt-3.5-turbo-instruct", "prompt", prompt, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
@@ -210,9 +210,9 @@ public class OpenAI {
     @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         boolean failOnError = isFailOnError(configuration);
-        if (!checkNullInput(messages, failOnError)) return Stream.empty();
+        if (checkNullInput(messages, failOnError)) return Stream.empty();
         messages = messages.stream().filter(MapUtils::isNotEmpty).toList();
-        if (!checkEmptyInput(messages, failOnError)) return Stream.empty();
+        if (checkEmptyInput(messages, failOnError)) return Stream.empty();
         configuration.putIfAbsent("model", GPT_4O_MODEL);
         return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
@@ -232,27 +232,26 @@ public class OpenAI {
     }
 
     static boolean checkNullInput(Object input, boolean failOnError) {
-        return checkInput(input, failOnError, () -> Objects.isNull(input));
+        return checkInput(failOnError, () -> Objects.isNull(input));
     }
 
     static boolean checkEmptyInput(Collection<?> input, boolean failOnError) {
-        return checkInput(input, failOnError, () -> input.isEmpty());
+        return checkInput(failOnError, () -> input.isEmpty());
     }
 
     static boolean checkBlankInput(String input, boolean failOnError) {
-        return checkInput(input, failOnError, () -> StringUtils.isBlank(input));
+        return checkInput(failOnError, () -> StringUtils.isBlank(input));
     }
 
     private static boolean checkInput(
-            Object input,
             boolean failOnError,
             Supplier<Boolean> checkFunction
     ){
         if (checkFunction.get()) {
             if(failOnError) throw new RuntimeException(ERROR_NULL_INPUT);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
 }
