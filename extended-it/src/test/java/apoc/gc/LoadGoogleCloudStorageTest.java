@@ -2,7 +2,6 @@ package apoc.gc;
 
 import apoc.load.LoadCsv;
 import apoc.load.LoadHtml;
-import apoc.load.LoadJson;
 import apoc.load.LoadJsonExtended;
 import apoc.load.Xml;
 import apoc.load.xls.LoadXls;

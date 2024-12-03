@@ -18,8 +18,8 @@
  */
 package apoc.export.arrow;
 
-import apoc.load.arrow.*;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -65,6 +65,12 @@ public class ArrowExtendedTest {
     @BeforeClass
     public static void beforeClass() {
         beforeClassCommon(db);
+    }
+
+    @Before
+    public void before() {
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     @AfterClass

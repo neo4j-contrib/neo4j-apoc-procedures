@@ -21,7 +21,8 @@ public class ExtendedITUtil {
     }
 
     public static void testLoadJsonCommon(GraphDatabaseService db, String url) {
-        testCall(db, "CYPHER 25 CALL apoc.load.jsonParams($url, {}, '')",map("url", url),
+        testCall(db, "CYPHER 25 CALL apoc.load.jsonParams($url, null, null)",
+                map("url", url),
                 (row) -> {
                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });

@@ -41,9 +41,6 @@ public class ParquetTestUtil {
 
     public static void beforeClassCommon(GraphDatabaseService db) {
         TestUtil.registerProcedure(db, ExportParquet.class, ImportParquet.class, LoadParquet.class, Graphs.class, Meta.class);
-        
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     public static void beforeCommon(GraphDatabaseService db) {
@@ -51,6 +48,9 @@ public class ParquetTestUtil {
 
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace', 'Qwe'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         db.executeTransactionally("CREATE (:Another {foo:1, listDate: [date('1999'), date('2000')], listInt: [1,2]}), (:Another {bar:'Sam'})");
+
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     public static void testImportAllCommon(GraphDatabaseService db, Map<String, Object> params) {
