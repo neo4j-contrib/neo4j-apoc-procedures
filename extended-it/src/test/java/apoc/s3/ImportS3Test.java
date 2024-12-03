@@ -37,16 +37,20 @@ public class ImportS3Test extends S3BaseTest {
 
     @BeforeClass
     public static void beforeClass() {
-        beforeClassCommon(db);
-        createNodesForImportTests(db);
-        TestUtil.registerProcedure(db, Gexf.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        
+        // for arrow test
+        beforeClassCommon(db);
+        createNodesForImportTests(db);
+        
+        // for gexf test
+        TestUtil.registerProcedure(db, Gexf.class);
     }
 
     @Test
     public void testImportArrow() {
-        String fileWithPath = ARROW_BASE_FOLDER + File.separator + "test_all.arrow";
+        String fileWithPath = EXTENDED_PATH + ARROW_BASE_FOLDER + File.separator + "test_all.arrow";
         String url = putToS3AndGetUrl(s3Container, fileWithPath);
 
         testImportCommon(db, url, MAPPING_ALL);

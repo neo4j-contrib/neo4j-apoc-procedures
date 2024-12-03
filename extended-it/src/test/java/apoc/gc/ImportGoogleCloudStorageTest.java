@@ -1,12 +1,17 @@
 package apoc.gc;
 
+import apoc.load.Gexf;
 import apoc.util.GoogleCloudStorageContainerExtension;
+import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.export.arrow.ArrowTestUtil.MAPPING_ALL;
 import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
 import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
@@ -25,10 +30,17 @@ public class ImportGoogleCloudStorageTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        
         gcs.start();
 
+        // for arrow test
         beforeClassCommon(db);
         createNodesForImportTests(db);
+        
+        // for gexf test
+        TestUtil.registerProcedure(db, Gexf.class);
     }
 
     @Test

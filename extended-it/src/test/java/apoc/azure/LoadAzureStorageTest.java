@@ -3,7 +3,6 @@ package apoc.azure;
 import apoc.load.LoadCsv;
 import apoc.load.LoadDirectory;
 import apoc.load.LoadHtml;
-import apoc.load.LoadJson;
 import apoc.load.LoadJsonExtended;
 import apoc.load.Xml;
 import apoc.load.xls.LoadXls;
@@ -27,7 +26,6 @@ import static apoc.util.ExtendedITUtil.testLoadXmlCommon;
 
 
 public class LoadAzureStorageTest extends AzureStorageBaseTest {
-
     
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()

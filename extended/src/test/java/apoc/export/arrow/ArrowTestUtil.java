@@ -102,9 +102,6 @@ public class ArrowTestUtil {
         db.executeTransactionally(
                 "CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         TestUtil.registerProcedure(db, ExportArrowExtended.class, LoadArrowExtended.class, ImportArrow.class, Graphs.class, Meta.class);
-
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     public static final Map<String, Object> MAPPING_ALL = Map.of("mapping",
