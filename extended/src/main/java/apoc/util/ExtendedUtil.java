@@ -4,6 +4,7 @@ import apoc.util.collection.Iterators;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
@@ -348,6 +349,13 @@ public class ExtendedUtil
         }
         return floats;
     }
+
+    public static String joinStringLabels(Collection<String> labels){
+        return CollectionUtils.isNotEmpty(labels) ?
+                ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":")) :
+                "";
+    }
+            
 
     public static <T> T withBackOffRetries(
             Supplier<T> func,

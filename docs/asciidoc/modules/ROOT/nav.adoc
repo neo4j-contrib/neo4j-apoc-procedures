@@ -92,6 +92,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:misc/index.adoc[]
     ** xref::misc/static-values.adoc[]
+    ** xref::misc/match-entities.adoc[]
 
 * xref::transaction/index.adoc[]
 

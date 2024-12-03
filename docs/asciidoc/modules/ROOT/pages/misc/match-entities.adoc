@@ -1,0 +1,213 @@
+[[match-entities]]
+= Match entities
+:description: This section describes procedures and functions for matching entities.
+
+The library provides 2 procedure for matching entities:
+
+- apoc.node.match
+- apoc.relationship.match
+
+[[matching-node]]
+== Matching nodes
+
+[.emphasis]
+"apoc.node.match(['Label'], identProps:{key:value, ...}, onMatchProps:{key:value,...})" - match nodes with dynamic labels, with support for setting properties on matched nodes
+
+=== Signature
+
+[source]
+----
+apoc.node.match(label :: LIST? OF STRING?, identProps :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)
+----
+
+=== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default | Description
+| labels | LIST? OF STRING? | null | The list of labels used for the generated MATCH statement. Passing `null` or an empty list will match a node without any constraints on labels. `null` or empty strings within the list are not supported.
+| identProps | MAP? | null | Properties that are used for MATCH statement.
+| onMatchProps | MAP? | {} | Properties that are set when a node is matched.
+|===
+
+=== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|node|NODE?
+|===
+
+This procedure provides a more flexible and performant way of matching nodes than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/match/[`MATCH`^] clause.
+
+=== Usage Examples
+The example below shows equivalent ways of matching a node with the `Person` label, with a `name` property of "Billy Reviewer":
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.node.match
+[source,cypher]
+----
+CALL apoc.node.match(
+  ["Person"],
+  {name: "Billy Reviewer"},
+  {lastSeen: datetime()}
+)
+YIELD node
+RETURN node;
+----
+
+.MATCH clause
+[source,cypher]
+----
+MATCH (node:Person {name: "Billy Reviewer"})
+SET node.lastSeen = datetime()
+RETURN node;
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Billy Reviewer", lastSeen: 2020-11-24T11:33:39.319Z})
+|===
+
+But this procedure is mostly useful for matching nodes that have dynamic labels or properties.
+For example, we might want to create a node with labels or properties passed in as parameters.
+
+The following creates `labels` and `properties` parameters:
+
+[source,cypher]
+----
+:param labels =>  (["Person"]);
+:param identityProperties => ({name: "Billy Reviewer"});
+:param onMatchProperties => ({placeOfBirth: "Stars of the milky way, Always at the time of sunrise."});
+----
+
+The following match a node with labels and properties based on `labels` and `identityProperties`, furthermore sets a new property based on `onMatchProperties`:
+
+[source,cypher]
+----
+CALL apoc.node.match($labels, $identityProperties, $onMatchProperties)
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Billy Reviewer", lastSeen: 2020-11-24T11:33:39.319Z, placeOfBirth: "Stars of the milky way, Always at the time of sunrise."})
+|===
+
+[[matching-relationship]]
+== Matching relationships
+
+[.emphasis]
+"apoc.relationship.match(startNode, relType,  identProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...})" - match relationship with dynamic type, with support for setting properties on match
+
+=== Signature
+
+[source]
+----
+apoc.relationship.match(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)
+----
+
+=== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default | Description
+| startNode | NODE? | null | Start node of the MATCH pattern.
+| relationshipType | STRING? | null | Relationship type of the MATCH pattern.
+| identProps | MAP? | null | Properties on the relationships that are used for MATCH statement.
+| endNode | NODE? | null | End node of the MATCH pattern.
+| onMatchProps | MAP? | {} | Properties that are set when the relationship is matched.
+|===
+
+=== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|rel|RELATIONSHIP?
+|===
+
+=== Usage Examples
+
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (p:Person {name: "Billy Reviewer"})
+CREATE (m:Movie {title:"spooky and goofy movie"})
+CREATE (p)-[REVIEW {lastSeen: date("1984-12-21")}]->(m);
+----
+
+This procedure provides a more flexible and performant way of matching relationships than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/match/[`MATCH`^] clause.
+
+The example below shows equivalent ways of matching an `REVIEW` relationship between the `Billy Reviewer` and a Movie nodes:
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.relationship.match
+[source,cypher]
+----
+MATCH (p:Person {name: "Billy Reviewer"})
+MATCH (m:Movie {title:"spooky and goofy movie"})
+CALL apoc.relationship.match(
+    p, "REVIEW",
+    {lastSeen: date("1984-12-21")},
+    m, {rating: 9.5}
+)
+YIELD rel
+RETURN rel;
+----
+
+.MATCH clause
+[source,cypher]
+----
+MATCH (p:Person {name: "Billy Reviewer"})
+MATCH (m:Movie {title:"spooky and goofy movie"})
+MATCH (p)-[rel:REVIEW {lastSeen: date("1984-12-21")}]->(m)
+SET rel.rating = 9.5
+RETURN rel;
+----
+// end::tabs[]
+
+If we run these queries, we'll see output as shown below:
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:REVIEW {lastSeen: 1984-12-21, rating: 9.5}]
+|===
+
+But this procedure is mostly useful for matching relationships that have a dynamic relationship type or dynamic properties.
+For example, we might want to match a relationship with a type or properties passed in as parameters.
+
+The following creates `relationshipType` and `properties` parameters:
+
+[source,cypher]
+----
+:param relType =>  ("REVIEW");
+:param identityProperties => ({lastSeen: date("1984-12-21")});
+----
+
+The following match a relationship with a type and properties based on the previously defined parameters:
+
+[source,cypher]
+----
+MATCH (bill:Person {name: "Billy Reviewer"})
+MATCH (movie:Movie {title:"spooky and goofy movie"})
+CALL apoc.relationship.match(bill, $relType, $identityProperties, movie, {}})
+YIELD rel
+RETURN rel;
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:REVIEW {lastSeen: 1984-12-21, rating: 9.5}]
+|===
