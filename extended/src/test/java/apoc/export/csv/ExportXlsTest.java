@@ -198,7 +198,7 @@ public class ExportXlsTest {
     }
 
 
-    private void assertResults(String fileName, Map<String, Object> r, final String source, long expectedNodes, long expectedRels, int expectedNodesSource) {
+    public static void assertResults(String fileName, Map<String, Object> r, final String source, long expectedNodes, long expectedRels, int expectedNodesSource) {
         assertEquals(expectedNodes, r.get("nodes")); // we're exporting nodes with multiple label multiple times
         assertEquals(2L, r.get("relationships"));
         assertEquals(25L, r.get("properties"));
@@ -208,7 +208,7 @@ public class ExportXlsTest {
         assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
     }
 
-    private void assertResults(String fileName, Map<String, Object> r, final String source) {
+    public static void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertResults(fileName, r, source, 8L, 2L, 6);
     }
 

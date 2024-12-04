@@ -11,6 +11,7 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -79,8 +80,7 @@ public class LoadCsvTest {
 
     @Test public void testLoadCsv() throws Exception {
         String url = "test.csv";
-        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
-                this::commonAssertionsLoadCsv);
+        commonTestLoadCsv(db, url);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class LoadCsvTest {
         testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)", 
                 map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgo.DEFLATE.name()),
                         "conf", map(COMPRESSION, CompressionAlgo.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
-                this::commonAssertionsLoadCsv);
+                LoadCsvTest::commonAssertionsLoadCsv);
     }
     
     @Test
@@ -128,11 +128,11 @@ public class LoadCsvTest {
                 "sep", "SEP");
         testResult(db, "CALL apoc.load.csv($url, $conf)", 
                 map("url",url, "conf", conf),
-                this::commonAssertionsLoadCsv);
+                LoadCsvTest::commonAssertionsLoadCsv);
     }
 
 
-    private void commonAssertionsLoadCsv(Result r) {
+    private static void commonAssertionsLoadCsv(Result r) {
         assertRow(r, 0L, "name", "Selma", "age", "8");
         assertRow(r, 1L, "name", "Rana", "age", "11");
         assertRow(r, 2L, "name", "Selina", "age", "18");
@@ -774,5 +774,10 @@ RETURN m.col_1,m.col_2,m.col_3
                         .build()
                         .withHeader())
                 .writeValueAsString(mapList);
+    }
+
+    public static void commonTestLoadCsv(GraphDatabaseService db, String url) {
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url", url), // 'file:test.csv'
+                LoadCsvTest::commonAssertionsLoadCsv);
     }
 }
