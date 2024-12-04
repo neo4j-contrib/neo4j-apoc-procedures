@@ -20,7 +20,7 @@ import static apoc.export.arrow.ArrowTestUtil.MAPPING_ALL;
 import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
 import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
 import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
-import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
+import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
 import static apoc.util.ExtendedTestUtil.clearDb;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;
 import static apoc.util.s3.S3Util.putToS3AndGetUrl;
@@ -50,7 +50,7 @@ public class ImportS3Test extends S3BaseTest {
 
     @Test
     public void testImportArrow() {
-        String fileWithPath = EXTENDED_PATH + ARROW_BASE_FOLDER + File.separator + "test_all.arrow";
+        String fileWithPath = EXTENDED_RESOURCES_PATH + "test_all.arrow";
         String url = putToS3AndGetUrl(s3Container, fileWithPath);
 
         testImportCommon(db, url, MAPPING_ALL);
@@ -59,7 +59,7 @@ public class ImportS3Test extends S3BaseTest {
     @Test
     public void testImportGexf() {
         clearDb(db);
-        String filename = EXTENDED_PATH + "src/test/resources/gexf/data.gexf";
+        String filename = EXTENDED_RESOURCES_PATH + "gexf/data.gexf";
         String url = putToS3AndGetUrl(s3Container, filename);
         testImportGexfCommon(db, url);
     }

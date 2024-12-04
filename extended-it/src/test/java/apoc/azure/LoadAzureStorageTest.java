@@ -20,7 +20,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.commonTestLoadCsv;
 import static apoc.load.LoadHtmlTest.testLoadHtmlWithGetLinksCommon;
 import static apoc.load.xls.LoadXlsTest.testLoadXlsCommon;
-import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
+import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
 import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.ExtendedITUtil.testLoadXmlCommon;
 
@@ -43,31 +43,31 @@ public class LoadAzureStorageTest extends AzureStorageBaseTest {
 
     @Test
     public void testLoadCsv() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/test.csv");
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + "test.csv");
         commonTestLoadCsv(db, url);
     }
 
     @Test
     public void testLoadJson() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/map.json");
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + "map.json");
         testLoadJsonCommon(db, url);
     }
 
     @Test
     public void testLoadXml() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/xml/books.xml");
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + "xml/books.xml");
         testLoadXmlCommon(db, url);
     }
 
     @Test
     public void testLoadXls() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/load_test.xlsx");
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + "load_test.xlsx");
         testLoadXlsCommon(db, url);
     }
 
     @Test
     public void testLoadHtml() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/wikipedia.html");
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + "wikipedia.html");
         testLoadHtmlWithGetLinksCommon(db, url);
     }
 

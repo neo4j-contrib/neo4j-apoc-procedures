@@ -14,7 +14,7 @@ import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
 import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.export.parquet.ParquetTestUtil.testImportAllCommon;
-import static apoc.util.ExtendedITUtil.EXTENDED_PATH;
+import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
 import static apoc.util.TestUtil.testResult;
 
 public class ParquetAzureStorageTest extends AzureStorageBaseTest {
@@ -39,14 +39,14 @@ public class ParquetAzureStorageTest extends AzureStorageBaseTest {
         String query = "CALL apoc.load.parquet($url, $config) YIELD value " +
                        "RETURN value";
 
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/" + EXPORT_FILENAME);
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + EXPORT_FILENAME);
         testResult(db, query, Map.of("url", url,  "config", MAPPING_ALL),
                 ParquetTestUtil::roundtripLoadAllAssertions);
     }
 
     @Test
     public void testImportParquet() {
-        String url = putToAzureStorageAndGetUrl(EXTENDED_PATH + "src/test/resources/" + EXPORT_FILENAME);
+        String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + EXPORT_FILENAME);
 
         Map<String, Object> params = Map.of("file", url, "config", MAPPING_ALL);
         testImportAllCommon(db, params);
