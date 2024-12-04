@@ -1,0 +1,182 @@
+[[Mixedbread-api]]
+= Mixedbread API Access
+:description: This section describes procedures that can be used to access the Mixedbread API.
+
+
+Here is a list of all available Mixedbread API procedures:
+
+
+[opts=header, cols="1, 4", separator="|"]
+|===
+|name| description
+|apoc.ml.mixedbread.custom(body, $config)| To create a customizable Mixedbread API call
+|apoc.ml.mixedbread.embedding(texts, $config)| To create a Mixedbread API call to generate embeddings
+|===
+
+The `$config` parameter coincides with the payload to be passed to the http request,
+and additionally the following configuration keys.
+
+
+.Common configuration parameter
+
+|===
+| key | description
+| apiType | analogous to `apoc.ml.openai.type` APOC config
+| endpoint | analogous to `apoc.ml.openai.url` APOC config
+| apiVersion | analogous to `apoc.ml.azure.api.version` APOC config
+| path | To customize the url portion added to the base url (defined by the `endpoint` config).
+By default, is `/embeddings`, `/completions` and `/chat/completions` for respectively the `apoc.ml.openai.embedding`, `apoc.ml.openai.completion` and `apoc.ml.openai.chat` procedures.
+| jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] of the response.
+The default is `$` for the `apoc.ml.openai.chat` and `apoc.ml.openai.completion` procedures, and `$.data` for the `apoc.ml.openai.embedding` procedure.
+|===
+
+Since embeddings are a super set of the Openai ones,
+under-the-hood they leverage the apoc.ml.openai.* procedures,
+so we can also create an APOC config `apoc.ml.openai.url` instead of the `endpoint` config.
+
+
+== Generate Embeddings API
+
+This procedure `apoc.ml.mixedbread.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 1536 element vector.
+It uses the `/embeddings/create` API which is https://www.mixedbread.ai/api-reference/endpoints/embeddings#create-embeddings[documented here^].
+
+Additional configuration is passed to the API, the default model used is `mxbai-embed-large-v1`.
+
+
+.Parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| texts | List of text strings
+| apiKey | OpenAI API key
+| configuration | optional map. See `Configuration` table above
+|===
+
+.Results
+[%autowidth, opts=header]
+|===
+|name | description
+| index | index entry in original list
+| text  | line of text from original list
+| embedding | embedding list of floatings/binary,
+    or map of embedding lists of floatings / binaries, in case of multiple encoding_format
+|===
+
+
+.Generate Embeddings Call
+[source,cypher]
+----
+CALL apoc.ml.mixedbread.embedding(['Some Text'], $apiKey, {}) yield index, text, embedding;
+----
+
+.Generate Embeddings Response
+[%autowidth, opts=header]
+|===
+|index | text | embedding
+|0 | "Some Text" | [-0.0065358975, -7.9563365E-4, .... -0.010693862, -0.005087272]
+|===
+
+
+.Generate Embeddings Call with custom embedding dimension and model
+[source,cypher]
+----
+CALL apoc.ml.mixedbread.embedding(['Some Text', 'Other Text'], 
+    $apiKey, 
+    {model: 'mxbai-embed-2d-large-v1', dimensions: 4}
+)
+----
+
+.Generate Embeddings Example Response
+[%autowidth, opts=header]
+|===
+|index | text | embedding
+|0 | "Some Text" | [0.019943237, -0.08843994, 0.068603516, 0.034942627]
+|1 | "Other Text" | [0.011482239, -0.09069824, 0.05331421, 0.034088135]
+|===
+
+
+.Generate Embeddings Call with custom embedding dimension, model and encoding_format
+[source,cypher]
+----
+CALL apoc.ml.mixedbread.embedding(['Some Text', 'garpez'], 
+    $apiKey, 
+    {encoding_format: ["float", "binary", "ubinary", "int8", "uint8", "base64"]}
+)
+----
+
+.Generate Embeddings Example Response
+[%autowidth, opts=header]
+|===
+| index | text | embedding
+| 0 | "Some Text" | {binary: <binaryResult>, ubinary: <ubinaryResult>, int8: <int8Result>, uint8: <uint8Result>, base64: <base64Result>, float: <floatResult>}
+| 0 | "garpez" | {binary: <binaryResult>, ubinary: <ubinaryResult>, int8: <int8Result>, uint8: <uint8Result>, base64: <base64Result>, float: <floatResult>}
+|===
+
+
+
+
+== Custom API
+
+Via the `apoc.ml.mixedbread.custom` we can create a customizable Mixedbread API Request, 
+returning a generic stream of objects.
+
+For example, we can use the https://www.mixedbread.ai/api-reference/endpoints/reranking[Reranking API].
+
+
+.Reranking API Call
+[source,cypher]
+----
+CALL apoc.ml.mixedbread.custom($apiKey, 
+    { 
+        endpoint: "https://api.mixedbread.ai/v1/reranking",
+        model: "mixedbread-ai/mxbai-rerank-large-v1",
+        query: "Who is the author of To Kill a Mockingbird?",
+        top_k: 3,
+        input: [
+            "To Kill a Mockingbird is a novel by Harper Lee published in 1960. It was immediately successful, winning the Pulitzer Prize, and has become a classic of modern American literature.",
+                    "The novel Moby-Dick was written by Herman Melville and first published in 1851. It is considered a masterpiece of American literature and deals with complex themes of obsession, revenge, and the conflict between good and evil.",
+                    "Harper Lee, an American novelist widely known for her novel To Kill a Mockingbird, was born in 1926 in Monroeville, Alabama. She received the Pulitzer Prize for Fiction in 1961.",
+                    "Jane Austen was an English novelist known primarily for her six major novels, which interpret, critique and comment upon the British landed gentry at the end of the 18th century.",
+                    "The Harry Potter series, which consists of seven fantasy novels written by British author J.K. Rowling, is among the most popular and critically acclaimed books of the modern era.",
+                    "The Great Gatsby, a novel written by American author F. Scott Fitzgerald, was published in 1925. The story is set in the Jazz Age and follows the life of millionaire Jay Gatsby and his pursuit of Daisy Buchanan."
+        ]
+    }
+)
+----
+
+.Generate Embeddings Example Response
+[%autowidth, opts=header]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "model": "mixedbread-ai/mxbai-rerank-large-v1",
+  "return_input": false,
+  "data": [
+    {
+      "index": 0,
+      "score": 0.9980469,
+      "object": "text_document"
+    },
+    {
+      "index": 2,
+      "score": 0.9980469,
+      "object": "text_document"
+    },
+    {
+      "index": 3,
+      "score": 0.06915283,
+      "object": "text_document"
+    }
+  ],
+  "usage": {
+    "total_tokens": 302,
+    "prompt_tokens": 302
+  },
+  "object": "list",
+  "top_k": 3
+}
+----
+|===

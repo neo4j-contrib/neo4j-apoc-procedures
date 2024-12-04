@@ -2,6 +2,11 @@ package apoc.ml;
 
 import static apoc.ApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ApocConfig.APOC_OPENAI_KEY;
+import static apoc.ml.MLUtil.APIKEY_CONF_KEY;
+import static apoc.ml.MLUtil.API_TYPE_CONF_KEY;
+import static apoc.ml.MLUtil.API_VERSION_CONF_KEY;
+import static apoc.ml.MLUtil.ENDPOINT_CONF_KEY;
+import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 
 import apoc.ApocConfig;
 import apoc.Extended;
@@ -13,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -23,12 +29,6 @@ import org.neo4j.procedure.Procedure;
 public class OpenAI {
     @Context
     public ApocConfig apocConfig;
-
-    public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
-    public static final String API_TYPE_CONF_KEY = "apiType";
-    public static final String APIKEY_CONF_KEY = "apiKey";
-    public static final String ENDPOINT_CONF_KEY = "endpoint";
-    public static final String API_VERSION_CONF_KEY = "apiVersion";
 
     public static class EmbeddingResult {
         public final long index;
@@ -56,19 +56,26 @@ public class OpenAI {
         if (apiKey == null || apiKey.isBlank()) throw new IllegalArgumentException("API Key must not be empty");
         String apiTypeString = (String) configuration.getOrDefault(
                 API_TYPE_CONF_KEY, apocConfig.getString(APOC_ML_OPENAI_TYPE, OpenAIRequestHandler.Type.OPENAI.name()));
-        OpenAIRequestHandler apiType = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH))
-                .get();
-
-        final Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "application/json");
-        apiType.addApiKey(headers, apiKey);
+        OpenAIRequestHandler.Type type = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
 
         var config = new HashMap<>(configuration);
         // we remove these keys from config, since the json payload is calculated starting from the config map
         Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY)
                 .forEach(config::remove);
-        config.putIfAbsent("model", model);
-        config.put(key, inputs);
+        switch (type) {
+            case MIXEDBREAD_CUSTOM:
+                // no payload manipulation, taken from the configuration as-is
+                break;
+            default:
+                config.putIfAbsent(MODEL_CONF_KEY, model);
+                config.put(key, inputs);
+        }
+        OpenAIRequestHandler apiType = type.get();
+
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+
+        apiType.addApiKey(headers, apiKey);
 
         String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
 
@@ -99,13 +106,29 @@ public class OpenAI {
           "model": "text-embedding-ada-002",
           "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
         */
+
+        return getEmbeddingResult(texts, apiKey, configuration, apocConfig, (map, text) -> {
+            Long index = (Long) map.get("index");
+            return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
+        });
+    }
+
+    public static <T> Stream<T> getEmbeddingResult(
+            List<String> texts,
+            String apiKey,
+            Map<String, Object> configuration,
+            ApocConfig apocConfig,
+            BiFunction<Map, String, T> embeddingMapping)
+            throws JsonProcessingException, MalformedURLException {
         Stream<Object> resultStream = executeRequest(
                 apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data", apocConfig);
+
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
                     Long index = (Long) m.get("index");
-                    return new EmbeddingResult(index, texts.get(index.intValue()), (List<Double>) m.get("embedding"));
+                    String text = texts.get(index.intValue());
+                    return embeddingMapping.apply(m, text);
                 });
     }
 
