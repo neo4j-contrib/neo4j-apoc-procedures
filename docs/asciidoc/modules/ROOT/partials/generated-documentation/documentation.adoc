@@ -209,6 +209,19 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |===
 
 [discrete]
+== xref::overview/apoc.agg/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
+
+apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
+|label:procedure[]
+|===
+
+
+[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
