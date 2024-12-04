@@ -281,3 +281,6 @@ apoc.vectordb.weaviate.info
 apoc.vectordb.weaviate.query
 apoc.vectordb.weaviate.queryAndUpdate
 apoc.vectordb.weaviate.upsert
+apoc.kafka.consume
+apoc.kafka.publish
+apoc.kafka.publish.sync
