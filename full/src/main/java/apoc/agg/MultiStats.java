@@ -1,32 +1,31 @@
 package apoc.agg;
 
 import apoc.Extended;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserAggregationFunction;
 import org.neo4j.procedure.UserAggregationResult;
 import org.neo4j.procedure.UserAggregationUpdate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Extended
 public class MultiStats {
-    
+
     @UserAggregationFunction("apoc.agg.multiStats")
     @Description("Return a multi-dimensional aggregation")
     public MultiStatsFunction multiStats() {
         return new MultiStatsFunction();
     }
+
     public static class MultiStatsFunction {
         private final Map<String, Map<String, Map<String, Number>>> result = new HashMap<>();
 
         @UserAggregationUpdate
-        public void aggregate(
-                @Name("value") Object value,
-                @Name(value = "keys") List<String> keys) {
+        public void aggregate(@Name("value") Object value, @Name(value = "keys") List<String> keys) {
             Entity entity = (Entity) value;
 
             // for each prop
@@ -39,23 +38,25 @@ public class MultiStats {
 
                         map.compute(property.toString(), (propKey, propVal) -> {
                             Map<String, Number> propMap = Objects.requireNonNullElseGet(propVal, HashMap::new);
-                            Number count = propMap.compute("count",
-                                    ((subKey, subVal) -> subVal == null ? 1 : subVal.longValue() + 1) );
+                            Number count = propMap.compute(
+                                    "count", ((subKey, subVal) -> subVal == null ? 1 : subVal.longValue() + 1));
                             if (property instanceof Number) {
                                 Number numberProp = (Number) property;
-                                Number sum = propMap.compute("sum",
-                                        ((subKey, subVal) -> {
-                                            if (subVal == null) return numberProp;
-                                            if (subVal instanceof Long && numberProp instanceof Long) {
-                                                Long long2 = (Long) numberProp;
-                                                Long long1 = (Long) subVal;
-                                                return long1 + long2;
-                                            }
-                                            return subVal.doubleValue() + numberProp.doubleValue();
-                                        }));
+                                Number sum = propMap.compute("sum", ((subKey, subVal) -> {
+                                    if (subVal == null) return numberProp;
+                                    if (subVal instanceof Long && numberProp instanceof Long) {
+                                        Long long2 = (Long) numberProp;
+                                        Long long1 = (Long) subVal;
+                                        return long1 + long2;
+                                    }
+                                    return subVal.doubleValue() + numberProp.doubleValue();
+                                }));
 
-                                propMap.compute("avg",
-                                        ((subKey, subVal) -> subVal == null ? numberProp.doubleValue() : sum.doubleValue() / count.doubleValue()  ));
+                                propMap.compute(
+                                        "avg",
+                                        ((subKey, subVal) -> subVal == null
+                                                ? numberProp.doubleValue()
+                                                : sum.doubleValue() / count.doubleValue()));
                             }
                             return propMap;
                         });
