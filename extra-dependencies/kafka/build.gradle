@@ -20,10 +20,9 @@ def kafkaVersion = "2.4.0"
 def jacksonVersion = "2.17.2"
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0', commonExclusions
+    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: '1.8.0'
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion, commonExclusions
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion, commonExclusions
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2', commonExclusions
     implementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion, commonExclusions
-    implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.2.2', commonExclusions
 }
