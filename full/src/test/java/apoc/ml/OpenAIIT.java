@@ -18,7 +18,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 public class OpenAIIT {
     public static final String GPT_35_MODEL = "gpt-3.5-turbo";
-    
+
     private String openaiKey;
 
     @Rule
@@ -77,7 +77,12 @@ public class OpenAIIT {
 
     @Test
     public void chatCompletionGpt35Turbo() {
-        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", Map.of("model", GPT_35_MODEL)),
+        testCall(
+                db,
+                "CALL apoc.ml.openai.chat([\n" + "{role:\"system\", content:\"Only answer with a single word\"},\n"
+                        + "{role:\"user\", content:\"What planet do humans live on?\"}\n"
+                        + "],  $apiKey, $conf)\n",
+                Map.of("apiKey", openaiKey, "conf", Map.of("model", GPT_35_MODEL)),
                 (row) -> assertChatCompletion(row, GPT_35_MODEL));
     }
 
