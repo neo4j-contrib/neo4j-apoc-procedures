@@ -1,18 +1,16 @@
 package apoc.full.it.monitor;
 
-import apoc.util.Neo4jContainerExtension;
-import apoc.util.TestContainerUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.neo4j.driver.Session;
-
-import java.util.List;
-
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static org.junit.Assert.assertNotNull;
+
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
+import java.util.List;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.driver.Session;
 
 public class StoreInfoProcedureEnterpriseTest {
     private static Neo4jContainerExtension neo4jContainer;
