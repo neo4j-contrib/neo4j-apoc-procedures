@@ -176,15 +176,13 @@ public class PromptIT {
                                     s -> assertThat(s).contains("doesn't have"));
                 });
     }
-    
+
     @Test
     public void testQueryGpt35Turbo() {
-        testResult(db, "CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})",
-                Map.of(
-                        "query", "What movies has Tom Hanks acted in?",
-                        "retries", 2L,
-                        "apiKey", OPENAI_KEY
-                ),
+        testResult(
+                db,
+                "CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})",
+                Map.of("query", "What movies has Tom Hanks acted in?", "retries", 2L, "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
                     assertThat(list).hasSize(12);
