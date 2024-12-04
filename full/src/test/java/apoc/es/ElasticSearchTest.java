@@ -39,6 +39,16 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+
+import static apoc.ApocConfig.apocConfig;
+import static apoc.util.MapUtil.map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author mh
  * @since 21.05.16
@@ -49,18 +59,29 @@ public class ElasticSearchTest {
     private static String HTTP_HOST_ADDRESS;
     private static String HTTP_URL_ADDRESS;
 
+    static String HTTP_HOST_ADDRESS;
+    static String HTTP_URL_ADDRESS;
+
     public static ElasticsearchContainer elastic;
 
     private static final String ES_INDEX = "test-index";
+    final static String ES_INDEX = "test-index";
 
     private static final String ES_TYPE = "test-type";
+    abstract String getEsType();
 
     private static final String ES_ID = UUID.randomUUID().toString();
+    final static String ES_ID = UUID.randomUUID().toString();
 
     private static final String HOST = "localhost";
 
     private static final String DOCUMENT =
             "{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}";
+    private static final String DOCUMENT = "{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}";
+    
+    final static String password = "myPassword";
+    static Map<String, Object> basicAuthHeader = Map.of("Authorization", 
+            "Basic " + Base64.getEncoder().encodeToString(("elastic:" + password).getBytes()));
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
@@ -68,23 +89,35 @@ public class ElasticSearchTest {
     private static Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID);
     private static Map<String, Object> paramsWithBasicAuth;
     private static Map<String, Object> basicAuthHeader;
+    
+    static Map<String, Object> paramsWithBasicAuth;
 
     // We need a reference to the class implementing the procedures
     private final ElasticSearch es = new ElasticSearch();
     private static final Configuration JSON_PATH_CONFIG = Configuration.builder()
             .options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS)
             .build();
+    private static final Configuration JSON_PATH_CONFIG = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS).build();
 
     @BeforeClass
     public static void setUp() throws Exception {
         final String password = "myPassword";
         elastic = new ElasticsearchContainer();
+    static void getElasticContainer(String tag, Map<String, String> envMap, Map<String, Object> params) throws JsonProcessingException {
+        
+        elastic = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:" + tag)
+                .withPassword(password)
+                .withEnv(envMap);
         elastic.start();
         defaultParams.put("host", elastic.getHttpHostAddress());
 
         String httpHostAddress = elastic.getHttpHostAddress();
         HTTP_HOST_ADDRESS = String.format("elastic:%s@%s", password, httpHostAddress);
 
+        HTTP_HOST_ADDRESS = String.format("elastic:%s@%s",
+                password,
+                httpHostAddress);
+        
         HTTP_URL_ADDRESS = "http://" + HTTP_HOST_ADDRESS;
 
         defaultParams.put("host", HTTP_HOST_ADDRESS);
@@ -101,6 +134,9 @@ public class ElasticSearchTest {
         paramsWithBasicAuth.put("host", elastic.getHttpHostAddress());
         paramsWithBasicAuth.put("headers", basicAuthHeader);
 
+        params.put("host", elastic.getHttpHostAddress());
+        params.put("url", "http://" + elastic.getHttpHostAddress());
+        paramsWithBasicAuth = params;
         TestUtil.registerProcedure(db, ElasticSearch.class);
         insertDocuments();
     }
@@ -132,6 +168,9 @@ public class ElasticSearchTest {
 
     private static Map<String, Object> addPayloadAndIdToParams(Map<String, Object> params, Object payload, String id) {
         return Util.merge(params, Util.map("payload", payload, "id", id));
+    
+    static Map<String, Object> addPayloadAndIdToParams(Map<String, Object> params, Object payload, String id) {
+        return Util.merge(params, Util.map("payload", payload, "id", id));
     }
 
     private static void insertDocuments() {
@@ -144,6 +183,13 @@ public class ElasticSearchTest {
                     assertEquals("created", created);
                 });
 
+    private static void insertDocuments() throws JsonProcessingException {
+        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"get\",\"procedureDescription\":\"perform a GET operation to ElasticSearch\"}", UUID.randomUUID().toString());
+        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value", params, r -> {
+            Object created = extractValueFromResponse(r, "$.result");
+            assertEquals("created", created);
+        });
+
         params = createDefaultProcedureParametersWithPayloadAndId(
                 "{\"procedurePackage\":\"es\",\"procedureName\":\"post\",\"procedureDescription\":\"perform a POST operation to ElasticSearch\"}",
                 UUID.randomUUID().toString());
@@ -152,6 +198,11 @@ public class ElasticSearchTest {
                     Object created = extractValueFromResponse(r, "$.result");
                     assertEquals("created", created);
                 });
+        params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"post\",\"procedureDescription\":\"perform a POST operation to ElasticSearch\"}", UUID.randomUUID().toString());
+        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value", params, r -> {
+            Object created = extractValueFromResponse(r, "$.result");
+            assertEquals("created", created);
+        });
 
         params = createDefaultProcedureParametersWithPayloadAndId(DOCUMENT, ES_ID);
         TestUtil.testCall(
@@ -159,6 +210,10 @@ public class ElasticSearchTest {
                     Object created = extractValueFromResponse(r, "$.result");
                     assertEquals("created", created);
                 });
+        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value", params, r -> {
+            Object created = extractValueFromResponse(r, "$.result");
+            assertEquals("created", created);
+        });
     }
 
     private static Object extractValueFromResponse(Map response, String jsonPath) {
@@ -180,6 +235,7 @@ public class ElasticSearchTest {
     public void testStatsWithAuthHeader() {
         TestUtil.testCall(
                 db, "CALL apoc.es.stats($host, {headers: $headers})", paramsWithBasicAuth, commonEsStatsConsumer());
+        return JsonPath.parse(json, JSON_PATH_CONFIG).read(jsonPath);
     }
 
     /**
@@ -205,6 +261,7 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.get($url,$index,$type,$id,null,null) yield value",
                 defaultParams,
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,null,null,$config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
 
@@ -212,6 +269,8 @@ public class ElasticSearchTest {
     public void testProceduresWithUrlAndHeaders() {
         TestUtil.testCall(
                 db, "CALL apoc.es.stats($url, {headers: $headers})", paramsWithBasicAuth, commonEsStatsConsumer());
+        TestUtil.testCall(db, "CALL apoc.es.stats($url, $config)", paramsWithBasicAuth,
+                commonEsStatsConsumer());
 
         TestUtil.testCall(
                 db,
@@ -225,12 +284,17 @@ public class ElasticSearchTest {
         Map<String, Object> params = Map.of("url", HTTP_URL_ADDRESS, "suffix", getRawProcedureUrl(ES_ID));
 
         TestUtil.testCall(db, "CALL apoc.es.getRaw($url,$suffix, null)", params, commonEsGetConsumer());
+        TestUtil.testCall(db, "CALL apoc.es.get($url,$index,$type,$id,null,null,$config) yield value", paramsWithBasicAuth,
+                commonEsGetConsumer());
     }
 
     @Test
     public void testGetRowProcedureWithAuthHeader() {
         Map<String, Object> params = Map.of(
                 "url", elastic.getHttpHostAddress(), "suffix", getRawProcedureUrl(ES_ID), "headers", basicAuthHeader);
+        Map<String, Object> params = Map.of("url", elastic.getHttpHostAddress(),
+                "suffix", getRawProcedureUrl(ES_ID, getEsType()),
+                "headers", basicAuthHeader);
 
         TestUtil.testCall(
                 db, "CALL apoc.es.getRaw($url, $suffix, null, {headers: $headers})", params, commonEsGetConsumer());
@@ -247,6 +311,7 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.get('customKey',$index,$type,$id,null,null) yield value",
                 defaultParams,
+        TestUtil.testCall(db, "CALL apoc.es.get('customKey',$index,$type,$id,null,null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
 
         apocConfig().getConfig().clearProperty(URL_CONF);
@@ -305,6 +370,7 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null) yield value",
                 defaultParams,
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,{_source_includes:'name'},null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
 
@@ -320,6 +386,7 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null) yield value",
                 defaultParams,
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name&_source_excludes=description',null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
 
@@ -335,6 +402,8 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null) yield value",
                 defaultParams,
+    public void testGetWithHeaderAndQueryAsStringSingleParam() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
 
@@ -361,6 +430,9 @@ public class ElasticSearchTest {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                     assertEquals("Neo4j", name);
                 });
+    public void testStatsWithAuthHeader() {
+        TestUtil.testCall(db, "CALL apoc.es.stats($host, $config)", paramsWithBasicAuth,
+                commonEsStatsConsumer());
     }
 
     @Test
@@ -373,6 +445,10 @@ public class ElasticSearchTest {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                     assertEquals("Neo4j", name);
                 });
+        TestUtil.testCall(db, "CALL apoc.es.query($host, $index, $type, 'q=name:Neo4j', null, $config) yield value", paramsWithBasicAuth, r -> {
+            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
+            assertEquals("Neo4j", name);
+        });
     }
 
     /**
@@ -386,6 +462,10 @@ public class ElasticSearchTest {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                     assertEquals("Neo4j", name);
                 });
+        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'q=name:*',null, $config) yield value", paramsWithBasicAuth, r -> {
+            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
+            assertEquals("Neo4j", name);
+        });
     }
 
     /**
@@ -402,6 +482,10 @@ public class ElasticSearchTest {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
                     assertEquals("get", name);
                 });
+        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'q=procedureName:get',null, $config) yield value", paramsWithBasicAuth, r -> {
+            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+            assertEquals("get", name);
+        });
     }
 
     /**
@@ -420,6 +504,12 @@ public class ElasticSearchTest {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
                     assertEquals("get", name);
                 });
+        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,'size=1&scroll=1m&_source=true&q=procedureName:get',null, $config) yield value", paramsWithBasicAuth, r -> {
+            Object hits = extractValueFromResponse(r, "$.hits.hits");
+            assertEquals(1, ((List) hits).size());
+            Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+            assertEquals("get", name);
+        });
     }
 
     /**
@@ -440,6 +530,11 @@ public class ElasticSearchTest {
                     Object updated = extractValueFromResponse(r, "$.result");
                     assertEquals("updated", updated);
                 });
+        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(JsonUtil.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
+        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value", params, r -> {
+            Object updated = extractValueFromResponse(r, "$.result");
+            assertEquals("updated", updated);
+        });
 
         TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,null,null) yield value", params, r -> {
             Object tag = extractValueFromResponse(r, "$._source.tags[0]");
@@ -458,6 +553,8 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, {headers: $headers}) yield value",
                 params,
+        TestUtil.testCall(db, "CALL apoc.es.put($host,$index,$type,$id,'refresh=true',$payload, $config) yield value",
+                params, 
                 r -> {
                     Object result = extractValueFromResponse(r, "$.result");
                     assertEquals("updated", result);
@@ -466,6 +563,7 @@ public class ElasticSearchTest {
         TestUtil.testCall(
                 db,
                 "CALL apoc.es.get($host, $index, $type, $id, null, null, {headers: $headers}) yield value",
+        TestUtil.testCall(db, "CALL apoc.es.get($host, $index, $type, $id, null, null, $config) yield value",
                 params,
                 r -> {
                     Object actualTags = extractValueFromResponse(r, "$._source.tags[0]");
@@ -532,6 +630,13 @@ public class ElasticSearchTest {
                 "headers",
                 basicAuthHeader);
 
+        Map params = Util.map("host", elastic.getHttpHostAddress(),
+                "index", index,
+                "type", type,
+                "payload", payload,
+                "suffix", index,
+                "config", map("headers", basicAuthHeader));
+
         AtomicReference<String> id = new AtomicReference<>();
         TestUtil.testCall(
                 db,
@@ -540,6 +645,9 @@ public class ElasticSearchTest {
                 r -> {
                     Object result = extractValueFromResponse(r, "$.result");
                     assertEquals("created", result);
+        TestUtil.testCall(db, "CALL apoc.es.post($host,$index,$type,'refresh=true', $payload, $config) yield value", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("created", result);
 
                     id.set((String) ((Map) r.get("value")).get("_id"));
                 });
@@ -549,6 +657,8 @@ public class ElasticSearchTest {
         TestUtil.testCall(
                 db,
                 "CALL apoc.es.get($host, $index, $type, $id, null, null, {headers: $headers}) yield value",
+
+        TestUtil.testCall(db, "CALL apoc.es.get($host, $index, $type, $id, null, null, $config) yield value",
                 params,
                 r -> {
                     Object actual = extractValueFromResponse(r, "$._source.ajeje");
@@ -563,6 +673,11 @@ public class ElasticSearchTest {
                     Object result = extractValueFromResponse(r, "$.result");
                     assertEquals("deleted", result);
                 });
+        
+        TestUtil.testCall(db, "CALL apoc.es.delete($host, $index, $type, $id, 'refresh=true', $config)", params, r -> {
+            Object result = extractValueFromResponse(r, "$.result");
+            assertEquals("deleted", result);
+        });
     }
 
     /**
@@ -575,6 +690,8 @@ public class ElasticSearchTest {
                 db,
                 "CALL apoc.es.query($host,$index,$type,null,{query: {match: {name: 'Neo4j'}}}) yield value",
                 defaultParams,
+        TestUtil.testCall(db, "CALL apoc.es.query($host,$index,$type,null,{query: {match: {name: 'Neo4j'}}}, $config) yield value",
+                paramsWithBasicAuth,
                 r -> {
                     Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                     assertEquals("Neo4j", name);
@@ -647,6 +764,7 @@ public class ElasticSearchTest {
     }
 
     private static Consumer<Map<String, Object>> commonEsGetConsumer() {
+    static Consumer<Map<String, Object>> commonEsGetConsumer() {
         return r -> {
             Object name = extractValueFromResponse(r, "$._source.name");
             assertEquals("Neo4j", name);
@@ -654,6 +772,11 @@ public class ElasticSearchTest {
     }
 
     private static Consumer<Map<String, Object>> commonEsStatsConsumer() {
+    static Consumer<Map<String, Object>> commonEsStatsConsumer() {
+        return commonEsStatsConsumer(3);
+    }
+
+    static Consumer<Map<String, Object>> commonEsStatsConsumer(int expectedNumOfDocs) {
         return r -> {
             assertNotNull(r.get("value"));
             Object numOfDocs = extractValueFromResponse(r, "$._all.total.docs.count");
