@@ -1,0 +1,37 @@
+= apoc.convert.fromYaml
+:description: This section contains reference documentation for the apoc.convert.fromYaml function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value
+
+== Signature
+
+[source]
+----
+apoc.convert.fromYaml(value :: STRING, config = {} :: MAP) :: ANY
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|value|STRING|null
+|config|MAP|{}
+|===
+
+== Config parameters
+include::partial$usage/config/apoc.convert.fromYaml.adoc[]
+
+[[yaml-dependencies]]
+=== Install dependencies
+Note that to use this function, you have to install additional dependencies
+which can be downloaded https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-yaml-dependencies-{apoc-release}-all.jar[from this link].
+
+
+[[usage-apoc.convert.fromYaml]]
+== Usage Examples
+include::partial$usage/apoc.convert.fromYaml.adoc[]
+
+

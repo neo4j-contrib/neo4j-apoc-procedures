@@ -133,6 +133,7 @@ Apache-2.0
   jackson-databind-2.17.2.jar
   jackson-dataformat-cbor-2.17.2.jar
   jackson-dataformat-csv-2.17.2.jar
+  jackson-dataformat-yaml-2.17.0.jar
   jackson-datatype-jsr310-2.17.0.jar
   jackson-datatype-jsr310-2.17.2.jar
   jackson-jaxrs-base-2.15.2.jar
@@ -251,6 +252,7 @@ Apache-2.0
   shiro-crypto-hash-1.13.0.jar
   shiro-event-1.13.0.jar
   shiro-lang-1.13.0.jar
+  snakeyaml-2.2.jar
   snappy-java-1.1.10.4.jar
   token-provider-2.0.3.jar
   websocket-api-9.4.53.v20231009.jar

@@ -676,6 +676,13 @@ apoc.convert.toString(value) \| tries it's best to convert the value to a string
 apoc.convert.toStringList(value) \| tries it's best to convert the value to a list of strings
 |label:function[]
 |label:apoc-core[]
+
+|xref::overview/apoc.convert/apoc.convert.fromYaml.adoc[apoc.convert.fromYaml icon:book[]]
+
+apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value
+|label:function[]
+|label:apoc-full[]
+
 |===
 
 == xref::overview/apoc.couchbase/index.adoc[]
