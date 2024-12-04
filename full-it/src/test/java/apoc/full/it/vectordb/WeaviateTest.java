@@ -534,6 +534,24 @@ public class WeaviateTest {
     public void queryVectorsWithSystemDbStorage() {
         String keyConfig = "weaviate-config-foo";
         String baseUrl = "http://" + HOST + "/v1";
+        assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, false);
+    }
+
+    @Test
+    public void queryVectorsWithSystemDbStorageWithUrlWithoutVersion() {
+        String keyConfig = "weaviate-config-foo";
+        String baseUrl = "http://" + HOST;
+        assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, false);
+    }
+
+    @Test
+    public void queryVectorsWithSystemDbStorageWithUrlV3Version() {
+        String keyConfig = "weaviate-config-foo";
+        String baseUrl = "http://" + HOST + "/v3";
+        assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, true);
+    }
+
+    private static void assertQueryVectorsWithSystemDbStorage(String keyConfig, String baseUrl, boolean fails) {
         Map<String, String> mapping =
                 map(EMBEDDING_KEY, "vect", NODE_LABEL, "Test", ENTITY_KEY, "myId", METADATA_KEY, "foo");
         sysDb.executeTransactionally(
@@ -550,25 +568,29 @@ public class WeaviateTest {
                                 "host", baseUrl,
                                 "credentials", ADMIN_KEY,
                                 "mapping", mapping)));
-
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
-
-        testResult(
-                db,
-                "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
-                map("host", keyConfig, "conf", map("fields", FIELDS, ALL_RESULTS_KEY, true)),
-                r -> {
-                    Map<String, Object> row = r.next();
-                    assertBerlinResult(row, ID_1, NODE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-
-                    row = r.next();
-                    assertLondonResult(row, ID_2, NODE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-                });
-
+        String query =
+                "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)";
+        Map<String, Object> params = map("host", keyConfig, "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true));
+        if (fails) {
+            try {
+                testCall(db, query, params, r -> fail());
+            } catch (Exception e) {
+                String message = e.getMessage();
+                assertTrue(message.contains("java.io.FileNotFoundException"));
+            }
+            return;
+        }
+        testResult(db, query, params, r -> {
+            Map<String, Object> row = r.next();
+            assertBerlinResult(row, ID_1, NODE);
+            assertNotNull(row.get("score"));
+            assertNotNull(row.get("vector"));
+            row = r.next();
+            assertLondonResult(row, ID_2, NODE);
+            assertNotNull(row.get("score"));
+            assertNotNull(row.get("vector"));
+        });
         assertNodesCreated(db);
     }
 }
