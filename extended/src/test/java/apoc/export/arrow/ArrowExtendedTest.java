@@ -41,7 +41,7 @@ import java.util.stream.LongStream;
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
+import static apoc.export.arrow.ArrowTestUtil.initDbCommon;
 import static apoc.export.arrow.ArrowTestUtil.testLoadArrow;
 import static org.junit.Assert.assertEquals;
 
@@ -64,7 +64,7 @@ public class ArrowExtendedTest {
 
     @BeforeClass
     public static void beforeClass() {
-        beforeClassCommon(db);
+        initDbCommon(db);
     }
 
     @Before
