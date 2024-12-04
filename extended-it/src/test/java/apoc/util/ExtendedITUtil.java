@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.GraphDatabaseService;
 
+import static apoc.util.ExtendedTestUtil.RESOURCES_PATH;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ExtendedITUtil {
     public static final String EXTENDED_PATH = "../extended/";
+    public static final String EXTENDED_RESOURCES_PATH = EXTENDED_PATH + RESOURCES_PATH;
     
     public static void testLoadXmlCommon(GraphDatabaseService db, String url) {
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {

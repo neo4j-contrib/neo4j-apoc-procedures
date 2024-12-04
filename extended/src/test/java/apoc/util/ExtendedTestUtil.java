@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
+    public static String RESOURCES_PATH = "src/test/resources/";
 
     /**
      * Mock URLAccessChecker instance with checkURL(URL url) {return url}
