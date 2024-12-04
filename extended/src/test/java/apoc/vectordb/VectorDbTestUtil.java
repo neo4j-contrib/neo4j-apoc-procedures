@@ -116,12 +116,13 @@ public class VectorDbTestUtil {
         return openAIKey;
     }
 
-    public static void assertMetadataOneResult(Result r) {
+    public static void assertMetadataFooResult(Result r) {
         Map<String, Object> row = r.next();
         Map<String, Object> metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
-        assertNotNull(metadata);
         assertEquals("one", metadata.get("foo"));
         row = r.next();
+        metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertEquals("two", metadata.get("foo"));
         assertFalse(r.hasNext());
     }
 }

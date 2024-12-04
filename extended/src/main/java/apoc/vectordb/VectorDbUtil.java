@@ -3,6 +3,7 @@ package apoc.vectordb;
 
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
+import apoc.util.CollectionUtils;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedStringUtils;
 import apoc.util.Util;
@@ -28,6 +29,7 @@ import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.MappingMode.READ_ONLY;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 
 public class VectorDbUtil {
 
@@ -150,7 +152,11 @@ public class VectorDbUtil {
                 ? null
                 : (String) mapping.get(METADATA_KEY);
 
-        if (ExtendedStringUtils.isNotEmpty(metadataKey)) {
+        if (CollectionUtils.isEmpty(listFields)) {
+
+            if (StringUtils.isEmpty(metadataKey)) {
+                throw new RuntimeException(NO_FIELDS_ERROR_MSG);
+            }
             listFields.add(metadataKey);
         }
 

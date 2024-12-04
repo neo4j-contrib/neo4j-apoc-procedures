@@ -1,6 +1,5 @@
 package apoc.vectordb;
 
-import apoc.util.CollectionUtils;
 import apoc.util.UrlResolver;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 
@@ -13,7 +12,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.vectordb.VectorDbUtil.addMetadataKeyToFields;
 import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
-import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 
 public class WeaviateHandler implements VectorDbHandler {
 
@@ -50,10 +48,6 @@ public class WeaviateHandler implements VectorDbHandler {
             VectorEmbeddingConfig vectorEmbeddingConfig = getVectorEmbeddingConfig(config);
 
             List list = addMetadataKeyToFields(config);
-
-            if (CollectionUtils.isEmpty(list)) {
-                throw new RuntimeException(NO_FIELDS_ERROR_MSG);
-            }
 
             Object fieldList = String.join("\n", list);
 

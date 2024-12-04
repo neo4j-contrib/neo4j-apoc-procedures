@@ -504,23 +504,7 @@ public class MilvusTest {
         );
         testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
                 map("host", HOST, "conf", conf),
-                VectorDbTestUtil::assertMetadataOneResult);
-    }
-
-    @Test
-    public void queryVectorsWithMetadataKeyAndOneField() {
-        Map<String, Object> conf = map(
-                FIELDS_KEY, List.of("city"),
-                ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
-                        REL_TYPE, "TEST",
-                        ENTITY_KEY, "readID",
-                        METADATA_KEY, "foo"
-                )
-        );
-        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
-                map("host", HOST, "conf", conf),
-                VectorDbTestUtil::assertMetadataOneResult);
+                VectorDbTestUtil::assertMetadataFooResult);
     }
 
     @Test
@@ -552,6 +536,24 @@ public class MilvusTest {
 
         testResult(db, query,
                 map("host", HOST, "conf", conf),
-                VectorDbTestUtil::assertMetadataOneResult);
+                VectorDbTestUtil::assertMetadataFooResult);
+    }
+
+    @Test
+    public void queryAndUpdateWithNoMetadataKeyNoFields() {
+        Map<String, Object> conf = map(
+                ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID"
+                )
+        );
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+        Map<String, Object> params = Util.map("host", HOST,
+                "conf", conf);
+
+        String query = "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)";
+
+        ExtendedTestUtil.assertFails(db, query, params, NO_FIELDS_ERROR_MSG);
     }
 }
