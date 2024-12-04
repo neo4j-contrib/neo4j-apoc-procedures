@@ -1,11 +1,11 @@
 package apoc.bolt;
 
-import apoc.result.RowResult;
-import apoc.result.VirtualNode;
-import apoc.result.VirtualRelationship;
+import apoc.result.RowResultExtended;
+import apoc.result.VirtualNodeExtended;
+import apoc.result.VirtualRelationshipExtended;
 import apoc.util.UriResolver;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -37,7 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 
 public class BoltConnection {
     private final BoltConfig config;
@@ -55,18 +55,18 @@ public class BoltConnection {
     }
 
     // methods from Bolt.java
-    public Stream<RowResult> loadFromSession(String statement, Map<String, Object> params) {
+    public Stream<RowResultExtended> loadFromSession(String statement, Map<String, Object> params) {
         return withDriverAndSession(session -> {
             if (config.isAddStatistics()) {
                 Result statementResult = session.run(statement, params);
                 SummaryCounters counters = statementResult.consume().counters();
-                return Stream.of(new RowResult(toMap(counters)));
+                return Stream.of(new RowResultExtended(toMap(counters)));
             } else
                 return getRowResultStream(session, params, statement);
         });
     }
 
-    public Stream<RowResult> loadFromLocal(String localStatement, String remoteStatement, GraphDatabaseService db) {
+    public Stream<RowResultExtended> loadFromLocal(String localStatement, String remoteStatement, GraphDatabaseService db) {
         return withDriverAndSession(session -> {
             try (org.neo4j.graphdb.Transaction tx = db.beginTx()) {
                 final org.neo4j.graphdb.Result localResult = tx.execute(localStatement, config.getLocalParams());
@@ -74,7 +74,7 @@ public class BoltConnection {
                         .map(c -> "$" + c + " AS " + c)
                         .collect(Collectors.joining(", ")) + "\n";
                 Map<Long, Object> nodesCache = new HashMap<>();
-                List<RowResult> response = new ArrayList<>();
+                List<RowResultExtended> response = new ArrayList<>();
                 while (localResult.hasNext()) {
                     final Result statementResult;
                     Map<String, Object> row = localResult.next();
@@ -87,7 +87,7 @@ public class BoltConnection {
                         statementResult = session.run(withColumns + remoteStatement, row);
                     }
                     if (config.isStreamStatements()) {
-                        response.add(new RowResult(toMap(statementResult.consume().counters())));
+                        response.add(new RowResultExtended(toMap(statementResult.consume().counters())));
                     } else {
                         response.addAll(
                                 statementResult.stream()
@@ -120,8 +120,8 @@ public class BoltConnection {
         return function.apply(transaction).onClose(transaction::commit).onClose(transaction::close);
     }
 
-    private RowResult buildRowResult(Record record, Map<Long, Object> nodesCache) {
-        return new RowResult(record.asMap(value -> convertRecursive(value, nodesCache)));
+    private RowResultExtended buildRowResult(Record record, Map<Long, Object> nodesCache) {
+        return new RowResultExtended(record.asMap(value -> convertRecursive(value, nodesCache)));
     }
 
     private Object convertRecursive(Object entity, Map<Long, Object> nodesCache) {
@@ -144,12 +144,12 @@ public class BoltConnection {
         return entity.stream().map(elem -> convertRecursive(elem, nodeCache)).collect(Collectors.toList());
     }
 
-    private Stream<RowResult> getRowResultStream(Session session, Map<String, Object> params, String statement) {
+    private Stream<RowResultExtended> getRowResultStream(Session session, Map<String, Object> params, String statement) {
         Map<Long, Object> nodesCache = new HashMap<>();
 
         return withTransaction(session, tx -> {
             ClosedAwareDelegatingIterator<Record> iterator = new ClosedAwareDelegatingIterator(tx.run(statement, params));
-            return Iterators.stream(iterator).map(record -> buildRowResult(record, nodesCache));
+            return IteratorsExtended.stream(iterator).map(record -> buildRowResult(record, nodesCache));
         });
     }
 
@@ -159,23 +159,23 @@ public class BoltConnection {
         if (config.isVirtual()) {
             List<Label> labels = new ArrayList<>();
             node.labels().forEach(l -> labels.add(Label.label(l)));
-            VirtualNode virtualNode = new VirtualNode(node.id(), labels.toArray(new Label[0]), node.asMap());
+            VirtualNodeExtended virtualNode = new VirtualNodeExtended(node.id(), labels.toArray(new Label[0]), node.asMap());
             nodesCache.put(node.id(), virtualNode);
             return virtualNode;
         } else
-            return Util.map("entityType", internalValue.type().name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
+            return UtilExtended.map("entityType", internalValue.type().name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
     }
 
     private Object toRelationship(Object value, Map<Long, Object> nodesCache) {
         Value internalValue = ((InternalEntity) value).asValue();
         Relationship relationship = internalValue.asRelationship();
         if (config.isVirtual()) {
-            VirtualNode start = (VirtualNode) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId()));
-            VirtualNode end = (VirtualNode) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId()));
-            VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
+            VirtualNodeExtended start = (VirtualNodeExtended) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNodeExtended(relationship.startNodeId()));
+            VirtualNodeExtended end = (VirtualNodeExtended) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNodeExtended(relationship.endNodeId()));
+            VirtualRelationshipExtended virtualRelationship = new VirtualRelationshipExtended(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
             return virtualRelationship;
         } else
-            return Util.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
+            return UtilExtended.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());
     }
 
     private Object toPath(Object value, Map<Long, Object> nodesCache) {

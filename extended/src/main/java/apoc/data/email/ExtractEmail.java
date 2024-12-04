@@ -1,7 +1,7 @@
 package apoc.data.email;
 
 import apoc.Extended;
-import apoc.util.MissingDependencyException;
+import apoc.util.MissingDependencyExceptionExtended;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -23,7 +23,7 @@ public class ExtractEmail {
         try {
             return extractEmail(value);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(EMAIL_MISSING_DEPS_ERROR);
+            throw new MissingDependencyExceptionExtended(EMAIL_MISSING_DEPS_ERROR);
         }
     }
 }

@@ -1,7 +1,7 @@
 package apoc.mongodb;
 
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.result.MapResultExtended;
 import apoc.util.UrlResolver;
 import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;
@@ -56,14 +56,14 @@ public class MongoDB {
 
     @Procedure("apoc.mongodb.get.byObjectId")
     @Description("apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(default:{})) - get the document by Object id value")
-    public Stream<MapResult> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValue") String objectIdValue, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<MapResultExtended> byObjectId(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("objectIdValue") String objectIdValue, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
 
         MongoDbConfig conf = getMongoConfig(config);
 
         return executeMongoQuery(hostOrKey, db, collection, conf.isCompatibleValues(), conf.isExtractReferences(), conf.isObjectIdAsMap(),
                 coll -> {
                     Map<String, Object> result = coll.first(Map.of(conf.getIdFieldName(), new ObjectId(objectIdValue)));
-                    return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
+                    return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResultExtended(result));
                 },
                 e -> log.error("apoc.mongodb.get.byObjectId - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], objectIdValue = [" + objectIdValue + "]",e));
     }

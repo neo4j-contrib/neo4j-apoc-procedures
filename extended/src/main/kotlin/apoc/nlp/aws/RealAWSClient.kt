@@ -1,7 +1,7 @@
 package apoc.nlp.aws
 
-import apoc.result.MapResult
-import apoc.util.JsonUtil
+import apoc.result.MapResultExtended
+import apoc.util.JsonUtilExtended
 import com.amazonaws.auth.*
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder
 import com.amazonaws.services.comprehend.model.*
@@ -73,7 +73,7 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         }
     }
 
-    fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
+    fun sentiment(data: List<Node>, config: Map<String, Any?>): List<MapResultExtended> {
         val convertedData = convertInput(data)
         var batch = BatchDetectSentimentRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectSentiment(batch)
@@ -84,10 +84,17 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         batchDetectEntities = awsClient.batchDetectSentiment(batch)
         allData += batchDetectEntities.resultList
 
-        return allData.map { MapResult(JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?>) }
+        return allData.map {
+            MapResultExtended(
+                JsonUtilExtended.OBJECT_MAPPER!!.convertValue(
+                    it,
+                    Map::class.java
+                ) as Map<String, Any?>
+            )
+        }
     }
 
-     fun keyPhrases(data: List<Node>, config: Map<String, Any?>): List<MapResult> {
+     fun keyPhrases(data: List<Node>, config: Map<String, Any?>): List<MapResultExtended> {
         val convertedData = convertInput(data)
         var batch = BatchDetectKeyPhrasesRequest().withTextList(convertedData)
         var batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
@@ -98,10 +105,17 @@ class RealAWSClient(config: Map<String, Any>, private val log: Log) : AWSClient 
         batchDetectEntities = awsClient.batchDetectKeyPhrases(batch)
         allData += batchDetectEntities.resultList
 
-        return allData.map { MapResult(JsonUtil.OBJECT_MAPPER!!.convertValue(it, Map::class.java) as Map<String, Any?>) }
+        return allData.map {
+            MapResultExtended(
+                JsonUtilExtended.OBJECT_MAPPER!!.convertValue(
+                    it,
+                    Map::class.java
+                ) as Map<String, Any?>
+            )
+        }
     }
 
-     fun vision(data: Any, config: Map<String, Any?>): List<MapResult> {
+     fun vision(data: Any, config: Map<String, Any?>): List<MapResultExtended> {
         throw UnsupportedOperationException("Rekognition is not yet implemented")
     }
 

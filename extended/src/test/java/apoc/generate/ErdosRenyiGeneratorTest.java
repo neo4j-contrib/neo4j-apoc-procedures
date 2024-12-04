@@ -5,7 +5,7 @@ import apoc.generate.config.ErdosRenyiConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
-import apoc.util.collection.Iterables;
+import apoc.util.collection.IterablesExtended;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -66,8 +66,8 @@ public class ErdosRenyiGeneratorTest {
         ));
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(numberOfNodes, Iterables.count( tx.getAllNodes()));
-            assertEquals(numberOfEdges, Iterables.count( tx.getAllRelationships()));
+            assertEquals(numberOfNodes, IterablesExtended.count( tx.getAllNodes()));
+            assertEquals(numberOfEdges, IterablesExtended.count( tx.getAllRelationships()));
             tx.commit();
         }
     }

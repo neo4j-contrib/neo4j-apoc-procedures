@@ -2,7 +2,7 @@ package apoc.nlp.aws
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.*
 import org.junit.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
@@ -17,7 +17,8 @@ class AWSVirtualKeyPhrasesGraphTest {
         val entity = KeyPhrase().withText("foo").withScore(0.3F)
         val itemResult = BatchDetectKeyPhrasesItemResult().withKeyPhrases(entity).withIndex(0)
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(itemResult)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
@@ -32,7 +33,8 @@ class AWSVirtualKeyPhrasesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "KEY_PHRASE", mapOf("score" to 0.3F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode,
+            VirtualNodeExtended(barLabels.toTypedArray(), barProperties), "KEY_PHRASE", mapOf("score" to 0.3F))))
     }
 
     @Test
@@ -43,7 +45,8 @@ class AWSVirtualKeyPhrasesGraphTest {
                 .withIndex(0)
 
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(result)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
@@ -51,8 +54,14 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf( Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -72,7 +81,8 @@ class AWSVirtualKeyPhrasesGraphTest {
                 .withIndex(0)
 
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(result)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
@@ -80,7 +90,10 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
 
@@ -103,8 +116,10 @@ class AWSVirtualKeyPhrasesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
@@ -113,10 +128,22 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val toyStoryNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Toy Story"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
+        val toyStoryNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Toy Story")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Titanic")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -147,8 +174,10 @@ class AWSVirtualKeyPhrasesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.0).create()
 
@@ -157,10 +186,22 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
-        val topBoyNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Top Boy"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Titanic")
+        )
+        val topBoyNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Top Boy")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -192,8 +233,10 @@ class AWSVirtualKeyPhrasesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectKeyPhrasesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualKeyPhrasesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "KEY_PHRASE" }, "score", 0.2).create()
 
@@ -202,10 +245,22 @@ class AWSVirtualKeyPhrasesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Matrix"))
-        val notebookNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "The Notebook"))
-        val titanicNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Titanic"))
-        val topBoyNode = VirtualNode(arrayOf(Label{"KeyPhrase"}), mapOf("text" to "Top Boy"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Matrix")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "The Notebook")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Titanic")
+        )
+        val topBoyNode = VirtualNodeExtended(
+            arrayOf(Label { "KeyPhrase" }),
+            mapOf("text" to "Top Boy")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

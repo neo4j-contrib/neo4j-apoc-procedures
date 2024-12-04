@@ -2,9 +2,9 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ListResult;
-import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.result.ListResultExtended;
+import apoc.result.MapResultExtended;
+import apoc.util.CollectionUtilsExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.*;
 import static apoc.util.ExtendedUtil.listOfMapToMapOfLists;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
 import static apoc.vectordb.VectorDbHandler.Type.CHROMA;
@@ -47,7 +47,7 @@ public class ChromaDb {
 
     @Procedure("apoc.vectordb.chroma.info")
     @Description("apoc.vectordb.chroma.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
-    public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/api/v1/collections/%s";
 
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
@@ -58,16 +58,16 @@ public class ChromaDb {
 
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.chroma.createCollection")
     @Description("apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                    @Name("collection") String collection,
-                                    @Name("similarity") String similarity,
-                                    @Name("size") Long size,
-                                    @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("similarity") String similarity,
+                                                      @Name("size") Long size,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/api/v1/collections";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
@@ -78,12 +78,12 @@ public class ChromaDb {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.chroma.deleteCollection")
     @Description("apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
-    public Stream<MapResult> deleteCollection(
+    public Stream<MapResultExtended> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection, 
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -94,12 +94,12 @@ public class ChromaDb {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.chroma.upsert")
     @Description("apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
-    public Stream<MapResult> upsert(
+    public Stream<MapResultExtended> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
@@ -121,22 +121,22 @@ public class ChromaDb {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.delete")
     @Description("apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
-    public Stream<ListResult> delete(@Name("hostOrKey") String hostOrKey,
-                                     @Name("collection") String collection,
-                                     @Name("ids") List<Object> ids,
-                                     @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<ListResultExtended> delete(@Name("hostOrKey") String hostOrKey,
+                                             @Name("collection") String collection,
+                                             @Name("ids") List<Object> ids,
+                                             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/api/v1/collections/%s/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids), collection);
         return executeRequest(conf.getApiConfig(), urlAccessChecker)
                 .map(v -> (List) v)
-                .map(ListResult::new);
+                .map(ListResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.get")
@@ -242,16 +242,16 @@ public class ChromaDb {
         final List<Map> result = new ArrayList<>();
         for (int i = 0; i < ids.size(); i++) {
             Map<String, Object> map = map(DEFAULT_ID, ids.get(i));
-            if (CollectionUtils.isNotEmpty(distances)) {
+            if (CollectionUtilsExtended.isNotEmpty(distances)) {
                 map.put(DEFAULT_SCORE, distances.get(i));
             }
-            if (CollectionUtils.isNotEmpty(metadatas)) {
+            if (CollectionUtilsExtended.isNotEmpty(metadatas)) {
                 map.put(DEFAULT_METADATA, metadatas.get(i));
             }
-            if (CollectionUtils.isNotEmpty(documents)) {
+            if (CollectionUtilsExtended.isNotEmpty(documents)) {
                 map.put(DEFAULT_TEXT, documents.get(i));
             }
-            if (CollectionUtils.isNotEmpty(embeddings)) {
+            if (CollectionUtilsExtended.isNotEmpty(embeddings)) {
                 map.put(DEFAULT_VECTOR, embeddings.get(i));
             }
             result.add(map);

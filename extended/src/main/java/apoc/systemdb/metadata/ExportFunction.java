@@ -1,9 +1,8 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
 import apoc.custom.CypherProceduresUtil;
-import apoc.export.util.ProgressReporter;
+import apoc.export.util.ProgressReporterExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 public class ExportFunction implements ExportMetadata {
 
     @Override
-    public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
+    public List<Pair<String, String>> export(Node node, ProgressReporterExtended progressReporter) {
         final String inputs = getSignature(node, ExtendedSystemPropertyKeys.inputs.name());
 
         final String outputName = ExtendedSystemPropertyKeys.output.name();
@@ -24,8 +23,8 @@ public class ExportFunction implements ExportMetadata {
                 : getSignature(node, ExtendedSystemPropertyKeys.outputs.name());
 
         String statement = String.format("CALL apoc.custom.declareFunction('%s(%s) :: %s', '%s', %s, '%s');",
-                node.getProperty(SystemPropertyKeys.name.name()), inputs, outputs,
-                node.getProperty(SystemPropertyKeys.statement.name()),
+                node.getProperty(ExtendedSystemPropertyKeys.name.name()), inputs, outputs,
+                node.getProperty(ExtendedSystemPropertyKeys.statement.name()),
                 node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name()),
                 node.getProperty(ExtendedSystemPropertyKeys.description.name()));
         progressReporter.nextRow();

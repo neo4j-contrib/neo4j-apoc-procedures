@@ -2,6 +2,7 @@ package apoc;
 
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.configuration.Config;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
@@ -16,9 +17,12 @@ public class ExtendedApocConfigExtensionFactory extends ExtensionFactory<Extende
 {
     public interface Dependencies {
         LogService log();
-        GlobalProcedures globalProceduresRegistry();
 
         Config config();
+
+        GlobalProcedures globalProceduresRegistry();
+
+        DatabaseManagementService databaseManagementService();
     }
 
     public ExtendedApocConfigExtensionFactory() {
@@ -32,7 +36,12 @@ public class ExtendedApocConfigExtensionFactory extends ExtensionFactory<Extende
                 .get(neo4j_home)
                 .resolve(Config.DEFAULT_CONFIG_DIR_NAME)
                 .toString();
-        return new ExtendedApocConfig(dependencies.log(), dependencies.globalProceduresRegistry(), defaultConfigPath);
+        return new ExtendedApocConfig(
+                dependencies.config(),
+                dependencies.log(), 
+                dependencies.globalProceduresRegistry(), 
+                defaultConfigPath,
+                dependencies.databaseManagementService());
 
     }
 }

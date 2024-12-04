@@ -1,7 +1,7 @@
 package apoc.export.parquet;
 
-import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.util.MissingDependencyExceptionExtended;
+import apoc.util.UtilExtended;
 
 import java.util.Collections;
 import java.util.Map;
@@ -18,12 +18,12 @@ public class ParquetConfig {
     private final Map<String, Object> mapping;
 
     public ParquetConfig(Map<String, Object> config) {
-        if (!Util.classExists("org.apache.parquet.schema.MessageType")) {
-            throw new MissingDependencyException(PARQUET_MISSING_DEPS_ERROR);
+        if (!UtilExtended.classExists("org.apache.parquet.schema.MessageType")) {
+            throw new MissingDependencyExceptionExtended(PARQUET_MISSING_DEPS_ERROR);
         }
         
         this.config = config == null ? Collections.emptyMap() : config;
-        this.batchSize = Util.toInteger(this.config.getOrDefault("batchSize", 20000));
+        this.batchSize = UtilExtended.toInteger(this.config.getOrDefault("batchSize", 20000));
         this.mapping = (Map<String, Object>) this.config.getOrDefault("mapping", Map.of());
     }
 

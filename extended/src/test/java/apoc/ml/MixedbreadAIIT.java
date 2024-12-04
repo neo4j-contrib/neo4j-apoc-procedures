@@ -16,7 +16,7 @@ import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.MixedbreadAI.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

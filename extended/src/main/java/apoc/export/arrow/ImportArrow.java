@@ -1,12 +1,12 @@
 package apoc.export.arrow;
 
 import apoc.Extended;
-import apoc.Pools;
+import apoc.PoolsExtended;
 import apoc.export.util.BatchTransaction;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
-import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ImportProgressInfoExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.UtilExtended;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;
@@ -57,7 +57,7 @@ public class ImportArrow {
     // -- end ArrowUtils fields
     
     @Context
-    public Pools pools;
+    public PoolsExtended pools;
 
     @Context
     public GraphDatabaseService db;
@@ -68,10 +68,10 @@ public class ImportArrow {
     
     @Procedure(name = "apoc.import.arrow", mode = Mode.WRITE)
     @Description("Imports arrow from the provided arrow file or byte array")
-    public Stream<ImportProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ImportProgressInfoExtended> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        ImportProgressInfo result =
-                Util.inThread(pools, () -> {
+        ImportProgressInfoExtended result =
+                UtilExtended.inThread(pools, () -> {
                     String file = null;
                     String sourceInfo = "binary";
                     if (input instanceof String) {
@@ -87,7 +87,7 @@ public class ImportArrow {
                     try (ArrowReader reader = getReader(input);
                          VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "arrow"));
+                        final ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, new ImportProgressInfoExtended(file, sourceInfo, "arrow"));
                         BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
                         try {
                             while (hasElements(counter, reader, schemaRoot)) {
@@ -146,7 +146,7 @@ public class ImportArrow {
                             btx.close();
                         }
 
-                        return (ImportProgressInfo) reporter.getTotal();
+                        return (ImportProgressInfoExtended) reporter.getTotal();
                     }
                 });
 
@@ -157,7 +157,7 @@ public class ImportArrow {
     private ArrowReader getReader(Object input) throws IOException, URISyntaxException, URLAccessValidationError {
         RootAllocator allocator = new RootAllocator();
         if (input instanceof String) {
-            final SeekableByteChannel channel = FileUtils.inputStreamFor(input, null, null, null, urlAccessChecker)
+            final SeekableByteChannel channel = FileUtilsExtended.inputStreamFor(input, null, null, null, urlAccessChecker)
                     .asChannel();
             return new ArrowFileReader(channel, allocator);
         }
@@ -212,7 +212,7 @@ public class ImportArrow {
                 config = Collections.emptyMap();
             }
             this.mapping = (Map<String, Object>) config.getOrDefault("mapping", Map.of());
-            this.batchSize = Util.toInteger(config.getOrDefault("batchSize", 2000));
+            this.batchSize = UtilExtended.toInteger(config.getOrDefault("batchSize", 2000));
         }
 
         public int getBatchSize() {

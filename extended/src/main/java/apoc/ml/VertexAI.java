@@ -1,10 +1,10 @@
 package apoc.ml;
 
-import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
-import apoc.util.JsonUtil;
+import apoc.ExtendedApocConfig;
+import apoc.result.MapResultExtended;
+import apoc.result.ObjectResultExtended;
+import apoc.util.JsonUtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,7 +34,7 @@ public class VertexAI {
     public URLAccessChecker urlAccessChecker;
 
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
 
     public static class EmbeddingResult {
         public final long index;
@@ -68,7 +68,7 @@ public class VertexAI {
 
         String url = vertexAIHandler.getFullUrl(configuration, apocConfig, defaultModel, project);
         String jsonPath = vertexAIHandler.getJsonPath();
-        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
+        return JsonUtilExtended.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
     }
 
     @Procedure("apoc.ml.vertexai.embedding")
@@ -131,8 +131,8 @@ public class VertexAI {
 
     @Procedure("apoc.ml.vertexai.completion")
     @Description("apoc.ml.vertexai.completion(prompt, accessToken, project, configuration) - prompts the completion API")
-    public Stream<MapResult> completion(@Name("prompt") String prompt, @Name("accessToken") String accessToken, @Name("project") String project,
-                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> completion(@Name("prompt") String prompt, @Name("accessToken") String accessToken, @Name("project") String project,
+                                                @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 /*
 POST https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/text-bison:predict
 docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompts
@@ -184,7 +184,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
         var resultStream = executeRequest(accessToken, project, configuration, "text-bison", input, parameterKeys, urlAccessChecker);
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
-                .map(v -> (Map<String, Object>) v).map(MapResult::new);
+                .map(v -> (Map<String, Object>) v).map(MapResultExtended::new);
     }
 
     public static Map<String, Object> getParameters(Map<String, Object> config, Collection<String> retainKeys) {
@@ -212,11 +212,11 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
 
     @Procedure("apoc.ml.vertexai.chat")
     @Description("apoc.ml.vertexai.chat(messages, accessToken, project, configuration]) - prompts the completion API")
-    public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, String>> messages,
-                                            @Name("accessToken") String accessToken, @Name("project") String project,
-                                            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration,
-                                            @Name(value = "context",defaultValue = "") String context,
-                                            @Name(value = "examples", defaultValue = "[]") List<Map<String, Map<String,String>>> examples
+    public Stream<MapResultExtended> chatCompletion(@Name("messages") List<Map<String, String>> messages,
+                                                    @Name("accessToken") String accessToken, @Name("project") String project,
+                                                    @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration,
+                                                    @Name(value = "context",defaultValue = "") String context,
+                                                    @Name(value = "examples", defaultValue = "[]") List<Map<String, Map<String,String>>> examples
                                             ) throws Exception {
         if (messages == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
@@ -225,7 +225,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
         return executeRequest(accessToken, project, configuration, "chat-bison", inputs, parameterKeys, urlAccessChecker)
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
-                .map(v -> (Map<String, Object>) v).map(MapResult::new);
+                .map(v -> (Map<String, Object>) v).map(MapResultExtended::new);
         // POST https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/chat-bison:predict
         // DOCS https://cloud.google.com/vertex-ai/docs/generative-ai/chat/test-chat-prompts
         /*
@@ -305,24 +305,24 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
     
     @Procedure("apoc.ml.vertexai.stream")
     @Description("apoc.ml.vertexai.stream(contents, accessToken, project, configuration) - prompts the streaming API")
-    public Stream<MapResult> stream(@Name("messages") List<Map<String, String>> contents,
-                                    @Name("accessToken") String accessToken,
-                                    @Name("project") String project,
-                                    @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> stream(@Name("messages") List<Map<String, String>> contents,
+                                            @Name("accessToken") String accessToken,
+                                            @Name("project") String project,
+                                            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
         
         return executeRequest(accessToken, project, configuration, "gemini-pro", contents, parameterKeys, urlAccessChecker, VertexAIHandler.Type.STREAM)
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.ml.vertexai.custom")
     @Description("apoc.ml.vertexai.custom(contents, accessToken, project, configuration) - prompts a customizable API")
-    public Stream<ObjectResult> custom(@Name(value = "body") Map<String, Object> body,
-                                       @Name("accessToken") String accessToken,
-                                       @Name("project") String project,
-                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<ObjectResultExtended> custom(@Name(value = "body") Map<String, Object> body,
+                                               @Name("accessToken") String accessToken,
+                                               @Name("project") String project,
+                                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         return executeRequest(accessToken, project, configuration, "gemini-pro", body, Collections.emptyList(), urlAccessChecker, VertexAIHandler.Type.CUSTOM)
-                .map(ObjectResult::new);
+                .map(ObjectResultExtended::new);
     }
 }

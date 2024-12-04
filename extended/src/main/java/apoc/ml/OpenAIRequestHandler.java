@@ -1,7 +1,7 @@
 package apoc.ml;
 
 
-import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -25,10 +25,10 @@ abstract class OpenAIRequestHandler {
     public String getDefaultUrl() {
         return defaultUrl;
     }
-    public abstract String getApiVersion(Map<String, Object> configuration, ApocConfig apocConfig);
+    public abstract String getApiVersion(Map<String, Object> configuration, ExtendedApocConfig apocConfig);
     public abstract void addApiKey(Map<String, Object> headers, String apiKey);
 
-    public String getEndpoint(Map<String, Object> procConfig, ApocConfig apocConfig) {
+    public String getEndpoint(Map<String, Object> procConfig, ExtendedApocConfig apocConfig) {
         String url = (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
                 apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL)));
         if (url == null) {
@@ -37,7 +37,7 @@ abstract class OpenAIRequestHandler {
         return url;
     }
 
-    public String getFullUrl(String method, Map<String, Object> procConfig, ApocConfig apocConfig) {
+    public String getFullUrl(String method, Map<String, Object> procConfig, ExtendedApocConfig apocConfig) {
         return Stream.of(getEndpoint(procConfig, apocConfig), method, getApiVersion(procConfig, apocConfig))
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("/"))
@@ -69,7 +69,7 @@ abstract class OpenAIRequestHandler {
         }
 
         @Override
-        public String getApiVersion(Map<String, Object> configuration, ApocConfig apocConfig) {
+        public String getApiVersion(Map<String, Object> configuration, ExtendedApocConfig apocConfig) {
             return "?api-version=" + configuration.getOrDefault(API_VERSION_CONF_KEY, apocConfig.getString(APOC_ML_OPENAI_AZURE_VERSION));
         }
 
@@ -86,7 +86,7 @@ abstract class OpenAIRequestHandler {
         }
 
         @Override
-        public String getApiVersion(Map<String, Object> configuration, ApocConfig apocConfig) {
+        public String getApiVersion(Map<String, Object> configuration, ExtendedApocConfig apocConfig) {
             return "";
         }
 

@@ -1,12 +1,12 @@
 package apoc.export.parquet;
 
-import apoc.meta.Types;
-import apoc.util.Util;
-import apoc.util.collection.Iterables;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.meta.TypesExtended;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IterablesExtended;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
-import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -51,7 +51,7 @@ public interface ParquetExportType<TYPE, ROW> {
     Group toRecord(MessageType schema, ROW data);
     List<Map<String,Object>> createConfig(List<ROW> row, TYPE data, ParquetConfig config);
 
-    class GraphType implements ParquetExportType<SubGraph, Entity> {
+    class GraphType implements ParquetExportType<SubGraphExtended, Entity> {
 
         private MessageType schema;
         private List<Map<String,Object>> config;
@@ -110,7 +110,7 @@ public interface ParquetExportType<TYPE, ROW> {
             Group group = mapToRecord(schema, entity.getAllProperties());
             if (entity instanceof Node) {
                 group.append(FIELD_ID, entity.getId());
-                appendList(group, FIELD_LABELS, Util.labelStrings((Node) entity));
+                appendList(group, FIELD_LABELS, UtilExtended.labelStrings((Node) entity));
             } else {
                 Relationship rel = (Relationship) entity;
                 group.append(FIELD_TYPE, rel.getType().name());
@@ -122,14 +122,14 @@ public interface ParquetExportType<TYPE, ROW> {
         }
 
         @Override
-        public List<Map<String, Object>> createConfig(List<Entity> entity, SubGraph data, ParquetConfig config) {
+        public List<Map<String, Object>> createConfig(List<Entity> entity, SubGraphExtended data, ParquetConfig config) {
             if (this.config != null) {
                 return this.config;
             }
-            final List<String> allLabelsInUse = Iterables.stream(data.getAllLabelsInUse())
+            final List<String> allLabelsInUse = IterablesExtended.stream(data.getAllLabelsInUse())
                     .map(Label::name)
                     .collect(Collectors.toList());
-            final List<String> allRelationshipTypesInUse = Iterables.stream(data.getAllRelationshipTypesInUse())
+            final List<String> allRelationshipTypesInUse = IterablesExtended.stream(data.getAllRelationshipTypesInUse())
                     .map(RelationshipType::name)
                     .collect(Collectors.toList());
             Map<String, Object> configMap = new HashMap<>();
@@ -152,7 +152,7 @@ public interface ParquetExportType<TYPE, ROW> {
 
             type.stream()
                     .flatMap(m -> m.entrySet().stream())
-                    .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), fromMetaType(Types.of(e.getValue()))))
+                    .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), fromMetaType(TypesExtended.of(e.getValue()))))
                     .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey, Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toSet())))
                     .forEach((key, value) -> toField(key, value, messageTypeBuilder));
 

@@ -19,9 +19,9 @@
 package apoc.export.arrow;
 
 import apoc.graph.Graphs;
-import apoc.load.arrow.*;
+import apoc.load.arrow.LoadArrowExtended;
 import apoc.meta.Meta;
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.AfterClass;
@@ -45,9 +45,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static org.junit.Assert.assertEquals;
 
 public class ArrowExtendedTest {
@@ -138,8 +138,8 @@ public class ArrowExtendedTest {
 
     @Before
     public void before() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     private byte[] extractByteArray(Result result) {
@@ -153,7 +153,7 @@ public class ArrowExtendedTest {
     private <T> T readValue(String json, Class<T> clazz) {
         if (json == null) return null;
         try {
-            return JsonUtil.OBJECT_MAPPER.readValue(json, clazz);
+            return JsonUtilExtended.OBJECT_MAPPER.readValue(json, clazz);
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -296,8 +296,8 @@ public class ArrowExtendedTest {
     @Test
     public void testStreamRoundtripArrowAllWithImportExportConfsDisabled() {
         // disable both export and import configs
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
         // should work regardless of the previous config
         testStreamRoundtripAllCommon();

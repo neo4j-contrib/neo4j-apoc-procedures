@@ -18,10 +18,10 @@
  */
 package apoc.load;
 
-import apoc.util.CompressionAlgo;
-import apoc.util.JsonUtil;
+import apoc.util.CompressionAlgoExtended;
+import apoc.util.JsonUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
@@ -45,12 +45,12 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.BinaryTestUtil.fileToBinary;
-import static apoc.util.CompressionConfig.COMPRESSION;
-import static apoc.util.MapUtil.map;
+import static apoc.util.CompressionConfigExtended.COMPRESSION;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -83,10 +83,10 @@ public class LoadJsonTest {
 
     @Before
     public void setUp() throws IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
-        apocConfig().setProperty("apoc.json.zip.url", "http://localhost:5353/testload.zip?raw=true!person.json");
-        apocConfig()
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        extendedApocConfig().setProperty("apoc.json.zip.url", "http://localhost:5353/testload.zip?raw=true!person.json");
+        extendedApocConfig()
                 .setProperty(
                         "apoc.json.simpleJson.url",
                         ClassLoader.getSystemResource("map.json").toString());
@@ -114,9 +114,9 @@ public class LoadJsonTest {
                         fileToBinary(
                                 new File(ClassLoader.getSystemResource("multi.json")
                                         .getPath()),
-                                CompressionAlgo.FRAMED_SNAPPY.name()),
+                                CompressionAlgoExtended.FRAMED_SNAPPY.name()),
                         "config",
-                        map(COMPRESSION, CompressionAlgo.FRAMED_SNAPPY.name())),
+                        map(COMPRESSION, CompressionAlgoExtended.FRAMED_SNAPPY.name())),
                 this::commonAssertionsLoadJsonMulti);
     }
 
@@ -131,7 +131,7 @@ public class LoadJsonTest {
     @Test
     public void testLoadJsonParamsWithAuth() throws Exception {
         String userPass = "user:password";
-        String token = Util.encodeUserColonPassToBase64(userPass);
+        String token = UtilExtended.encodeUserColonPassToBase64(userPass);
         Map<String, String> responseBody = Map.of("result", "message");
 
         new MockServerClient("localhost", 1080)
@@ -148,7 +148,7 @@ public class LoadJsonTest {
                         .withHeaders(
                                 new Header("Content-Type", "application/json"),
                                 new Header("Cache-Control", "public, max-age=86400"))
-                        .withBody(JsonUtil.OBJECT_MAPPER.writeValueAsString(responseBody))
+                        .withBody(JsonUtilExtended.OBJECT_MAPPER.writeValueAsString(responseBody))
                         .withDelay(TimeUnit.SECONDS, 1));
 
         testCall(

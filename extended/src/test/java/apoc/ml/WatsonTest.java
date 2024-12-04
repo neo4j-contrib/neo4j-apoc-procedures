@@ -16,8 +16,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ExtendedApocConfig.APOC_ML_WATSON_PROJECT_ID;
 import static apoc.ExtendedApocConfig.APOC_ML_WATSON_URL;
 import static apoc.util.TestUtil.getUrlFileName;
@@ -45,9 +45,9 @@ public class WatsonTest {
         TestUtil.registerProcedure(db, Watson.class);
         
         String path = "/generation/text";
-        apocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:1080" + path);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, "fakeProjectId");
+        extendedApocConfig().setProperty(APOC_ML_WATSON_URL, "http://localhost:1080" + path);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, "fakeProjectId");
         
         File urlFileName = new File(getUrlFileName("watson.json").getFile());
         String body = FileUtils.readFileToString(urlFileName, UTF_8);

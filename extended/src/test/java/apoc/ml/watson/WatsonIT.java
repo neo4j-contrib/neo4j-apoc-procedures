@@ -10,7 +10,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ExtendedApocConfig.APOC_ML_WATSON_PROJECT_ID;
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.*;
@@ -58,7 +58,7 @@ public class WatsonIT {
         assumeNotNull(keyIdEnv + "environment not configured", accessToken);
         assumeNotNull(projectIdEnv + "environment not configured", projectId);
 
-        apocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, projectId);
+        extendedApocConfig().setProperty(APOC_ML_WATSON_PROJECT_ID, projectId);
 
         String regionEnv = System.getenv("WATSON_ENDPOINT_REGION");
         

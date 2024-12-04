@@ -2,7 +2,7 @@ package apoc.load;
 
 import apoc.util.DbmsUtil;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -33,11 +33,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.load.LoadDirectoryItem.DEFAULT_EVENT_TYPES;
 import static apoc.util.TestUtil.testCall;
@@ -116,8 +116,8 @@ public class LoadDirectoryTest {
 
     @Before
     public void before() throws Exception {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
     }
 
     @Test
@@ -133,7 +133,7 @@ public class LoadDirectoryTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testAddListenerWithApocLoadDirectoryNotEnabled() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
         try {
             db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test)', '*.csv', '', {}) YIELD name RETURN name");
         } catch (QueryExecutionException e) {
@@ -342,7 +342,7 @@ public class LoadDirectoryTest {
         db.executeTransactionally("CALL apoc.load.directory.async.add('test','CREATE (n:Test)','*.csv', '', {}) YIELD name RETURN name");
         assertIsRunning("test");
         testResult(db, "CALL apoc.load.directory.async.list() YIELD name RETURN name", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("name"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("name"));
                     assertEquals(1, rows.size());
                 }
         );
@@ -512,7 +512,7 @@ public class LoadDirectoryTest {
 
     @Test
     public void testAddLoadFolderWithFileProtocol() throws InterruptedException, IOException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = temporaryFolder.getRoot();
         String folderAsExternalUrl = FILE_PROTOCOL + rootTempFolder;
 
@@ -534,7 +534,7 @@ public class LoadDirectoryTest {
                 value -> value == 1L, 20L, TimeUnit.SECONDS);
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(1, Iterators.count(tx.findNodes(Label.label("TestExternalUrl"))));
+            assertEquals(1, IteratorsExtended.count(tx.findNodes(Label.label("TestExternalUrl"))));
             tx.commit();
         }
 
@@ -567,7 +567,7 @@ public class LoadDirectoryTest {
     @Test
     public void testWithSubfolder() {
         testResult(db, "CALL apoc.load.directory('*', '" + SUBFOLDER_1 + "', {recursive: false}) YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(SUBFOLDER_1 + File.separator + JSON_SUBFOLDER_1));
                     assertTrue(rows.contains(SUBFOLDER_1 + File.separator + CSV_SUBFOLDER_1));
                     assertEquals(2, rows.size());
@@ -577,11 +577,11 @@ public class LoadDirectoryTest {
 
     @Test
     public void testWithFileProtocolAndRecursiveFalse() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = temporaryFolder.getRoot();
         String folderAsExternalUrl = FILE_PROTOCOL + rootTempFolder;
         testResult(db, "CALL apoc.load.directory('*', '" + folderAsExternalUrl + "', {recursive: false}) YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Foo.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Bar.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
@@ -593,11 +593,11 @@ public class LoadDirectoryTest {
 
     @Test
     public void testWithFileProtocolFilterXlsAndRecursiveTrue() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = temporaryFolder.getRoot();
         String folderAsExternalUrl = FILE_PROTOCOL + rootTempFolder;
         testResult(db, "CALL apoc.load.directory('*.xls', '" + folderAsExternalUrl + "', {recursive: true}) YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + IMPORT_DIR + File.separator + XLS_1));
                     assertEquals(2, rows.size());
@@ -608,7 +608,7 @@ public class LoadDirectoryTest {
     @Test
     public void testWithFilterAllRecursiveFalse() {
         testResult(db, "CALL apoc.load.directory('*', '', {recursive: false}) YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(CSV_1));
                     assertTrue(rows.contains(CSV_2_FILENAME_WITH_SPACES));
                     assertTrue(rows.contains(CSV_3));
@@ -621,9 +621,9 @@ public class LoadDirectoryTest {
 
     @Test
     public void testWithFilterJsonRecursiveTrue() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         testResult(db, "CALL apoc.load.directory('*.json', '', {recursive: true}) YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(JSON_1));
                     assertTrue(rows.contains(SUBFOLDER_1 + File.separator + JSON_SUBFOLDER_1));
                     assertEquals(2, rows.size());
@@ -633,9 +633,9 @@ public class LoadDirectoryTest {
 
     @Test
     public void testWithFilterCsv() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, true);
         testResult(db, "CALL apoc.load.directory('*.csv') YIELD value RETURN value", result -> {
-                    List<Map<String, Object>> rows = Iterators.asList(result.columnAs("value"));
+                    List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("value"));
                     assertTrue(rows.contains(CSV_1));
                     assertTrue(rows.contains(CSV_2_FILENAME_WITH_SPACES));
                     assertTrue(rows.contains(CSV_3));
@@ -647,7 +647,7 @@ public class LoadDirectoryTest {
 
     @Test
     public void testLoadDirectoryConcatenatedWithLoadCsv() throws URISyntaxException {
-        apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
         File rootTempFolder = Paths.get(getUrlFileName("test.csv").toURI()).getParent().toFile();
         String folderAsExternalUrl = "file://" + rootTempFolder;
         testResult(db, "CALL apoc.load.directory('*.csv', '" + folderAsExternalUrl + "') YIELD value " +

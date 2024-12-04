@@ -1,8 +1,8 @@
 package apoc.agg;
 
 import apoc.Extended;
-import apoc.util.collection.Iterables;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IterablesExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
@@ -29,7 +29,7 @@ public class AggregationExtended {
     public RowFunction row() {
         BiPredicate<Object, Object> curr =  (current, value) -> db.executeTransactionally("RETURN " + value,
                 Map.of("curr", current),
-                result -> Iterators.singleOrNull(result.<Boolean>columnAs(Iterables.single(result.columns()))));
+                result -> IteratorsExtended.singleOrNull(result.<Boolean>columnAs(IterablesExtended.single(result.columns()))));
         return new RowFunction(curr);
     }
     

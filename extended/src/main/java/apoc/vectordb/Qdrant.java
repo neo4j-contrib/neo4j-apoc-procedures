@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.MapResult;
+import apoc.result.MapResultExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -42,7 +42,7 @@ public class Qdrant {
     
     @Procedure("apoc.vectordb.qdrant.info")
     @Description("apoc.vectordb.qdrant.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
-    public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/%s";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
@@ -52,16 +52,16 @@ public class Qdrant {
 
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.qdrant.createCollection")
     @Description("apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                    @Name("collection") String collection,
-                                    @Name("similarity") String similarity,
-                                    @Name("size") Long size,
-                                    @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("similarity") String similarity,
+                                                      @Name("size") Long size,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/%s";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "PUT");
@@ -73,12 +73,12 @@ public class Qdrant {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.vectordb.qdrant.deleteCollection")
     @Description("apoc.vectordb.qdrant.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
-    public Stream<MapResult> deleteCollection(
+    public Stream<MapResultExtended> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -90,12 +90,12 @@ public class Qdrant {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.vectordb.qdrant.upsert")
     @Description("apoc.vectordb.qdrant.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
-    public Stream<MapResult> upsert(
+    public Stream<MapResultExtended> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
@@ -118,12 +118,12 @@ public class Qdrant {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.vectordb.qdrant.delete")
     @Description("apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
-    public Stream<MapResult> delete(
+    public Stream<MapResultExtended> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Object> ids,
@@ -137,7 +137,7 @@ public class Qdrant {
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.qdrant.get")

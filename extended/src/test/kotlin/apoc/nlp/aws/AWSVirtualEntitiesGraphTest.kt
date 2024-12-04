@@ -2,7 +2,7 @@ package apoc.nlp.aws
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchItemError
@@ -20,7 +20,8 @@ class AWSVirtualEntitiesGraphTest {
         val entity = Entity().withText("foo").withType("Bar").withScore(0.8F)
         val itemResult = BatchDetectEntitiesItemResult().withEntities(entity).withIndex(0)
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
@@ -35,7 +36,8 @@ class AWSVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "ENTITY", mapOf("score" to 0.8F))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode,
+            VirtualNodeExtended(barLabels.toTypedArray(), barProperties), "ENTITY", mapOf("score" to 0.8F))))
     }
 
     @Test
@@ -46,7 +48,8 @@ class AWSVirtualEntitiesGraphTest {
                 .withIndex(0)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
@@ -54,7 +57,10 @@ class AWSVirtualEntitiesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Movie")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
 
@@ -72,7 +78,8 @@ class AWSVirtualEntitiesGraphTest {
                 .withIndex(0)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(result)
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
@@ -80,8 +87,14 @@ class AWSVirtualEntitiesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
-        val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Movie")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "Movie")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -106,8 +119,10 @@ class AWSVirtualEntitiesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
@@ -116,10 +131,22 @@ class AWSVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
-        val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
-        val toyStoryNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Toy Story", "type" to "Movie"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Movie"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Movie")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "Movie")
+        )
+        val toyStoryNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "Toy Story", "type" to "Movie")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Movie")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -150,8 +177,10 @@ class AWSVirtualEntitiesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.0).create()
 
@@ -160,10 +189,22 @@ class AWSVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
-        val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Movie"))
-        val topBoyNode = VirtualNode(arrayOf(Label{"Television"}, Label{"Entity"}), mapOf("text" to "Top Boy", "type" to "Television"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Movie")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "Movie")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Movie")
+        )
+        val topBoyNode = VirtualNodeExtended(
+            arrayOf(Label { "Television" }, Label { "Entity" }),
+            mapOf("text" to "Top Boy", "type" to "Television")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -195,8 +236,10 @@ class AWSVirtualEntitiesGraphTest {
                 .withIndex(1)
 
         val res = BatchDetectEntitiesResult().withErrorList(BatchItemError()).withResultList(itemResult1, itemResult2)
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val virtualGraph = AWSVirtualEntitiesGraph(res, listOf(sourceNode1, sourceNode2), RelationshipType { "ENTITY" }, "score", 0.75).create()
 
@@ -205,9 +248,18 @@ class AWSVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
-        val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Movie"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Movie")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "Movie")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Movie" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Movie")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

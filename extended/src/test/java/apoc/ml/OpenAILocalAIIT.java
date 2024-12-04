@@ -4,7 +4,7 @@ import apoc.coll.Coll;
 import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,13 +51,13 @@ public class OpenAILocalAIIT {
         Assume.assumeNotNull("No LOCAL_AI_URL environment configured", localAIUrl);
         TestUtil.registerProcedure(db, OpenAI.class, Prompt.class, Meta.class, Strings.class, Coll.class);
 
-        String movies = Util.readResourceFile("movies.cypher");
+        String movies = UtilExtended.readResourceFile("movies.cypher");
         try (Transaction tx = db.beginTx()) {
             tx.execute(movies);
             tx.commit();
         }
 
-        String rag = Util.readResourceFile("rag.cypher");
+        String rag = UtilExtended.readResourceFile("rag.cypher");
         try (Transaction tx = db.beginTx()) {
             tx.execute(rag);
             tx.commit();
@@ -115,7 +115,7 @@ public class OpenAILocalAIIT {
         String question = "Which actors played in the most movies?";
         String model = "text2cypher-demo-4bit-gguf-unsloth.Q4_K_M.gguf";
 
-        Map<String, Object> params = Util.map(
+        Map<String, Object> params = UtilExtended.map(
                 "schema", schema,
                 "question", question
         );
@@ -147,7 +147,7 @@ public class OpenAILocalAIIT {
     }
 
     private Map<String, Object> getParams(String model) {
-        return Util.map("apiKey", "x",
+        return UtilExtended.map("apiKey", "x",
                 "conf", Map.of(ENDPOINT_CONF_KEY, localAIUrl,
                         MODEL_CONF_KEY, model)
         );

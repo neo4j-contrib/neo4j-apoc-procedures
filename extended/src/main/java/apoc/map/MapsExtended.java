@@ -1,7 +1,7 @@
 package apoc.map;
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -19,7 +19,7 @@ public class MapsExtended {
                                                     @Name("keyFrom") String keyFrom,
                                                     @Name("keyTo") String keyTo,
                                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        boolean recursive = Util.toBoolean(config.getOrDefault("recursive", true));
+        boolean recursive = UtilExtended.toBoolean(config.getOrDefault("recursive", true));
         if (recursive) {
             return (Map<String, Object>) renameKeyRecursively(map, keyFrom, keyTo);
         }

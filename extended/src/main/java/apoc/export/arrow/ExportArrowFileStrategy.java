@@ -18,12 +18,12 @@
  */
 package apoc.export.arrow;
 
-import apoc.convert.ConvertUtils;
-import apoc.export.util.ProgressReporter;
-import apoc.meta.Types;
-import apoc.result.ExportProgressInfo;
-import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.convert.ConvertExtendedUtil;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.meta.TypesExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.UtilExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.dictionary.DictionaryProvider;
@@ -51,25 +51,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.Util.labelStrings;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.labelStrings;
+import static apoc.util.UtilExtended.map;
 
-public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Stream<ExportProgressInfo>> {
+public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Stream<ExportProgressInfoExtended>> {
 
-    Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, IN data);
+    Iterator<Map<String, Object>> toIterator(ProgressReporterExtended reporter, IN data);
 
-    default Stream<ExportProgressInfo> export(IN data, ArrowConfig config) {
-        final OutputStream out = FileUtils.getOutputStream(getFileName());
-        ExportProgressInfo progressInfo = new ExportProgressInfo(getFileName(), getSource(data), "arrow");
+    default Stream<ExportProgressInfoExtended> export(IN data, ArrowConfig config) {
+        final OutputStream out = FileUtilsExtended.getOutputStream(getFileName());
+        ExportProgressInfoExtended progressInfo = new ExportProgressInfoExtended(getFileName(), getSource(data), "arrow");
         progressInfo.setBatchSize(config.getBatchSize());
-        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
+        ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, progressInfo);
         int batchCount = 0;
         List<Map<String, Object>> rows = new ArrayList<>(config.getBatchSize());
         VectorSchemaRoot root = null;
         ArrowWriter writer = null;
         try {
             Iterator<Map<String, Object>> it = toIterator(reporter, data);
-            while (!Util.transactionIsTerminated(getTerminationGuard()) && it.hasNext()) {
+            while (!UtilExtended.transactionIsTerminated(getTerminationGuard()) && it.hasNext()) {
                 rows.add(it.next());
                 if (batchCount > 0 && batchCount % config.getBatchSize() == 0) {
                     if (root == null) {
@@ -92,8 +92,8 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
             getLogger().error("Exception while extracting Arrow data:", e);
         } finally {
             reporter.done();
-            Util.close(root);
-            Util.close(writer);
+            UtilExtended.close(root);
+            UtilExtended.close(writer);
         }
 
         return Stream.of(progressInfo);
@@ -147,7 +147,7 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
     public static String RELATIONSHIP = "relationship";
 
     public static Object writeJsonResult(Object value) {
-        Types type = Types.of(value);
+        TypesExtended type = TypesExtended.of(value);
         switch (type) {
             case NODE:
                 return nodeToMap((Node) value);
@@ -158,7 +158,7 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
                         .map(i -> i instanceof Node ? nodeToMap((Node) i) : relToMap((Relationship) i))
                         .collect(Collectors.toList()));
             case LIST:
-                return ConvertUtils.convertToList(value).stream()
+                return ConvertExtendedUtil.convertToListExtended(value).stream()
                         .map(j -> writeJsonResult(j))
                         .collect(Collectors.toList());
             case MAP:

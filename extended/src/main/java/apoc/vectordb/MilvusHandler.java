@@ -6,7 +6,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.META_AS_SUBKEY_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.SCORE_KEY;

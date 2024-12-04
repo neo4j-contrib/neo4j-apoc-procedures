@@ -2,9 +2,8 @@ package apoc.vectordb;
 
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
 import apoc.util.ExtendedMapUtils;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -74,7 +73,7 @@ public class VectorDbUtil {
         try {
             Map<String, Object> props = withSystemDb(transaction -> {
                 Label label = Label.label(handler.getLabel());
-                Node node = transaction.findNode(label, SystemPropertyKeys.name.name(), hostOrKey);
+                Node node = transaction.findNode(label, ExtendedSystemPropertyKeys.name.name(), hostOrKey);
                 return node == null ? Map.of() : node.getAllProperties();
             });
             return props;
@@ -92,7 +91,7 @@ public class VectorDbUtil {
         if ( ExtendedMapUtils.isEmpty(mappingConfVal) ) {
             String mappingStoreVal = (String) props.get(MAPPING_KEY);
             if (mappingStoreVal != null) {
-                config.put( MAPPING_KEY, Util.fromJson(mappingStoreVal, Map.class) );
+                config.put( MAPPING_KEY, UtilExtended.fromJson(mappingStoreVal, Map.class) );
             }
         }
     }
@@ -100,7 +99,7 @@ public class VectorDbUtil {
     private static Map<String, Object> getCredentialsFromSystemDb(VectorDbHandler handler, Map<String, Object> config, Map<String, Object> props) {
         String credentials = (String) props.get(ExtendedSystemPropertyKeys.credentials.name());
         if (credentials != null) {
-            Object credentialsObj = Util.fromJson(credentials, Object.class);
+            Object credentialsObj = UtilExtended.fromJson(credentials, Object.class);
             
             config = handler.getCredentials(credentialsObj, config);
         }
@@ -127,7 +126,7 @@ public class VectorDbUtil {
 
     /**
      * The "method" should be "GET", but is null as a workaround.
-     * Since with `method: POST` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+     * Since with `method: POST` the {@link UtilExtended#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
      * that makes the request to respond `405: Method Not Allowed` even if {@link HttpURLConnection#getRequestMethod()} is "GET".
      * In any case, by putting `body: null`, the request is still in GET  by default
      */

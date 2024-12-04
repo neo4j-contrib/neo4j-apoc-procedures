@@ -5,7 +5,7 @@ import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
-import apoc.util.collection.Iterables;
+import apoc.util.collection.IterablesExtended;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -60,8 +60,8 @@ public class BarabasiAlbertGeneratorParameterizedTest {
                 new SocialNetworkRelationshipCreator()
         ));
         try (Transaction tx = db.beginTx()) {
-            assertEquals(numberOfNodes, Iterables.count(tx.getAllNodes()));
-            assertEquals(numberOfNodes * numberOfEdges - (numberOfEdges * (numberOfEdges + 1) / 2), Iterables.count( tx.getAllRelationships()));
+            assertEquals(numberOfNodes, IterablesExtended.count(tx.getAllNodes()));
+            assertEquals(numberOfNodes * numberOfEdges - (numberOfEdges * (numberOfEdges + 1) / 2), IterablesExtended.count( tx.getAllRelationships()));
             tx.commit();
         }
     }

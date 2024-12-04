@@ -9,7 +9,7 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -532,9 +532,9 @@ public class BoltTest {
                         assertNotNull(r);
                         Map<String, Object> row = r.next();
                         Map result = (Map) row.get("row");
-                        assertEquals(1L, (long) Util.toLong(result.get("nodesCreated")));
-                        assertEquals(1L, (long) Util.toLong(result.get("labelsAdded")));
-                        assertEquals(1L, (long) Util.toLong(result.get("propertiesSet")));
+                        assertEquals(1L, (long) UtilExtended.toLong(result.get("nodesCreated")));
+                        assertEquals(1L, (long) UtilExtended.toLong(result.get("labelsAdded")));
+                        assertEquals(1L, (long) UtilExtended.toLong(result.get("propertiesSet")));
                         assertEquals(false, r.hasNext());
                     });
     }
@@ -640,11 +640,11 @@ public class BoltTest {
     public void testLoadFromLocal() {
         String localStatement = "RETURN 'foobar' AS foobar";
         String remoteStatement = "CREATE (n: TestLoadFromLocalNode { m: foobar })";
-        final Map<String, Object> map = Util.map(
+        final Map<String, Object> map = UtilExtended.map(
                 "url", BOLT_URL,
                 "localStatement", localStatement,
                 "remoteStatement", remoteStatement,
-                "config", Util.map("readOnly", false));
+                "config", UtilExtended.map("readOnly", false));
         db.executeTransactionally("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config) YIELD row return row", map);
         final long remoteCount = neo4jContainer.getSession().executeRead(tx ->
                 (long) tx.run("MATCH (n: TestLoadFromLocalNode { m: 'foobar' }) RETURN count(n) AS count").single().asMap().get("count"));
@@ -654,11 +654,11 @@ public class BoltTest {
     @Test
     public void testLoadFromLocalStream() {
         String localStatement = "RETURN \"CREATE (n: TestLoadFromLocalStream)\" AS statement";
-        final Map<String, Object> map = Util.map(
+        final Map<String, Object> map = UtilExtended.map(
                 "url", BOLT_URL,
                 "localStatement", localStatement,
                 "remoteStatement", null,
-                "config", Util.map("readOnly", false, "streamStatements", true));
+                "config", UtilExtended.map("readOnly", false, "streamStatements", true));
         db.executeTransactionally("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config)", map);
         final long remoteCount = neo4jContainer.getSession().executeRead(tx ->
                 (long) tx.run("MATCH (n: TestLoadFromLocalStream) RETURN count(n) AS count").single().asMap().get("count"));

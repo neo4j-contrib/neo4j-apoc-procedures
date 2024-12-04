@@ -1,7 +1,7 @@
 package apoc.algo;
 
 import apoc.Extended;
-import apoc.result.WeightedPathResult;
+import apoc.result.WeightedPathResultExtended;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.CommonEvaluators;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -16,7 +16,8 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
-import static apoc.algo.PathFindingUtils.buildPathExpander;
+
+import static apoc.algo.PathFindingExtendedUtils.buildPathExpander;
 
 @Extended
 public class PathFindingExtended {
@@ -30,7 +31,7 @@ public class PathFindingExtended {
     @Procedure
     @Description("apoc.algo.aStarWithPoint(startNode, endNode, 'relTypesAndDirs', 'distance','pointProp') - " +
             "equivalent to apoc.algo.aStar but accept a Point type as a pointProperty instead of Number types as latitude and longitude properties")
-    public Stream<WeightedPathResult> aStarWithPoint(
+    public Stream<WeightedPathResultExtended> aStarWithPoint(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
             @Name("relationshipTypesAndDirections") String relTypesAndDirs,
@@ -41,8 +42,8 @@ public class PathFindingExtended {
                 new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 CommonEvaluators.doubleCostEvaluator(weightPropertyName),
-                new PathFindingUtils.GeoEstimateEvaluatorPointCustom(pointPropertyName));
-        return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
+                new PathFindingExtendedUtils.GeoEstimateEvaluatorPointCustomExtended(pointPropertyName));
+        return WeightedPathResultExtended.streamWeightedPathResult(startNode, endNode, algo);
     }
     
 }

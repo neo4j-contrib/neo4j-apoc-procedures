@@ -1,10 +1,10 @@
 package apoc.graph;
 
 import apoc.Extended;
-import apoc.result.GraphResult;
-import apoc.result.VirtualNode;
-import apoc.result.VirtualRelationship;
-import apoc.util.collection.Iterables;
+import apoc.result.GraphResultExtended;
+import apoc.result.VirtualNodeExtended;
+import apoc.result.VirtualRelationshipExtended;
+import apoc.util.collection.IterablesExtended;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -30,14 +30,14 @@ public class GraphsExtended {
     @Procedure("apoc.graph.filterProperties")
     @Description(
             "CALL apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove) YIELD nodes, relationships - returns a set of virtual nodes and relationships without the properties defined in nodePropertiesToRemove and relPropertiesToRemove")
-    public Stream<GraphResult> fromData(
+    public Stream<GraphResultExtended> fromData(
             @Name("value") Object value,
             @Name(value = "nodePropertiesToRemove", defaultValue = "{}") Map<String, List<String>> nodePropertiesToRemove,
             @Name(value = "relPropertiesToRemove", defaultValue = "{}") Map<String, List<String>> relPropertiesToRemove) {
         
         VirtualGraphExtractor extractor = new VirtualGraphExtractor(nodePropertiesToRemove, relPropertiesToRemove);
         extractor.extract(value);
-        GraphResult result = new GraphResult( extractor.nodes(), extractor.rels() );
+        GraphResultExtended result = new GraphResultExtended( extractor.nodes(), extractor.rels() );
         return Stream.of(result);
     }
     
@@ -135,14 +135,14 @@ public class GraphsExtended {
         }
 
         private Node createVirtualNode(Node startNode) {
-            List<String> props = Iterables.asList(startNode.getPropertyKeys());
+            List<String> props = IterablesExtended.asList(startNode.getPropertyKeys());
             nodePropertiesToRemove.forEach((k,v) -> {
                 if (k.equals(ALL_FILTER) || startNode.hasLabel(Label.label(k))) {
                     props.removeAll(v);
                 }
             });
 
-            return new VirtualNode(startNode, props);
+            return new VirtualNodeExtended(startNode, props);
         }
 
         private Relationship createVirtualRel(Relationship rel) {
@@ -160,7 +160,7 @@ public class GraphsExtended {
                 }
             });
 
-            return new VirtualRelationship(startNode, endNode, rel.getType(), props);
+            return new VirtualRelationshipExtended(startNode, endNode, rel.getType(), props);
         }
 
         public List<Node> nodes() {

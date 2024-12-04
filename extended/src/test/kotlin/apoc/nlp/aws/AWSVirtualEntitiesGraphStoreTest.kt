@@ -2,7 +2,7 @@ package apoc.nlp.aws
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesItemResult
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchItemError
@@ -58,10 +58,22 @@ class AWSVirtualEntitiesGraphStoreTest {
             assertThat(nodes, hasItem(sourceNode1))
             assertThat(nodes, hasItem(sourceNode2))
 
-            val matrixNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Movie"))
-            val notebookNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Movie"))
-            val titanicNode = VirtualNode(arrayOf(Label{"Movie"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Movie"))
-            val topBoyNode = VirtualNode(arrayOf(Label{"Television"}, Label{"Entity"}), mapOf("text" to "Top Boy", "type" to "Television"))
+            val matrixNode = VirtualNodeExtended(
+                arrayOf(Label { "Movie" }, Label { "Entity" }),
+                mapOf("text" to "The Matrix", "type" to "Movie")
+            )
+            val notebookNode = VirtualNodeExtended(
+                arrayOf(Label { "Movie" }, Label { "Entity" }),
+                mapOf("text" to "The Notebook", "type" to "Movie")
+            )
+            val titanicNode = VirtualNodeExtended(
+                arrayOf(Label { "Movie" }, Label { "Entity" }),
+                mapOf("text" to "Titanic", "type" to "Movie")
+            )
+            val topBoyNode = VirtualNodeExtended(
+                arrayOf(Label { "Television" }, Label { "Entity" }),
+                mapOf("text" to "Top Boy", "type" to "Television")
+            )
 
             assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
             assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

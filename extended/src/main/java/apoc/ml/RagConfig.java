@@ -1,6 +1,6 @@
 package apoc.ml;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
@@ -34,10 +34,10 @@ public class RagConfig {
         }
 
         this.confMap = confMap;
-        this.getLabelTypes = Util.toBoolean(confMap.getOrDefault(GET_LABEL_TYPES_CONF, true));
+        this.getLabelTypes = UtilExtended.toBoolean(confMap.getOrDefault(GET_LABEL_TYPES_CONF, true));
         String embeddingString = (String) confMap.getOrDefault(EMBEDDINGS_CONF, EmbeddingQuery.Type.FALSE.name());
         this.embeddings = EmbeddingQuery.Type.valueOf(embeddingString).get();
-        this.topK = Util.toInteger(confMap.getOrDefault(TOP_K_CONF, 40));
+        this.topK = UtilExtended.toInteger(confMap.getOrDefault(TOP_K_CONF, 40));
         this.apiKey = (String) confMap.get(API_KEY_CONF);
         this.basePrompt = (String) confMap.getOrDefault(PROMPT_CONF, DEFAULT_BASE_PROMPT);
     }

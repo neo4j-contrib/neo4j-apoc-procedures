@@ -3,7 +3,7 @@ package apoc.nlp.gcp
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.hamcrest.MatcherAssert.assertThat
@@ -55,10 +55,22 @@ class GCPVirtualEntitiesGraphStoreTest {
             assertThat(nodes, hasItem(sourceNode1))
             assertThat(nodes, hasItem(sourceNode2))
 
-            val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "OTHER"))
-            val notebookNode = VirtualNode(arrayOf(Label{"PhoneNumber"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "PHONE_NUMBER"))
-            val toyStoryNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "Toy Story", "type" to "OTHER"))
-            val titanicNode = VirtualNode(arrayOf(Label{"WorkOfArt"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "WORK_OF_ART"))
+            val matrixNode = VirtualNodeExtended(
+                arrayOf(Label { "Other" }, Label { "Entity" }),
+                mapOf("text" to "The Matrix", "type" to "OTHER")
+            )
+            val notebookNode = VirtualNodeExtended(
+                arrayOf(Label { "PhoneNumber" }, Label { "Entity" }),
+                mapOf("text" to "The Notebook", "type" to "PHONE_NUMBER")
+            )
+            val toyStoryNode = VirtualNodeExtended(
+                arrayOf(Label { "Other" }, Label { "Entity" }),
+                mapOf("text" to "Toy Story", "type" to "OTHER")
+            )
+            val titanicNode = VirtualNodeExtended(
+                arrayOf(Label { "WorkOfArt" }, Label { "Entity" }),
+                mapOf("text" to "Titanic", "type" to "WORK_OF_ART")
+            )
 
             assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
             assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

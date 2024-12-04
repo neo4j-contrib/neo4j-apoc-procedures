@@ -1,6 +1,5 @@
 package apoc.systemdb;
 
-import apoc.ApocConfig;
 import apoc.ExtendedApocConfig;
 import apoc.custom.CypherProcedures;
 import apoc.cypher.CypherExtended;
@@ -8,10 +7,10 @@ import apoc.dv.DataVirtualizationCatalog;
 import apoc.periodic.Periodic;
 import apoc.systemdb.metadata.ExportMetadata;
 import apoc.trigger.Trigger;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterables;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IterablesExtended;
+import apoc.util.collection.IteratorsExtended;
 import apoc.uuid.Uuid;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,8 +37,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.systemdb.SystemDbConfig.FEATURES_KEY;
 import static apoc.systemdb.SystemDbConfig.FILENAME_KEY;
 import static org.junit.Assert.assertEquals;
@@ -61,9 +60,9 @@ public class SystemDbTest {
 
     @Before
     public void setUp() throws Exception {
-        apocConfig().setProperty(ApocConfig.APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(ExtendedApocConfig.APOC_UUID_ENABLED, true);
+        extendedApocConfig().setProperty(ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(ExtendedApocConfig.APOC_UUID_ENABLED, true);
         TestUtil.registerProcedure(db, SystemDb.class, Trigger.class, CypherProcedures.class, Uuid.class, Periodic.class, DataVirtualizationCatalog.class, CypherExtended.class);
     }
 
@@ -75,15 +74,15 @@ public class SystemDbTest {
     @Test
     public void testGetGraph() throws Exception {
         TestUtil.testResult(db, "CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN nodes, relationships", result -> {
-            Map<String, Object> map = Iterators.single(result);
+            Map<String, Object> map = IteratorsExtended.single(result);
             List<Node> nodes = (List<Node>) map.get("nodes");
             List<Relationship> relationships = (List<Relationship>) map.get("relationships");
             assertEquals(7, nodes.size());
-            assertEquals(2, nodes.stream().filter( node -> "Database".equals(Iterables.single(node.getLabels()).name())).count());
-            assertEquals(2, nodes.stream().filter( node -> "DatabaseName".equals(Iterables.single(node.getLabels()).name())).count());
-            assertEquals(1, nodes.stream().filter( node -> "User".equals(Iterables.single(node.getLabels()).name())).count());
-            assertEquals(1, nodes.stream().filter( node -> "Version".equals(Iterables.single(node.getLabels()).name())).count());
-            assertEquals(1, nodes.stream().filter( node -> "Auth".equals(Iterables.single(node.getLabels()).name())).count());
+            assertEquals(2, nodes.stream().filter( node -> "Database".equals(IterablesExtended.single(node.getLabels()).name())).count());
+            assertEquals(2, nodes.stream().filter( node -> "DatabaseName".equals(IterablesExtended.single(node.getLabels()).name())).count());
+            assertEquals(1, nodes.stream().filter( node -> "User".equals(IterablesExtended.single(node.getLabels()).name())).count());
+            assertEquals(1, nodes.stream().filter( node -> "Version".equals(IterablesExtended.single(node.getLabels()).name())).count());
+            assertEquals(1, nodes.stream().filter( node -> "Auth".equals(IterablesExtended.single(node.getLabels()).name())).count());
             Set<String> names = nodes.stream().map(node -> (String)node.getProperty("name")).filter(Objects::nonNull).collect(Collectors.toSet());
             org.hamcrest.MatcherAssert.assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
 
@@ -96,11 +95,11 @@ public class SystemDbTest {
     @Test
     public void testExecute() {
         TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES YIELD name, default, currentStatus, home') YIELD row RETURN row", result -> {
-            List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
+            List<Map<String, Object>> rows = IteratorsExtended.asList(result.columnAs("row"));
             // removed key "systemDefault"
             org.hamcrest.MatcherAssert.assertThat(rows, Matchers.containsInAnyOrder(
-                    MapUtil.map( "name", "system", "default", false, "currentStatus", "online", "home", false),
-                    MapUtil.map("name", "neo4j", "default", true, "currentStatus", "online", "home", true)
+                    MapUtilExtended.map( "name", "system", "default", false, "currentStatus", "online", "home", false),
+                    MapUtilExtended.map("name", "neo4j", "default", true, "currentStatus", "online", "home", true)
             ));
         });
     }

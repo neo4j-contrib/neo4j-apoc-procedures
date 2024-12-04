@@ -1,8 +1,8 @@
 package apoc.export.parquet;
 
-import apoc.util.CompressionAlgo;
+import apoc.util.CompressionAlgoExtended;
 import apoc.util.ExtendedUtil;
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import org.apache.parquet.io.DelegatingSeekableInputStream;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.SeekableInputStream;
@@ -33,7 +33,7 @@ public class ParquetReadUtil {
     }
 
     public static InputFile getInputFile(Object source, URLAccessChecker urlAccessChecker) throws IOException, URISyntaxException, URLAccessValidationError {
-        return new ParquetStream(FileUtils.inputStreamFor(source, null, null, CompressionAlgo.NONE.name(), urlAccessChecker).readAllBytes());
+        return new ParquetStream(FileUtilsExtended.inputStreamFor(source, null, null, CompressionAlgoExtended.NONE.name(), urlAccessChecker).readAllBytes());
     }
 
     public static ApocParquetReader getReader(Object source, ParquetConfig conf, URLAccessChecker urlAccessChecker) {

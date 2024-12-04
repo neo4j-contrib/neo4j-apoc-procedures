@@ -19,10 +19,10 @@
 package apoc.load.arrow;
 
 import apoc.Extended;
-import apoc.result.LoadDataMapResult;
-import apoc.util.FileUtils;
-import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.result.LoadDataMapResultExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.JsonUtilExtended;
+import apoc.util.UtilExtended;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.DateMilliVector;
@@ -65,7 +65,7 @@ public class LoadArrowExtended {
     @Context
     public URLAccessChecker urlAccessChecker;
 
-    private static class ArrowSpliterator extends Spliterators.AbstractSpliterator<LoadDataMapResult> {
+    private static class ArrowSpliterator extends Spliterators.AbstractSpliterator<LoadDataMapResultExtended> {
 
         private final ArrowReader reader;
         private final VectorSchemaRoot schemaRoot;
@@ -80,7 +80,7 @@ public class LoadArrowExtended {
         }
 
         @Override
-        public synchronized boolean tryAdvance(Consumer<? super LoadDataMapResult> action) {
+        public synchronized boolean tryAdvance(Consumer<? super LoadDataMapResultExtended> action) {
             try {
                 if (counter.get() >= schemaRoot.getRowCount()) {
                     if (reader.loadNextBatch()) {
@@ -95,7 +95,7 @@ public class LoadArrowExtended {
                                 (map, fieldVector) -> map.put(fieldVector.getName(), read(fieldVector, counter.get())),
                                 HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
                 counter.incrementAndGet();
-                action.accept(new LoadDataMapResult(row));
+                action.accept(new LoadDataMapResultExtended(row));
                 return true;
             } catch (Exception e) {
                 return false;
@@ -106,7 +106,7 @@ public class LoadArrowExtended {
     @Procedure(name = "apoc.load.arrow.stream")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow byte array.")
-    public Stream<LoadDataMapResult> stream(
+    public Stream<LoadDataMapResultExtended> stream(
             @Name(value = "source", description = "The data to load.") byte[] source,
             @Name(value = "config", defaultValue = "{}", description = "This value is never used.")
                     Map<String, Object> config)
@@ -117,32 +117,32 @@ public class LoadArrowExtended {
         VectorSchemaRoot schemaRoot = streamReader.getVectorSchemaRoot();
         return StreamSupport.stream(new ArrowSpliterator(streamReader, schemaRoot), false)
                 .onClose(() -> {
-                    Util.close(allocator);
-                    Util.close(streamReader);
-                    Util.close(schemaRoot);
-                    Util.close(inputStream);
+                    UtilExtended.close(allocator);
+                    UtilExtended.close(streamReader);
+                    UtilExtended.close(schemaRoot);
+                    UtilExtended.close(inputStream);
                 });
     }
 
     @Procedure(name = "apoc.load.arrow")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow file.")
-    public Stream<LoadDataMapResult> file(
+    public Stream<LoadDataMapResultExtended> file(
             @Name(value = "file", description = "The name of the file to import data from.") String fileName,
             @Name(value = "config", defaultValue = "{}", description = "This value is never used.")
                     Map<String, Object> config)
             throws IOException, URISyntaxException, URLAccessValidationError {
-        final SeekableByteChannel channel = FileUtils.inputStreamFor(fileName, null, null, null, urlAccessChecker)
+        final SeekableByteChannel channel = FileUtilsExtended.inputStreamFor(fileName, null, null, null, urlAccessChecker)
                 .asChannel();
         RootAllocator allocator = new RootAllocator();
         ArrowFileReader streamReader = new ArrowFileReader(channel, allocator);
         VectorSchemaRoot schemaRoot = streamReader.getVectorSchemaRoot();
         return StreamSupport.stream(new ArrowSpliterator(streamReader, schemaRoot), false)
                 .onClose(() -> {
-                    Util.close(allocator);
-                    Util.close(streamReader);
-                    Util.close(schemaRoot);
-                    Util.close(channel);
+                    UtilExtended.close(allocator);
+                    UtilExtended.close(streamReader);
+                    UtilExtended.close(schemaRoot);
+                    UtilExtended.close(channel);
                 });
     }
 
@@ -182,6 +182,6 @@ public class LoadArrowExtended {
     }
 
     private static String valueToString(Object value) {
-        return JsonUtil.writeValueAsString(value);
+        return JsonUtilExtended.writeValueAsString(value);
     }
 }

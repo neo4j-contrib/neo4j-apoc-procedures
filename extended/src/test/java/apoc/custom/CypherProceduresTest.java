@@ -1,13 +1,13 @@
 package apoc.custom;
 
+import apoc.ExtendedSystemPropertyKeys;
 import apoc.ExtendedSystemLabels;
-import apoc.RegisterComponentFactory;
-import apoc.SystemPropertyKeys;
+import apoc.ExtendedRegisterComponentFactory;
 import apoc.cypher.Cypher;
 import apoc.schema.Schemas;
 import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public class CypherProceduresTest  {
                         "query", "UNWIND range(0, $power) AS power RETURN $input ^ power AS answer"));
 
         TestUtil.testResult(db, "CALL custom.testValFour(2, 3)",
-                (r) -> assertEquals(List.of(1D, 2D, 4D, 8D), Iterators.asList(r.columnAs("answer"))));
+                (r) -> assertEquals(List.of(1D, 2D, 4D, 8D), IteratorsExtended.asList(r.columnAs("answer"))));
 
         db.executeTransactionally("CALL apoc.custom.declareProcedure($signature, $query)",
                 Map.of("signature", "multiProc(input::LOCALDATETIME, minus::INT) :: (first::INT, second:: STRING, third::DATETIME)",
@@ -448,13 +448,13 @@ public class CypherProceduresTest  {
         // remove the node in systemdb
         GraphDatabaseService systemDb = db.getManagementService().database("system");
         try (Transaction tx = systemDb.beginTx()) {
-            Node node = tx.findNode( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            Node node = tx.findNode( ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemPropertyKeys.name.name(), "answer");
             node.delete();
             tx.commit();
         }
 
         // refresh procedures
-        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(ExtendedRegisterComponentFactory.RegisterComponentLifecycle.class);
         CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
         cypherProceduresHandler.restoreProceduresAndFunctions();
 

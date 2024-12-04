@@ -1,6 +1,6 @@
 package apoc.export.xls;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,8 +31,8 @@ public class XlsExportConfig {
         this.dateTimeStyle = (String) config.getOrDefault("dateTimeStyle", "yyyy-mm-dd hh:mm:ss");
         this.dateStyle = (String) config.getOrDefault("dateStyle", "yyyy-mm-dd");
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
-        this.prefixSheetWithEntityType = Util.toBoolean(config.getOrDefault("prefixSheetWithEntityType", false));
-        this.joinLabels = Util.toBoolean(config.getOrDefault("joinLabels", false));
+        this.prefixSheetWithEntityType = UtilExtended.toBoolean(config.getOrDefault("prefixSheetWithEntityType", false));
+        this.joinLabels = UtilExtended.toBoolean(config.getOrDefault("joinLabels", false));
     }
 
     public String getHeaderNodeId() {

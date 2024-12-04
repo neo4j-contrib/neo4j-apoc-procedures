@@ -1,6 +1,6 @@
 package apoc.nlp
 
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert
 import org.junit.ClassRule
@@ -23,8 +23,12 @@ class NLPHelperFunctionsWithDatabaseTest {
     @Test
     fun `virtual create relationship`() {
         neo4j.beginTx().use {
-            val sourceNode = VirtualNode(arrayOf(Label { "Source" }), mapOf("name" to "Mark"))
-            val targetNode = VirtualNode(arrayOf(Label { "Target" }), mapOf("name" to "Michael"))
+            val sourceNode =
+                VirtualNodeExtended(arrayOf(Label { "Source" }), mapOf("name" to "Mark"))
+            val targetNode = VirtualNodeExtended(
+                arrayOf(Label { "Target" }),
+                mapOf("name" to "Michael")
+            )
             val targetNodeAndScore = Pair(targetNode, 0.75)
 
             val rel = NLPHelperFunctions.mergeRelationship(sourceNode, targetNodeAndScore, RelationshipType { "ENTITY" }, "score")
@@ -37,8 +41,12 @@ class NLPHelperFunctionsWithDatabaseTest {
     @Test
     fun `virtual use highest score`() {
         neo4j.beginTx().use {
-            val sourceNode = VirtualNode(arrayOf(Label {"Source"}), mapOf("name" to "Mark"))
-            val targetNode = VirtualNode(arrayOf(Label {"Target"}), mapOf("name" to "Michael"))
+            val sourceNode =
+                VirtualNodeExtended(arrayOf(Label { "Source" }), mapOf("name" to "Mark"))
+            val targetNode = VirtualNodeExtended(
+                arrayOf(Label { "Target" }),
+                mapOf("name" to "Michael")
+            )
 
             NLPHelperFunctions.mergeRelationship(sourceNode, Pair(targetNode, 0.75), RelationshipType { "ENTITY" }, "score")
             val rel = NLPHelperFunctions.mergeRelationship(sourceNode, Pair(targetNode, 0.72), RelationshipType { "ENTITY" }, "score")

@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.MapResult;
+import apoc.result.MapResultExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -43,7 +43,7 @@ public class Milvus {
 
     @Procedure("apoc.vectordb.milvus.info")
     @Description("apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist")
-    public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "dbName", defaultValue = "default") String dbName,  @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "dbName", defaultValue = "default") String dbName, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/describe";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
@@ -53,16 +53,16 @@ public class Milvus {
 
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.milvus.createCollection")
     @Description("apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
-                                              @Name("similarity") String similarity,
-                                              @Name("size") Long size,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("similarity") String similarity,
+                                                      @Name("size") Long size,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/collections/create";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
@@ -74,12 +74,12 @@ public class Milvus {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.milvus.deleteCollection")
     @Description("apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
-    public Stream<MapResult> deleteCollection(
+    public Stream<MapResultExtended> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -92,12 +92,12 @@ public class Milvus {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.milvus.upsert")
     @Description("apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
-    public Stream<MapResult> upsert(
+    public Stream<MapResultExtended> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
@@ -120,12 +120,12 @@ public class Milvus {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.milvus.delete")
     @Description("apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
-    public Stream<MapResult> delete(
+    public Stream<MapResultExtended> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Object> ids,
@@ -140,7 +140,7 @@ public class Milvus {
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.get")

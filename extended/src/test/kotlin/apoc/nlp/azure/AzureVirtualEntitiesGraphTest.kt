@@ -2,7 +2,7 @@ package apoc.nlp.azure
 
 import apoc.nlp.NodeMatcher
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
@@ -13,7 +13,8 @@ import org.neo4j.graphdb.RelationshipType
 class AzureVirtualEntitiesGraphTest {
     @Test
     fun `create virtual graph from result with one entity`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "entities" to listOf(mapOf(
@@ -39,12 +40,14 @@ class AzureVirtualEntitiesGraphTest {
         val relationships = virtualGraph.graph["relationships"] as Set<*>
 
         assertEquals(1, relationships.size)
-        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode, VirtualNode(barLabels.toTypedArray(), barProperties), "ENTITY", mapOf("score" to 0.9))))
+        assertThat(relationships, hasItem(RelationshipMatcher(sourceNode,
+            VirtualNodeExtended(barLabels.toTypedArray(), barProperties), "ENTITY", mapOf("score" to 0.9))))
     }
 
     @Test
     fun `create virtual graph from result with multiple entities`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "entities" to listOf(
@@ -72,8 +75,14 @@ class AzureVirtualEntitiesGraphTest {
         assertEquals(3, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Other"))
-        val notebookNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "Other"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Other")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "Other")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -87,7 +96,8 @@ class AzureVirtualEntitiesGraphTest {
 
     @Test
     fun `create virtual graph from result with duplicate entities`() {
-        val sourceNode = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
+        val sourceNode =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
         val res = listOf(
                 mapOf("id" to sourceNode.id.toString(), "entities" to listOf(
@@ -115,7 +125,10 @@ class AzureVirtualEntitiesGraphTest {
         assertEquals(2, nodes.size)
         assertThat(nodes, hasItem(sourceNode))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Other"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Other")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
 
@@ -127,8 +140,10 @@ class AzureVirtualEntitiesGraphTest {
 
     @Test
     fun `create virtual graph from result with multiple source nodes`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
@@ -171,10 +186,22 @@ class AzureVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Other"))
-        val notebookNode = VirtualNode(arrayOf(Label{"PhoneNumber"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "PhoneNumber"))
-        val toyStoryNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "Toy Story", "type" to "Other"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Quantity"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Quantity"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Other")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "PhoneNumber" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "PhoneNumber")
+        )
+        val toyStoryNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "Toy Story", "type" to "Other")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Quantity" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Quantity")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -193,8 +220,10 @@ class AzureVirtualEntitiesGraphTest {
 
     @Test
     fun `create virtual graph from result with multiple source nodes with overlapping entities`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
@@ -245,10 +274,22 @@ class AzureVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Other"))
-        val notebookNode = VirtualNode(arrayOf(Label{"PhoneNumber"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "PhoneNumber"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Skill"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Skill"))
-        val topBoyNode = VirtualNode(arrayOf(Label{"Email"}, Label{"Entity"}), mapOf("text" to "Top Boy", "type" to "Email"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Other")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "PhoneNumber" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "PhoneNumber")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Skill" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Skill")
+        )
+        val topBoyNode = VirtualNodeExtended(
+            arrayOf(Label { "Email" }, Label { "Entity" }),
+            mapOf("text" to "Top Boy", "type" to "Email")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))
@@ -268,8 +309,10 @@ class AzureVirtualEntitiesGraphTest {
 
     @Test
     fun `create graph based on confidence cut off`() {
-        val sourceNode1 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 1234L))
-        val sourceNode2 = VirtualNode(arrayOf(Label {"Person"}), mapOf("id" to 5678L))
+        val sourceNode1 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+        val sourceNode2 =
+            VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 5678L))
 
         val res = listOf(
                 mapOf("id" to sourceNode1.id.toString(), "entities" to listOf(
@@ -320,9 +363,18 @@ class AzureVirtualEntitiesGraphTest {
         assertThat(nodes, hasItem(sourceNode1))
         assertThat(nodes, hasItem(sourceNode2))
 
-        val matrixNode = VirtualNode(arrayOf(Label{"Other"}, Label{"Entity"}), mapOf("text" to "The Matrix", "type" to "Other"))
-        val notebookNode = VirtualNode(arrayOf(Label{"PhoneNumber"}, Label{"Entity"}), mapOf("text" to "The Notebook", "type" to "PhoneNumber"))
-        val titanicNode = VirtualNode(arrayOf(Label{"Skill"}, Label{"Entity"}), mapOf("text" to "Titanic", "type" to "Skill"))
+        val matrixNode = VirtualNodeExtended(
+            arrayOf(Label { "Other" }, Label { "Entity" }),
+            mapOf("text" to "The Matrix", "type" to "Other")
+        )
+        val notebookNode = VirtualNodeExtended(
+            arrayOf(Label { "PhoneNumber" }, Label { "Entity" }),
+            mapOf("text" to "The Notebook", "type" to "PhoneNumber")
+        )
+        val titanicNode = VirtualNodeExtended(
+            arrayOf(Label { "Skill" }, Label { "Entity" }),
+            mapOf("text" to "Titanic", "type" to "Skill")
+        )
 
         assertThat(nodes, hasItem(NodeMatcher(matrixNode.labels.toList(), matrixNode.allProperties)))
         assertThat(nodes, hasItem(NodeMatcher(notebookNode.labels.toList(), notebookNode.allProperties)))

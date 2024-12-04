@@ -3,8 +3,8 @@ package apoc.load;
 import apoc.Extended;
 import apoc.export.parquet.ApocParquetReader;
 import apoc.export.parquet.ParquetConfig;
-import apoc.result.MapResult;
-import apoc.util.Util;
+import apoc.result.MapResultExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -30,7 +30,7 @@ public class LoadParquet {
     @Context
     public URLAccessChecker urlAccessChecker;
 
-    private static class ParquetSpliterator extends Spliterators.AbstractSpliterator<MapResult> {
+    private static class ParquetSpliterator extends Spliterators.AbstractSpliterator<MapResultExtended> {
 
         private final ApocParquetReader reader;
 
@@ -40,11 +40,11 @@ public class LoadParquet {
         }
 
         @Override
-        public synchronized boolean tryAdvance(Consumer<? super MapResult> action) {
+        public synchronized boolean tryAdvance(Consumer<? super MapResultExtended> action) {
             try {
                 Map<String, Object> read = reader.getRecord();
                 if (read != null) {
-                    MapResult result = new MapResult(read);
+                    MapResultExtended result = new MapResultExtended(read);
                     action.accept(result);
                     return true;
                 }
@@ -58,7 +58,7 @@ public class LoadParquet {
 
     @Procedure(name = "apoc.load.parquet")
     @Description("Load parquet from the provided file or binary")
-    public Stream<MapResult> load(
+    public Stream<MapResultExtended> load(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException {
 
@@ -66,7 +66,7 @@ public class LoadParquet {
 
         ApocParquetReader reader = getReader(input, conf, urlAccessChecker);
         return StreamSupport.stream(new ParquetSpliterator(reader),false)
-                .onClose(() -> Util.close(reader));
+                .onClose(() -> UtilExtended.close(reader));
     }
 
 

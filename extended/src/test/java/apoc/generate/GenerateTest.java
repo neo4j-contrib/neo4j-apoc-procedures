@@ -10,8 +10,8 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.util.collection.Iterables.count;
-import static apoc.util.collection.Iterables.firstOrNull;
+import static apoc.util.collection.IterablesExtended.count;
+import static apoc.util.collection.IterablesExtended.firstOrNull;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

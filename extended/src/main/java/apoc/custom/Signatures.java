@@ -1,6 +1,6 @@
 package apoc.custom;
 
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import org.antlr.v4.runtime.*;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.QueryLanguage;
@@ -160,11 +160,11 @@ public class Signatures {
             return getDefaultParameterValue(type, text, () -> DefaultParameterValue.ntFloat(Double.parseDouble(text)));
         }
         if (v.mapValue() != null) {
-            Map map = JsonUtil.parse(v.mapValue().getText(), null, Map.class);
+            Map map = JsonUtilExtended.parse(v.mapValue().getText(), null, Map.class);
             return DefaultParameterValue.ntMap(map);
         }
         if (v.listValue() != null) {
-            List<?> list = JsonUtil.parse(v.listValue().getText(), null, List.class);
+            List<?> list = JsonUtilExtended.parse(v.listValue().getText(), null, List.class);
             final AnyType inner = ((ListType) type).innerType();
             if (inner instanceof TextType) {
                 list = list.stream()

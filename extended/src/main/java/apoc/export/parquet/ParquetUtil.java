@@ -1,8 +1,9 @@
 package apoc.export.parquet;
 
 
-import apoc.convert.ConvertUtils;
-import apoc.util.JsonUtil;
+import apoc.convert.ConvertExtendedUtil;
+import apoc.meta.TypesExtended;
+import apoc.util.JsonUtilExtended;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.GroupFactory;
 import org.apache.parquet.example.data.simple.NanoTime;
@@ -24,7 +25,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-import static apoc.util.Util.labelStrings;
+import static apoc.util.UtilExtended.labelStrings;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.ListLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
@@ -43,7 +44,7 @@ public class ParquetUtil {
     public static String FIELD_TARGET_ID = "__target_id";
     public static String FIELD_TYPE = "__type";
 
-    public static String fromMetaType(apoc.meta.Types type) {
+    public static String fromMetaType(TypesExtended type) {
         switch (type) {
             case INTEGER:
                 return "LONG";
@@ -51,8 +52,8 @@ public class ParquetUtil {
                 return "DOUBLE";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
-                if (innerType == apoc.meta.Types.LIST || innerType == apoc.meta.Types.MAP ) {
+                final TypesExtended innerType = TypesExtended.from(inner);
+                if (innerType == TypesExtended.LIST || innerType == TypesExtended.MAP ) {
                     return "ANYARRAY";
                 }
                 return fromMetaType(innerType) + "ARRAY";
@@ -82,7 +83,7 @@ public class ParquetUtil {
 
     public static void appendList(Group group, String k, Object v) {
         Group group1 = group.addGroup(k);
-        ConvertUtils.convertToList(v).forEach(item -> {
+        ConvertExtendedUtil.convertToListExtended(v).forEach(item -> {
             Group group2 = group1.addGroup(0);
             group2.add(0, item.toString());
         });
@@ -145,7 +146,7 @@ public class ParquetUtil {
             Map<String, Object> allProperties = value.getAllProperties();
             allProperties.put(FIELD_ID, value.getId());
             allProperties.put(FIELD_LABELS, labelStrings(value));
-            return JsonUtil.writeValueAsString(allProperties);
+            return JsonUtilExtended.writeValueAsString(allProperties);
         }
         if (val instanceof Relationship) {
             Relationship value = (Relationship) val;
@@ -154,10 +155,10 @@ public class ParquetUtil {
             allProperties.put(FIELD_SOURCE_ID, value.getStartNodeId());
             allProperties.put(FIELD_TARGET_ID, value.getEndNodeId());
             allProperties.put(FIELD_TYPE, value.getType().name());
-            return JsonUtil.writeValueAsString(allProperties);
+            return JsonUtilExtended.writeValueAsString(allProperties);
         }
         if (val instanceof Map) {
-            return JsonUtil.writeValueAsString(val);
+            return JsonUtilExtended.writeValueAsString(val);
         }
         return val.toString();
     }

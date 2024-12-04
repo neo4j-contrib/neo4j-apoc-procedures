@@ -5,7 +5,7 @@ import apoc.couchbase.document.CouchbaseByteArrayDocument;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.result.BooleanResult;
-import apoc.util.MissingDependencyException;
+import apoc.util.MissingDependencyExceptionExtended;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -344,7 +344,7 @@ public class Couchbase {
             CouchbaseConfig config = new CouchbaseConfig(configMap);
             return CouchbaseManager.getConnection(hostOrKey, bucket, config);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(COUCHBASE_MISSING_DEPS_ERROR);
+            throw new MissingDependencyExceptionExtended(COUCHBASE_MISSING_DEPS_ERROR);
         }
     }
 }

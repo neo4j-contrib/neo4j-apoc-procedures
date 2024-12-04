@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_ML_WATSON_URL;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ml.MLUtil.*;
 import static apoc.ml.watson.Watson.*;
 
@@ -51,7 +51,7 @@ public interface WatsonHandler {
                 region, getDefaultMethod(), version
         );
 
-        return apocConfig().getString(APOC_ML_WATSON_URL, url);
+        return extendedApocConfig().getString(APOC_ML_WATSON_URL, url);
     }
 
 

@@ -18,8 +18,8 @@
  */
 package apoc.export.arrow;
 
-import apoc.Pools;
-import apoc.export.util.ProgressReporter;
+import apoc.PoolsExtended;
+import apoc.export.util.ProgressReporterExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
@@ -39,7 +39,7 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
 
     private final String fileName;
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
 
@@ -48,7 +48,7 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
     private Schema schema;
 
     public ExportResultFileStrategy(
-            String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+            String fileName, GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger) {
         this.fileName = fileName;
         this.db = db;
         this.pools = pools;
@@ -58,7 +58,7 @@ public class ExportResultFileStrategy implements ExportArrowFileStrategy<Result>
     }
 
     @Override
-    public Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, Result data) {
+    public Iterator<Map<String, Object>> toIterator(ProgressReporterExtended reporter, Result data) {
         return data.stream()
                 .map(row -> {
                     row.forEach((key, val) -> {

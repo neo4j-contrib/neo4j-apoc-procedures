@@ -15,7 +15,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Collections;
 import java.util.List;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 

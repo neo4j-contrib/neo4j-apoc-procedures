@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
@@ -173,7 +173,7 @@ public class MilvusTest {
                     assertEquals(200L, value.get("code"));
                 });
         
-        Util.sleep(2000);
+        UtilExtended.sleep(2000);
     }
 
     @Test

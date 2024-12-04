@@ -1,6 +1,6 @@
 package apoc.model;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ public class ModelConfig {
     private final List<String> columns;
 
     public ModelConfig(Map<String, Object> config) {
-        this.write = Util.toBoolean(config.getOrDefault("write",false));
+        this.write = UtilExtended.toBoolean(config.getOrDefault("write",false));
         Map<String, List<String>> filters = (Map<String, List<String>>) config.getOrDefault("filters", Collections.emptyMap());
         this.tables = toPatternList(filters.getOrDefault("tables", Collections.emptyList()));
         this.views = toPatternList(filters.getOrDefault("views", Collections.emptyList()));

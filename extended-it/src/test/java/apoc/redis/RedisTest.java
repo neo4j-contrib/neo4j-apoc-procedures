@@ -1,7 +1,5 @@
 package apoc.redis;
 
-import apoc.redis.Redis;
-import apoc.redis.RedisConfig;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -24,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;

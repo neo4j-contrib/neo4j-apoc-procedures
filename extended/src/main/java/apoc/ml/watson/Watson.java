@@ -1,9 +1,9 @@
 package apoc.ml.watson;
 
-import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.JsonUtil;
+import apoc.ExtendedApocConfig;
+import apoc.result.MapResultExtended;
+import apoc.util.JsonUtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -35,7 +35,7 @@ public class Watson {
     static final String DEFAULT_REGION = "eu-de";
 
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
 
     @Context
     public URLAccessChecker urlAccessChecker;
@@ -67,7 +67,7 @@ public class Watson {
 
     @Procedure("apoc.ml.watson.chat")
     @Description("apoc.ml.watson.chat(messages, accessToken, $configuration) - prompts the completion API")
-    public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         if (messages == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
@@ -87,12 +87,12 @@ public class Watson {
     
     @Procedure("apoc.ml.watson.completion")
     @Description("apoc.ml.watson.completion(prompt, accessToken, $configuration) - prompts the completion API")
-    public Stream<MapResult> completion(@Name("prompt") String prompt, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> completion(@Name("prompt") String prompt, @Name("accessToken") String accessToken, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         if (prompt == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
         return executeRequest(prompt, accessToken, configuration, WatsonHandler.Type.COMPLETION.get())
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     private Stream<Map> executeRequest(Object input, String accessToken, Map<String, Object> configuration, WatsonHandler type) {
@@ -116,9 +116,9 @@ public class Watson {
                     "Authorization", "Bearer " + accessToken);
 
             Map<String, Object> payloadMap = type.getPayload(configuration, input);
-            String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(payloadMap);
+            String payload = JsonUtilExtended.OBJECT_MAPPER.writeValueAsString(payloadMap);
 
-            return JsonUtil.loadJson(endpoint, headers, payload, "$", true, List.of(), urlAccessChecker)
+            return JsonUtilExtended.loadJson(endpoint, headers, payload, "$", true, List.of(), urlAccessChecker)
                     .map(v -> (Map<String, Object>) v);
         } catch (IOException e) {
             throw new RuntimeException(e);

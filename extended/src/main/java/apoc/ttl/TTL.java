@@ -2,7 +2,7 @@ package apoc.ttl;
 
 import apoc.Extended;
 import apoc.TTLConfig;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -10,7 +10,7 @@ import org.neo4j.procedure.*;
 
 import java.util.Map;
 
-import static apoc.date.DateUtils.unit;
+import static apoc.date.DateExtendedUtils.unit;
 
 @Extended
 public class TTL {
@@ -38,7 +38,7 @@ public class TTL {
     @UserFunction
     public Map<String, Object> config() {
         TTLConfig.Values values = ttlConfig.configFor(db);
-        return MapUtil.map(
+        return MapUtilExtended.map(
                 "enabled", values.enabled,
                 "schedule", values.schedule,
                 "limit", values.limit

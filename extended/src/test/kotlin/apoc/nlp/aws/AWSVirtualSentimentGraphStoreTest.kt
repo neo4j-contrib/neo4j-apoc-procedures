@@ -1,7 +1,7 @@
 package apoc.nlp.aws
 
 import apoc.nlp.NodeMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import com.amazonaws.services.comprehend.model.*
 import junit.framework.Assert.assertEquals
 import org.hamcrest.MatcherAssert.assertThat
@@ -24,7 +24,8 @@ class AWSVirtualSentimentGraphStoreTest {
         neo4j.beginTx().use {
             val itemResult = BatchDetectSentimentItemResult().withSentiment(SentimentType.MIXED).withSentimentScore(SentimentScore().withMixed(0.8F)).withIndex(0)
             val res = BatchDetectSentimentResult().withErrorList(BatchItemError()).withResultList(itemResult)
-            val sourceNode = VirtualNode(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
+            val sourceNode =
+                VirtualNodeExtended(arrayOf(Label { "Person" }), mapOf("id" to 1234L))
 
             val virtualGraph = AWSVirtualSentimentVirtualGraph(res, listOf(sourceNode)).createAndStore(it)
 

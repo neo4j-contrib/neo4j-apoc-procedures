@@ -1,7 +1,7 @@
 package apoc.config;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,12 +14,16 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.Map;
 import java.util.Set;
 
-import static apoc.ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ExtendedApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
+import static apoc.ExtendedApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_TTL_SCHEDULE;
+import static apoc.ExtendedApocConfig.APOC_TTL_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_TTL_LIMIT;
+import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.trigger.TriggerHandler.TRIGGER_REFRESH;
 import static org.junit.Assert.assertEquals;
 
@@ -30,13 +34,19 @@ import static org.junit.Assert.assertEquals;
 public class ConfigTest {
     // apoc.export.file.enabled, apoc.import.file.enabled, apoc.import.file.use_neo4j_config, apoc.trigger.enabled and apoc.import.file.allow_read_from_filesystem
     // are always set by default
-    private static final Map<String, String> EXPECTED_APOC_CONFS = Map.of(APOC_EXPORT_FILE_ENABLED, "false",
-            APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, "true",
-            APOC_IMPORT_FILE_ENABLED, "false",
-            APOC_IMPORT_FILE_USE_NEO4J_CONFIG, "true",
-            APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, "4",
-            TRIGGER_REFRESH, "2000",
-            APOC_TRIGGER_ENABLED, "false");
+    private static final Map<String, String> EXPECTED_APOC_CONFS = Map.ofEntries(
+            Map.entry(APOC_EXPORT_FILE_ENABLED, "false"),
+            Map.entry(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, "true"),
+            Map.entry(APOC_IMPORT_FILE_ENABLED, "false"),
+            Map.entry(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, "true"),
+            Map.entry(APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, "4"),
+            Map.entry(TRIGGER_REFRESH, "2000"),
+            Map.entry(APOC_TRIGGER_ENABLED, "false"),
+            Map.entry(APOC_TTL_SCHEDULE, "PT1M"),
+            Map.entry(APOC_TTL_ENABLED, "false"),
+            Map.entry(APOC_TTL_LIMIT, "1000"),
+            Map.entry(APOC_UUID_ENABLED, "false")
+            );
 
     @Rule
     public final ProvideSystemProperty systemPropertyRule 
@@ -63,7 +73,7 @@ public class ConfigTest {
     @Test
     public void configListTest(){
         TestUtil.testResult(db, "CALL apoc.config.list() YIELD key RETURN * ORDER BY key", r -> {
-            final Set<String> actualConfs = Iterators.asSet(r.columnAs("key"));
+            final Set<String> actualConfs = IteratorsExtended.asSet(r.columnAs("key"));
             assertEquals(EXPECTED_APOC_CONFS.keySet(), actualConfs);
         });
     }

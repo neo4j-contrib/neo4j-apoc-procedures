@@ -1,7 +1,7 @@
 package apoc.ml;
 
-import apoc.ApocConfig;
-import apoc.result.ObjectResult;
+import apoc.ExtendedApocConfig;
+import apoc.result.ObjectResultExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -39,12 +39,12 @@ public class MixedbreadAI {
     public URLAccessChecker urlAccessChecker;
     
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
 
 
     @Procedure("apoc.ml.mixedbread.custom")
     @Description("apoc.mixedbread.custom(, configuration) - returns the embeddings for a given text")
-    public Stream<ObjectResult> custom(@Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<ObjectResultExtended> custom(@Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         if (!configuration.containsKey(MODEL_CONF_KEY)) {
             throw new RuntimeException(ERROR_MSG_MISSING_MODELID);
         }
@@ -55,7 +55,7 @@ public class MixedbreadAI {
                         null, null, null, null, null, 
                         apocConfig, 
                         urlAccessChecker)
-                .map(ObjectResult::new);
+                .map(ObjectResultExtended::new);
     }
     
 

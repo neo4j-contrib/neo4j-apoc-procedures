@@ -2,7 +2,7 @@ package apoc.export;
 
 import apoc.ApocConfig;
 import apoc.export.xls.ExportXls;
-import apoc.util.FileUtils;
+import apoc.util.FileUtilsExtended;
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -65,7 +65,7 @@ public class ExportExtendedSecurityTest {
     }
 
     private static void setFileExport(boolean allowed) {
-        apocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, allowed);
+        extendedApocConfig().setProperty(ApocConfig.APOC_EXPORT_FILE_ENABLED, allowed);
     }
 
     private static Collection<String[]> data(Map<String, List<String>> apocProcedureArguments) {
@@ -168,7 +168,7 @@ public class ExportExtendedSecurityTest {
                         Result::resultAsString);
                 fail(message);
             } catch (Exception e) {
-                assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
+                assertError(e, FileUtilsExtended.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             } finally {
                 setFileExport(false);
             }
@@ -218,7 +218,7 @@ public class ExportExtendedSecurityTest {
                     () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
             );
 
-            assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
+            assertError(e, FileUtilsExtended.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
             setFileExport(false);
         }
     }
@@ -386,7 +386,7 @@ public class ExportExtendedSecurityTest {
                     () -> TestUtil.testCall(db, "CALL " + apocProcedure, (r) -> {})
             );
 
-            assertError(e, FileUtils.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
+            assertError(e, FileUtilsExtended.ACCESS_OUTSIDE_DIR_ERROR, IOException.class, apocProcedure);
 
             setFileExport(false);
         }

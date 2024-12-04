@@ -1,5 +1,6 @@
 package apoc;
 
+import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * NOTE: this is a GLOBAL component, so only once per DBMS
  */
+@ServiceProvider
 public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedRegisterComponentFactory.Dependencies> {
 
     private Log log;
@@ -54,7 +56,7 @@ public class ExtendedRegisterComponentFactory extends ExtensionFactory<ExtendedR
         @Override
         public void init() throws Exception {
 
-            for (ExtendedApocGlobalComponents c: Services.loadAll(ExtendedApocGlobalComponents.class)) {
+            for (ApocGlobalComponentsService c: Services.loadAll(ApocGlobalComponentsService.class)) {
                 for (Class clazz: c.getContextClasses()) {
                     resolvers.put(clazz, new ConcurrentHashMap<>());
                 }

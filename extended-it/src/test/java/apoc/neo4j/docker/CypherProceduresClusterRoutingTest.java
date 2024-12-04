@@ -3,7 +3,7 @@ package apoc.custom;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestcontainersCausalCluster;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -162,7 +162,7 @@ public class CypherProceduresClusterRoutingTest {
     @Test
     public void testCustomShowAllowedInAllSysLeaderMembers() {
         final String query = "CALL apoc.custom.show";
-        final BiConsumer<Session, String> testUuidShow = (session, name) -> testResult(session, query, Iterators::count);
+        final BiConsumer<Session, String> testUuidShow = (session, name) -> testResult(session, query, IteratorsExtended::count);
         customInSysLeaderMemberCommon(testUuidShow, true);
     }
 

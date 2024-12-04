@@ -1,14 +1,14 @@
 package apoc.load.util;
 
 import apoc.export.util.BatchTransaction;
-import apoc.export.util.CountingInputStream;
-import apoc.export.util.ExportConfig;
-import apoc.export.util.Reporter;
-import apoc.result.MapResult;
-import apoc.util.CompressionAlgo;
-import apoc.util.FileUtils;
-import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.export.util.CountingInputStreamExtended;
+import apoc.export.util.ExportConfigExtended;
+import apoc.export.util.ReporterExtended;
+import apoc.result.MapResultExtended;
+import apoc.util.CompressionAlgoExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.JsonUtilExtended;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -60,7 +60,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static apoc.load.util.XmlReadUtil.Load.generateXmlDoctypeException;
-import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.CompressionConfigExtended.COMPRESSION;
 import static apoc.util.ExtendedUtil.toValidValue;
 
 /**
@@ -70,30 +70,30 @@ import static apoc.util.ExtendedUtil.toValidValue;
 public class XmlReadUtil {
 
     public static class Load {
-        public static Stream<MapResult> xmlXpathToMapResult(
+        public static Stream<MapResultExtended> xmlXpathToMapResult(
                 Object urlOrBinary, URLAccessChecker urlAccessChecker, TerminationGuard terminationGuard, Map<String, Object> config) throws Exception {
             if (config == null) config = Collections.emptyMap();
             boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
             String path = (String) config.getOrDefault("path", "/");
-            boolean simpleMode = Util.toBoolean(config.getOrDefault("simpleMode", false));
+            boolean simpleMode = UtilExtended.toBoolean(config.getOrDefault("simpleMode", false));
             try {
                 Map<String, Object> headers = (Map) config.getOrDefault("headers", Collections.emptyMap());
-                CountingInputStream is = FileUtils.inputStreamFor(
+                CountingInputStreamExtended is = FileUtilsExtended.inputStreamFor(
                         urlOrBinary,
                         headers,
                         null,
-                        (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()),
+                        (String) config.getOrDefault(COMPRESSION, CompressionAlgoExtended.NONE.name()),
                         urlAccessChecker);
                 return parse(is, simpleMode, path, failOnError, terminationGuard);
             } catch (Exception e) {
-                if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
+                if (!failOnError) return Stream.of(new MapResultExtended(Collections.emptyMap()));
                 else throw e;
             }
         }
 
-        private static Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError, TerminationGuard terminationGuard)
+        private static Stream<MapResultExtended> parse(InputStream data, boolean simpleMode, String path, boolean failOnError, TerminationGuard terminationGuard)
                 throws Exception {
-            List<MapResult> result = new ArrayList<>();
+            List<MapResultExtended> result = new ArrayList<>();
             try {
                 DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
                 documentBuilderFactory.setNamespaceAware(true);
@@ -115,14 +115,14 @@ public class XmlReadUtil {
                     final Deque<Map<String, Object>> stack = new LinkedList<>();
                     handleNode(stack, nodeList.item(i), simpleMode, terminationGuard);
                     for (int index = 0; index < stack.size(); index++) {
-                        result.add(new MapResult(stack.pollFirst()));
+                        result.add(new MapResultExtended(stack.pollFirst()));
                     }
                 }
             } catch (FileNotFoundException e) {
-                if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
+                if (!failOnError) return Stream.of(new MapResultExtended(Collections.emptyMap()));
                 else throw e;
             } catch (Exception e) {
-                if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
+                if (!failOnError) return Stream.of(new MapResultExtended(Collections.emptyMap()));
                 else if (e instanceof SAXParseException && e.getMessage().contains("DOCTYPE is disallowed"))
                     throw generateXmlDoctypeException();
                 else throw e;
@@ -276,10 +276,10 @@ public class XmlReadUtil {
         private final GraphDatabaseService db;
         private boolean storeNodeIds;
         private RelationshipType defaultRelType = RelationshipType.withName("UNKNOWN");
-        private ExportConfig.NodeConfig source;
-        private ExportConfig.NodeConfig target;
+        private ExportConfigExtended.NodeConfig source;
+        private ExportConfigExtended.NodeConfig target;
         private int batchSize = 40000;
-        private Reporter reporter;
+        private ReporterExtended reporter;
         private boolean labels;
 
         public Import storeNodeIds() {
@@ -302,26 +302,26 @@ public class XmlReadUtil {
             return this;
         }
 
-        public Import source(ExportConfig.NodeConfig sourceConfig) {
+        public Import source(ExportConfigExtended.NodeConfig sourceConfig) {
             this.source = sourceConfig;
             return this;
         }
 
-        public Import target(ExportConfig.NodeConfig targetConfig) {
+        public Import target(ExportConfigExtended.NodeConfig targetConfig) {
             this.target = targetConfig;
             return this;
         }
 
-        public Import reporter(Reporter reporter) {
+        public Import reporter(ReporterExtended reporter) {
             this.reporter = reporter;
             return this;
         }
 
-        public ExportConfig.NodeConfig getSource() {
+        public ExportConfigExtended.NodeConfig getSource() {
             return source;
         }
 
-        public ExportConfig.NodeConfig getTarget() {
+        public ExportConfigExtended.NodeConfig getTarget() {
             return target;
         }
 
@@ -386,7 +386,7 @@ public class XmlReadUtil {
             abstract Object parseList(String value);
 
             public static <T> T[] parseList(String value, Class<T> asClass, Function<Object, T> convert) {
-                List parsed = JsonUtil.parse(value, null, List.class);
+                List parsed = JsonUtilExtended.parse(value, null, List.class);
                 T[] converted = (T[]) Array.newInstance(asClass, parsed.size());
 
                 for (int i = 0; i < parsed.size(); i++) converted[i] = convert.apply(parsed.get(i));
@@ -607,7 +607,7 @@ public class XmlReadUtil {
         private Node getByNodeId(
                 Map<String, String> cache, Transaction tx, StartElement element, NodeExport.NodeType nodeType) {
             final NodeExport xmlNodeInterface = nodeType.get();
-            final ExportConfig.NodeConfig nodeConfig = xmlNodeInterface.getNodeConfigReader(this);
+            final ExportConfigExtended.NodeConfig nodeConfig = xmlNodeInterface.getNodeConfigReader(this);
 
             final String sourceTargetValue = getAttribute(element, QName.valueOf(nodeType.getName()));
 
@@ -694,7 +694,7 @@ public class XmlReadUtil {
      */
     interface NodeExport {
 
-        ExportConfig.NodeConfig getNodeConfigReader(Import reader);
+        ExportConfigExtended.NodeConfig getNodeConfigReader(Import reader);
 
         enum NodeType {
             SOURCE("source", Import::getSource),

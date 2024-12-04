@@ -42,7 +42,7 @@ import static apoc.couchbase.CouchbaseTestUtils.createCouchbaseContainer;
 import static apoc.couchbase.CouchbaseTestUtils.getNumConnections;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;

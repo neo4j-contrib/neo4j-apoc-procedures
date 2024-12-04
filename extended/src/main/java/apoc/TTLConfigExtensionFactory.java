@@ -14,7 +14,7 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 public class TTLConfigExtensionFactory extends ExtensionFactory<TTLConfigExtensionFactory.Dependencies> {
 
     public interface Dependencies {
-        ApocConfig config();
+        ExtendedApocConfig config();
         GlobalProcedures globalProceduresRegistry();
     }
 

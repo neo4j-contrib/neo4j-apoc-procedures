@@ -1,10 +1,9 @@
 package apoc.load;
 
-import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.StringResult;
-import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.util.FileUtilsExtended;
+import apoc.util.UtilExtended;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -28,7 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.load.LoadDirectoryHandler.getPathDependingOnUseNeo4jConfig;
 import static apoc.util.ExtendedFileUtils.getPathFromUrlString;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType.READ_WRITE;
@@ -60,8 +59,8 @@ public class LoadDirectory {
                                                              @Name(value = "pattern", defaultValue = "*") String pattern,
                                                              @Name(value = "urlDir", defaultValue = "") String urlDir,
                                                              @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        apocConfig().checkReadAllowed(urlDir, urlAccessChecker);
-        Util.validateQuery(db, cypher, READ_WRITE, WRITE);
+        extendedApocConfig().checkReadAllowed(urlDir, urlAccessChecker);
+        UtilExtended.validateQuery(db, cypher, READ_WRITE, WRITE);
 
         LoadDirectoryItem.LoadDirectoryConfig conf = new LoadDirectoryItem.LoadDirectoryConfig(config);
         LoadDirectoryItem loadDirectoryItem = new LoadDirectoryItem(name, pattern, cypher, checkIfUrlBlankAndGetFileUrl(urlDir, urlAccessChecker), conf);
@@ -100,7 +99,7 @@ public class LoadDirectory {
 
         urlDir = checkIfUrlBlankAndGetFileUrl(urlDir, urlAccessChecker);
 
-        boolean isRecursive = Util.toBoolean(config.getOrDefault("recursive", true));
+        boolean isRecursive = UtilExtended.toBoolean(config.getOrDefault("recursive", true));
 
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
                 getPathFromUrlString(urlDir).toFile(),
@@ -117,11 +116,11 @@ public class LoadDirectory {
     // visible for test purpose
     public static String checkIfUrlBlankAndGetFileUrl(String urlDir, URLAccessChecker urlAccessChecker) throws IOException, URLAccessValidationError {
         if (StringUtils.isBlank(urlDir)) {
-            final Path pathImport = Paths.get(ApocConfig.apocConfig().getImportDir()).toAbsolutePath();
+            final Path pathImport = Paths.get(extendedApocConfig().getImportDir()).toAbsolutePath();
             // with replaceAll we remove final "/" from path
             return pathImport.toUri().toString().replaceAll(".$", "");
         }
-        return FileUtils.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"), urlAccessChecker);
+        return FileUtilsExtended.changeFileUrlIfImportDirectoryConstrained(urlDir.replace("?", "%3F"), urlAccessChecker);
     }
 
 }

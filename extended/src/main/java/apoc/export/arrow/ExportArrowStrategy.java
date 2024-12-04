@@ -18,7 +18,8 @@
  */
 package apoc.export.arrow;
 
-import apoc.util.JsonUtil;
+import apoc.meta.TypesExtended;
+import apoc.util.JsonUtilExtended;
 import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.BaseVariableWidthVector;
@@ -74,7 +75,7 @@ public interface ExportArrowStrategy<IN, OUT> {
 
     Log getLogger();
 
-    static String fromMetaType(apoc.meta.Types type) {
+    static String fromMetaType(TypesExtended type) {
         switch (type) {
             case INTEGER:
                 return "Long";
@@ -82,8 +83,8 @@ public interface ExportArrowStrategy<IN, OUT> {
                 return "Double";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
-                if (innerType == apoc.meta.Types.LIST) {
+                final TypesExtended innerType = TypesExtended.from(inner);
+                if (innerType == TypesExtended.LIST) {
                     return "AnyArray";
                 }
                 return fromMetaType(innerType) + "Array";
@@ -203,7 +204,7 @@ public interface ExportArrowStrategy<IN, OUT> {
                 if (val instanceof String) {
                     bytes = val.toString().getBytes(StandardCharsets.UTF_8);
                 } else {
-                    bytes = JsonUtil.writeValueAsBytes(val);
+                    bytes = JsonUtilExtended.writeValueAsBytes(val);
                 }
                 ArrowBuf tempBuf = fieldVector.getAllocator().buffer(bytes.length);
                 tempBuf.setBytes(0, bytes);
@@ -285,7 +286,7 @@ public interface ExportArrowStrategy<IN, OUT> {
         if (value instanceof String) {
             baseVector.setSafe(index, value.toString().getBytes(StandardCharsets.UTF_8));
         } else {
-            baseVector.setSafe(index, JsonUtil.writeValueAsBytes(value));
+            baseVector.setSafe(index, JsonUtilExtended.writeValueAsBytes(value));
         }
     }
 }

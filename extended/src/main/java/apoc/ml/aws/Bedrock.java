@@ -8,9 +8,9 @@ import java.util.stream.Stream;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.result.MapResultExtended;
+import apoc.util.JsonUtilExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
 import static apoc.ml.aws.AWSConfig.JSON_PATH;
 import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
-import static apoc.util.JsonUtil.OBJECT_MAPPER;
+import static apoc.util.JsonUtilExtended.OBJECT_MAPPER;
 import static apoc.ml.aws.BedrockInvokeResult.*;
 
 @Extended
@@ -48,17 +48,17 @@ public class Bedrock {
     
     @Procedure("apoc.ml.bedrock.custom")
     @Description("To create a customizable bedrock call")
-    public Stream<MapResult> custom(@Name(value = "body") Map<String, Object> body,
-                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+    public Stream<MapResultExtended> custom(@Name(value = "body") Map<String, Object> body,
+                                            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
         AWSConfig conf = new BedrockInvokeConfig(configuration);
         
         return executeRequestReturningMap(body, conf)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.ml.bedrock.chat")
     @Description("apoc.ml.bedrock.chat(messages, $conf) - prompts the completion API")
-    public Stream<MapResult> chatCompletion(
+    public Stream<MapResultExtended> chatCompletion(
             @Name("messages") List<Map<String, Object>> messages,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
         if (messages == null) {
@@ -79,7 +79,7 @@ public class Bedrock {
                     message.putIfAbsent("max_tokens_to_sample", 200);
                     
                     return executeRequestReturningMap(message, conf)
-                            .map(MapResult::new);
+                            .map(MapResultExtended::new);
                 });
     }
 
@@ -95,8 +95,8 @@ public class Bedrock {
 
     @Procedure("apoc.ml.bedrock.completion")
     @Description("apoc.ml.bedrock.completion(prompt, $conf) - prompts the completion API")
-    public Stream<MapResult> completion(@Name("prompt") String prompt,
-                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
+    public Stream<MapResultExtended> completion(@Name("prompt") String prompt,
+                                                @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
         if (prompt == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
@@ -105,9 +105,9 @@ public class Bedrock {
         
         AWSConfig conf = new BedrockInvokeConfig(config);
         
-        Map body = Util.map("prompt", prompt);
+        Map body = UtilExtended.map("prompt", prompt);
         return executeRequestReturningMap(body, conf)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
     
     @Procedure("apoc.ml.bedrock.embedding")
@@ -124,7 +124,7 @@ public class Bedrock {
         
         return texts.stream()
                 .flatMap(text -> {
-                    Map body = Util.map("inputText", text);
+                    Map body = UtilExtended.map("inputText", text);
 
                     return executeRequestReturningMap(body, conf)
                             .map(i -> Embedding.from(i, text));
@@ -170,7 +170,7 @@ public class Bedrock {
                 AwsSignatureV4Generator.calculateAuthorizationHeaders(conf, bodyString, headers, "bedrock");
             }
 
-            return JsonUtil.loadJson(conf.getEndpoint(), headers, bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
+            return JsonUtilExtended.loadJson(conf.getEndpoint(), headers, bodyString, conf.getJsonPath(), true, List.of(), urlAccessChecker);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

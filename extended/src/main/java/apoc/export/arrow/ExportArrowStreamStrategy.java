@@ -18,8 +18,8 @@
  */
 package apoc.export.arrow;
 
-import apoc.result.ByteArrayResult;
-import apoc.util.Util;
+import apoc.result.ByteArrayResultExtended;
+import apoc.util.UtilExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.dictionary.DictionaryProvider;
@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.arrow.ExportArrowFileStrategy.writeJsonResult;
 
-public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, Stream<ByteArrayResult>> {
+public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, Stream<ByteArrayResultExtended>> {
 
     Iterator<Map<String, Object>> toIterator(IN data);
 
@@ -67,9 +67,9 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
         }
     }
 
-    default Stream<ByteArrayResult> export(IN data, ArrowConfig config) {
-        class ExportIterator implements Iterator<ByteArrayResult> {
-            ByteArrayResult current;
+    default Stream<ByteArrayResultExtended> export(IN data, ArrowConfig config) {
+        class ExportIterator implements Iterator<ByteArrayResultExtended> {
+            ByteArrayResultExtended current;
             int batchCount = 0;
             Iterator<Map<String, Object>> it;
 
@@ -85,8 +85,8 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
             }
 
             @Override
-            public ByteArrayResult next() {
-                ByteArrayResult result = current;
+            public ByteArrayResultExtended next() {
+                ByteArrayResultExtended result = current;
                 current = null;
                 computeBatch();
                 return result;
@@ -96,11 +96,11 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
                 boolean keepIterating = true;
                 List<Map<String, Object>> rows = new ArrayList<>(config.getBatchSize());
 
-                while (!Util.transactionIsTerminated(getTerminationGuard()) && it.hasNext() && keepIterating) {
+                while (!UtilExtended.transactionIsTerminated(getTerminationGuard()) && it.hasNext() && keepIterating) {
                     rows.add(it.next());
                     if (batchCount > 0 && batchCount % config.getBatchSize() == 0) {
                         final byte[] bytes = writeBatch(getBufferAllocator(), rows);
-                        current = new ByteArrayResult(bytes);
+                        current = new ByteArrayResultExtended(bytes);
                         keepIterating = false;
                     }
                     ++batchCount;
@@ -108,13 +108,13 @@ public interface ExportArrowStreamStrategy<IN> extends ExportArrowStrategy<IN, S
 
                 if (!rows.isEmpty()) {
                     final byte[] bytes = writeBatch(getBufferAllocator(), rows);
-                    current = new ByteArrayResult(bytes);
+                    current = new ByteArrayResultExtended(bytes);
                 }
             }
         }
 
         var streamIterator = new ExportIterator(data);
-        Iterable<ByteArrayResult> iterable = () -> streamIterator;
+        Iterable<ByteArrayResultExtended> iterable = () -> streamIterator;
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 

@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import us.fatehi.utility.datasource.DatabaseConnectionSource;
 import us.fatehi.utility.datasource.DatabaseConnectionSources;
 import us.fatehi.utility.datasource.MultiUseUserCredentials;
@@ -75,10 +75,10 @@ public class JdbcUtil {
 
 
     public static String getUrlOrKey(String urlOrKey) {
-        return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
+        return urlOrKey.contains(":") ? urlOrKey : UtilExtended.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
     }
 
     public static String getSqlOrKey(String sqlOrKey) {
-        return sqlOrKey.contains(" ") ? sqlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
+        return sqlOrKey.contains(" ") ? sqlOrKey : UtilExtended.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
     }
 }

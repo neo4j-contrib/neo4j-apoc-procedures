@@ -1,8 +1,8 @@
 package apoc.get;
 
 import apoc.Extended;
-import apoc.result.NodeResult;
-import apoc.result.RelationshipResult;
+import apoc.result.NodeResultExtended;
+import apoc.result.RelationshipResultExtended;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.procedure.Context;
@@ -20,14 +20,14 @@ public class GetProcedures {
 
     @Procedure
     @Description("apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's")
-    public Stream<NodeResult> nodes(@Name("nodes") Object ids) {
-        return new Get((InternalTransaction) tx).nodes(ids);
+    public Stream<NodeResultExtended> nodes(@Name("nodes") Object ids) {
+        return new GetExtended((InternalTransaction) tx).nodes(ids);
     }
 
     @Procedure
     @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
-    public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
-        return new Get((InternalTransaction) tx).rels(ids);
+    public Stream<RelationshipResultExtended> rels(@Name("relationships") Object ids) {
+        return new GetExtended((InternalTransaction) tx).rels(ids);
     }
 
 }

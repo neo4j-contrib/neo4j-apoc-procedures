@@ -9,7 +9,7 @@ import apoc.nlp.NLPHelperFunctions.verifyKeys
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeWithMapResult
-import apoc.result.VirtualGraph
+import apoc.result.VirtualGraphExtended
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*
@@ -50,7 +50,7 @@ class AzureProcedures {
     @Procedure(value = "apoc.nlp.azure.sentiment.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) sentiment graph for provided text")
     fun sentimentGraph(@Name("source") source: Any,
-                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                        @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -91,7 +91,7 @@ class AzureProcedures {
     @Procedure(value = "apoc.nlp.azure.entities.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) entity graph for provided text")
     fun entitiesGraph(@Name("source") source: Any,
-                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)
@@ -133,7 +133,7 @@ class AzureProcedures {
     @Procedure(value = "apoc.nlp.azure.keyPhrases.graph", mode = Mode.WRITE)
     @Description("Creates a (virtual) key phrase graph for provided text")
     fun keyPhrasesGraph(@Name("source") source: Any,
-                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraph> {
+                      @Name(value = "config", defaultValue = "{}") config: Map<String, Any>) : Stream<VirtualGraphExtended> {
         verifySource(source)
         val nodeProperty = getNodeProperty(config)
         verifyNodeProperty(source, nodeProperty)

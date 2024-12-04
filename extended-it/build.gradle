@@ -35,7 +35,6 @@ dependencies {
 
     testImplementation project(':core')
     testImplementation project(':test-utils')
-    testImplementation project(':common')
     testImplementation project(':extended')
     testImplementation project(':core').sourceSets.test.output
     compileOnly project(':extended').sourceSets.main.allJava

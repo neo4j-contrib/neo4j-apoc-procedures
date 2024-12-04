@@ -1,9 +1,9 @@
 package apoc.vectordb;
 
 import apoc.ml.Prompt;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,7 +22,7 @@ import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.ExtendedTestUtil.testRetryCallEventually;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -92,7 +92,7 @@ public class PineconeTest {
                 }, 5L);
 
         // the upsert takes a while
-        Util.sleep(5000);
+        UtilExtended.sleep(5000);
 
         testResult(db, """
                         CALL apoc.vectordb.pinecone.upsert($host, $coll,
@@ -112,7 +112,7 @@ public class PineconeTest {
                 });
         
         // the upsert takes a while
-        Util.sleep(20000);
+        UtilExtended.sleep(20000);
     }
 
     @AfterClass
@@ -121,7 +121,7 @@ public class PineconeTest {
             return;
         }
 
-        Util.sleep(2000);
+        UtilExtended.sleep(2000);
         
         testCallEmpty(db, "CALL apoc.vectordb.pinecone.deleteCollection($host, $coll, $conf)",
                 map("host", "", "coll", collName, "conf", ADMIN_HEADER_CONF));
@@ -208,7 +208,7 @@ public class PineconeTest {
                 });
 
         // the upsert takes a while
-        Util.sleep(10000);
+        UtilExtended.sleep(10000);
 
         testCall(db, "CALL apoc.vectordb.pinecone.delete($host, $coll, ['3', '4'], $conf) ",
                 map("host", HOST, "coll", collName, "conf", ADMIN_HEADER_CONF),
@@ -376,16 +376,16 @@ public class PineconeTest {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+        Map<String, Object> conf = MapUtilExtended.map(ALL_RESULTS_KEY, true,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
+                MAPPING_KEY, MapUtilExtended.map(EMBEDDING_KEY, "vect",
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo"));
 
         testResult(db, "CALL apoc.vectordb.pinecone.getAndUpdate($host, 'TestCollection', [1, 2], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                Util.map("host", HOST, "coll", collName, "conf", conf),
+                UtilExtended.map("host", HOST, "coll", collName, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, NODE);
@@ -412,7 +412,7 @@ public class PineconeTest {
 
         testResult(db, "CALL apoc.vectordb.pinecone.get($host, 'TestCollection', [1, 2], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                Util.map("host", HOST, "coll", collName, "conf", conf),
+                UtilExtended.map("host", HOST, "coll", collName, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
         );
     }

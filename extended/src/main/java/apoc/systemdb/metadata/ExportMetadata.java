@@ -1,9 +1,8 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemLabels;
-import apoc.SystemLabels;
-import apoc.SystemPropertyKeys;
-import apoc.export.util.ProgressReporter;
+import apoc.ExtendedSystemPropertyKeys;
+import apoc.export.util.ProgressReporterExtended;
 import apoc.systemdb.SystemDbConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,7 +28,7 @@ public interface ExportMetadata {
             this.exportMetadata = exportMetadata;
         }
 
-        public List<Pair<String, String>> export(Node node, ProgressReporter progressReporter) {
+        public List<Pair<String, String>> export(Node node, ProgressReporterExtended progressReporter) {
             return exportMetadata.export(node, progressReporter);
         }
 
@@ -39,7 +38,7 @@ public interface ExportMetadata {
                 return get(CypherProcedure, config);
             } else if(name.equalsIgnoreCase(ExtendedSystemLabels.Function.name())) {
                 return get(CypherFunction, config);
-            } else if(name.equalsIgnoreCase(SystemLabels.ApocTrigger.name())) {
+            } else if(name.equalsIgnoreCase(ExtendedSystemLabels.ApocTrigger.name())) {
                 return get(Trigger, config);
             } else if(name.equalsIgnoreCase(ExtendedSystemLabels.ApocUuid.name())) {
                 return get(Uuid, config);
@@ -56,11 +55,11 @@ public interface ExportMetadata {
         }
     }
 
-    List<Pair<String, String>> export(Node node, ProgressReporter progressReporter);
+    List<Pair<String, String>> export(Node node, ProgressReporterExtended progressReporter);
 
     default String getFileName(Node node, String prefix) {
         // we create a file featureName.dbName because there could be features coming from different databases
-        String dbName = (String) node.getProperty(SystemPropertyKeys.database.name(), null);
+        String dbName = (String) node.getProperty(ExtendedSystemPropertyKeys.database.name(), null);
         dbName = StringUtils.isEmpty(dbName) ? StringUtils.EMPTY : "." + dbName;
         return prefix + dbName;
     }

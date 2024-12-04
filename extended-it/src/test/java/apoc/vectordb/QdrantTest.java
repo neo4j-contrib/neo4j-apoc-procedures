@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
@@ -22,7 +22,7 @@ import java.util.Map;
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.ExtendedTestUtil.assertFails;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbHandler.Type.QDRANT;
@@ -161,8 +161,8 @@ public class QdrantTest {
     public void writeOperationWithReadOnlyUser() {
         try {
             testCall(db, "CALL apoc.vectordb.qdrant.deleteCollection($host, 'test_collection', $conf)",
-                    Util.map("host", HOST,
-                            "conf", Util.map(HEADERS_KEY, READONLY_AUTHORIZATION)
+                    UtilExtended.map("host", HOST,
+                            "conf", UtilExtended.map(HEADERS_KEY, READONLY_AUTHORIZATION)
                     ),
                     r -> fail()
             );

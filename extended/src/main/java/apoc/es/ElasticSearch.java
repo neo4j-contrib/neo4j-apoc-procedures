@@ -1,9 +1,9 @@
 package apoc.es;
 
 import apoc.Extended;
-import apoc.load.LoadJsonUtils;
-import apoc.result.LoadDataMapResult;
-import apoc.util.Util;
+import apoc.load.LoadJsonUtilsExtended;
+import apoc.result.LoadDataMapResultExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -30,13 +30,13 @@ public class ElasticSearch {
      */
     protected String toPayload(Object payload) {
         if (payload == null) return null;
-        if (payload instanceof Map) return Util.toJson(payload);
+        if (payload instanceof Map) return UtilExtended.toJson(payload);
         return payload.toString();
     }
 
     @Procedure
     @Description("apoc.es.stats(host-or-key,$config) - elastic search statistics")
-    public Stream<LoadDataMapResult> stats(@Name("host") String hostOrKey, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> stats(@Name("host") String hostOrKey, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ElasticSearchConfig conf = new ElasticSearchConfig(config);
         String url = conf.getVersion().getElasticSearchUrl(hostOrKey);
         return loadJsonStream(url + "/_stats", conf, null);
@@ -44,8 +44,8 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.get(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a GET operation on elastic search")
-    public Stream<LoadDataMapResult> get(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload,
-                                 @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> get(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload,
+                                                 @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ElasticSearchConfig conf = new ElasticSearchConfig(config);
         String queryUrl = conf.getVersion().getQueryUrl(hostOrKey, index, type, id, query);//.replace("mytype/", "");
         return loadJsonStream(queryUrl, conf, toPayload(payload));
@@ -53,8 +53,8 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.query(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a SEARCH operation on elastic search")
-    public Stream<LoadDataMapResult> query(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload,
-                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> query(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload,
+                                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ElasticSearchConfig conf = new ElasticSearchConfig(config);
         String searchQueryUrl = conf.getVersion().getSearchQueryUrl(hostOrKey, index, type, query);//.replace("mytype/", "");
 
@@ -63,8 +63,8 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.getRaw(host-or-key,path,payload-or-null,$config) yield value - perform a raw GET operation on elastic search")
-    public Stream<LoadDataMapResult> getRaw(@Name("hostOrKey") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload,
-                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> getRaw(@Name("hostOrKey") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload,
+                                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ElasticSearchConfig conf = new ElasticSearchConfig(config);
         String url = conf.getVersion().getElasticSearchUrl(hostOrKey);
         return loadJsonStream(url + "/" + suffix, conf, toPayload(payload));
@@ -72,7 +72,7 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.postRaw(host-or-key,path,payload-or-null,$config) yield value - perform a raw POST operation on elastic search")
-    public Stream<LoadDataMapResult> postRaw(@Name("hostOrKey") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> postRaw(@Name("hostOrKey") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         ElasticSearchConfig conf = new ElasticSearchConfig(config, "POST");
         String url = conf.getVersion().getElasticSearchUrl(hostOrKey);
         return loadJsonStream(url + "/" + suffix, conf, toPayload(payload));
@@ -80,9 +80,9 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value - perform a POST operation on elastic search")
-    public Stream<LoadDataMapResult> post(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query,
-                                  @Name(value = "payload", defaultValue = "{}") Object payload,
-                                  @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> post(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query,
+                                                  @Name(value = "payload", defaultValue = "{}") Object payload,
+                                                  @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null)
         {
             payload = Collections.emptyMap();
@@ -94,9 +94,9 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.put(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a PUT operation on elastic search")
-    public Stream<LoadDataMapResult> put(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query,
-                                 @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload,
-                                 @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<LoadDataMapResultExtended> put(@Name("hostOrKey") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query,
+                                                 @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload,
+                                                 @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (payload == null)
         {
             payload = Collections.emptyMap();
@@ -109,12 +109,12 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search")
-    public Stream<LoadDataMapResult> delete(@Name("hostOrKey") String hostOrKey,
-                                    @Name("index") String index,
-                                    @Name("type") String type,
-                                    @Name("id") String id,
-                                    @Name(value = "query", defaultValue = "null") Object query,
-                                    @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+    public Stream<LoadDataMapResultExtended> delete(@Name("hostOrKey") String hostOrKey,
+                                                    @Name("index") String index,
+                                                    @Name("type") String type,
+                                                    @Name("id") String id,
+                                                    @Name(value = "query", defaultValue = "null") Object query,
+                                                    @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         /* Conceptually payload should be null, but we have to put "" instead,
            as the `apoc.util.Util.writePayload` method has an `if (payload == null) return;`
            but we need to add the `con.setDoOutput(true);`, placed right after that condition.
@@ -126,7 +126,7 @@ public class ElasticSearch {
         return loadJsonStream(queryUrl, conf, payload);
     }
 
-    private Stream<LoadDataMapResult> loadJsonStream(@Name("url") Object url, ElasticSearchConfig conf, @Name("payload") String payload) {
-        return LoadJsonUtils.loadJsonStream(url, conf.getHeaders(), payload, "", true, null, null, null, urlAccessChecker);
+    private Stream<LoadDataMapResultExtended> loadJsonStream(@Name("url") Object url, ElasticSearchConfig conf, @Name("payload") String payload) {
+        return LoadJsonUtilsExtended.loadJsonStream(url, conf.getHeaders(), payload, "", true, null, null, null, urlAccessChecker);
     }
 }

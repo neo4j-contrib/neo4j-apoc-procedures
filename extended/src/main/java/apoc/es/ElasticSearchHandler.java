@@ -2,7 +2,7 @@ package apoc.es;
 
 
 import apoc.util.UrlResolver;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +32,13 @@ public abstract class ElasticSearchHandler {
         if (query instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) query;
             if (map.isEmpty()) return "";
-            return map.entrySet().stream().map(e -> e.getKey() + "=" + Util.encodeUrlComponent(e.getValue().toString())).collect(Collectors.joining("&"));
+            return map.entrySet().stream().map(e -> e.getKey() + "=" + UtilExtended.encodeUrlComponent(e.getValue().toString())).collect(Collectors.joining("&"));
         } else {
             // We have to encode only the values not the keys
             return Pattern.compile("&").splitAsStream(query.toString())
                     .map(KEY_VALUE::matcher)
                     .filter(Matcher::matches)
-                    .map(matcher -> matcher.group(1) + matcher.group(2) + Util.encodeUrlComponent(matcher.group(3)))
+                    .map(matcher -> matcher.group(1) + matcher.group(2) + UtilExtended.encodeUrlComponent(matcher.group(3)))
                     .collect(Collectors.joining("&"));
         }
     }

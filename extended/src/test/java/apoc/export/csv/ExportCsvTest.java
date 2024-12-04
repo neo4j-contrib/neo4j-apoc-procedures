@@ -2,7 +2,7 @@ package apoc.export.csv;
 
 import apoc.graph.Graphs;
 import apoc.util.BinaryTestUtil;
-import apoc.util.CompressionAlgo;
+import apoc.util.CompressionAlgoExtended;
 import apoc.util.HdfsTestUtils;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
@@ -26,9 +26,9 @@ import java.nio.file.Files;
 
 import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.CompressionAlgo.BLOCK_LZ4;
-import static apoc.util.CompressionAlgo.NONE;
-import static apoc.util.MapUtil.map;
+import static apoc.util.CompressionAlgoExtended.BLOCK_LZ4;
+import static apoc.util.CompressionAlgoExtended.NONE;
+import static apoc.util.MapUtilExtended.map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -88,7 +88,7 @@ public class ExportCsvTest {
         assertHdfsFile(BLOCK_LZ4);
     }
 
-    private void assertHdfsFile(CompressionAlgo compression) {
+    private void assertHdfsFile(CompressionAlgoExtended compression) {
         String fileExt = compression.equals(NONE) ? "" : ".lz4";
         String hdfsUrl = String.format("%s/user/%s/all.csv", miniDFSCluster.getURI().toString(), System.getProperty("user.name"));
         TestUtil.testCall(db, "CALL apoc.export.csv.all($file, $config)",

@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import static apoc.metrics.Metrics.OUTSIDE_DIR_ERR_MSG;
 import static apoc.util.ExtendedFileUtils.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES;
 import static apoc.util.TestContainerUtil.*;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.test.assertion.Assert.assertEventually;

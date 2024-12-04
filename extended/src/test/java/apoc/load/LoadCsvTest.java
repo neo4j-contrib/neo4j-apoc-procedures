@@ -1,8 +1,8 @@
 package apoc.load;
 
-import apoc.util.CompressionAlgo;
+import apoc.util.CompressionAlgoExtended;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -27,13 +27,13 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.load.LoadCsv.ERROR_WRONG_COL_SEPARATOR;
 import static apoc.util.BinaryTestUtil.fileToBinary;
-import static apoc.util.CompressionConfig.COMPRESSION;
+import static apoc.util.CompressionConfigExtended.COMPRESSION;
 import static apoc.util.ExtendedTestUtil.assertMapEquals;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -74,7 +74,7 @@ public class LoadCsvTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @Test public void testLoadCsv() throws Exception {
@@ -86,8 +86,8 @@ public class LoadCsvTest {
     @Test
     public void testLoadCsvWithBinary() {
         testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)", 
-                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgo.DEFLATE.name()),
-                        "conf", map(COMPRESSION, CompressionAlgo.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
+                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgoExtended.DEFLATE.name()),
+                        "conf", map(COMPRESSION, CompressionAlgoExtended.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
                 this::commonAssertionsLoadCsv);
     }
     
@@ -370,7 +370,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test
     public void testMappingWithManyTypes() {
-        ZoneId defaultTimezone = ZoneId.of(apocConfig().getString(db_temporal_timezone.name()));
+        ZoneId defaultTimezone = ZoneId.of(extendedApocConfig().getString(db_temporal_timezone.name()));
 
         String url = "test-mapping-many-types.csv";
         Map<String, Object> mapping = map(
@@ -490,7 +490,7 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadCsvWithUserPassInUrl() throws JsonProcessingException {
         String userPass = "user:password";
-        String token = Util.encodeUserColonPassToBase64(userPass);
+        String token = UtilExtended.encodeUserColonPassToBase64(userPass);
 
         new MockServerClient("localhost", 1080)
                 .when(
@@ -517,7 +517,7 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadCsvParamsWithUserPassInUrl() throws JsonProcessingException {
         String userPass = "user:password";
-        String token = Util.encodeUserColonPassToBase64(userPass);
+        String token = UtilExtended.encodeUserColonPassToBase64(userPass);
 
         new MockServerClient("localhost", 1080)
                 .when(
@@ -547,7 +547,7 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadCsvParamsWithBasicAuth() throws JsonProcessingException {
         String userPass = "user:password";
-        String token = Util.encodeUserColonPassToBase64(userPass);
+        String token = UtilExtended.encodeUserColonPassToBase64(userPass);
 
         new MockServerClient("localhost", 1080)
                 .when(
@@ -597,17 +597,17 @@ RETURN m.col_1,m.col_2,m.col_3
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
                     assertEquals(asList("Selma","8"), row.get("list"));
-                    assertEquals(Util.map("name","Selma","age","8"), row.get("map"));
+                    assertEquals(UtilExtended.map("name","Selma","age","8"), row.get("map"));
                     assertEquals(true, r.hasNext());
                     row = r.next();
                     assertEquals(1L, row.get("lineNo"));
                     assertEquals(asList("Rana","11"), row.get("list"));
-                    assertEquals(Util.map("name","Rana","age","11"), row.get("map"));
+                    assertEquals(UtilExtended.map("name","Rana","age","11"), row.get("map"));
                     assertEquals(true, r.hasNext());
                     row = r.next();
                     assertEquals(2L, row.get("lineNo"));
                     assertEquals(asList("Selina","18"), row.get("list"));
-                    assertEquals(Util.map("name","Selina","age","18"), row.get("map"));
+                    assertEquals(UtilExtended.map("name","Selina","age","18"), row.get("map"));
                     assertEquals(false, r.hasNext());
                 });
     }

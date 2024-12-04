@@ -1,7 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,7 +81,7 @@ public class OpenAIIT {
     public void getEmbeddingNull() {
         testResult(db, "CALL apoc.ml.openai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $conf)", Map.of("apiKey",openaiKey, "conf", emptyMap()),
                 r -> {
-                    Set<String> actual = Iterators.asSet(r.columnAs("text"));
+                    Set<String> actual = IteratorsExtended.asSet(r.columnAs("text"));
 
                     Set<String> expected = new HashSet<>() {{
                         add(null); add(null); add("Some Text"); add("Other Text");

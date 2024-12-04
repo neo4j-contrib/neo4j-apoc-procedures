@@ -1,10 +1,10 @@
 package apoc.export.parquet;
 
-import apoc.Pools;
-import apoc.result.ByteArrayResult;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
-import apoc.util.Util;
+import apoc.PoolsExtended;
+import apoc.result.ByteArrayResultExtended;
+import apoc.util.QueueBasedSpliteratorExtended;
+import apoc.util.QueueUtilExtended;
+import apoc.util.UtilExtended;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
@@ -23,15 +23,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ByteArrayResult>>  {
+public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportParquetStrategy<IN, Stream<ByteArrayResultExtended>>  {
 
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
     private final ParquetExportType exportType;
 
-    public ExportParquetStreamStrategy(GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
+    public ExportParquetStreamStrategy(GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
         this.db = db;
         this.pools = pools;
         this.terminationGuard = terminationGuard;
@@ -39,38 +39,38 @@ public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportPar
         this.exportType = exportType;
     }
 
-    public Stream<ByteArrayResult> export(IN data, ParquetConfig config) {
-        final BlockingQueue<ByteArrayResult> queue = new ArrayBlockingQueue<>(100);
+    public Stream<ByteArrayResultExtended> export(IN data, ParquetConfig config) {
+        final BlockingQueue<ByteArrayResultExtended> queue = new ArrayBlockingQueue<>(100);
 
-        Util.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
+        UtilExtended.inTxFuture(pools.getDefaultExecutorService(), db, tx -> {
             int batchCount = 0;
             List<TYPE> rows = new ArrayList<>(config.getBatchSize());
 
             try {
                 Iterator<TYPE> it = toIterator(data);
-                while (!Util.transactionIsTerminated(terminationGuard) && it.hasNext()) {
+                while (!UtilExtended.transactionIsTerminated(terminationGuard) && it.hasNext()) {
                     rows.add(it.next());
 
                     if (batchCount > 0 && batchCount % config.getBatchSize() == 0) {
                         byte[] bytes = writeBatch(rows, data, config);
-                        QueueUtil.put(queue, new ByteArrayResult(bytes), 10);
+                        QueueUtilExtended.put(queue, new ByteArrayResultExtended(bytes), 10);
                     }
                     ++batchCount;
                 }
                 if (!rows.isEmpty()) {
                     byte[] bytes = writeBatch(rows, data, config);
-                    QueueUtil.put(queue, new ByteArrayResult(bytes), 10);
+                    QueueUtilExtended.put(queue, new ByteArrayResultExtended(bytes), 10);
                 }
                 return true;
             } catch (Exception e) {
                 logger.error("Exception while extracting Parquet data:", e);
             } finally {
-                QueueUtil.put(queue, ByteArrayResult.NULL, 10);
+                QueueUtilExtended.put(queue, ByteArrayResultExtended.NULL, 10);
             }
             return true;
         });
 
-        QueueBasedSpliterator<ByteArrayResult> spliterator = new QueueBasedSpliterator<>(queue, ByteArrayResult.NULL, terminationGuard, Integer.MAX_VALUE);
+        QueueBasedSpliteratorExtended<ByteArrayResultExtended> spliterator = new QueueBasedSpliteratorExtended<>(queue, ByteArrayResultExtended.NULL, terminationGuard, Integer.MAX_VALUE);
         return StreamSupport.stream(spliterator, false);
     }
 

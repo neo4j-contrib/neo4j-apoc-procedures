@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -41,7 +41,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.assertArrayEquals;
@@ -185,7 +185,7 @@ public class MongoTestBase {
                     .collect(Collectors.toList());
             lists = lists.subList(lists.indexOf("{"), lists.size());
             String jsonStr = String.join("", lists);
-            return JsonUtil.OBJECT_MAPPER.readValue(jsonStr, Map.class);
+            return JsonUtilExtended.OBJECT_MAPPER.readValue(jsonStr, Map.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

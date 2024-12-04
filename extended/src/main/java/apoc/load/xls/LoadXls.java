@@ -1,11 +1,11 @@
 package apoc.load.xls;
 
 import apoc.Extended;
-import apoc.export.util.CountingInputStream;
-import apoc.meta.Types;
-import apoc.util.FileUtils;
-import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.export.util.CountingInputStreamExtended;
+import apoc.meta.TypesExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.MissingDependencyExceptionExtended;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -26,10 +26,10 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
 import static apoc.load.xls.LoadXlsHandler.getXlsSpliterator;
-import static apoc.util.DateParseUtil.dateParse;
+import static apoc.util.DateParseUtilExtended.dateParse;
 import static apoc.util.ExtendedUtil.dateFormat;
 import static apoc.util.ExtendedUtil.durationParse;
-import static apoc.util.Util.*;
+import static apoc.util.UtilExtended.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -107,7 +107,7 @@ public class LoadXls {
     @Description("apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}")
     public Stream<XLSResult> xls(@Name("url") String url, @Name("selector") String selector, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         boolean failOnError = booleanValue(config, "failOnError", true);
-        try (CountingInputStream stream = FileUtils.inputStreamFor(url, null, null, null, urlAccessChecker)) {
+        try (CountingInputStreamExtended stream = FileUtilsExtended.inputStreamFor(url, null, null, null, urlAccessChecker)) {
             Selection selection = new Selection(selector);
 
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);
@@ -124,7 +124,7 @@ public class LoadXls {
             LoadXlsHandler.XLSSpliterator xlsSpliterator = getXlsSpliterator(url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
             return StreamSupport.stream(xlsSpliterator, false);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);
+            throw new MissingDependencyExceptionExtended(XLS_MISSING_DEPS_ERROR);
         } catch (Exception e) {
             if(!failOnError)
                 return Stream.of(new  XLSResult(new String[0], new Object[0], 0, true, Collections.emptyMap(), emptyList()));
@@ -147,7 +147,7 @@ public class LoadXls {
         public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), DEFAULT_ARRAY_SEP, false);
         final String name;
         final Collection<Object> nullValues;
-        final Types type;
+        final TypesExtended type;
         final boolean array;
         final boolean ignore;
         final char arraySep;
@@ -161,7 +161,7 @@ public class LoadXls {
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
             this.nullValues = (Collection<Object>) mapping.getOrDefault("nullValues", emptyList());
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
-            this.type = Types.from(mapping.getOrDefault("type", "STRING").toString());
+            this.type = TypesExtended.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
             this.dateFormat = mapping.getOrDefault("dateFormat", StringUtils.EMPTY).toString();
             this.dateParse = convertFormat(mapping.getOrDefault("dateParse", null));
@@ -191,11 +191,11 @@ public class LoadXls {
                         return value.toString();
                     }
                 case INTEGER:
-                    return Util.toLong(value);
+                    return UtilExtended.toLong(value);
                 case FLOAT:
-                    return Util.toDouble(value);
+                    return UtilExtended.toDouble(value);
                 case BOOLEAN:
-                    return Util.toBoolean(value);
+                    return UtilExtended.toBoolean(value);
                 case NULL:
                     return null;
                 case LIST:

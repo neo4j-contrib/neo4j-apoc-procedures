@@ -1,10 +1,10 @@
 package apoc.export.parquet;
 
-import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
-import apoc.util.collection.Iterables;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.PoolsExtended;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.export.util.ProgressReporterExtended;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.util.collection.IterablesExtended;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -15,24 +15,24 @@ import org.neo4j.procedure.TerminationGuard;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-public class ExportParquetGraphFileStrategy extends ExportParquetFileStrategy<Entity, SubGraph>  {
-    public ExportParquetGraphFileStrategy(String fileName, GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
+public class ExportParquetGraphFileStrategy extends ExportParquetFileStrategy<Entity, SubGraphExtended>  {
+    public ExportParquetGraphFileStrategy(String fileName, GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger, ParquetExportType exportType) {
         super(fileName, db, pools, terminationGuard, logger, exportType);
     }
 
     @Override
-    public Stream<ExportProgressInfo> export(SubGraph data, ParquetConfig config) {
+    public Stream<ExportProgressInfoExtended> export(SubGraphExtended data, ParquetConfig config) {
         return super.export(data, config);
     }
 
     @Override
-    public String getSource(SubGraph subGraph) {
-        return String.format("graph: nodes(%d), rels(%d)", Iterables.count(subGraph.getNodes()), Iterables.count(subGraph.getRelationships()));
+    public String getSource(SubGraphExtended subGraph) {
+        return String.format("graph: nodes(%d), rels(%d)", IterablesExtended.count(subGraph.getNodes()), IterablesExtended.count(subGraph.getRelationships()));
     }
 
     @Override
-    public Iterator<Entity> toIterator(ProgressReporter reporter, SubGraph data) {
-        return Stream.concat(Iterables.stream(data.getNodes()), Iterables.stream(data.getRelationships()))
+    public Iterator<Entity> toIterator(ProgressReporterExtended reporter, SubGraphExtended data) {
+        return Stream.concat(IterablesExtended.stream(data.getNodes()), IterablesExtended.stream(data.getRelationships()))
                 .map(entity -> {
                     reporter.update(entity instanceof Node ? 1 : 0,
                             entity instanceof Relationship ? 1 : 0, 0);

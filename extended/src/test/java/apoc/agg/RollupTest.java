@@ -15,7 +15,7 @@ import java.util.Map;
 import static apoc.agg.RollupTestUtil.*;
 import static apoc.util.ExtendedTestUtil.assertMapEquals;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 
 
 public class RollupTest {

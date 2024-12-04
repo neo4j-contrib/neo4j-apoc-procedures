@@ -1,7 +1,7 @@
 package apoc.es;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
     private final static String HOST = "localhost";
     public static final ElasticSearchHandler DEFAULT_HANDLER = ElasticSearchHandler.Version.DEFAULT.get();
 
-    private static final Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID);
+    private static final Map<String, Object> defaultParams = UtilExtended.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID);
     
     @BeforeClass
     public static void setUp() throws Exception {

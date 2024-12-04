@@ -21,10 +21,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.load.LoadCsvTest.assertRow;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
@@ -40,7 +40,7 @@ public class LoadHdfsTest {
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class);
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster(hdfsDir.getRoot());
 		FileSystem fs = miniDFSCluster.getFileSystem();
 		String fileName = "test.csv";

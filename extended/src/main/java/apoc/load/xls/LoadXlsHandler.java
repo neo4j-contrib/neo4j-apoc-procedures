@@ -1,6 +1,6 @@
 package apoc.load.xls;
 
-import apoc.export.util.CountingInputStream;
+import apoc.export.util.CountingInputStreamExtended;
 import org.apache.poi.ss.usermodel.*;
 import org.neo4j.values.storable.LocalDateTimeValue;
 
@@ -13,7 +13,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
-import static apoc.util.Util.cleanUrl;
+import static apoc.util.UtilExtended.cleanUrl;
 
 public class LoadXlsHandler {
 
@@ -73,7 +73,7 @@ public class LoadXlsHandler {
         }
     }
 
-    public static XLSSpliterator getXlsSpliterator(String url, CountingInputStream stream, LoadXls.Selection selection, long skip, boolean hasHeader, long limit, List<String> ignore, List<Object> nullValues, Map<String, LoadXls.Mapping> mappings, boolean skipNulls) throws IOException {
+    public static XLSSpliterator getXlsSpliterator(String url, CountingInputStreamExtended stream, LoadXls.Selection selection, long skip, boolean hasHeader, long limit, List<String> ignore, List<Object> nullValues, Map<String, LoadXls.Mapping> mappings, boolean skipNulls) throws IOException {
         Workbook workbook = WorkbookFactory.create(stream);
         Sheet sheet = workbook.getSheet(selection.sheet);
         if (sheet==null) throw new IllegalStateException("Sheet " + selection.sheet + " not found");

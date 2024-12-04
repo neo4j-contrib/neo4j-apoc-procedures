@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 
 import java.util.Collections;
 import java.util.Map;
@@ -54,16 +54,16 @@ public class LoadHtmlConfig {
 
     public LoadHtmlConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
-        this.headless = Util.toBoolean(config.getOrDefault("headless", true));
-        this.acceptInsecureCerts = Util.toBoolean(config.getOrDefault("acceptInsecureCerts", true));
-        this.children = Util.toBoolean(config.get("children"));
+        this.headless = UtilExtended.toBoolean(config.getOrDefault("headless", true));
+        this.acceptInsecureCerts = UtilExtended.toBoolean(config.getOrDefault("acceptInsecureCerts", true));
+        this.children = UtilExtended.toBoolean(config.get("children"));
         this.charset = (String) config.getOrDefault("charset", "UTF-8"); 
         this.baseUri = (String) config.getOrDefault("baseUri", ""); 
         this.browser = Browser.valueOf((String) config.getOrDefault("browser", Browser.NONE.toString()));
         this.failSilently = FailSilently.valueOf((String) config.getOrDefault("failSilently", FailSilently.FALSE.toString()));
-        this.wait = Util.toLong(config.getOrDefault("wait", 0));
-        this.textSize = Util.toInteger(config.getOrDefault("textSize", 80));
-        this.htmlString = Util.toBoolean(config.get("htmlString"));
+        this.wait = UtilExtended.toLong(config.getOrDefault("wait", 0));
+        this.textSize = UtilExtended.toInteger(config.getOrDefault("textSize", 80));
+        this.htmlString = UtilExtended.toBoolean(config.get("htmlString"));
 
         this.driverVersion = (String) config.get("driverVersion");
         this.browserVersion = (String) config.get("browserVersion");
@@ -79,22 +79,22 @@ public class LoadHtmlConfig {
         this.proxyPass = (String) config.get("proxyPass");
         this.gitHubToken = (String) config.get("gitHubToken");
 
-        this.forceDownload = Util.toBoolean(config.get("forceDownload"));
-        this.useBetaVersions = Util.toBoolean(config.get("useBetaVersions"));
-        this.useMirror = Util.toBoolean(config.get("useMirror"));
-        this.avoidExport = Util.toBoolean(config.get("avoidExport"));
-        this.avoidOutputTree = Util.toBoolean(config.get("avoidOutputTree"));
-        this.clearDriverCache = Util.toBoolean(config.get("clearDriverCache"));
-        this.clearResolutionCache = Util.toBoolean(config.get("clearResolutionCache"));
-        this.avoidFallback = Util.toBoolean(config.get("avoidFallback"));
-        this.avoidBrowserDetection = Util.toBoolean(config.get("avoidBrowserDetection"));
-        this.avoidReadReleaseFromRepository = Util.toBoolean(config.get("avoidReadReleaseFromRepository"));
-        this.avoidTmpFolder = Util.toBoolean(config.get("avoidTmpFolder"));
-        this.useLocalVersionsPropertiesFirst = Util.toBoolean(config.get("useLocalVersionsPropertiesFirst"));
+        this.forceDownload = UtilExtended.toBoolean(config.get("forceDownload"));
+        this.useBetaVersions = UtilExtended.toBoolean(config.get("useBetaVersions"));
+        this.useMirror = UtilExtended.toBoolean(config.get("useMirror"));
+        this.avoidExport = UtilExtended.toBoolean(config.get("avoidExport"));
+        this.avoidOutputTree = UtilExtended.toBoolean(config.get("avoidOutputTree"));
+        this.clearDriverCache = UtilExtended.toBoolean(config.get("clearDriverCache"));
+        this.clearResolutionCache = UtilExtended.toBoolean(config.get("clearResolutionCache"));
+        this.avoidFallback = UtilExtended.toBoolean(config.get("avoidFallback"));
+        this.avoidBrowserDetection = UtilExtended.toBoolean(config.get("avoidBrowserDetection"));
+        this.avoidReadReleaseFromRepository = UtilExtended.toBoolean(config.get("avoidReadReleaseFromRepository"));
+        this.avoidTmpFolder = UtilExtended.toBoolean(config.get("avoidTmpFolder"));
+        this.useLocalVersionsPropertiesFirst = UtilExtended.toBoolean(config.get("useLocalVersionsPropertiesFirst"));
 
-        this.timeout = Util.toInteger(config.get("timeout"));
-        this.ttl = Util.toInteger(config.get("ttl"));
-        this.ttlBrowsers = Util.toInteger(config.get("ttlBrowsers"));
+        this.timeout = UtilExtended.toInteger(config.get("timeout"));
+        this.ttl = UtilExtended.toInteger(config.get("ttl"));
+        this.ttlBrowsers = UtilExtended.toInteger(config.get("ttlBrowsers"));
         
     }
 

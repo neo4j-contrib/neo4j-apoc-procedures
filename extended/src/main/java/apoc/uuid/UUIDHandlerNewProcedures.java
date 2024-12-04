@@ -1,8 +1,7 @@
 package apoc.uuid;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
@@ -13,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.*;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ExtendedSystemLabels.ApocUuid;
 import static apoc.ExtendedSystemLabels.ApocUuidMeta;
 import static apoc.ExtendedSystemPropertyKeys.addToExistingNodes;
@@ -29,7 +28,7 @@ import static apoc.uuid.UuidHandler.NOT_ENABLED_ERROR;
 public class UUIDHandlerNewProcedures {
     public static boolean isEnabled(String databaseName) {
         String apocUUIDEnabledDb = String.format(APOC_UUID_ENABLED_DB, databaseName);
-        Configuration conf = apocConfig().getConfig();
+        Configuration conf = extendedApocConfig().getConfig();
         boolean enabled = conf.getBoolean(APOC_UUID_ENABLED, false);
         return conf.getBoolean(apocUUIDEnabledDb, enabled);
     }
@@ -45,8 +44,8 @@ public class UUIDHandlerNewProcedures {
         final UuidInfo[] result = new UuidInfo[1];
 
         withSystemDb(sysTx -> {
-            Node node = Util.mergeNode(sysTx, ApocUuid, null,
-                    Pair.of(SystemPropertyKeys.database.name(), databaseName),
+            Node node = UtilExtended.mergeNode(sysTx, ApocUuid, null,
+                    Pair.of(ExtendedSystemPropertyKeys.database.name(), databaseName),
                     Pair.of(ExtendedSystemPropertyKeys.label.name(), label)
             );
 

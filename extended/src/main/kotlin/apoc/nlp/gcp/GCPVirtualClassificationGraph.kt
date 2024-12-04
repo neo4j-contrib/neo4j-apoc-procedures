@@ -1,11 +1,11 @@
 package apoc.nlp.gcp
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.DocumentToGraphExtended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualGraph
-import apoc.result.VirtualNode
+import apoc.result.VirtualGraphExtended
+import apoc.result.VirtualNodeExtended
 import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
@@ -24,7 +24,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
         val ID_MAPPINGS = mapOf("name" to "text")
     }
 
-    override fun createVirtualGraph(transaction: Transaction?): VirtualGraph {
+    override fun createVirtualGraph(transaction: Transaction?): VirtualGraphExtended {
         val storeGraph = transaction != null
 
         val allNodes: MutableSet<Node> = mutableSetOf()
@@ -34,9 +34,10 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
         sourceNodes.forEachIndexed { index, sourceNode ->
             val document = extractDocument(index, sourceNode) as List<Map<String, Any>>
             val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
-            val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
+            val virtualNode =
+                VirtualNodeExtended(sourceNode, sourceNode.propertyKeys.toList())
 
-            val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
+            val documentToNodes = DocumentToGraphExtended.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
@@ -59,7 +60,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
                         setProperties(entityNode, item)
                         entityNodes.add(entityNode)
 
-                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
+                        apoc.graph.DocumentToGraphExtended.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))
@@ -75,7 +76,7 @@ data class GCPVirtualClassificationGraph(private val results: List<NodeValueErro
             allRelationships.addAll(relationships)
         }
 
-        return VirtualGraph("Graph", allNodes, allRelationships, emptyMap())
+        return VirtualGraphExtended("Graph", allNodes, allRelationships, emptyMap())
     }
 
     private fun asLabel(value: String) : String {

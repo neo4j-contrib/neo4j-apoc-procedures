@@ -1,0 +1,164 @@
+/*
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package apoc;
+
+import org.neo4j.annotations.service.ServiceProvider;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
+import org.neo4j.kernel.availability.AvailabilityGuard;
+import org.neo4j.kernel.availability.AvailabilityListener;
+import org.neo4j.kernel.extension.ExtensionFactory;
+import org.neo4j.kernel.extension.ExtensionType;
+import org.neo4j.kernel.extension.context.ExtensionContext;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.lifecycle.Lifecycle;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
+import org.neo4j.kernel.monitoring.DatabaseEventListeners;
+import org.neo4j.logging.Log;
+import org.neo4j.logging.internal.LogService;
+import org.neo4j.scheduler.JobScheduler;
+import org.neo4j.service.Services;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+
+/**
+ * @author mh
+ * @since 14.05.16
+ */
+@ServiceProvider
+public class ExtendedApocExtensionFactory extends ExtensionFactory<ExtendedApocExtensionFactory.Dependencies> {
+
+    public ExtendedApocExtensionFactory() {
+        super(ExtensionType.DATABASE, "APOC_EXTENDED");
+    }
+
+    public interface Dependencies {
+        GraphDatabaseAPI graphdatabaseAPI();
+
+        JobScheduler scheduler();
+
+        LogService log();
+
+        AvailabilityGuard availabilityGuard();
+
+        DatabaseManagementService databaseManagementService();
+
+        ExtendedApocConfig extendedApocConfig();
+
+        DatabaseEventListeners databaseEventListeners();
+
+        GlobalProcedures globalProceduresRegistry();
+
+        ExtendedRegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
+
+        PoolsExtended pools();
+    }
+
+    @Override
+    public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
+        GraphDatabaseAPI db = dependencies.graphdatabaseAPI();
+        LogService log = dependencies.log();
+        return new ApocLifecycle(log, db, dependencies);
+    }
+
+    public static class ApocLifecycle extends LifecycleAdapter {
+        private final Log userLog;
+        private final GraphDatabaseAPI db;
+        private final Dependencies dependencies;
+        private final Map<String, Lifecycle> services = new HashMap<>();
+        private final Collection<ApocGlobalComponentsService> apocGlobalComponents;
+        private final Collection<AvailabilityListener> registeredListeners = new ArrayList<>();
+
+        public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
+            this.db = db;
+            this.dependencies = dependencies;
+            this.userLog = log.getUserLog(ExtendedApocExtensionFactory.class);
+            this.apocGlobalComponents = Services.loadAll(ApocGlobalComponentsService.class);
+        }
+
+        public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
+            if (!SYSTEM_DATABASE_NAME.equals(db.databaseName())) {
+                consumer.accept(null);
+            }
+        }
+
+        @Override
+        public void init() {
+            withNonSystemDatabase(db, aVoid -> {
+                for (ApocGlobalComponentsService c : apocGlobalComponents) {
+                    services.putAll(c.getServices(db, dependencies));
+                }
+
+                String databaseName = db.databaseName();
+                services.values().forEach(lifecycle -> dependencies
+                        .registerComponentLifecycle()
+                        .addResolver(databaseName, lifecycle.getClass(), lifecycle));
+            });
+        }
+
+        @Override
+        public void start() {
+            withNonSystemDatabase(db, aVoid -> {
+                services.forEach((key, value) -> {
+                    try {
+                        value.start();
+                    } catch (Exception e) {
+                        userLog.error("failed to start service " + key, e);
+                    }
+                });
+            });
+
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            for (ApocGlobalComponentsService c : apocGlobalComponents) {
+                for (AvailabilityListener listener : c.getListeners(db, dependencies)) {
+                    registeredListeners.add(listener);
+                    availabilityGuard.addListener(listener);
+                }
+            }
+        }
+
+        @Override
+        public void stop() {
+            withNonSystemDatabase(db, aVoid -> {
+                services.forEach((key, value) -> {
+                    try {
+                        value.stop();
+                    } catch (Exception e) {
+                        userLog.error("failed to stop service " + key, e);
+                    }
+                });
+            });
+
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            registeredListeners.forEach(availabilityGuard::removeListener);
+            registeredListeners.clear();
+        }
+
+        public Collection<AvailabilityListener> getRegisteredListeners() {
+            return registeredListeners;
+        }
+    }
+}

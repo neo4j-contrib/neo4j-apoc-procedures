@@ -1,15 +1,15 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.Pools;
-import apoc.export.util.CountingReader;
-import apoc.export.util.ExportConfig;
-import apoc.export.util.ProgressReporter;
+import apoc.PoolsExtended;
+import apoc.export.util.CountingReaderExtended;
+import apoc.export.util.ExportConfigExtended;
+import apoc.export.util.ProgressReporterExtended;
 import apoc.load.util.XmlReadUtil.Import;
-import apoc.result.ExportProgressInfo;
-import apoc.result.MapResult;
-import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.result.ExportProgressInfoExtended;
+import apoc.result.MapResultExtended;
+import apoc.util.FileUtilsExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
@@ -37,11 +37,11 @@ public class Gexf {
     public TerminationGuard terminationGuard;
 
     @Context
-    public Pools pools;
+    public PoolsExtended pools;
 
     @Procedure("apoc.load.gexf")
     @Description("apoc.load.gexf(urlOrBinary, path, $config) - load Gexf file from URL or binary source")
-    public Stream<MapResult> gexf(
+    public Stream<MapResultExtended> gexf(
             @Name("urlOrBinary") Object urlOrBinary,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config
     ) throws Exception {
@@ -50,17 +50,17 @@ public class Gexf {
 
     @Procedure(name = "apoc.import.gexf", mode = Mode.WRITE)
     @Description("Imports a graph from the provided GraphML file.")
-    public Stream<ExportProgressInfo> importGexf(
+    public Stream<ExportProgressInfoExtended> importGexf(
             @Name("urlOrBinaryFile") Object urlOrBinaryFile, @Name("config") Map<String, Object> config) {
-        ExportProgressInfo result = Util.inThread(pools, () -> {
-            ExportConfig exportConfig = new ExportConfig(config);
+        ExportProgressInfoExtended result = UtilExtended.inThread(pools, () -> {
+            ExportConfigExtended exportConfig = new ExportConfigExtended(config);
             String file = null;
             String source = "binary";
             if (urlOrBinaryFile instanceof String) {
                 file = (String) urlOrBinaryFile;
                 source = "file";
             }
-            ProgressReporter reporter = new ProgressReporter(null, null, new ExportProgressInfo(file, source, "gexf"));
+            ProgressReporterExtended reporter = new ProgressReporterExtended(null, null, new ExportProgressInfoExtended(file, source, "gexf"));
             Import graphReader = new Import(db)
                     .reporter(reporter)
                     .batchSize(exportConfig.getBatchSize())
@@ -71,12 +71,12 @@ public class Gexf {
 
             if (exportConfig.storeNodeIds()) graphReader.storeNodeIds();
 
-            try (CountingReader reader =
-                         FileUtils.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo(), urlAccessChecker)) {
+            try (CountingReaderExtended reader =
+                         FileUtilsExtended.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo(), urlAccessChecker)) {
                 graphReader.parseXML(reader, terminationGuard);
             }
 
-            return (ExportProgressInfo) reporter.getTotal();
+            return (ExportProgressInfoExtended) reporter.getTotal();
         });
         return Stream.of(result);
     }

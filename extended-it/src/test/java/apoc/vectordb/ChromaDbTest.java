@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.ExtendedTestUtil.assertFails;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.vectordb.VectorDbHandler.Type.CHROMA;

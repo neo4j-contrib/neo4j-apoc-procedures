@@ -1,10 +1,9 @@
 package apoc.custom;
 
-import apoc.ApocConfig;
+import apoc.ExtendedApocConfig;
 import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.collection.ResourceRawIterator;
 import org.neo4j.graphdb.Entity;
@@ -55,7 +54,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.custom.CypherProceduresUtil.*;
 import static apoc.custom.CypherHandlerNewProcedure.serializeSignatures;
 import static java.util.Collections.singletonList;
@@ -85,7 +84,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private JobHandle restoreProceduresHandle;
 
 
-    public CypherProceduresHandler(GraphDatabaseAPI db, JobScheduler jobScheduler, ApocConfig apocConfig, Log userLog, GlobalProcedures globalProceduresRegistry) {
+    public CypherProceduresHandler(GraphDatabaseAPI db, JobScheduler jobScheduler, ExtendedApocConfig apocConfig, Log userLog, GlobalProcedures globalProceduresRegistry) {
         this.api = db;
         this.log = userLog;
         this.jobScheduler = jobScheduler;
@@ -97,7 +96,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     @Override
     public void available() {
         restoreProceduresAndFunctions();
-        long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
+        long refreshInterval = extendedApocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
         restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
             if (getLastUpdate() > lastUpdate) {
                 restoreProceduresAndFunctions();
@@ -115,7 +114,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Stream<ProcedureOrFunctionDescriptor> readSignatures() {
         List<ProcedureOrFunctionDescriptor> descriptors;
         try (Transaction tx = systemDb.beginTx()) {
-             descriptors = tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
+             descriptors = tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
                 if (node.hasLabel(ExtendedSystemLabels.Procedure)) {
                     return procedureDescriptor(node);
                 } else if (node.hasLabel(ExtendedSystemLabels.Function)) {
@@ -130,14 +129,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     private ProcedureDescriptor procedureDescriptor(Node node) {
-        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+        String statement = (String) node.getProperty(ExtendedSystemPropertyKeys.statement.name());
 
         ProcedureSignature procedureSignature = getProcedureSignature(node);
         return new ProcedureDescriptor(procedureSignature, statement);
     }
 
     private UserFunctionDescriptor userFunctionDescriptor(Node node) {
-        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+        String statement = (String) node.getProperty(ExtendedSystemPropertyKeys.statement.name());
         boolean forceSingle = (boolean) node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name(), false);
         boolean mapResult = (boolean) node.getProperty(ExtendedSystemPropertyKeys.mapResult.name(), false);
 
@@ -178,13 +177,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public synchronized void storeFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Function,
-                    Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+            Node node = UtilExtended.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Function,
+                    Pair.of(ExtendedSystemPropertyKeys.database.name(), api.databaseName()),
+                    Pair.of(ExtendedSystemPropertyKeys.name.name(), signature.name().name()),
                     Pair.of(ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
             node.setProperty(ExtendedSystemPropertyKeys.description.name(), signature.description().orElse(null));
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(ExtendedSystemPropertyKeys.statement.name(), statement);
             node.setProperty(ExtendedSystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.output.name(), signature.outputType().toString());
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
@@ -200,13 +199,13 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public synchronized void storeProcedure(ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
-            Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Procedure,
-                    Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
+            Node node = UtilExtended.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Procedure,
+                    Pair.of(ExtendedSystemPropertyKeys.database.name(), api.databaseName()),
+                    Pair.of(ExtendedSystemPropertyKeys.name.name(), signature.name().name()),
                     Pair.of(ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
             );
             node.setProperty(ExtendedSystemPropertyKeys.description.name(), signature.description().orElse(null));
-            node.setProperty(SystemPropertyKeys.statement.name(), statement);
+            node.setProperty(ExtendedSystemPropertyKeys.statement.name(), statement);
             node.setProperty(ExtendedSystemPropertyKeys.inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.mode.name(), signature.mode().name());
@@ -219,18 +218,18 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     private void setLastUpdate(Transaction tx) {
-        Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
+        Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, ExtendedSystemPropertyKeys.database.name(), api.databaseName());
         if (node == null) {
             node = tx.createNode(ExtendedSystemLabels.ApocCypherProceduresMeta);
-            node.setProperty(SystemPropertyKeys.database.name(), api.databaseName());
+            node.setProperty(ExtendedSystemPropertyKeys.database.name(), api.databaseName());
         }
-        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
+        node.setProperty(ExtendedSystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
 
     private long getLastUpdate() {
         return withSystemDb( tx -> {
-            Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
-            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+            Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, ExtendedSystemPropertyKeys.database.name(), api.databaseName());
+            return node == null ? 0L : (long) node.getProperty(ExtendedSystemPropertyKeys.lastUpdated.name());
         });
     }
 
@@ -418,8 +417,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
             tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures,
-                    SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), qName.name(),
+                    ExtendedSystemPropertyKeys.database.name(), api.databaseName(),
+                    ExtendedSystemPropertyKeys.name.name(), qName.name(),
                     ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Procedure)).forEach(node -> {
                 ProcedureDescriptor descriptor = procedureDescriptor(node);
@@ -435,8 +434,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         withSystemDb(tx -> {
             QualifiedName qName = qualifiedName(name);
             tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures,
-                    SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), qName.name(),
+                    ExtendedSystemPropertyKeys.database.name(), api.databaseName(),
+                    ExtendedSystemPropertyKeys.name.name(), qName.name(),
                     ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Function)).forEach(node -> {
                 UserFunctionDescriptor descriptor = userFunctionDescriptor(node);

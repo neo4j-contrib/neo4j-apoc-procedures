@@ -1,11 +1,11 @@
 package apoc.export.parquet;
 
-import apoc.convert.ConvertUtils;
+import apoc.convert.ConvertExtendedUtil;
 import apoc.graph.Graphs;
 import apoc.load.LoadParquet;
 import apoc.meta.Meta;
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -22,9 +22,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.export.parquet.ParquetUtil.FIELD_ID;
 import static apoc.export.parquet.ParquetUtil.FIELD_LABELS;
 import static apoc.export.parquet.ParquetUtil.FIELD_SOURCE_ID;
@@ -49,8 +49,8 @@ public class ParquetTestUtil {
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace', 'Qwe'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
         db.executeTransactionally("CREATE (:Another {foo:1, listDate: [date('1999'), date('2000')], listInt: [1,2]}), (:Another {bar:'Sam'})");
 
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     public static void testImportAllCommon(GraphDatabaseService db, Map<String, Object> params) {
@@ -112,7 +112,7 @@ public class ParquetTestUtil {
     }
 
     public static String extractFileName(Result result) {
-        return Iterators.single(result.columnAs("file"));
+        return IteratorsExtended.single(result.columnAs("file"));
     }
 
     private static void assertFirstUserNode(Map<String, Object> map) {
@@ -148,7 +148,7 @@ public class ParquetTestUtil {
 
     private static void assertFirstAnotherNodeProps(Map<String, Object> map) {
         assertEquals(1L, map.get("foo"));
-        List<LocalDate> listDate = ConvertUtils.convertToList(map.get("listDate"));
+        List<LocalDate> listDate = ConvertExtendedUtil.convertToListExtended(map.get("listDate"));
         assertEquals(2, listDate.size());
         assertEquals(LocalDate.of(1999, 1, 1), listDate.get(0));
         assertEquals(LocalDate.of(2000, 1, 1), listDate.get(1));

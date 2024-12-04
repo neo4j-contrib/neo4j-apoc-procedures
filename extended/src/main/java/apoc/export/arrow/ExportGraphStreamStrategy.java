@@ -18,9 +18,10 @@
  */
 package apoc.export.arrow;
 
-import apoc.Pools;
-import apoc.result.ByteArrayResult;
-import apoc.util.collection.Iterables;
+import apoc.PoolsExtended;
+import apoc.cypher.export.SubGraphExtended;
+import apoc.result.ByteArrayResultExtended;
+import apoc.util.collection.IterablesExtended;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
@@ -28,7 +29,6 @@ import org.apache.arrow.vector.dictionary.DictionaryProvider;
 import org.apache.arrow.vector.ipc.ArrowStreamWriter;
 import org.apache.arrow.vector.ipc.ArrowWriter;
 import org.apache.arrow.vector.types.pojo.Schema;
-import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -41,10 +41,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
-public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubGraph>, ExportGraphStrategy {
+public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubGraphExtended>, ExportGraphStrategy {
 
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
     private final TerminationGuard terminationGuard;
     private final Log logger;
 
@@ -53,7 +53,7 @@ public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubG
     private Schema schema;
 
     public ExportGraphStreamStrategy(
-            GraphDatabaseService db, Pools pools, TerminationGuard terminationGuard, Log logger) {
+            GraphDatabaseService db, PoolsExtended pools, TerminationGuard terminationGuard, Log logger) {
         this.db = db;
         this.pools = pools;
         this.terminationGuard = terminationGuard;
@@ -62,14 +62,14 @@ public class ExportGraphStreamStrategy implements ExportArrowStreamStrategy<SubG
     }
 
     @Override
-    public Iterator<Map<String, Object>> toIterator(SubGraph subGraph) {
-        return Stream.concat(Iterables.stream(subGraph.getNodes()), Iterables.stream(subGraph.getRelationships()))
+    public Iterator<Map<String, Object>> toIterator(SubGraphExtended subGraph) {
+        return Stream.concat(IterablesExtended.stream(subGraph.getNodes()), IterablesExtended.stream(subGraph.getRelationships()))
                 .map(this::entityToMap)
                 .iterator();
     }
 
     @Override
-    public Stream<ByteArrayResult> export(SubGraph subGraph, ArrowConfig config) {
+    public Stream<ByteArrayResultExtended> export(SubGraphExtended subGraph, ArrowConfig config) {
         Map<String, Object> configMap = createConfigMap(subGraph, config);
         this.schemaFor(List.of(configMap));
         return ExportArrowStreamStrategy.super.export(subGraph, config);

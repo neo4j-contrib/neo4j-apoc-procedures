@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.DateTimeException;
@@ -31,8 +31,8 @@ public class LoadJdbcConfig {
             throw new IllegalArgumentException(String.format("The timezone field contains an error: %s", e.getMessage()));
         }
         this.credentials = config.containsKey("credentials") ? createCredentials((Map<String, String>) config.get("credentials")) : null;
-        this.fetchSize = Util.toLong(config.getOrDefault("fetchSize", 5000L));
-        this.autoCommit = Util.toBoolean(config.getOrDefault("autoCommit", false));
+        this.fetchSize = UtilExtended.toLong(config.getOrDefault("fetchSize", 5000L));
+        this.autoCommit = UtilExtended.toBoolean(config.getOrDefault("autoCommit", false));
     }
 
     public ZoneId getZoneId(){

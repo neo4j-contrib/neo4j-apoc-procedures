@@ -2,13 +2,12 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ObjectResult;
+import apoc.result.ObjectResultExtended;
 import apoc.util.ExtendedMapUtils;
-import apoc.util.JsonUtil;
+import apoc.util.JsonUtilExtended;
 import apoc.util.SystemDbUtil;
-import apoc.util.Util;
+import apoc.util.UtilExtended;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -36,7 +35,7 @@ import java.util.stream.Stream;
 
 import static apoc.util.ExtendedUtil.listOfNumbersToFloatArray;
 import static apoc.util.ExtendedUtil.setProperties;
-import static apoc.util.JsonUtil.OBJECT_MAPPER;
+import static apoc.util.JsonUtilExtended.OBJECT_MAPPER;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.vectordb.VectorDbUtil.EmbeddingResult;
 import static apoc.vectordb.VectorDbUtil.appendVersionUrlIfNeeded;
@@ -121,11 +120,11 @@ public class VectorDb {
         Map<String, Object> metadata = hasMetadata ? (Map<String, Object>) m.get(conf.getMetadataKey()) : null;
         // in case of get operation, e.g. http://localhost:52798/collections/{coll_name}/points with Qdrant db,
         // score is not present
-        Double score = Util.toDouble(m.get(conf.getScoreKey()));
+        Double score = UtilExtended.toDouble(m.get(conf.getScoreKey()));
         String text = conf.isAllResults() ? (String) m.get(conf.getTextKey()) : null;
 
         Entity entity = handleMapping(tx, mapping, metadata, embedding);
-        if (entity != null) entity = Util.rebind(tx, entity);
+        if (entity != null) entity = UtilExtended.rebind(tx, entity);
         return new EmbeddingResult(id, score, embedding, metadata, text,
                 mapping.getNodeLabel() == null ? null : (Node) entity,
                 mapping.getNodeLabel() != null ? null : (Relationship) entity
@@ -222,12 +221,12 @@ public class VectorDb {
     //      since it can potentially be used as a generic method to call any RestAPI 
     @Procedure("apoc.vectordb.custom")
     @Description("apoc.vectordb.custom(host, $configuration) - fully customizable procedure, returns generic object results")
-    public Stream<ObjectResult> custom(@Name("host") String host, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<ObjectResultExtended> custom(@Name("host") String host, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         getEndpoint(configuration, host);
         RestAPIConfig restAPIConfig = new RestAPIConfig(configuration);
         return executeRequest(restAPIConfig, urlAccessChecker)
-                .map(ObjectResult::new);
+                .map(ObjectResultExtended::new);
     }
 
     public static Stream<Object> executeRequest(RestAPIConfig apiConfig, URLAccessChecker urlAccessChecker) throws Exception {
@@ -242,7 +241,7 @@ public class VectorDb {
             throw new RuntimeException("Endpoint must be specified");
         }
 
-        return JsonUtil.loadJson(endpoint, headers, body, apiConfig.getJsonPath(), true, List.of(), urlAccessChecker);
+        return JsonUtilExtended.loadJson(endpoint, headers, body, apiConfig.getJsonPath(), true, List.of(), urlAccessChecker);
     }
 
     @Admin
@@ -258,7 +257,7 @@ public class VectorDb {
 
         withSystemDb(transaction -> {
             Label label = Label.label(type.get().getLabel());
-            Node node = Util.mergeNode(transaction, label, null, Pair.of(SystemPropertyKeys.name.name(), configKey));
+            Node node = UtilExtended.mergeNode(transaction, label, null, Pair.of(ExtendedSystemPropertyKeys.name.name(), configKey));
 
             Map mapping = (Map) config.get("mapping");
             String host = appendVersionUrlIfNeeded(type, (String) config.get("host"));
@@ -269,11 +268,11 @@ public class VectorDb {
             }
             
             if (credentials != null) {
-                node.setProperty( ExtendedSystemPropertyKeys.credentials.name(), Util.toJson(credentials) );
+                node.setProperty( ExtendedSystemPropertyKeys.credentials.name(), UtilExtended.toJson(credentials) );
             }
 
             if (mapping != null) {
-                node.setProperty( MAPPING_KEY, Util.toJson(mapping) );
+                node.setProperty( MAPPING_KEY, UtilExtended.toJson(mapping) );
             }
         });
 

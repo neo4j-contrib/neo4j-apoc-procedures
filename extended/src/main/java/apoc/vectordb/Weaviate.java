@@ -2,9 +2,9 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ListResult;
-import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.result.ListResultExtended;
+import apoc.result.MapResultExtended;
+import apoc.util.CollectionUtilsExtended;
 import apoc.util.UrlResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResult;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
@@ -48,9 +48,9 @@ public class Weaviate {
 
     @Procedure("apoc.vectordb.weaviate.info")
     @Description("apoc.vectordb.weaviate.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema/%s");
 
         methodAndPayloadNull(config);
@@ -61,16 +61,16 @@ public class Weaviate {
 
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.weaviate.createCollection")
     @Description("apoc.vectordb.weaviate.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
-                                              @Name("similarity") String similarity,
-                                              @Name("size") Long size,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("collection") String collection,
+                                                      @Name("similarity") String similarity,
+                                                      @Name("size") Long size,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
         config.putIfAbsent(METHOD_KEY, "POST");
 
@@ -82,12 +82,12 @@ public class Weaviate {
 
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.weaviate.deleteCollection")
     @Description("apoc.vectordb.weaviate.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
-    public Stream<MapResult> deleteCollection(
+    public Stream<MapResultExtended> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -97,13 +97,13 @@ public class Weaviate {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
 
     @Procedure("apoc.vectordb.weaviate.upsert")
     @Description("apoc.vectordb.weaviate.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
-    public Stream<MapResult> upsert(
+    public Stream<MapResultExtended> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
@@ -130,15 +130,15 @@ public class Weaviate {
                     }
                 })
                 .map(v -> (Map<String, Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.delete")
     @Description("apoc.vectordb.weaviate.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`")
-    public Stream<ListResult> delete(@Name("hostOrKey") String hostOrKey,
-                                     @Name("collection") String collection,
-                                     @Name("ids") List<Object> ids,
-                                     @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<ListResultExtended> delete(@Name("hostOrKey") String hostOrKey,
+                                             @Name("collection") String collection,
+                                             @Name("ids") List<Object> ids,
+                                             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
@@ -155,7 +155,7 @@ public class Weaviate {
                     }
                 })
                 .toList();
-        return Stream.of(new ListResult(objects));
+        return Stream.of(new ListResultExtended(objects));
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.getAndUpdate", mode = Mode.WRITE)
@@ -183,7 +183,7 @@ public class Weaviate {
         
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
-         * Since with `method: GET` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+         * Since with `method: GET` the {@link UtilExtended#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
          * that makes the request to respond with an error 405 Method Not Allowed 
          */
         config.putIfAbsent(METHOD_KEY, null);
@@ -244,7 +244,7 @@ public class Weaviate {
                 v -> {
                     Map<String, Map> mapResult = (Map<String, Map>) v;
                     List<Map> errors = (List<Map>) mapResult.get("errors");
-                    if ( CollectionUtils.isNotEmpty(errors) ) {
+                    if ( CollectionUtilsExtended.isNotEmpty(errors) ) {
                         String message = "An error occurred during Weaviate API response: \n" + StringUtils.join(errors, "\n");
                         throw new RuntimeException(message);
                     }

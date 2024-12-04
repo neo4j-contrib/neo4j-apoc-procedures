@@ -1,7 +1,7 @@
 package apoc.ml.aws;
 
 import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -14,7 +14,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
 import static apoc.ExtendedApocConfig.APOC_AWS_SECRET_KEY;
 import static apoc.ml.MLTestUtil.assertNullInputFails;
@@ -59,8 +59,8 @@ public class BedrockIT {
     
     @Before
     public void before() throws Exception {
-        apocConfig().setProperty(APOC_AWS_KEY_ID, keyId);
-        apocConfig().setProperty(APOC_AWS_SECRET_KEY, secretKey);
+        extendedApocConfig().setProperty(APOC_AWS_KEY_ID, keyId);
+        extendedApocConfig().setProperty(APOC_AWS_SECRET_KEY, secretKey);
     }
     
     @Test
@@ -77,10 +77,10 @@ public class BedrockIT {
 
     @Test
     public void testAuthViaConfigMap() {
-        apocConfig().getConfig().clearProperty(APOC_AWS_KEY_ID);
-        apocConfig().getConfig().clearProperty(APOC_AWS_SECRET_KEY);
+        extendedApocConfig().getConfig().clearProperty(APOC_AWS_KEY_ID);
+        extendedApocConfig().getConfig().clearProperty(APOC_AWS_SECRET_KEY);
         
-        // check apocConfig correctly cleared, i.e. auth error
+        // check extendedApocConfig correctly cleared, i.e. auth error
         try {
             testCall(db, BEDROCK_CUSTOM_PROC,
                     Map.of("body", TITAN_BODY,
@@ -225,7 +225,7 @@ public class BedrockIT {
     }
 
     private void chatCompletionAssertions(Result r) {
-        List<Map<String, Object>> values = Iterators.asList(r.columnAs("value"));
+        List<Map<String, Object>> values = IteratorsExtended.asList(r.columnAs("value"));
         assertEquals(2, values.size());
         values.forEach(row -> {
             assertNotNull(row.get("completion"));

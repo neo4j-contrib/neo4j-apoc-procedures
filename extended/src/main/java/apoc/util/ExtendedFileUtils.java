@@ -1,8 +1,7 @@
 package apoc.util;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 
-import apoc.export.util.CountingReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -10,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+
+import apoc.export.util.CountingReaderExtended;
 import org.neo4j.configuration.GraphDatabaseSettings;
 
 public class ExtendedFileUtils
@@ -19,8 +20,8 @@ public class ExtendedFileUtils
      * aren't enabled, or aren't readable.
      */
     public static File getMetricsDirectory() {
-        String neo4jHome = apocConfig().getString( GraphDatabaseSettings.neo4j_home.name());
-        String metricsSetting = apocConfig().getString("server.directories.metrics", neo4jHome + File.separator + "metrics");
+        String neo4jHome = extendedApocConfig().getString( GraphDatabaseSettings.neo4j_home.name());
+        String metricsSetting = extendedApocConfig().getString("server.directories.metrics", neo4jHome + File.separator + "metrics");
 
         File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
 
@@ -54,7 +55,7 @@ public class ExtendedFileUtils
             "server.directories.neo4j_home"
     );
 
-    public static void closeReaderSafely( CountingReader reader) {
+    public static void closeReaderSafely( CountingReaderExtended reader) {
         if (reader != null) {
             try { reader.close(); } catch ( IOException ignored) { }
         }

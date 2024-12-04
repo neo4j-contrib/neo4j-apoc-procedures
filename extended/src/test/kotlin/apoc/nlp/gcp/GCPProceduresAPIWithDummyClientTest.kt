@@ -3,7 +3,7 @@ package apoc.nlp.gcp
 import apoc.nlp.NodeMatcher
 import apoc.nlp.NplUtils.commonNlpInit
 import apoc.nlp.RelationshipMatcher
-import apoc.result.VirtualNode
+import apoc.result.VirtualNodeExtended
 import apoc.util.TestUtil
 import org.junit.Assert
 import org.junit.Assert.assertTrue
@@ -133,8 +133,16 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels1.toTypedArray(), mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")), "ENTITY", mapOf("score" to 0.1))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")), "ENTITY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels1.toTypedArray(),
+                    mapOf("text" to "token-1-index-0-batch-1", "type" to "CONSUMER_GOOD")
+                ), "ENTITY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-2-index-0-batch-1", "type" to "LOCATION")
+                ), "ENTITY", mapOf("score" to 0.2))))
         }
     }
 
@@ -236,8 +244,16 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-1"))))
 
             Assert.assertEquals(2, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-1-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.1))))
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-1")), "CATEGORY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "category-1-index-0-batch-1")
+                ), "CATEGORY", mapOf("score" to 0.1))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "category-2-index-0-batch-1")
+                ), "CATEGORY", mapOf("score" to 0.2))))
         }
     }
 
@@ -275,7 +291,11 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels2, mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels2.toTypedArray(), mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION")), "HAS_ENTITY", mapOf("gcpScore" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels2.toTypedArray(),
+                    mapOf("text" to "token-2-index-0-batch-0", "type" to "LOCATION")
+                ), "HAS_ENTITY", mapOf("gcpScore" to 0.2))))
         }
     }
 
@@ -311,7 +331,11 @@ class GCPProceduresAPIWithDummyClientTest {
             assertThat(nodes, hasItem(NodeMatcher(dummyLabels, mapOf("text" to "category-2-index-0-batch-0"))))
 
             Assert.assertEquals(1, relationships.size)
-            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode, VirtualNode(dummyLabels.toTypedArray(), mapOf("text" to "category-2-index-0-batch-0")), "CATEGORY", mapOf("score" to 0.2))))
+            assertThat(relationships, hasItem(RelationshipMatcher(virtualSourceNode,
+                VirtualNodeExtended(
+                    dummyLabels.toTypedArray(),
+                    mapOf("text" to "category-2-index-0-batch-0")
+                ), "CATEGORY", mapOf("score" to 0.2))))
         }
     }
 

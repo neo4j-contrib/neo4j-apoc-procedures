@@ -1,6 +1,6 @@
 package apoc;
 
-import apoc.util.MissingDependencyException;
+import apoc.util.MissingDependencyExceptionExtended;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import org.junit.AfterClass;
@@ -15,7 +15,6 @@ import java.util.Map;
 
 import static apoc.couchbase.Couchbase.COUCHBASE_MISSING_DEPS_ERROR;
 import static apoc.data.email.ExtractEmail.EMAIL_MISSING_DEPS_ERROR;
-import static apoc.export.parquet.ParquetConfig.PARQUET_MISSING_DEPS_ERROR;
 import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
 import static apoc.load.LoadHtml.SELENIUM_MISSING_DEPS_ERROR;
 import static apoc.mongodb.MongoDBUtils.MONGO_MISSING_DEPS_ERROR;
@@ -27,7 +26,7 @@ import static org.junit.Assert.fail;
 
 /**
  * This test verifies that, if the `extra-dependencies` jars are not present, 
- * the procedures that require them fail with {@link apoc.util.MissingDependencyException}
+ * the procedures that require them fail with {@link MissingDependencyExceptionExtended}
  */
 public class MissingExtraDependenciesTest {
     private static Neo4jContainerExtension neo4jContainer;
@@ -155,7 +154,7 @@ public class MissingExtraDependenciesTest {
         } catch (RuntimeException e) {
             String message = e.getMessage();
             // String of type `apoc.util.MissingDependencyException: <errorMessage>`
-            String expected = "%s: %s".formatted(MissingDependencyException.class.getName(), errorMessage);
+            String expected = "%s: %s".formatted(MissingDependencyExceptionExtended.class.getName(), errorMessage);
             assertTrue("Actual error message is: " + message, message.contains(expected));
         }
     }

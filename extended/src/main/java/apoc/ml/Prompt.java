@@ -1,10 +1,10 @@
 package apoc.ml;
 
-import apoc.ApocConfig;
 import apoc.Extended;
+import apoc.ExtendedApocConfig;
 import apoc.result.StringResult;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class Prompt {
     @Context
     public Log log;
     @Context
-    public ApocConfig apocConfig;
+    public ExtendedApocConfig apocConfig;
     @Context
     public ProcedureCallContext procedureCallContext;
     @Context
@@ -120,7 +120,7 @@ public class Prompt {
         Map<String, Object> props = entity.getProperties(objects);
         if (config.isGetLabelTypes()) {
             String labelsOrType = entity instanceof Node node
-                    ? Util.joinLabels(node.getLabels(), ",")
+                    ? UtilExtended.joinLabels(node.getLabels(), ",")
                     : ((Relationship) entity).getType().name();
             labelsOrType = WordUtils.capitalize(labelsOrType, '_');
             props.put("context description", labelsOrType);
@@ -228,7 +228,7 @@ public class Prompt {
         String schema = loadSchema(tx, conf);
         String query = "";
         long retries = (long) conf.getOrDefault("retries", 3L);
-        boolean retryWithError = Util.toBoolean(conf.get("retryWithError"));
+        boolean retryWithError = UtilExtended.toBoolean(conf.get("retryWithError"));
         boolean containsField = procedureCallContext
                 .outputFields()
                 .collect(Collectors.toSet())
@@ -245,7 +245,7 @@ public class Prompt {
                 if (queryResult.hasError())
                     throw new QueryExecutionException(queryResult.error, null, queryResult.type);
                  */
-                List<Map<String, Object>> maps = Iterators.asList(transaction.execute(queryResult.query));
+                List<Map<String, Object>> maps = IteratorsExtended.asList(transaction.execute(queryResult.query));
                 transaction.commit();
                 Stream<PromptMapResult> mapResultStream = maps
                         .stream()

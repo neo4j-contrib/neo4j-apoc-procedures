@@ -1,7 +1,7 @@
 package apoc.vectordb;
 
 import apoc.ml.Prompt;
-import apoc.util.MapUtil;
+import apoc.util.MapUtilExtended;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -25,7 +25,7 @@ import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.util.UtilExtended.map;
 import static apoc.vectordb.VectorDbHandler.Type.WEAVIATE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.NODE;
@@ -96,7 +96,7 @@ public class WeaviateTest {
         TestUtil.registerProcedure(db, Weaviate.class, VectorDb.class, Prompt.class);
 
         testCall(db, "CALL apoc.vectordb.weaviate.createCollection($host, 'TestCollection', 'cosine', 4, $conf)",
-                MapUtil.map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                MapUtilExtended.map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("TestCollection", value.get("class"));
@@ -112,7 +112,7 @@ public class WeaviateTest {
                         ],
                         $conf)
                         """,
-                MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
+                MapUtilExtended.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
                     assertEquals(COLLECTION_NAME, values.next().get("class"));
@@ -136,7 +136,7 @@ public class WeaviateTest {
     @AfterClass
     public static void tearDown() throws Exception {
         testCallEmpty(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, $collectionName, $conf)",
-                MapUtil.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
+                MapUtilExtended.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
         );
 
         WEAVIATE_CONTAINER.stop();
@@ -363,9 +363,9 @@ public class WeaviateTest {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
 
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+        Map<String, Object> conf = MapUtilExtended.map(ALL_RESULTS_KEY, true,
                 HEADERS_KEY, ADMIN_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
+                MAPPING_KEY, MapUtilExtended.map(EMBEDDING_KEY, "vect",
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo"));
@@ -390,9 +390,9 @@ public class WeaviateTest {
     public void getReadOnlyVectorsWithMapping() {
         db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
 
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+        Map<String, Object> conf = MapUtilExtended.map(ALL_RESULTS_KEY, true,
                 HEADERS_KEY, READONLY_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(
+                MAPPING_KEY, MapUtilExtended.map(
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "readID",
                         METADATA_KEY, "foo")
@@ -400,7 +400,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1, $id2], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
+                MapUtilExtended.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
         );
     }
@@ -438,10 +438,10 @@ public class WeaviateTest {
     public void queryReadOnlyVectorsWithMapping() {
         db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
-        Map<String, Object> conf = MapUtil.map(ALL_RESULTS_KEY, true,
+        Map<String, Object> conf = MapUtilExtended.map(ALL_RESULTS_KEY, true,
                 FIELDS_KEY, FIELDS,
                 HEADERS_KEY, READONLY_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(
+                MAPPING_KEY, MapUtilExtended.map(
                         REL_TYPE, "TEST",
                         ENTITY_KEY, "readID",
                         METADATA_KEY, "foo")
@@ -449,7 +449,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
-                MapUtil.map("host", HOST, "conf", conf),
+                MapUtilExtended.map("host", HOST, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "rel")
         );
     }
@@ -527,11 +527,11 @@ public class WeaviateTest {
     public void queryVectorsWithRag() {
         String openAIKey = ragSetup(db);
 
-        Map<String, Object> conf = MapUtil.map(
+        Map<String, Object> conf = MapUtilExtended.map(
                 FIELDS_KEY, FIELDS,
                 ALL_RESULTS_KEY, true,
                 HEADERS_KEY, READONLY_AUTHORIZATION,
-                MAPPING_KEY, MapUtil.map(EMBEDDING_KEY, "vect",
+                MAPPING_KEY, MapUtilExtended.map(EMBEDDING_KEY, "vect",
                         NODE_LABEL, "Rag",
                         ENTITY_KEY, "readID",
                         METADATA_KEY, "foo")
@@ -545,11 +545,11 @@ public class WeaviateTest {
                     RETURN value
                     """
                 ,
-                MapUtil.map(
+                MapUtilExtended.map(
                         "host", HOST,
                         "id1", ID_1,
                         "conf", conf,
-                        "confPrompt", MapUtil.map(API_KEY_CONF, openAIKey),
+                        "confPrompt", MapUtilExtended.map(API_KEY_CONF, openAIKey),
                         "attributes", List.of("city", "foo")
                 ),
                 VectorDbTestUtil::assertRagWithVectors);

@@ -4,8 +4,8 @@ import apoc.coll.Coll;
 import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -29,7 +29,7 @@ import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.Prompt.UNKNOWN_ANSWER;
 import static apoc.ml.RagConfig.*;
-import static apoc.util.MapUtil.map;
+import static apoc.util.MapUtilExtended.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,13 +68,13 @@ public class PromptIT {
     @Before
     public void setUp() {
         TestUtil.registerProcedure(db, Prompt.class, OpenAI.class, Meta.class, Strings.class, Coll.class);
-        String movies = Util.readResourceFile("movies.cypher");
+        String movies = UtilExtended.readResourceFile("movies.cypher");
         try (Transaction tx = db.beginTx()) {
             tx.execute(movies);
             tx.commit();
         }
         
-        String rag = Util.readResourceFile("rag.cypher");
+        String rag = UtilExtended.readResourceFile("rag.cypher");
         try (Transaction tx = db.beginTx()) {
             tx.execute(rag);
             tx.commit();
@@ -143,7 +143,7 @@ public class PromptIT {
                 ),
                 (r) -> {
                     // check that it returns a Cypher result, also empty, without errors
-                    List<Map<String, Object>> maps = Iterators.asList(r);
+                    List<Map<String, Object>> maps = IteratorsExtended.asList(r);
                     assertNotNull(maps);
                 });
     }
@@ -160,7 +160,7 @@ public class PromptIT {
                 ),
                 (r) -> {
                     // check that it returns a Cypher result, also empty, without errors
-                    List<Map<String, Object>> maps = Iterators.asList(r);
+                    List<Map<String, Object>> maps = IteratorsExtended.asList(r);
                     assertNotNull(maps);
                 });
     }

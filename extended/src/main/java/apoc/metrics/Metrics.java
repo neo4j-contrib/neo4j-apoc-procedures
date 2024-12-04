@@ -1,15 +1,15 @@
 package apoc.metrics;
 
 import apoc.Extended;
-import apoc.export.util.CountingReader;
-import apoc.load.CSVResult;
+import apoc.export.util.CountingReaderExtended;
+import apoc.load.CSVResultExtended;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
-import apoc.util.CompressionAlgo;
+import apoc.util.CompressionAlgoExtended;
 import apoc.util.ExtendedFileUtils;
-import apoc.util.FileUtils;
-import apoc.util.SupportedProtocols;
-import apoc.util.Util;
+import apoc.util.FileUtilsExtended;
+import apoc.util.SupportedProtocolsExtended;
+import apoc.util.UtilExtended;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.ExtendedFileUtils.closeReaderSafely;
 
 /**
@@ -54,7 +54,7 @@ public class Metrics {
         public static StoragePair fromDirectorySetting(String dir) {
             if (dir == null) return null;
 
-            String configLocation = apocConfig().getString(dir, null);
+            String configLocation = extendedApocConfig().getString(dir, null);
             if (configLocation == null) return null;
 
             File f = new File(configLocation);
@@ -138,8 +138,8 @@ public class Metrics {
      * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
      * header row.  We want to discard those.
      */
-    private static final Predicate<CSVResult> duplicatedHeaderRows = new Predicate <CSVResult> () {
-        public boolean test(CSVResult o) {
+    private static final Predicate<CSVResultExtended> duplicatedHeaderRows = new Predicate <CSVResultExtended> () {
+        public boolean test(CSVResultExtended o) {
             if (o == null) return false;
 
             Map<String,Object> map = o.map;
@@ -189,15 +189,15 @@ public class Metrics {
             throw new RuntimeException("Unable to resolve basic metric file canonical path", ioe);
         }
         String url = file.getAbsolutePath();
-        CountingReader reader = null;
+        CountingReaderExtended reader = null;
         try {
-            reader = FileUtils.getStreamConnection(SupportedProtocols.file, url, null, null, urlAccessChecker)
-                    .toCountingInputStream(CompressionAlgo.NONE.name())
+            reader = FileUtilsExtended.getStreamConnection(SupportedProtocolsExtended.file, url, null, null, urlAccessChecker)
+                    .toCountingInputStream(CompressionAlgoExtended.NONE.name())
                     .asReader();
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)
                     .filter(Metrics.duplicatedHeaderRows)
-                    .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
+                    .map(csvResult -> new GenericMetric(metricName, UtilExtended.toLong(csvResult.map.get("t")), csvResult.map));
         } catch (Exception e) {
             closeReaderSafely(reader);
             throw new RuntimeException(e);

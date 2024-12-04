@@ -1,8 +1,8 @@
 package apoc.model;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import apoc.util.collection.Iterators;
+import apoc.util.UtilExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.*;
@@ -54,12 +54,12 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchema() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysqlUrl,
-                        "config", Util.map("schema", "test",
-                                "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
+                UtilExtended.map("url", mysqlUrl,
+                        "config", UtilExtended.map("schema", "test",
+                                "credentials", UtilExtended.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
                     Long count = db.executeTransactionally("MATCH (n) RETURN count(n) AS count", Collections.emptyMap(),
-                            result -> Iterators.single(result.columnAs("count")));
+                            result -> IteratorsExtended.single(result.columnAs("count")));
                     assertEquals(0L, count.longValue());
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -107,16 +107,16 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithWriteOperation() {
         db.executeTransactionally("CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysqlUrl,
-                        "config", Util.map("schema", "test",
+                UtilExtended.map("url", mysqlUrl,
+                        "config", UtilExtended.map("schema", "test",
                                 "write", true,
-                                "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
-                innerResult -> Iterators.single(innerResult)
+                                "credentials", UtilExtended.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
+                innerResult -> IteratorsExtended.single(innerResult)
         );
 
         try (Transaction tx = db.beginTx()) {
-            List<Node> nodes = Iterators.single(tx.execute("MATCH (n) RETURN collect(distinct n) AS nodes").columnAs("nodes"));
-            List<Relationship> rels = Iterators.single(tx.execute("MATCH ()-[r]-() RETURN collect(distinct r) AS rels").columnAs("rels"));
+            List<Node> nodes = IteratorsExtended.single(tx.execute("MATCH (n) RETURN collect(distinct n) AS nodes").columnAs("nodes"));
+            List<Relationship> rels = IteratorsExtended.single(tx.execute("MATCH ()-[r]-() RETURN collect(distinct r) AS rels").columnAs("rels"));
             assertEquals( 33, nodes.size());
             assertEquals( 32, rels.size());
 
@@ -162,10 +162,10 @@ public class ModelTest {
     @Test
     public void testLoadJdbcSchemaWithFiltering() {
         testCall(db, "CALL apoc.model.jdbc($url, $config)",
-                Util.map("url", mysqlUrl,
-                        "config", Util.map("schema", "test",
-                                "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()),
-                                "filters", Util.map("tables", Arrays.asList("country\\w*"), "columns", Arrays.asList("(?i)code", "(?i)name", "(?i)Language")))),
+                UtilExtended.map("url", mysqlUrl,
+                        "config", UtilExtended.map("schema", "test",
+                                "credentials", UtilExtended.map("user", mysql.getUsername(), "password", mysql.getPassword()),
+                                "filters", UtilExtended.map("tables", Arrays.asList("country\\w*"), "columns", Arrays.asList("(?i)code", "(?i)name", "(?i)Language")))),
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");

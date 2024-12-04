@@ -1,6 +1,6 @@
 package apoc.export.parquet;
 
-import apoc.util.collection.Iterators;
+import apoc.util.collection.IteratorsExtended;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -21,10 +21,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.LOAD_FROM_FILE_ERROR;
-import static apoc.ApocConfig.apocConfig;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.LOAD_FROM_FILE_ERROR;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.export.parquet.ExportParquet.EXPORT_TO_FILE_PARQUET_ERROR;
 import static apoc.export.parquet.ParquetTestUtil.assertBarRel;
 import static apoc.export.parquet.ParquetTestUtil.assertNodeAndLabel;
@@ -80,7 +80,7 @@ public class ParquetTest {
         final String query = "CALL apoc.load.parquet($byteArray, $config) YIELD value " +
                              "RETURN value";
         testResult(db, query, Map.of("byteArray", byteArray, "config", MAPPING_QUERY), result -> {
-            List<Map<String, Object>> value = Iterators.asList(result.columnAs("value"));
+            List<Map<String, Object>> value = IteratorsExtended.asList(result.columnAs("value"));
             Set<String> expected = Set.of("", "1", "7.0", "2023-06-14T08:38:28.193", "1999-01-01");
             Set<Object> actual = value.stream()
                     .flatMap(i -> i.values().stream())
@@ -107,22 +107,22 @@ public class ParquetTest {
 
     @Test
     public void testStreamRoundtripParquetAllWithImportExportConfsDisabled() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
-        assertFails("CALL apoc.export.parquet.all('ignore.parquet')", LOAD_FROM_FILE_ERROR);
+        assertFails("CALL apoc.export.parquet.all('ignore.parquet')", EXPORT_TO_FILE_PARQUET_ERROR);
     }
 
     @Test
     public void testExportFileWithConfigDisabled() {
-        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
         assertFails("CALL apoc.export.parquet.all('ignore.parquet')", EXPORT_TO_FILE_PARQUET_ERROR);
     }
 
     @Test
     public void testLoadImportFiletWithConfigDisabled() {
-        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
+        extendedApocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, false);
 
         assertFails("CALL apoc.load.parquet('ignore.parquet')", LOAD_FROM_FILE_ERROR);
         assertFails("CALL apoc.import.parquet('ignore.parquet')", LOAD_FROM_FILE_ERROR);
@@ -160,7 +160,7 @@ public class ParquetTest {
     public void testStreamRoundtripWithAnotherpleBatches() {
         final List<byte[]> bytes = db.executeTransactionally("CALL apoc.export.parquet.all.stream({batchSize:1})",
                 Map.of(),
-                r -> Iterators.asList(r.columnAs("value")));
+                r -> IteratorsExtended.asList(r.columnAs("value")));
 
         // then
         final String query = "UNWIND $bytes AS byte CALL apoc.load.parquet(byte, $config) YIELD value " +

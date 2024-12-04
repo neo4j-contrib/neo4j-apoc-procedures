@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.MapResult;
+import apoc.result.MapResultExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -44,9 +44,9 @@ public class Pinecone {
 
     @Procedure("apoc.vectordb.pinecone.info")
     @Description("apoc.vectordb.pinecone.info(hostOrKey, index, $configuration) - Get information about the specified existing index or throws an error if it does not exist")
-    public Stream<MapResult> getInfo(@Name("hostOrKey") String hostOrKey,
-                                              @Name("index") String index,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> getInfo(@Name("hostOrKey") String hostOrKey,
+                                             @Name("index") String index,
+                                             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/indexes/%s";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
 
@@ -55,16 +55,16 @@ public class Pinecone {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.pinecone.createCollection")
     @Description("apoc.vectordb.pinecone.createCollection(hostOrKey, index, similarity, size, $configuration) - Creates a index, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("index") String index,
-                                              @Name("similarity") String similarity,
-                                              @Name("size") Long size,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    public Stream<MapResultExtended> createCollection(@Name("hostOrKey") String hostOrKey,
+                                                      @Name("index") String index,
+                                                      @Name("similarity") String similarity,
+                                                      @Name("size") Long size,
+                                                      @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/indexes";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
@@ -77,12 +77,12 @@ public class Pinecone {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.pinecone.deleteCollection")
     @Description("apoc.vectordb.pinecone.deleteCollection(hostOrKey, index, $configuration) - Deletes a index with the name specified in the 2nd parameter")
-    public Stream<MapResult> deleteCollection(
+    public Stream<MapResultExtended> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("index") String index,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
@@ -94,12 +94,12 @@ public class Pinecone {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.pinecone.upsert")
     @Description("apoc.vectordb.pinecone.upsert(hostOrKey, index, vectors, $configuration) - Upserts, in the index with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
-    public Stream<MapResult> upsert(
+    public Stream<MapResultExtended> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("index") String index,
             @Name("vectors") List<Map<String, Object>> vectors,
@@ -122,12 +122,12 @@ public class Pinecone {
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(restAPIConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure("apoc.vectordb.pinecone.delete")
     @Description("apoc.vectordb.pinecone.delete(hostOrKey, index, ids, $configuration) - Delete the vectors with the specified `ids`")
-    public Stream<MapResult> delete(
+    public Stream<MapResultExtended> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("index") String index,
             @Name("vectors") List<Object> ids,
@@ -141,7 +141,7 @@ public class Pinecone {
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
         return executeRequest(apiConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+                .map(MapResultExtended::new);
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.get")

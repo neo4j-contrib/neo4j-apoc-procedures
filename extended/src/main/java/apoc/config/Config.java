@@ -1,9 +1,9 @@
 package apoc.config;
 
-import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.util.collection.Iterators;
+import apoc.ExtendedApocConfig;
+import apoc.result.MapResultExtended;
+import apoc.util.collection.IteratorsExtended;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.procedure.Admin;
@@ -16,14 +16,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
-import static apoc.ApocConfig.APOC_CONFIG_JOBS_QUEUE_SIZE;
-import static apoc.ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
-import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS;
+import static apoc.ExtendedApocConfig.APOC_CONFIG_JOBS_QUEUE_SIZE;
+import static apoc.ExtendedApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS;
+import static apoc.ExtendedApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ExtendedApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ExtendedApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_TTL_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_TTL_LIMIT;
 import static apoc.ExtendedApocConfig.APOC_TTL_SCHEDULE;
@@ -95,7 +95,7 @@ public class Config {
     @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+        Configuration config = dependencyResolver.resolveDependency(ExtendedApocConfig.class).getConfig();
         return getApocConfigs(config)
                 .map(s -> new ConfigResult(s, config.getString(s)));
     }
@@ -103,16 +103,16 @@ public class Config {
     @Admin
     @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
-    public Stream<MapResult> map() {
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+    public Stream<MapResultExtended> map() {
+        Configuration config = dependencyResolver.resolveDependency(ExtendedApocConfig.class).getConfig();
         Map<String, Object> configMap = getApocConfigs(config)
                 .collect(Collectors.toMap(s -> s, s -> config.getString(s)));
-        return Stream.of(new MapResult(configMap));
+        return Stream.of(new MapResultExtended(configMap));
     }
 
     private static Stream<String> getApocConfigs(Configuration config) {
         // we use startsWith(..) because we can have e.g. a config `apoc.uuid.enabled.<dbName>`
-        return Iterators.stream(config.getKeys())
+        return IteratorsExtended.stream(config.getKeys())
                 .filter(conf -> WHITELIST_CONFIGS.stream().anyMatch(conf::startsWith));
     }
 }

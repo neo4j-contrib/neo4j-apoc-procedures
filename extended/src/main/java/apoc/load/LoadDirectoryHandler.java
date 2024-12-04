@@ -1,7 +1,6 @@
 package apoc.load;
 
-import apoc.ApocConfig;
-import apoc.Pools;
+import apoc.PoolsExtended;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -24,8 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
+import static apoc.ExtendedApocConfig.extendedApocConfig;
 import static apoc.util.ExtendedFileUtils.getPathFromUrlString;
-import static apoc.util.FileUtils.isImportUsingNeo4jConfig;
+import static apoc.util.FileUtilsExtended.isImportUsingNeo4jConfig;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -38,9 +38,9 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
 
     private final Log log;
     private final GraphDatabaseService db;
-    private final Pools pools;
+    private final PoolsExtended pools;
 
-    public LoadDirectoryHandler(GraphDatabaseService db, Log log, Pools pools) {
+    public LoadDirectoryHandler(GraphDatabaseService db, Log log, PoolsExtended pools) {
         this.db = db;
         this.log = log;
         this.pools = pools;
@@ -156,7 +156,7 @@ public class LoadDirectoryHandler extends LifecycleAdapter {
 
     public static String getPathDependingOnUseNeo4jConfig(String urlFile) {
         return isImportUsingNeo4jConfig()
-                ? replaceOnce(urlFile, ApocConfig.apocConfig().getImportDir() + File.separator, "")
+                ? replaceOnce(urlFile, extendedApocConfig().getImportDir() + File.separator, "")
                 : urlFile;
     }
 }

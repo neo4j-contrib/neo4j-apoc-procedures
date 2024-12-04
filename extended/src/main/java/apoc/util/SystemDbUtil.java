@@ -1,6 +1,6 @@
 package apoc.util;
 
-import apoc.SystemPropertyKeys;
+import apoc.ExtendedSystemPropertyKeys;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -16,8 +16,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static apoc.ApocConfig.apocConfig;
-import static apoc.SystemPropertyKeys.database;
+import static apoc.ExtendedApocConfig.extendedApocConfig;
+import static apoc.ExtendedSystemPropertyKeys.database;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class SystemDbUtil {
@@ -37,8 +37,8 @@ public class SystemDbUtil {
      * @param msgDeprecation
      */
     public static void checkWriteAllowed(String msgDeprecation) {
-        GraphDatabaseAPI sysDb = (GraphDatabaseAPI) apocConfig().getSystemDb();
-        if (!Util.isWriteableInstance(sysDb)) {
+        GraphDatabaseAPI sysDb = (GraphDatabaseAPI) extendedApocConfig().getSystemDb();
+        if (!UtilExtended.isWriteableInstance(sysDb)) {
             throw new RuntimeException(SYS_NON_LEADER_ERROR + msgDeprecation);
         }
     }
@@ -58,9 +58,9 @@ public class SystemDbUtil {
      * @param db
      */
     public static void checkInSystemLeader(GraphDatabaseService db) {
-        GraphDatabaseAPI sysDb = (GraphDatabaseAPI) apocConfig().getSystemDb();
+        GraphDatabaseAPI sysDb = (GraphDatabaseAPI) extendedApocConfig().getSystemDb();
         // routing check
-        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME) || !Util.isWriteableInstance(sysDb)) {
+        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME) || !UtilExtended.isWriteableInstance(sysDb)) {
             throw new RuntimeException(PROCEDURE_NOT_ROUTED_ERROR);
         }
     }
@@ -91,7 +91,7 @@ public class SystemDbUtil {
      * @param action: the system db operation
      */
     public static <T> T withSystemDb(Function<Transaction, T> action) {
-        try (Transaction tx = apocConfig().getSystemDb().beginTx()) {
+        try (Transaction tx = extendedApocConfig().getSystemDb().beginTx()) {
             T result = action.apply(tx);
             tx.commit();
             return result;
@@ -104,7 +104,7 @@ public class SystemDbUtil {
      * @param consumer: the system db operation
      */
     public static void withSystemDb(Consumer<Transaction> consumer) {
-        try (Transaction tx = apocConfig().getSystemDb().beginTx()) {
+        try (Transaction tx = extendedApocConfig().getSystemDb().beginTx()) {
             consumer.accept(tx);
             tx.commit();
         }
@@ -155,7 +155,7 @@ public class SystemDbUtil {
             node.setProperty(database.name(), databaseName);
         }
         final long value = System.currentTimeMillis();
-        node.setProperty(SystemPropertyKeys.lastUpdated.name(), value);
+        node.setProperty(ExtendedSystemPropertyKeys.lastUpdated.name(), value);
     }
 
     /**
@@ -168,10 +168,10 @@ public class SystemDbUtil {
      */
     public static long getLastUpdate(String databaseName, Label label) {
         return SystemDbUtil.withSystemDb(tx -> {
-            Node node = tx.findNode(label, SystemPropertyKeys.database.name(), databaseName);
+            Node node = tx.findNode(label, ExtendedSystemPropertyKeys.database.name(), databaseName);
             return node == null
                     ? 0L
-                    : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+                    : (long) node.getProperty(ExtendedSystemPropertyKeys.lastUpdated.name());
         });
     }
 }

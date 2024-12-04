@@ -2,6 +2,12 @@ package apoc;
 
 public enum ExtendedSystemPropertyKeys
 {
+    database,
+
+    // cypher stored procedures/functions
+    lastUpdated,
+    statement,
+    
     // cypher stored procedures/functions
     inputs,
     description,
