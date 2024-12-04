@@ -148,7 +148,7 @@ This procedure `apoc.ml.openai.chat` takes a list of maps of chat exchanges betw
 
 It uses the `/chat/create` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
 
-Additional configuration is passed to the API, the default model used is `gpt-3.5-turbo`.
+Additional configuration is passed to the API, the default model used is `gpt-4o`.
 
 .Chat Completion Call
 [source,cypher]
@@ -162,7 +162,7 @@ CALL apoc.ml.openai.chat([
 .Chat Completion Response
 ----
 {created=1684248203, id="chatcmpl-7GqBXZr94avd4fluYDi2fWEz7DIHL",
-object="chat.completion", model="gpt-3.5-turbo-0301",
+object="chat.completion", model="gpt-4o-0301",
 usage={completion_tokens=2, prompt_tokens=26, total_tokens=28},
 choices=[{finish_reason="stop", index=0, message={role="assistant", content="Earth."}}]}
 ----
@@ -269,7 +269,7 @@ RETURN m.title
 | name | description | mandatory
 | retries | The number of retries in case of API call failures | no, default `3`
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -318,7 +318,7 @@ RETURN *
 |===
 | name | description | mandatory
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -383,7 +383,7 @@ RETURN DISTINCT a.name
 | name | description | mandatory
 | count | The number of queries to retrieve | no, default `1`
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 
@@ -460,7 +460,7 @@ RETURN *
 |===
 | name | description | mandatory
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
+| model | The Open AI model | no, default `gpt-4o`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
 |===
 

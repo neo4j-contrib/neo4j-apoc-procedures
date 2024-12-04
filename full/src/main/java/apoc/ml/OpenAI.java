@@ -167,15 +167,8 @@ public class OpenAI {
             @Name("api_key") String apiKey,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return executeRequest(
-                        apiKey,
-                        configuration,
-                        "chat/completions",
-                        "gpt-3.5-turbo",
-                        "messages",
-                        messages,
-                        "$",
-                        apocConfig)
+        String model = (String) configuration.putIfAbsent("model", "gpt-4o");
+        return executeRequest(apiKey, configuration, "chat/completions", model, "messages", messages, "$", apocConfig)
                 .map(v -> (Map<String, Object>) v)
                 .map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create

@@ -64,7 +64,7 @@ public class OpenAIAzureIT {
                 db,
                 "CALL apoc.ml.openai.completion('What color is the sky? Answer in one word: ', $apiKey, $conf)",
                 getParams(OPENAI_CHAT_URL),
-                (row) -> assertCompletion(row, "gpt-35-turbo"));
+                (row) -> assertCompletion(row, "gpt-4o"));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class OpenAIAzureIT {
                         + "{role:\"user\", content:\"What planet do humans live on?\"}\n"
                         + "], $apiKey, $conf)",
                 getParams(OPENAI_COMPLETION_URL),
-                (row) -> assertChatCompletion(row, "gpt-35-turbo"));
+                (row) -> assertChatCompletion(row, "gpt-4o"));
     }
 
     private static Map<String, Object> getParams(String url) {
