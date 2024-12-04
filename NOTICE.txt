@@ -252,6 +252,7 @@ Apache-2.0
   shiro-crypto-hash-1.13.0.jar
   shiro-event-1.13.0.jar
   shiro-lang-1.13.0.jar
+  snakeyaml-2.2.jar
   snappy-java-1.1.10.4.jar
   token-provider-2.0.3.jar
   websocket-api-9.4.53.v20231009.jar
