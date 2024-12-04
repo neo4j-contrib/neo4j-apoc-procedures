@@ -11,7 +11,10 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
-import static apoc.export.arrow.ArrowTestUtil.beforeClassCommon;
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
+import static apoc.export.arrow.ArrowTestUtil.initDbCommon;
 import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
 import static apoc.export.arrow.ArrowTestUtil.testLoadArrow;
 
@@ -23,7 +26,9 @@ public class ArrowS3Test extends S3BaseTest {
 
     @Before
     public void beforeClass() {
-        beforeClassCommon(db);
+        initDbCommon(db);
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
     @Test
