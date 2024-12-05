@@ -136,6 +136,8 @@ include::partial$generated-documentation/nav.adoc[]
 * xref:ml/index.adoc[]
     ** xref:ml/openai.adoc[]
     ** xref:ml/mixedbread.adoc[]
+    ** xref:ml/genai.adoc[]
+    ** xref:ml/rag.adoc[]
 
 * xref:background-operations/index.adoc[]
     ** xref::background-operations/periodic-background.adoc[]
