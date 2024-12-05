@@ -10,6 +10,7 @@ import static apoc.vectordb.VectorDbTestUtil.*;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.*;
 import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 import static apoc.vectordb.VectorMappingConfig.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -165,6 +167,23 @@ public class WeaviateTest {
                     r -> fail());
         } catch (Exception e) {
             assertThat(e.getMessage()).contains("HTTP response code: 403");
+        }
+    }
+
+    @Test
+    public void queryWithWrongEmbeddingSize() {
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, READONLY_AUTHORIZATION);
+
+        try {
+            testCall(
+                    db,
+                    "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9], null, 5, $conf)",
+                    map("host", HOST, "conf", conf),
+                    r -> fail());
+        } catch (Exception e) {
+            String message = e.getMessage();
+            String expectedErrMsg = "distance between entrypoint and query node: vector lengths don't match: 4 vs 3";
+            assertTrue(message.contains(expectedErrMsg));
         }
     }
 
