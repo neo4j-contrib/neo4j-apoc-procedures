@@ -1,8 +1,10 @@
 package apoc.ml;
 
 import apoc.ApocConfig;
+import apoc.Description;
 import apoc.Extended;
 import apoc.result.StringResult;
+import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -12,8 +14,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
@@ -24,6 +31,7 @@ import org.neo4j.procedure.Procedure;
 
 @Extended
 public class Prompt {
+    public static final String API_KEY_CONF = "apiKey";
 
     @Context
     public Transaction tx;
@@ -81,6 +89,78 @@ public class Prompt {
             return false;
             // return error != null && !error.isBlank();
         }
+    }
+
+    @Procedure(mode = Mode.READ)
+    @Description("Takes a query in cypher and in natural language and returns the results in natural language")
+    public Stream<StringResult> rag(
+            @Name("paths") Object paths,
+            @Name("attributes") List<String> attributes,
+            @Name("question") String question,
+            @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf)
+            throws Exception {
+        RagConfig config = new RagConfig(conf);
+        String[] arrayAttrs = attributes.toArray(String[]::new);
+
+        StringBuilder context = new StringBuilder();
+        // -- Retrieve
+        if (paths instanceof List) {
+            List pathList = (List) paths;
+
+            for (var listItem : pathList) {
+                // -- Augment
+                augment(config, arrayAttrs, context, listItem);
+            }
+
+        } else if (paths instanceof String) {
+            String queryOrIndex = (String) paths;
+            config.getEmbeddings().getQuery(queryOrIndex, question, tx, config).forEachRemaining(row -> row.values()
+                    // -- Augment
+                    .forEach(val -> augment(config, arrayAttrs, context, val)));
+        } else {
+            throw new RuntimeException("The first parameter must be a List or a String");
+        }
+
+        // - Generate
+        String contextPrompt = String.format(
+                "                                \n" + "                ---- Start context ----\n"
+                        + "                %s\n"
+                        + "                ---- End context ----",
+                context);
+
+        String prompt = config.getBasePrompt() + contextPrompt;
+        String result = prompt("\nQuestion:" + question, prompt, null, null, conf);
+        return Stream.of(new StringResult(result));
+    }
+
+    private void augment(RagConfig config, String[] objects, StringBuilder context, Object listItem) {
+        if (listItem instanceof Path) {
+            Path p = (Path) listItem;
+            for (Entity entity : p) {
+                augmentEntity(config, objects, context, entity);
+            }
+        } else if (listItem instanceof Entity) {
+            Entity e = (Entity) listItem;
+            augmentEntity(config, objects, context, e);
+        } else {
+            throw new RuntimeException(String.format("The list `%s` must have node/type/path items", listItem));
+        }
+    }
+
+    private void augmentEntity(RagConfig config, String[] objects, StringBuilder context, Entity entity) {
+        Map<String, Object> props = entity.getProperties(objects);
+        if (config.isGetLabelTypes()) {
+            String labelsOrType = entity instanceof Node
+                    ? Util.joinLabels(((Node) entity).getLabels(), ",")
+                    : ((Relationship) entity).getType().name();
+            labelsOrType = WordUtils.capitalize(labelsOrType, '_');
+            props.put("context description", labelsOrType);
+        }
+        String obj = props.entrySet().stream()
+                .filter(i -> i.getValue() != null)
+                .map(i -> i.getKey() + ": " + i.getValue() + "\n")
+                .collect(Collectors.joining("\n---\n"));
+        context.append(obj);
     }
 
     @Procedure(mode = Mode.READ)
@@ -162,7 +242,7 @@ public class Prompt {
             prompt.add(Map.of("role", "user", "content", userQuestion));
         if (assistantPrompt != null && !assistantPrompt.isBlank())
             prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
-        String apiKey = (String) conf.get("apiKey");
+        String apiKey = (String) conf.get(API_KEY_CONF);
         String model = (String) conf.getOrDefault("model", "gpt-4o");
         String result = OpenAI.executeRequest(
                         apiKey, Map.of(), "chat/completions", model, "messages", prompt, "$", apocConfig)
@@ -184,6 +264,16 @@ public class Prompt {
         if (log.isDebugEnabled()) log.debug(String.format("Generated query for question %s\n%s", userQuestion, result));
         return result;
     }
+
+    public static final String UNKNOWN_ANSWER = "Sorry, I don't know";
+    static final String RAG_BASE_PROMPT =
+            "You are a customer service agent that helps a customer with answering questions about a service.\n"
+                    + "Use the following context to answer the `user question` at the end. Make sure not to make any changes to the context if possible when prepare answers so as to provide accurate responses.\n"
+                    + "If you don't know the answer, just say `%s`, don't try to make up an answer.\n"
+                    + "\n"
+                    + "---- Start context ----\n"
+                    + "%s\n"
+                    + "---- End context ----";
 
     private static final String SCHEMA_QUERY =
             "call apoc.meta.data({maxRels: 10, sample: coalesce($sample, (count{()}/1000)+1)})\n"
