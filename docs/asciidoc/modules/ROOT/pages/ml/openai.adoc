@@ -167,6 +167,38 @@ usage={completion_tokens=2, prompt_tokens=26, total_tokens=28},
 choices=[{finish_reason="stop", index=0, message={role="assistant", content="Earth."}}]}
 ----
 
+.Chat Completion Call with custom model
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+{role:"user", content:"Which athletes won the gold medal in mixed doubles's curling at the 2022 Winter Olympics?"}
+],  $apiKey, { model: "gpt-3.5-turbo" }) yield value
+----
+
+.Chat Completion Response with custom model
+----
+{
+  "created" : 1721902606,
+  "usage" : {
+    "total_tokens" : 59,
+    "completion_tokens" : 32,
+    "prompt_tokens" : 27
+  },
+  "model" : "gpt-3.5-turbo-2024-05-13",
+  "id" : "chatcmpl-9opocM1gj9AMXIh7oSWWfoumJOTRC",
+  "choices" : [ {
+    "index" : 0,
+    "finish_reason" : "stop",
+    "message" : {
+      "content" : "The gold medal in mixed doubles curling at the 2022 Winter Olympics was won by the Italian team, consisting of Stefania Constantini and Amos Mosaner.",
+      "role" : "assistant"
+    }
+  } ],
+  "system_fingerprint" : "fp_400f27fa1f",
+  "object" : "chat.completion"
+}
+----
+
 .Parameters
 [%autowidth, opts=header]
 |===
