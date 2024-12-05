@@ -72,8 +72,8 @@ public class QdrantTest {
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
 
         QDRANT_CONTAINER.start();
+        HOST = QDRANT_CONTAINER.getHost() + ":" + QDRANT_CONTAINER.getMappedPort(6333);
 
-        HOST = "localhost:" + QDRANT_CONTAINER.getMappedPort(6333);
         TestUtil.registerProcedure(db, Qdrant.class, VectorDb.class);
 
         testCall(
