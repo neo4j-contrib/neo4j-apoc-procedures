@@ -60,8 +60,8 @@ public class ChromaDbTest {
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
 
         CHROMA_CONTAINER.start();
+        HOST = CHROMA_CONTAINER.getEndpoint();
 
-        HOST = "localhost:" + CHROMA_CONTAINER.getMappedPort(8000);
         TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class);
 
         testCall(
@@ -414,7 +414,7 @@ public class ChromaDbTest {
     @Test
     public void queryVectorsWithSystemDbStorage() {
         String keyConfig = "chroma-config-foo";
-        String baseUrl = "http://" + HOST;
+        String baseUrl = HOST;
         Map<String, Object> mapping =
                 map(EMBEDDING_KEY, "vect", NODE_LABEL, "Test", ENTITY_KEY, "myId", METADATA_KEY, "foo");
         sysDb.executeTransactionally(
