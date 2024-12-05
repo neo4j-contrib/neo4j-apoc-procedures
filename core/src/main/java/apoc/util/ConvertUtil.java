@@ -30,7 +30,7 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
-public class ExtendedUtil {
+public class ConvertUtil {
     public static Object toValidValue(Object object, String field, Map<String, Object> mapping) {
         Object fieldName = mapping.get(field);
         if (object != null && fieldName != null) {

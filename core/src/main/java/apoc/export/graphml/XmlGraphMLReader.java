@@ -18,6 +18,7 @@
  */
 package apoc.export.graphml;
 
+import static apoc.util.ConvertUtil.toValidValue;
 
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ExportConfig;

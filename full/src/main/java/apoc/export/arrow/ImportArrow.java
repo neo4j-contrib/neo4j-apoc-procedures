@@ -5,7 +5,7 @@ import static apoc.export.arrow.ArrowUtils.FIELD_LABELS;
 import static apoc.export.arrow.ArrowUtils.FIELD_SOURCE_ID;
 import static apoc.export.arrow.ArrowUtils.FIELD_TARGET_ID;
 import static apoc.export.arrow.ArrowUtils.FIELD_TYPE;
-import static apoc.util.ExtendedUtil.toValidValue;
+import static apoc.util.ConvertUtil.toValidValue;
 
 import apoc.Extended;
 import apoc.Pools;

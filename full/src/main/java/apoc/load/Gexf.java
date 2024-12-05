@@ -46,7 +46,7 @@ public class Gexf {
             throws Exception {
         boolean simpleMode = Util.toBoolean(config.getOrDefault("simpleMode", false));
         String path = (String) config.getOrDefault("path", "/");
-        return xmlXpathToMapResult(urlOrBinary, simpleMode, path, config);
+        return xmlXpathToMapResult(urlOrBinary, simpleMode, path, config, terminationGuard);
     }
 
     @Procedure(name = "apoc.import.gexf", mode = Mode.WRITE)
