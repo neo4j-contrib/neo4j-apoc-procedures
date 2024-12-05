@@ -1,5 +1,6 @@
 package apoc.full.it.vectordb;
 
+import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -32,7 +33,6 @@ import apoc.util.Util;
 import apoc.vectordb.Qdrant;
 import apoc.vectordb.VectorDb;
 import apoc.vectordb.VectorDbTestUtil;
-
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
@@ -210,32 +210,35 @@ public class QdrantTest {
 
     @Test
     public void queryVectorsWithRag() {
-        String openAIKey = System.getenv("OPENAI_KEY");;
+        String openAIKey = System.getenv("OPENAI_KEY");
+        ;
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
 
         db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
 
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                HEADERS_KEY, READONLY_AUTHORIZATION,
-                MAPPING_KEY, map(NODE_LABEL, "Rag",
-                        ENTITY_KEY, "readID",
-                        METADATA_KEY, "foo")
-        );
+        Map<String, Object> conf = map(
+                ALL_RESULTS_KEY,
+                true,
+                HEADERS_KEY,
+                READONLY_AUTHORIZATION,
+                MAPPING_KEY,
+                map(NODE_LABEL, "Rag", ENTITY_KEY, "readID", METADATA_KEY, "foo"));
 
-        testResult(db,
-                """
-                    CALL apoc.vectordb.qdrant.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector
-                    WITH collect(node) as paths
-                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
-                    RETURN value
-                     """
-                ,
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector\n"
+                        + "WITH collect(node) as paths\n"
+                        + "CALL apoc.ml.rag(paths, $attributes, \"Which city has foo equals to one?\", $confPrompt) YIELD value\n"
+                        + "RETURN value",
                 map(
-                        "host", HOST,
-                        "conf", conf,
-                        "confPrompt", map(API_KEY_CONF, openAIKey),
-                        "attributes", List.of("city", "foo")
-                ),
+                        "host",
+                        HOST,
+                        "conf",
+                        conf,
+                        "confPrompt",
+                        map(API_KEY_CONF, openAIKey),
+                        "attributes",
+                        List.of("city", "foo")),
                 r -> {
                     Map<String, Object> row = r.next();
                     Object value = row.get("value");
