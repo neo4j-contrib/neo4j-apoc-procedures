@@ -115,7 +115,7 @@ public class Xml {
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config,
             @Name(value = "simple", defaultValue = "false") boolean simpleMode)
             throws Exception {
-        return xmlXpathToMapResult(urlOrBinary, simpleMode, path, config);
+        return xmlXpathToMapResult(urlOrBinary, simpleMode, path, config, terminationGuard);
     }
 
     @UserFunction("apoc.xml.parse")
@@ -128,14 +128,23 @@ public class Xml {
             throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
-        return parse(new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), simpleMode, path, failOnError)
+        return parse(
+                        new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))),
+                        simpleMode,
+                        path,
+                        failOnError,
+                        terminationGuard)
                 .map(mr -> mr.value)
                 .findFirst()
                 .orElse(null);
     }
 
     public static Stream<MapResult> xmlXpathToMapResult(
-            @Name("urlOrBinary") Object urlOrBinary, boolean simpleMode, String path, Map<String, Object> config)
+            @Name("urlOrBinary") Object urlOrBinary,
+            boolean simpleMode,
+            String path,
+            Map<String, Object> config,
+            TerminationGuard terminationGuard)
             throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
@@ -143,14 +152,15 @@ public class Xml {
             Map<String, Object> headers = (Map) config.getOrDefault("headers", Collections.emptyMap());
             CountingInputStream is = FileUtils.inputStreamFor(
                     urlOrBinary, headers, null, (String) config.getOrDefault(COMPRESSION, CompressionAlgo.NONE.name()));
-            return parse(is, simpleMode, path, failOnError);
+            return parse(is, simpleMode, path, failOnError, terminationGuard);
         } catch (Exception e) {
             if (!failOnError) return Stream.of(new MapResult(Collections.emptyMap()));
             else throw e;
         }
     }
 
-    public static Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError)
+    public static Stream<MapResult> parse(
+            InputStream data, boolean simpleMode, String path, boolean failOnError, TerminationGuard terminationGuard)
             throws Exception {
         List<MapResult> result = new ArrayList<>();
         try {
@@ -173,7 +183,7 @@ public class Xml {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 final Deque<Map<String, Object>> stack = new LinkedList<>();
 
-                handleNode(stack, nodeList.item(i), simpleMode);
+                handleNode(stack, nodeList.item(i), simpleMode, terminationGuard);
                 for (int index = 0; index < stack.size(); index++) {
                     result.add(new MapResult(stack.pollFirst()));
                 }
@@ -223,7 +233,8 @@ public class Xml {
         }
     }
 
-    private void handleNode(Deque<Map<String, Object>> stack, Node node, boolean simpleMode) {
+    private static void handleNode(
+            Deque<Map<String, Object>> stack, Node node, boolean simpleMode, TerminationGuard terminationGuard) {
         terminationGuard.check();
 
         // Handle document node
@@ -231,7 +242,7 @@ public class Xml {
             NodeList children = node.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {
                 if (children.item(i).getLocalName() != null) {
-                    handleNode(stack, children.item(i), simpleMode);
+                    handleNode(stack, children.item(i), simpleMode, terminationGuard);
                     return;
                 }
             }
@@ -248,7 +259,7 @@ public class Xml {
 
             // This is to deal with text between xml tags for example new line characters
             if (child.getNodeType() != Node.TEXT_NODE && child.getNodeType() != Node.CDATA_SECTION_NODE) {
-                handleNode(stack, child, simpleMode);
+                handleNode(stack, child, simpleMode, terminationGuard);
                 count++;
             } else {
                 // Deal with text nodes
@@ -290,7 +301,7 @@ public class Xml {
      * @param node
      * @param elementMap
      */
-    private void handleTypeAndAttributes(Node node, Map<String, Object> elementMap) {
+    private static void handleTypeAndAttributes(Node node, Map<String, Object> elementMap) {
         // Set type
         if (node.getLocalName() != null) {
             elementMap.put("_type", node.getLocalName());
@@ -312,7 +323,7 @@ public class Xml {
      * @param node
      * @param elementMap
      */
-    private void handleTextNode(Node node, Map<String, Object> elementMap) {
+    private static void handleTextNode(Node node, Map<String, Object> elementMap) {
         Object text = "";
         int nodeType = node.getNodeType();
         switch (nodeType) {
@@ -344,7 +355,7 @@ public class Xml {
      * @param text
      * @return
      */
-    private String normalizeText(String text) {
+    private static String normalizeText(String text) {
         String[] tokens = StringUtils.split(text, "\n");
         for (int i = 0; i < tokens.length; i++) {
             tokens[i] = tokens[i].trim();
@@ -682,7 +693,7 @@ public class Xml {
         }
     }
 
-    private RuntimeException generateXmlDoctypeException() {
+    private static RuntimeException generateXmlDoctypeException() {
         throw new RuntimeException("XML documents with a DOCTYPE are not allowed.");
     }
 }
