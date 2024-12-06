@@ -19,6 +19,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Extended
@@ -83,15 +84,29 @@ public class DataVirtualizationCatalog {
         VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
+
+        String direction = (String) config.getOrDefault("direction", Direction.OUT.name());
+
         return tx.execute(procedureCallWithParams.getLeft(), procedureCallWithParams.getRight())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
-                .map(n -> new VirtualRelationship(node, n, relationshipType))
+                .map(n -> getVirtualRelationship(node, n, direction, relationshipType))
                 .map(r -> {
                     VirtualPath virtualPath =  new VirtualPath(r.getStartNode());
                     virtualPath.addRel(r);
                     return virtualPath;
                 })
                 .map(PathResult::new);
+    }
+
+    private VirtualRelationship getVirtualRelationship(Node node, Node n, String direction, RelationshipType relationshipType) {
+        if ( Objects.equals(direction.toUpperCase(), Direction.OUT.name()) ) {
+            return new VirtualRelationship(node, n, relationshipType);
+        }
+        return new VirtualRelationship(n, node, relationshipType);
+    }
+
+    enum Direction {
+        IN, OUT;
     }
 }
