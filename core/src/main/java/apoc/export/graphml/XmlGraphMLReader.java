@@ -230,17 +230,19 @@ public class XmlGraphMLReader {
     }
 
     public enum ReaderType {
-        GRAPHML("attvalue", KEY, LABEL),
-        GEXF("data", FOR, KIND);
+        GRAPHML("attvalue", KEY, LABEL, LABELS),
+        GEXF("data", FOR, KIND, LABEL);
 
         public String attvalue;
         public QName key;
         public QName label;
+        public QName labels;
 
-        ReaderType(String attvalue, QName key, QName label) {
+        ReaderType(String attvalue, QName key, QName label, QName labels) {
             this.attvalue = attvalue;
             this.key = key;
             this.label = label;
+            this.labels = labels;
         }
     }
 
@@ -284,8 +286,9 @@ public class XmlGraphMLReader {
                 if (event.isStartElement()) {
                     StartElement element = event.asStartElement();
                     String name = element.getName().getLocalPart();
-                    if (name.equals("graphml") || name.equals("graph") || name.equals("gexf")) continue;
-                    if (name.equals("attribute")) {
+                    boolean isNameGexf = readerType.equals(ReaderType.GEXF) && name.equals("gexf");
+                    if (name.equals("graphml") || name.equals("graph") || isNameGexf) continue;
+                    if (readerType.equals(ReaderType.GEXF) && name.equals("attribute")) {
                         String id = getAttribute(element, ID);
                         String type = getAttribute(element, DATA_TYPE);
                         dataMap.put(id, type);
@@ -311,7 +314,7 @@ public class XmlGraphMLReader {
                         else relKeys.put(id, key);
                         continue;
                     }
-                    if (name.equals(readerType.attvalue)) { // Changed from data to attvalue for node properties in gexf
+                    if (name.equals(readerType.attvalue)) {
                         if (last == null) continue;
                         String id = getAttribute(element, readerType.key);
                         boolean isNode = last instanceof Node;
@@ -319,15 +322,17 @@ public class XmlGraphMLReader {
                         if (key == null) key = Key.defaultKey(id, isNode);
                         final Map.Entry<XMLEvent, Object> eventEntry = getDataEventEntry(reader, key);
                         final XMLEvent next = eventEntry.getKey();
-                        final Object value = readerType.equals(ReaderType.GRAPHML)
+                        Object value = readerType.equals(ReaderType.GRAPHML)
                                 ? eventEntry.getValue()
                                 : getAttribute(element, VALUE);
                         if (value != null) {
                             if (this.labels && isNode && id.equals("labels")) {
                                 addLabels((Node) last, value.toString());
                             } else if (!this.labels || isNode || !id.equals("label")) {
-                                Object convertedValue = toValidValue(value, key.name, dataMap);
-                                last.setProperty(key.name, convertedValue);
+                                value = readerType.equals(ReaderType.GRAPHML)
+                                        ? toValidValue(value, key.name, dataMap)
+                                        : value;
+                                last.setProperty(key.name, value);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
                         } else if (next.getEventType() == XMLStreamConstants.END_ELEMENT) {
@@ -342,7 +347,7 @@ public class XmlGraphMLReader {
                         Node node = tx.getTransaction().createNode();
                         if (this.labels) {
                             String labels = getAttribute(
-                                    element, LABEL); // Changed from labels to label to fit gexf property format
+                                    element, readerType.labels);
                             addLabels(node, labels);
                         }
                         if (storeNodeIds) node.setProperty("id", id);
@@ -355,7 +360,7 @@ public class XmlGraphMLReader {
                     }
                     if (name.equals("edge")) {
                         tx.increment();
-                        String label = getAttribute(element, readerType.label); // changed from label to kind for gexf
+                        String label = getAttribute(element, readerType.label);
                         Node from = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.SOURCE);
                         Node to = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.TARGET);
 
