@@ -1,10 +1,12 @@
 package apoc.ml;
 
+import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import apoc.util.ExtendedTestUtil;
 import apoc.util.TestUtil;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -137,5 +140,61 @@ public class OpenAIIT {
           ]
         }
                  */
+    }
+
+    @Test
+    public void embeddingsNull() {
+        assertNullInputFails(
+                db,
+                "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap()));
+    }
+
+    @Test
+    public void chatNull() {
+        assertNullInputFails(
+                db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", emptyMap()));
+    }
+
+    @Test
+    public void chatReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(
+                db,
+                "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false)));
+    }
+
+    @Test
+    public void embeddingsReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(
+                db,
+                "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false)));
+    }
+
+    @Test
+    public void chatWithEmptyFails() {
+        assertNullInputFails(
+                db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", emptyMap()));
+    }
+
+    @Test
+    public void embeddingsWithEmptyReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(
+                db,
+                "CALL apoc.ml.openai.embedding([], $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false)));
+    }
+
+    @Test
+    public void completionReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(
+                db,
+                "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false)));
+    }
+
+    public static void assertNullInputFails(GraphDatabaseService db, String query, Map<String, Object> params) {
+        ExtendedTestUtil.assertFails(db, query, params, ERROR_NULL_INPUT);
     }
 }
