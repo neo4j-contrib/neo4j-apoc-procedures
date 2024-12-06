@@ -1,5 +1,6 @@
 package apoc.full.it.vectordb;
 
+import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -10,6 +11,7 @@ import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.ragSetup;
 import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
@@ -21,9 +23,11 @@ import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
+import apoc.ml.Prompt;
 import apoc.util.TestUtil;
 import apoc.vectordb.ChromaDb;
 import apoc.vectordb.VectorDb;
+import apoc.vectordb.VectorDbTestUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,9 +64,9 @@ public class ChromaDbTest {
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
 
         CHROMA_CONTAINER.start();
-        HOST = CHROMA_CONTAINER.getEndpoint();
 
-        TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class);
+        HOST = CHROMA_CONTAINER.getEndpoint();
+        TestUtil.registerProcedure(db, ChromaDb.class, VectorDb.class, Prompt.class);
 
         testCall(
                 db,
@@ -451,5 +455,27 @@ public class ChromaDbTest {
                 });
 
         assertNodesCreated(db);
+    }
+
+    @Test
+    public void queryVectorsWithRag() {
+        String openAIKey = ragSetup(db);
+
+        Map<String, Object> conf = map(
+                ALL_RESULTS_KEY, true, MAPPING_KEY, map(NODE_LABEL, "Rag", ENTITY_KEY, "readID", METADATA_KEY, "foo"));
+
+        testResult(
+                db,
+                "CALL apoc.vectordb.chroma.getAndUpdate($host, $collection, ['1', '2'], $conf) YIELD node, metadata, id, vector\n"
+                        + "WITH collect(node) as paths\n"
+                        + "CALL apoc.ml.rag(paths, $attributes, \"Which city has foo equals to one?\", $confPrompt) YIELD value\n"
+                        + "RETURN value",
+                map(
+                        "host", HOST,
+                        "conf", conf,
+                        "collection", COLL_ID.get(),
+                        "confPrompt", map(API_KEY_CONF, openAIKey),
+                        "attributes", List.of("city", "foo")),
+                VectorDbTestUtil::assertRagWithVectors);
     }
 }

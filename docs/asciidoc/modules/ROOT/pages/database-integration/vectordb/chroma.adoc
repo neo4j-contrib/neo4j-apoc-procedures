@@ -156,6 +156,22 @@ CALL apoc.vectordb.chroma.query($host, '<collection_id>',
 ----
 
 
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.chroma.query and the `apoc.vectordb.chroma.get` procedures.
+For example, by executing a `CALL apoc.vectordb.chroma.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"include": ["metadatas", "documents", "distances"]},
+so that we do not return the other values that we do not need.
+====
+
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
+
+[source,cypher]
+----
+CALL apoc.vectordb.chroma.getAndUpdate($host, $collection, [<id1>, <id2>], $conf) YIELD node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
 
 which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
 
