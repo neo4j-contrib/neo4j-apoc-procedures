@@ -5,6 +5,7 @@ import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.util.Util.listOfNumbersToFloatArray;
 import static apoc.util.Util.setProperties;
 import static apoc.vectordb.VectorDbUtil.*;
+import static apoc.vectordb.VectorDbUtil.appendVersionUrlIfNeeded;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 
@@ -267,7 +268,7 @@ public class VectorDb {
             Node node = Util.mergeNode(transaction, label, null, Pair.of(SystemPropertyKeys.name.name(), configKey));
 
             Map mapping = (Map) config.get("mapping");
-            String host = (String) config.get("host");
+            String host = appendVersionUrlIfNeeded(type, (String) config.get("host"));
             Object credentials = config.get("credentials");
 
             if (host != null) {
