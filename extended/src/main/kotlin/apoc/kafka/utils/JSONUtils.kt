@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.neo4j.driver.internal.value.PointValue
@@ -122,10 +121,6 @@ object JSONUtils {
 
     fun readValue(value: ByteArray): Any {
         return getObjectMapper().readValue(value)
-    }
-
-    inline fun <reified T> convertValue(value: Any, objectMapper: ObjectMapper = getObjectMapper()): T {
-        return objectMapper.convertValue(value)
     }
 
     fun asStreamsTransactionEvent(obj: Any): StreamsTransactionEvent {
