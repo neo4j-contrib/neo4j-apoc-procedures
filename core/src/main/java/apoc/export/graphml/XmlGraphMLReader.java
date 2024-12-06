@@ -230,16 +230,16 @@ public class XmlGraphMLReader {
     }
 
     public enum ReaderType {
-        GRAPHML("attvalue", KEY, LABEL, LABELS),
-        GEXF("data", FOR, KIND, LABEL);
+        GRAPHML("data", KEY, LABEL, LABELS),
+        GEXF("attvalue", FOR, KIND, LABEL);
 
-        public String attvalue;
+        public String data;
         public QName key;
         public QName label;
         public QName labels;
 
-        ReaderType(String attvalue, QName key, QName label, QName labels) {
-            this.attvalue = attvalue;
+        ReaderType(String data, QName key, QName label, QName labels) {
+            this.data = data;
             this.key = key;
             this.label = label;
             this.labels = labels;
@@ -301,6 +301,7 @@ public class XmlGraphMLReader {
                                 getAttribute(element, TYPE),
                                 getAttribute(element, LIST),
                                 getAttribute(element, FOR));
+
                         XMLEvent next = peek(reader);
                         if (next.isStartElement()
                                 && next.asStartElement()
@@ -314,7 +315,7 @@ public class XmlGraphMLReader {
                         else relKeys.put(id, key);
                         continue;
                     }
-                    if (name.equals(readerType.attvalue)) {
+                    if (name.equals(readerType.data)) {
                         if (last == null) continue;
                         String id = getAttribute(element, readerType.key);
                         boolean isNode = last instanceof Node;
