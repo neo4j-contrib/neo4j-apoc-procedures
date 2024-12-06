@@ -16,6 +16,7 @@ import java.util.Set;
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.OpenAI.GPT_4O_MODEL;
+import static apoc.ml.OpenAI.FAIL_ON_ERROR_CONF;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -141,12 +142,48 @@ public class OpenAIIT {
     }
 
     @Test
+    public void chatNull() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+    @Test
+    public void embeddingsReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+
+    @Test
+    public void chatWithEmptyFails() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+    
+    @Test
+    public void embeddingsWithEmptyReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding([], $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+    @Test
     public void completionNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
                 Map.of("apiKey", openaiKey, "conf", emptyMap())
         );
     }
-    
+
     @Test
     public void chatCompletionNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
@@ -158,6 +195,13 @@ public class OpenAIIT {
     public void chatCompletionNullGpt35Turbo() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
                 Map.of("apiKey", openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL))
+        );
+    }
+
+    @Test
+    public void completionReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
         );
     }
 }
