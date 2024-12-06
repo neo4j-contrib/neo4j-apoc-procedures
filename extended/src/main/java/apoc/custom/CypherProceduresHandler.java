@@ -28,7 +28,6 @@ import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
 import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -63,7 +62,7 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.AnyType;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTAny;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTMap;
 
-public class CypherProceduresHandler extends LifecycleAdapter implements AvailabilityListener {
+public class CypherProceduresHandler extends LifecycleAdapter {
     public static final String PREFIX = "custom";
     public static final String FUNCTION = "function";
     public static final String PROCEDURE = "procedure";
@@ -95,7 +94,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     @Override
-    public void available() {
+    public void start() {
         restoreProceduresAndFunctions();
         long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
         restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
@@ -106,7 +105,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     @Override
-    public void unavailable() {
+    public void stop() {
         if (restoreProceduresHandle != null) {
             restoreProceduresHandle.cancel();
         }
