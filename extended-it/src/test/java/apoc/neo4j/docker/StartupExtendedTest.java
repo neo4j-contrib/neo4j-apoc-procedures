@@ -116,8 +116,8 @@ public class StartupExtendedTest {
         final List<String> procedureNames = getNames(session, APOC_HELP_QUERY,
                 Map.of("core", true, "type", "procedure") );
 
-        assertEquals(sorted(ApocSignatures.PROCEDURES), procedureNames);
-        assertEquals(sorted(ApocSignatures.FUNCTIONS), functionNames);
+        assertEquals(sorted(ApocSignatures.PROCEDURES_CYPHER_5), procedureNames);
+        assertEquals(sorted(ApocSignatures.FUNCTIONS_CYPHER_5), functionNames);
     }
 
     private static List<String> getNames(Session session, String query, Map<String, Object> params) {
