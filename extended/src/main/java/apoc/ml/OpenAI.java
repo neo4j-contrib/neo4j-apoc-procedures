@@ -4,7 +4,10 @@ import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
+import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -12,13 +15,10 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +35,7 @@ public class OpenAI {
     public static final String JSON_PATH_CONF_KEY = "jsonPath";
     public static final String PATH_CONF_KEY = "path";
     public static final String GPT_4O_MODEL = "gpt-4o";
+    public static final String FAIL_ON_ERROR_CONF = "failOnError";
 
     @Context
     public ApocConfig apocConfig;
@@ -147,6 +148,10 @@ public class OpenAI {
       "model": "text-embedding-ada-002",
       "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
     */
+        boolean failOnError = isFailOnError(configuration);
+        if (checkNullInput(texts, failOnError)) return Stream.empty();
+        texts = texts.stream().filter(StringUtils::isNotBlank).toList();
+        if (checkEmptyInput(texts, failOnError)) return Stream.empty();
         return getEmbeddingResult(texts, apiKey, configuration, apocConfig, urlAccessChecker,
                 (map, text) -> {
                     Long index = (Long) map.get("index");
@@ -155,6 +160,7 @@ public class OpenAI {
                 m -> new EmbeddingResult(-1, m, List.of())
         );
     }
+
 
     static <T> Stream<T> getEmbeddingResult(List<String> texts, String apiKey, Map<String, Object> configuration, ApocConfig apocConfig, URLAccessChecker urlAccessChecker,
                                             BiFunction<Map, String, T> embeddingMapping, Function<String, T> nullMapping) throws JsonProcessingException, MalformedURLException {
@@ -194,9 +200,8 @@ public class OpenAI {
       "usage": { "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12 }
     }
     */
-        if (prompt == null) {
-            throw new RuntimeException(ERROR_NULL_INPUT);
-        }
+        boolean failOnError = isFailOnError(configuration);
+        if(checkBlankInput(prompt, failOnError)) return Stream.empty();
         return executeRequest(apiKey, configuration, "completions", "gpt-3.5-turbo-instruct", "prompt", prompt, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
     }
@@ -204,9 +209,10 @@ public class OpenAI {
     @Procedure("apoc.ml.openai.chat")
     @Description("apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API")
     public Stream<MapResult> chatCompletion(@Name("messages") List<Map<String, Object>> messages, @Name("api_key") String apiKey, @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        if (messages == null) {
-            throw new RuntimeException(ERROR_NULL_INPUT);
-        }
+        boolean failOnError = isFailOnError(configuration);
+        if (checkNullInput(messages, failOnError)) return Stream.empty();
+        messages = messages.stream().filter(MapUtils::isNotEmpty).toList();
+        if (checkEmptyInput(messages, failOnError)) return Stream.empty();
         configuration.putIfAbsent("model", GPT_4O_MODEL);
         return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
@@ -220,4 +226,32 @@ public class OpenAI {
       } ] }
     */
     }
+
+    private static boolean isFailOnError(Map<String, Object> configuration) {
+        return Util.toBoolean(configuration.getOrDefault(FAIL_ON_ERROR_CONF, true));
+    }
+
+    static boolean checkNullInput(Object input, boolean failOnError) {
+        return checkInput(failOnError, () -> Objects.isNull(input));
+    }
+
+    static boolean checkEmptyInput(Collection<?> input, boolean failOnError) {
+        return checkInput(failOnError, () -> input.isEmpty());
+    }
+
+    static boolean checkBlankInput(String input, boolean failOnError) {
+        return checkInput(failOnError, () -> StringUtils.isBlank(input));
+    }
+
+    private static boolean checkInput(
+            boolean failOnError,
+            Supplier<Boolean> checkFunction
+    ){
+        if (checkFunction.get()) {
+            if(failOnError) throw new RuntimeException(ERROR_NULL_INPUT);
+            return true;
+        }
+        return false;
+    }
+
 }
