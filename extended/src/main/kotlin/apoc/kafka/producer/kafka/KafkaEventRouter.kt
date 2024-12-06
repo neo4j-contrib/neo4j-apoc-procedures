@@ -30,7 +30,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
                        private val db: GraphDatabaseService,
                        private val log: Log) {
 
-    /*override*/ val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
+    val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
         .from(config, db.databaseName(), db.isDefaultDb(), log)
 
 
@@ -45,7 +45,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         else -> StreamsPluginStatus.STOPPED
     }
 
-    /*override*/ fun start() = runBlocking {
+    fun start() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == StreamsPluginStatus.RUNNING) {
                 return@runBlocking
@@ -59,7 +59,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         }
     }
 
-    /*override*/ fun stop() = runBlocking {
+    fun stop() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == StreamsPluginStatus.STOPPED) {
                 return@runBlocking

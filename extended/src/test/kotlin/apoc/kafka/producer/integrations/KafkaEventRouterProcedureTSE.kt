@@ -2,14 +2,12 @@ package apoc.kafka.producer.integrations
 
 import apoc.kafka.events.StreamsEvent
 import apoc.kafka.extensions.execute
-// import apoc.kafka.support.start
 import apoc.kafka.utils.JSONUtils
 import apoc.util.ExtendedTestUtil
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.NewTopic
 import org.junit.Test
 import org.neo4j.graphdb.QueryExecutionException
-import org.neo4j.graphdb.Result
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

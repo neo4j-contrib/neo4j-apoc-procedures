@@ -3,7 +3,6 @@ package apoc.kafka
 import apoc.ApocConfig
 import apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED
 import apoc.kafka.config.StreamsConfig
-import apoc.kafka.consumer.StreamsSinkConfigurationListener
 import apoc.kafka.producer.StreamsRouterConfigurationListener
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import org.neo4j.kernel.lifecycle.LifecycleAdapter
@@ -28,13 +27,6 @@ class KafkaHandler(): LifecycleAdapter() {
             } catch (e: Exception) {
                 log.error("Exception in StreamsRouterConfigurationListener {}", e.message)
             }
-
-            try {
-                StreamsSinkConfigurationListener(db, log)
-                    .start(StreamsConfig.getConfiguration())
-            } catch (e: Exception) {
-                log.error("Exception in StreamsSinkConfigurationListener {}", e.message)
-            }
         }
     }
 
@@ -42,7 +34,6 @@ class KafkaHandler(): LifecycleAdapter() {
         if(ApocConfig.apocConfig().getBoolean(APOC_KAFKA_ENABLED)) {
 
             StreamsRouterConfigurationListener(db, log).shutdown()
-            StreamsSinkConfigurationListener(db, log).shutdown()
         }
     }
 }

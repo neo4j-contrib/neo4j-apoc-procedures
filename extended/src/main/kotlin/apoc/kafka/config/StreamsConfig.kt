@@ -21,15 +21,6 @@ class StreamsConfig {
         const val SOURCE_ENABLED_VALUE = true
         const val PROCEDURES_ENABLED = "apoc.kafka.procedures.enabled"
         const val PROCEDURES_ENABLED_VALUE = true
-        const val SINK_ENABLED = "apoc.kafka.sink.enabled"
-        const val SINK_ENABLED_VALUE = false
-        const val CHECK_APOC_TIMEOUT = "apoc.kafka.check.apoc.timeout"
-        const val CHECK_APOC_INTERVAL = "apoc.kafka.check.apoc.interval"
-        const val CLUSTER_ONLY = "apoc.kafka.cluster.only"
-        const val CHECK_WRITEABLE_INSTANCE_INTERVAL = "apoc.kafka.check.writeable.instance.interval"
-        const val POLL_INTERVAL = "apoc.kafka.sink.poll.interval"
-        const val INSTANCE_WAIT_TIMEOUT = "apoc.kafka.wait.timeout"
-        const val INSTANCE_WAIT_TIMEOUT_VALUE = 120000L
 
         fun isSourceGloballyEnabled(config: Map<String, Any?>) = config.getOrDefault(SOURCE_ENABLED, SOURCE_ENABLED_VALUE).toString().toBoolean()
 
@@ -38,12 +29,6 @@ class StreamsConfig {
         fun hasProceduresGloballyEnabled(config: Map<String, Any?>) = config.getOrDefault(PROCEDURES_ENABLED, PROCEDURES_ENABLED_VALUE).toString().toBoolean()
 
         fun hasProceduresEnabled(config: Map<String, Any?>, dbName: String) = config.getOrDefault("${PROCEDURES_ENABLED}.$dbName", hasProceduresGloballyEnabled(config)).toString().toBoolean()
-
-        fun isSinkGloballyEnabled(config: Map<String, Any?>) = config.getOrDefault(SINK_ENABLED, SINK_ENABLED_VALUE).toString().toBoolean()
-
-        fun isSinkEnabled(config: Map<String, Any?>, dbName: String) = config.getOrDefault("${SINK_ENABLED}.to.$dbName", isSinkGloballyEnabled(config)).toString().toBoolean()
-
-        fun getInstanceWaitTimeout(config: Map<String, Any?>) = config.getOrDefault(INSTANCE_WAIT_TIMEOUT, INSTANCE_WAIT_TIMEOUT_VALUE).toString().toLong()
 
         fun convert(props: Map<String,String>, config: Map<String, String>): Map<String, String> {
             val mutProps = props.toMutableMap()
