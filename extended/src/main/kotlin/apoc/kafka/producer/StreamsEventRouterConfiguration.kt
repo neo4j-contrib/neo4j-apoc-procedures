@@ -57,33 +57,17 @@ data class StreamsEventRouterConfiguration(val enabled: Boolean = StreamsConfig.
                                            ),
                                            val schemaPollingInterval: Long = 300000) {
 
-    fun allTopics(): List<String> {
-        val nodeTopics = nodeRouting.map { it.topic }
-        val relTopics = relRouting.map { it.topic }
-        return nodeTopics + relTopics
-    }
-
     companion object {
 
-        fun from(streamsConfig: Map<String, String>, dbName: String, isDefaultDb: Boolean, log: Log? = null): StreamsEventRouterConfiguration {
-            var nodeRouting = filterMap<NodeRoutingConfiguration>(config = streamsConfig,
+        fun from(streamsConfig: Map<String, String>, dbName: String, log: Log? = null): StreamsEventRouterConfiguration {
+            val nodeRouting = filterMap<NodeRoutingConfiguration>(config = streamsConfig,
                     routingPrefix = StreamsRoutingConfigurationConstants.NODE_ROUTING_KEY_PREFIX,
                     dbName = dbName)
-            var relRouting = filterMap<RelationshipRoutingConfiguration>(config = streamsConfig,
+            val relRouting = filterMap<RelationshipRoutingConfiguration>(config = streamsConfig,
                     routingPrefix = StreamsRoutingConfigurationConstants.REL_ROUTING_KEY_PREFIX,
                     dbName = dbName,
                     routingSuffix = StreamsRoutingConfigurationConstants.KEY_STRATEGY_SUFFIX,
                     log = log)
-
-            if (isDefaultDb) {
-                nodeRouting += filterMap(config = streamsConfig,
-                        routingPrefix = StreamsRoutingConfigurationConstants.NODE_ROUTING_KEY_PREFIX
-                )
-                relRouting += filterMap(config = streamsConfig,
-                        routingPrefix = StreamsRoutingConfigurationConstants.REL_ROUTING_KEY_PREFIX,
-                        routingSuffix = StreamsRoutingConfigurationConstants.KEY_STRATEGY_SUFFIX,
-                        log = log)
-            }
 
             val default = StreamsEventRouterConfiguration()
             return default.copy(

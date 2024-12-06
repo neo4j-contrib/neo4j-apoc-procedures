@@ -2,7 +2,6 @@ package apoc.kafka.producer.integrations
 
 import apoc.kafka.events.StreamsEvent
 import apoc.kafka.extensions.execute
-// import apoc.kafka.support.start
 import apoc.kafka.utils.JSONUtils
 import apoc.util.ExtendedTestUtil
 import org.apache.kafka.clients.admin.AdminClient
@@ -286,7 +285,7 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
 
     private fun assertSyncResult(it: Result) {
         assertTrue { it.hasNext() }
-        val resultMap = (it.next())["value"] as Map<String, Any>
+        val resultMap = (it.next())["value"] as Map<*, *>
         assertNotNull(resultMap["offset"])
         assertNotNull(resultMap["partition"])
         assertNotNull(resultMap["keySize"])
