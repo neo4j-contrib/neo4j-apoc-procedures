@@ -4,7 +4,7 @@
 label:procedure[] label:apoc-extended[]
 
 [.emphasis]
-apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
+apoc.import.arrow(input, $config) - Imports entities from the provided Arrow file or byte array
 
 == Signature
 

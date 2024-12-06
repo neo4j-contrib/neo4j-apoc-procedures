@@ -4,7 +4,7 @@
 label:procedure[]
 
 [.emphasis]
-`apoc.load.arrow(file STRING, config MAP<STRING, ANY>)` - imports `NODE` and `RELATIONSHIP` values from the provided arrow file.
+`apoc.load.arrow(file STRING, config MAP<STRING, ANY>)` - imports values from the provided Arrow file.
 
 == Signature
 

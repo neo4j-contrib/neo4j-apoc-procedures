@@ -4,7 +4,7 @@
 label:procedure[]
 
 [.emphasis]
-`apoc.load.arrow.stream(source LIST<INTEGER>, config MAP<STRING, ANY>)` - imports `NODE` and `RELATIONSHIP` values from the provided arrow byte array.
+`apoc.load.arrow.stream(source LIST<INTEGER>, config MAP<STRING, ANY>)` - imports values from the provided Arrow byte array.
 
 == Signature
 
