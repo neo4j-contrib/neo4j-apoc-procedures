@@ -105,7 +105,7 @@ public class LoadArrowExtended {
 
     @Procedure(name = "apoc.load.arrow.stream")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
-    @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow byte array.")
+    @Description("Imports values from the provided Arrow byte array.")
     public Stream<LoadDataMapResult> stream(
             @Name(value = "source", description = "The data to load.") byte[] source,
             @Name(value = "config", defaultValue = "{}", description = "This value is never used.")
@@ -126,7 +126,7 @@ public class LoadArrowExtended {
 
     @Procedure(name = "apoc.load.arrow")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
-    @Description("Imports `NODE` and `RELATIONSHIP` values from the provided arrow file.")
+    @Description("Imports values from the provided Arrow file.")
     public Stream<LoadDataMapResult> file(
             @Name(value = "file", description = "The name of the file to import data from.") String fileName,
             @Name(value = "config", defaultValue = "{}", description = "This value is never used.")

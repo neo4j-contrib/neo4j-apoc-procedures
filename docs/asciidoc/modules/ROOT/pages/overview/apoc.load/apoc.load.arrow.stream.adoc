@@ -1,0 +1,31 @@
+= apoc.load.arrow.stream
+:description: This section contains reference documentation for the apoc.load.arrow.stream procedure.
+
+label:procedure[]
+
+[.emphasis]
+`apoc.load.arrow.stream(source LIST<INTEGER>, config MAP<STRING, ANY>)` - imports values from the provided Arrow byte array.
+
+== Signature
+
+[source]
+----
+apoc.load.arrow.stream(source :: LIST<INTEGER>, config = {} :: MAP) :: (value :: MAP)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|source|LIST<INTEGER>|null
+|config|MAP|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP
+|===
+
+xref:import/arrow.adoc[More documentation about apoc.load.arrow,role=more information]

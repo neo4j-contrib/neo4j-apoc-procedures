@@ -67,7 +67,7 @@ public class ImportArrow {
     
     
     @Procedure(name = "apoc.import.arrow", mode = Mode.WRITE)
-    @Description("Imports arrow from the provided arrow file or byte array")
+    @Description("Imports entities from the provided Arrow file or byte array")
     public Stream<ImportProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         ImportProgressInfo result =
