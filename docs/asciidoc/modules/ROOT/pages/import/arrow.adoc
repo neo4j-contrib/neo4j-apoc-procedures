@@ -1,0 +1,121 @@
+[[load-arrow]]
+= Load and Import Arrow
+:description: This section describes procedures that can be used to import Apache Arrow data from web APIs or files.
+
+
+
+The following procedures allow you to read an Apache Arrow file exported via xref::export/arrow.adoc[apoc.export.arrow.* procedures].
+It could also potentially read other Apache Arrow files that have not been created via the export procedures.
+
+[[load-arrow-available-procedures]]
+== Procedure and Function Overview
+
+The table below describes the available procedures and functions:
+
+[separator=¦,opts=header,cols="5,1m"]
+|===
+¦Qualified Name¦Type
+¦xref::overview/apoc.load/apoc.load.arrow.adoc[apoc.load.arrow icon:book[]] +
+`apoc.load.arrow(file STRING, config MAP<STRING, ANY>)` - loads values from the provided Arrow file.
+¦label:procedure[]
+
+¦xref::overview/apoc.load/apoc.load.arrow.stream.adoc[apoc.load.arrow.stream.adoc icon:book[]] +
+`apoc.load.arrow.stream(source LIST<INTEGER>, config MAP<STRING, ANY>)` - loads values from the provided Arrow byte array.
+¦label:procedure[]
+
+¦xref::overview/apoc.import/apoc.import.arrow.adoc[apoc.import.arrow icon:book[]] +
+`apoc.import.arrow(urlOrBinaryFile ANY, config MAP<STRING, ANY>)` - imports entities from the provided Arrow file or byte array
+¦label:procedure[]
+|===
+
+
+
+[[load-arrow-available-procedures-apoc.load.arrow]]
+=== `apoc.load.arrow`
+
+
+This procedure takes a file or HTTP URL and parses the Apache Arrow into a map data structure.
+
+[separator=¦,opts=header,cols="1m"]
+|===
+¦signature
+¦apoc.load.arrow(file :: STRING, config = {} :: MAP) :: (value :: MAP)
+|===
+
+
+Currently, this procedure does not support any config parameters.
+
+include::includes/enableFileImport.adoc[]
+
+[[load-arrow-available-procedures-apoc.load.arrow.stream]]
+=== `apoc.load.arrow.stream`
+
+
+This procedure takes a byte[] source and parses the Apache Arrow into a map data structure.
+
+[separator=¦,opts=header,cols="1m"]
+|===
+¦signature
+¦apoc.load.arrow.stream(source :: LIST<INTEGER>, config = {} :: MAP) :: (value :: MAP)
+|===
+
+Currently, this procedure does not support any config parameters.
+
+
+[[load-arrow-examples]]
+== Examples
+
+The following section contains examples showing how to import data from various Apache Arrow sources.
+
+[[load-arrow-examples-local-file]]
+=== Import from local file
+
+Taking the output xref::export/arrow.adoc#export-cypher-query-arrow[of this case]:
+
+.The following query processes a `test.arrow` file and returns the content as Cypher data structures
+[source,cypher]
+----
+CALL apoc.load.arrow('test.arrow')
+YIELD value
+RETURN value
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {arrayArray -> ["[0]"], dateData -> 2015-05-18T19:32:24Z, boolArray -> [true,false,true], intArray -> [1,2,3], mapData -> "{"foo":"bar"}", boolData -> true, intData -> 1, mixedArray -> ["1","2","true",<null>], doubleArray -> [1.1,2.2,3.3], doubleData -> 1.1, stringData -> "a"}
+|===
+
+
+[[load-arrow-examples-binary-source]]
+=== Import from binary source
+
+Taking the output xref::export/arrow.adoc#export-cypher-query-arrow-stream[of this case]:
+
+.The following query processes a `test.arrow` file and returns the content as Cypher data structures
+[source,cypher]
+----
+CALL apoc.load.arrow.stream('<binary arrow file>')
+YIELD value
+RETURN value
+----
+
+.Results
+[options="header"]
+|===
+| value
+| {arrayArray -> ["[0]"], dateData -> 2015-05-18T19:32:24Z, boolArray -> [true,false,true], intArray -> [1,2,3], mapData -> "{"foo":"bar"}", boolData -> true, intData -> 1, mixedArray -> ["1","2","true",<null>], doubleArray -> [1.1,2.2,3.3], doubleData -> 1.1, stringData -> "a"}
+|===
+
+
+[[import-arrow]]
+=== Import Arrow file created by Export Arrow procedures
+
+The `apoc.import.arrow` procedure can be used to import Apache Arrow files created by the xref::export/arrow.adoc[apoc.export.arrow.*] procedures.
+
+This procedure should not be confused with the `apoc.load.arrow*` procedures,
+which just loads the values of the Arrow file, and does not create entities in the database.
+
+See xref::overview/apoc.import/apoc.import.arrow.adoc[this page] for more info.
+
