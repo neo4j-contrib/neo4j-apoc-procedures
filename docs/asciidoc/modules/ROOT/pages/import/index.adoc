@@ -14,3 +14,5 @@ For more information on these procedures, see:
 * xref::import/html.adoc[]
 * xref::import/parquet.adoc[]
 * xref::import/gexf.adoc[]
+* xref::import/load-json.adoc[]
+* xref::import/arrow.adoc[]

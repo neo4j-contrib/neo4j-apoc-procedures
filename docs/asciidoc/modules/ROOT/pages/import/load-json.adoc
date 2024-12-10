@@ -1,0 +1,48 @@
+[[apoc.load.jsonParams]]
+= Load JSON
+:description: This section contains reference documentation for the apoc.load.jsonParams procedure.
+
+label:procedure[] label:apoc-core[]
+
+[.emphasis]
+====
+apoc.load.jsonParams('urlOrBinary',\{headers\}, \{payload\}, $config) YIELD value
+
+It loads from JSON URL, a RestAPI endpoint URL, or from a binary source.
+
+The headers and the payload parameters can be used to execute a RestAPI.
+The procedure will return multiple values if the starting JSON is a list of JSON or a single result in case it is a single JSON.
+====
+
+== Signature
+
+[source]
+----
+apoc.load.jsonParams(urlOrKeyOrBinary :: ANY?, headers :: MAP?, payload :: STRING?, path =  :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|urlOrKeyOrBinary|ANY?|null
+|headers|MAP?|null
+|payload|STRING?|null
+|path|STRING?|
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+== Reading from a file
+include::includes/enableFileImport.adoc[]
+
+[[usage-apoc.load.jsonParams]]
+== Usage Examples
+include::partial$usage/apoc.load.jsonParams.adoc[]
+
