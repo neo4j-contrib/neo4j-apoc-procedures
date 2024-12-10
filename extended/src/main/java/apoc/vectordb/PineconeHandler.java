@@ -53,7 +53,7 @@ public class PineconeHandler implements VectorDbHandler {
          *  that makes the request to respond 200 OK, but returns an empty result 
          */
         @Override
-        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
+        public <T> VectorEmbeddingConfig fromGet(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String index) {
             List<String> fields = procedureCallContext.outputFields().toList();
             
             config.put(BODY_KEY, null);
@@ -74,7 +74,7 @@ public class PineconeHandler implements VectorDbHandler {
         }
 
         @Override
-        public VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<Double> vector, Object filter, long limit, String collection) {
+        public VectorEmbeddingConfig fromQuery(Map<String, Object> config, ProcedureCallContext procedureCallContext, List<Double> vector, Object filter, long limit, String index) {
             List<String> fields = procedureCallContext.outputFields().toList();
 
             Map<String, Object> additionalBodies = map("vector", vector,

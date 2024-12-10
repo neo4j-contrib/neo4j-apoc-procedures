@@ -16,10 +16,12 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.ExtendedTestUtil.assertFails;
+import static apoc.util.ExtendedTestUtil.testRetryCallEventually;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
@@ -50,7 +52,7 @@ public class PineconeTest {
     private static String API_KEY;
     private static String HOST;
     
-    private static final String collName = "test-collection";
+    private static final String collName = UUID.randomUUID().toString();
 
     @ClassRule
     public static TemporaryFolder storeDir = new TemporaryFolder();
@@ -76,9 +78,9 @@ public class PineconeTest {
 
         ADMIN_AUTHORIZATION = map("Api-Key", API_KEY);
         ADMIN_HEADER_CONF  = map(HEADERS_KEY, ADMIN_AUTHORIZATION);
-        
-        testCall(db, "CALL apoc.vectordb.pinecone.createCollection($host, $coll, 'cosine', 4, $conf)",
-                map("host", null, "coll", collName,
+
+        testRetryCallEventually(db, "CALL apoc.vectordb.pinecone.createCollection($host, $coll, 'cosine', 4, $conf)",
+                map("host", HOST, "coll", collName,
                         "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION, 
                                     "body", map("spec", map("serverless", map("cloud", "aws", "region", "us-east-1")) )
                         )
@@ -86,9 +88,13 @@ public class PineconeTest {
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals(map("ready", false, "state", "Initializing"), value.get("status"));
-                });
+                    HOST = "https://" + value.get("host");
+                }, 5L);
 
-        testCall(db, """
+        // the upsert takes a while
+        Util.sleep(5000);
+
+        testResult(db, """
                         CALL apoc.vectordb.pinecone.upsert($host, $coll,
                         [
                             {id: '1', vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
@@ -96,16 +102,17 @@ public class PineconeTest {
                         ],
                         $conf)
                         """,
-                map("host", "https://test-collection-ilx67g5.svc.aped-4627-b74a.pinecone.io",
+                map("host", HOST,
                         "coll", collName,
                         "conf", ADMIN_HEADER_CONF),
                 r -> {
-                    Map value = (Map) r.get("value");
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
                     assertEquals(2L, value.get("upsertedCount"));
                 });
         
         // the upsert takes a while
-        Util.sleep(5000);
+        Util.sleep(20000);
     }
 
     @AfterClass
@@ -130,7 +137,7 @@ public class PineconeTest {
     @Test
     public void getInfo() {
         testResult(db, "CALL apoc.vectordb.pinecone.info($host, $coll, $conf) ",
-                map("host", HOST, "coll", collName,
+                map("host", null, "coll", collName,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),
                 r -> {
@@ -142,12 +149,12 @@ public class PineconeTest {
     
     @Test
     public void getInfoNotExistentCollection() {
-        assertFails(db, "CALL apoc.vectordb.pinecone.info($host, 'wrong_collection', $conf) ",
-                map("host", HOST, "coll", collName,
+        String wrongCollection = "wrong_collection";
+        assertFails(db, "CALL apoc.vectordb.pinecone.info($host, $coll, $conf)",
+                map("host", null, "coll", wrongCollection,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),
-                "Server returned HTTP response code: 500"
-        );
+                "java.io.FileNotFoundException: https://api.pinecone.io/indexes/" + wrongCollection);
     }
 
     @Test
@@ -201,7 +208,7 @@ public class PineconeTest {
                 });
 
         // the upsert takes a while
-        Util.sleep(5000);
+        Util.sleep(10000);
 
         testCall(db, "CALL apoc.vectordb.pinecone.delete($host, $coll, ['3', '4'], $conf) ",
                 map("host", HOST, "coll", collName, "conf", ADMIN_HEADER_CONF),
