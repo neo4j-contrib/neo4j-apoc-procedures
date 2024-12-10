@@ -5,7 +5,6 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.CollectionUtils;
 import apoc.util.ExtendedMapUtils;
-import apoc.util.ExtendedStringUtils;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
