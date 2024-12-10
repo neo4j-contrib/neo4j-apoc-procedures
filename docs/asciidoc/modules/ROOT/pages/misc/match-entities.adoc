@@ -5,7 +5,7 @@
 The library provides 2 procedure for matching entities:
 
 - apoc.node.match
-- apoc.relationship.match
+- apoc.rel.match
 
 [[matching-node]]
 == Matching nodes
@@ -104,13 +104,13 @@ RETURN node;
 == Matching relationships
 
 [.emphasis]
-"apoc.relationship.match(startNode, relType,  identProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...})" - match relationship with dynamic type, with support for setting properties on match
+"apoc.rel.match(startNode, relType,  identProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...})" - match relationship with dynamic type, with support for setting properties on match
 
 === Signature
 
 [source]
 ----
-apoc.relationship.match(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)
+apoc.rel.match(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)
 ----
 
 === Input parameters
@@ -149,12 +149,12 @@ The example below shows equivalent ways of matching an `REVIEW` relationship bet
 // tag::tabs[]
 [.tabs]
 
-.apoc.relationship.match
+.apoc.rel.match
 [source,cypher]
 ----
 MATCH (p:Person {name: "Billy Reviewer"})
 MATCH (m:Movie {title:"spooky and goofy movie"})
-CALL apoc.relationship.match(
+CALL apoc.rel.match(
     p, "REVIEW",
     {lastSeen: date("1984-12-21")},
     m, {rating: 9.5}
@@ -200,7 +200,7 @@ The following match a relationship with a type and properties based on the previ
 ----
 MATCH (bill:Person {name: "Billy Reviewer"})
 MATCH (movie:Movie {title:"spooky and goofy movie"})
-CALL apoc.relationship.match(bill, $relType, $identityProperties, movie, {}})
+CALL apoc.rel.match(bill, $relType, $identityProperties, movie, {}})
 YIELD rel
 RETURN rel;
 ----

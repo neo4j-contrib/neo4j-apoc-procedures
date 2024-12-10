@@ -210,6 +210,8 @@ apoc.redis.zcard
 apoc.redis.zrangebyscore
 apoc.redis.zrem
 apoc.rel.rebind
+apoc.rel.match
+apoc.node.match
 apoc.static.get
 apoc.static.getAll
 apoc.static.list
