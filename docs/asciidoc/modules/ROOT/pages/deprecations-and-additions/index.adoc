@@ -4,6 +4,37 @@
 
 This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
 
+[[apoc-deprecations-additions-removals-2025.01]]
+== Version 2025.01
+
+=== New procedures and functions
+
+[cols="2", options="header"]
+|===
+| Feature
+| Details
+
+a|
+label:procedure[]
+label:new[]
+[source, cypher, role="noheader"]
+----
+apoc.export.arrow.all(file [, config ])
+apoc.export.arrow.graph(file, graph [, config ])
+apoc.export.arrow.query(file, query [, config ])
+apoc.export.arrow.stream.all([ config ])
+apoc.export.arrow.stream.graph(graph [, config ])
+apoc.export.arrow.stream.query(query [, config ])
+apoc.load.arrow(file [, config ])
+apoc.load.arrow.stream(source [, config ])
+apoc.load.jsonParams(urlOrKeyOrBinary, headers, payload [, path, config ])
+apoc.log.stream(path [, config ])
+----
+a|
+All of these procedures were migrated from Cypher Core.
+
+|===
+
 [[apoc-deprecations-additions-removals-5.0]]
 == Version 5.0
 
