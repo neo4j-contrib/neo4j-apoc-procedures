@@ -43,7 +43,7 @@ public class EntitiesExtended {
         return EntityUtil.anyRebind(tx, any);
     }
 
-    @Procedure(value = "apoc.node.match", mode = Mode.WRITE)
+    @Procedure(value = "apoc.node.match")
     @Description("Matches the given `NODE` values with the given dynamic labels.")
     public Stream<UpdatedNodeResult> nodes(
             @Name(value = "labels", description = "The list of labels used for the generated MATCH statement.")
@@ -62,7 +62,7 @@ public class EntitiesExtended {
         return nodeResult.columnAs("n").stream().map(node -> new UpdatedNodeResult((Node) node));
     }
 
-    @Procedure(value = "apoc.relationship.match", mode = Mode.WRITE)
+    @Procedure(value = "apoc.relationship.match")
     @Description("Matches the given `RELATIONSHIP` values with the given dynamic types/properties.")
     public Stream<UpdatedRelationshipResult> relationship(
             @Name(value = "startNode", description = "The start node of the relationship.") Node startNode,
