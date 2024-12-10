@@ -137,7 +137,7 @@ dependencies {
 
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
-
+    compileOnly group: 'io.confluent', name: 'kafka-avro-serializer', version: '7.8.0'
 
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
@@ -179,6 +179,7 @@ dependencies {
     testImplementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
     testImplementation group: 'org.testcontainers', name: 'kafka', version: testContainersVersion
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
+    testImplementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '7.8.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

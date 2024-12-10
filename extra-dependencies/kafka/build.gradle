@@ -25,4 +25,5 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jacksonVersion, commonExclusions
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.4.2', commonExclusions
     implementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion, commonExclusions
+    implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '7.8.0', commonExclusions
 }
