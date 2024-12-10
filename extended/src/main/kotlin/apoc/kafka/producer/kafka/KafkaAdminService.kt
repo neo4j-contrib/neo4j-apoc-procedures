@@ -16,7 +16,7 @@ import apoc.kafka.utils.KafkaUtil
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
-class KafkaAdminService(private val props: KafkaConfiguration, private val log: Log) {
+class KafkaAdminService(private val props: KafkaConfiguration, /*private val allTopics: List<String>, */private val log: Log) {
     private val client = AdminClient.create(props.asProperties())
     private val kafkaTopics: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
     private val isAutoCreateTopicsEnabled = isAutoCreateTopicsEnabled(client)

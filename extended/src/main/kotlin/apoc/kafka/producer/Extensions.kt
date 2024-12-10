@@ -9,6 +9,7 @@ import apoc.kafka.events.RelationshipPayload
 import apoc.kafka.events.Schema
 import apoc.kafka.events.StreamsConstraintType
 import apoc.kafka.events.StreamsTransactionEvent
+import apoc.kafka.extensions.labelNames
 import apoc.kafka.utils.KafkaUtil.getNodeKeys
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.config.TopicConfig
@@ -16,10 +17,6 @@ import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.schema.ConstraintDefinition
 import org.neo4j.graphdb.schema.ConstraintType
-
-fun Node.labelNames() : List<String> {
-    return this.labels.map { it.name() }
-}
 
 fun Node.toMap(): Map<String, Any?> {
     return mapOf("id" to id.toString(), "properties" to allProperties, "labels" to labelNames(), "type" to EntityType.node)
