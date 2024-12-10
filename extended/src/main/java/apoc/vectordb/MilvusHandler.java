@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
+import static apoc.vectordb.VectorDbUtil.addMetadataKeyToFields;
 import static apoc.vectordb.VectorEmbeddingConfig.META_AS_SUBKEY_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.SCORE_KEY;
 
@@ -57,10 +57,8 @@ public class MilvusHandler implements VectorDbHandler {
         private VectorEmbeddingConfig getVectorEmbeddingConfig(Map<String, Object> config, List<String> procFields, String collection, Map<String, Object> additionalBodies) {
             config.putIfAbsent(META_AS_SUBKEY_KEY, false);
 
-            List listFields = (List) config.get(FIELDS_KEY);
-            if (listFields == null) {
-                throw new RuntimeException("You have to define `field` list of parameter to be returned");
-            }
+            List listFields = addMetadataKeyToFields(config);
+
             if (procFields.contains("vector") && !listFields.contains("vector")) {
                 listFields.add("vector");
             }
