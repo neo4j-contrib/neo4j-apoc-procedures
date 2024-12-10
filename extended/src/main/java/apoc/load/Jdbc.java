@@ -107,10 +107,10 @@ public class Jdbc {
     @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
     public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         log.info( String.format( "Executing SQL update: %s", query ) );
-        return executeUpdate(urlOrKey, query, config, params.toArray(new Object[params.size()]));
+        return executeUpdate(urlOrKey, query, config, log, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
+    public static Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Log log, Object...params) {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
@@ -224,7 +224,10 @@ public class Jdbc {
                 return value;
             }
             if (Types.TIME == sqlType) {
-                return ((java.sql.Time)value).toLocalTime();
+                if (value instanceof java.sql.Time time) {
+                    return time.toLocalTime();
+                }
+                return value;
             }
             if (Types.TIME_WITH_TIMEZONE == sqlType) {
                 return OffsetTime.parse(value.toString());
@@ -248,7 +251,11 @@ public class Jdbc {
                 }
             }
             if (Types.DATE == sqlType) {
-                return ((java.sql.Date)value).toLocalDate();
+                // Cannot cast 'java.time.LocalDate' to 'java.sql.Date'  -- with DuckDB since is already a LocalDate
+                if (value instanceof java.sql.Date date) {
+                    return date.toLocalDate();
+                }
+                return value;
             }
 
             if (Types.ARRAY == sqlType) {

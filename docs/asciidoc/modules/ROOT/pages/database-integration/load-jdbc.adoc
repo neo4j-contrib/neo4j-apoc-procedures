@@ -2,7 +2,8 @@
 = Load JDBC (RDBMS)
 :description: This section describes procedures that can be used to import data from databases that have JDBC support.
 
-
+// todo - aggiungere documentazione qui 
+//  e dire che per usare PaperaDB dobbiamo importare il driver da qui: https://repo1.maven.org/maven2/org/duckdb/duckdb_jdbc/1.1.3/duckdb_jdbc-1.1.3.jar
 
 Data Integration is an important topic.
 Reading data from relational databases to create and augment data models is a very helpful exercise.
