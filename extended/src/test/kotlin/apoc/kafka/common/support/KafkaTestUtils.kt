@@ -1,6 +1,7 @@
 package apoc.kafka.common.support
 
 import apoc.kafka.PublishProcedures
+import apoc.kafka.consumer.procedures.StreamsSinkProcedures
 import apoc.util.TestUtil
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -55,7 +56,7 @@ object KafkaTestUtils {
 
     fun getDbServices(dbms: DatabaseManagementService): GraphDatabaseService {
         val db = dbms.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME)
-        TestUtil.registerProcedure(db, GlobalProcedures::class.java, PublishProcedures::class.java);
+        TestUtil.registerProcedure(db, StreamsSinkProcedures::class.java, GlobalProcedures::class.java, PublishProcedures::class.java);
         return db
     }
 }

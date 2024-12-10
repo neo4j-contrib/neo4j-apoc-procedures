@@ -15,3 +15,18 @@ fun <T> GraphDatabaseService.execute(cypher: String, lambda: ((Result) -> T)) = 
 fun <T> GraphDatabaseService.execute(cypher: String,
                                      params: Map<String, Any>,
                                      lambda: ((Result) -> T)) = this.executeTransactionally(cypher, params, lambda)
+
+fun GraphDatabaseService.isSystemDb() = this.databaseName() == KafkaUtil.SYSTEM_DATABASE_NAME
+
+fun GraphDatabaseService.databaseManagementService() = (this as GraphDatabaseAPI).dependencyResolver
+    .resolveDependency(DatabaseManagementService::class.java, DependencyResolver.SelectionStrategy.SINGLE)
+
+fun GraphDatabaseService.isDefaultDb() = databaseManagementService().getDefaultDbName() == databaseName()
+
+fun GraphDatabaseService.registerTransactionEventListener(txHandler: TransactionEventListener<*>) {
+    databaseManagementService().registerTransactionEventListener(this.databaseName(), txHandler)
+}
+
+fun GraphDatabaseService.unregisterTransactionEventListener(txHandler: TransactionEventListener<*>) {
+    databaseManagementService().unregisterTransactionEventListener(this.databaseName(), txHandler)
+}
