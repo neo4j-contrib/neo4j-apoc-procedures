@@ -9,6 +9,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -18,8 +20,12 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
+import static apoc.load.Analytics.PROVIDER_CONF_KEY;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Enclosed.class)
@@ -36,7 +42,12 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         @BeforeClass
         public static void setUpContainer() {
             mysql.start();
-            TestUtil.registerProcedure(db, Jdbc.class);
+            TestUtil.registerProcedure(db, Jdbc.class, Analytics.class);
+            String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
+            try (Transaction tx = db.beginTx()) {
+                tx.execute(movies);
+                tx.commit();
+            }
         }
 
         @AfterClass
@@ -53,6 +64,70 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         @Test
         public void testIssue3496() {
             MySQLJdbcTest.testIssue3496(db, mysql);
+        }
+
+        @Test
+        public void testLoadJdbcAnalytics() {
+            String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
+
+            String sql = """
+                SELECT
+                    country,
+                    name,
+                    year,
+                    population,
+                    RANK() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
+                FROM %s
+                ORDER BY country, name;
+               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+            testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                    map(
+                            "queryCypher", cypher,
+                            "sql", sql,
+                            "url", mysql.getJdbcUrl(),
+                            "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
+                    ),
+                    r -> commonAnalyticsAssertions(r, "1", "3", "5"));
+        }
+
+        @Test
+        public void testLoadJdbcAnalyticsWindow() {
+            String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
+
+            String sql = """
+                SELECT
+                    country,
+                    name,
+                    year,
+                    population,
+                    ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
+                FROM %s
+                ORDER BY country, name;
+               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+
+            testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                    map(
+                            "queryCypher", cypher,
+                            "sql", sql,
+                            "url", mysql.getJdbcUrl(),
+                            "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
+                    ),
+                    r -> commonAnalyticsAssertions(r, "2", "4", "6"));
+        }
+
+        private static void commonAnalyticsAssertions(Result r, 
+                          String expected4thResult, String expected5thResult, String expected6thResult) {
+            assertRowRank(r.next(), "1");
+            assertRowRank(r.next(), "2");
+            assertRowRank(r.next(), "3");
+            assertRowRank(r.next(), expected4thResult);
+            assertRowRank(r.next(), expected5thResult);
+            assertRowRank(r.next(), expected6thResult);
+            assertRowRank(r.next(), "1");
+            assertRowRank(r.next(), "3");
+            assertRowRank(r.next(), "5");
+
+            assertFalse(r.hasNext());
         }
     }
     

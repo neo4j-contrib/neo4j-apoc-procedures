@@ -28,8 +28,14 @@ public class JdbcUtil {
         if(config.hasCredentials()) {
             return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword(), classType);
         } else {
-            URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
-            String userInfo = uri.getUserInfo();
+            String userInfo = null;
+            try {
+                URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+                userInfo = uri.getUserInfo();
+            } catch (Exception e) {
+                // with DuckDB we can pass a jdbc url like "jdbc:duckdb:"
+                // this will fail executing new URI(..) due to `java.net.URISyntaxException: Expected scheme-specific part at index 7: duckdb:`
+            }
             if (userInfo != null) {
                 String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
                 String[] user = userInfo.split(":");

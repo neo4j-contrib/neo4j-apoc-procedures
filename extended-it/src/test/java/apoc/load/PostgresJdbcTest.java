@@ -10,6 +10,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -19,6 +20,8 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static apoc.load.Analytics.PROVIDER_CONF_KEY;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertArrayEquals;
@@ -41,8 +44,14 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     public static void setUp() throws Exception {
         postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
         postgress.start();
-        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class, Strings.class);
+        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class, Strings.class, Analytics.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
+
+        String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
+        try (Transaction tx = db.beginTx()) {
+            tx.execute(movies);
+            tx.commit();
+        }
     }
 
     @AfterClass
@@ -132,6 +141,70 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         testResult(db, query, config, this::assertPeriodicIterate);
 
         assertPgStatActivityHasOnlyActiveState();
+    }
+
+    @Test
+    public void testLoadJdbcAnalytics() {
+        String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
+
+        String sql = """
+    SELECT
+        country,
+        name,
+        year,
+        population,
+        RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
+    FROM %s
+    ORDER BY rank, country, name;
+               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+        
+        testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                map(
+                        "queryCypher", cypher,
+                        "sql", sql,
+                        "url", getUrl(postgress),
+                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
+                ),
+                r -> commonAnalyticsAssertions(r, 1));
+    }
+
+    @Test
+    public void testLoadJdbcAnalyticsWindow() {
+        String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
+
+        String sql = """
+                SELECT
+                    country,
+                    name,
+                    year,
+                    population,
+                    ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) rank
+                FROM %s
+                ORDER BY rank, country, name;
+               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+
+        testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                map(
+                        "queryCypher", cypher,
+                        "sql", sql,
+                        "url", getUrl(postgress),
+                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
+                ),
+                r -> commonAnalyticsAssertions(r, 2));
+    }
+
+    private static void commonAnalyticsAssertions(Result r, int expected3rdResult) {
+        assertRowRank(r.next(), 1);
+        assertRowRank(r.next(), 1);
+        assertRowRank(r.next(), expected3rdResult);
+        assertRowRank(r.next(), 2);
+        assertRowRank(r.next(), 3);
+        assertRowRank(r.next(), 3);
+        assertRowRank(r.next(), 4);
+        assertRowRank(r.next(), 5);
+        assertRowRank(r.next(), 6);
+
+        assertFalse(r.hasNext());
     }
 
     private static void assertPgStatActivityHasOnlyActiveState() {

@@ -16,9 +16,17 @@ public abstract class AbstractJdbcTest {
 
     protected static java.sql.Time time = java.sql.Time.valueOf("15:37:00");
 
+    protected static final String ANALYTICS_CYPHER_FILE = "dataset-analytics.cypher";
+
     public void assertResult(Map<String, Object> row) {
         Map<String, Object> expected = Util.map("NAME", "John", "SURNAME", null, "HIRE_DATE", hireDate.toLocalDate(), "EFFECTIVE_FROM_DATE",
                 effectiveFromDate.toLocalDateTime(), "TEST_TIME", time.toLocalTime(), "NULL_DATE", null);
         assertEquals(expected, row.get("row"));
+    }
+    
+    protected static void assertRowRank(Map<String, Object> row, Object expected) {
+        var result = (Map) row.get("row");
+        Object rank = result.get("rank");
+        assertEquals(expected, rank);
     }
 }

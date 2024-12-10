@@ -97,6 +97,7 @@ apoc.load.html
 apoc.load.htmlPlainText
 apoc.load.jdbc
 apoc.load.jdbcUpdate
+apoc.jdbc.analytics
 apoc.load.ldap
 apoc.load.parquet
 apoc.load.xls
