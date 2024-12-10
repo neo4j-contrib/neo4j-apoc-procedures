@@ -20,15 +20,18 @@ package apoc.vectordb;
 
 
 import apoc.SystemPropertyKeys;
-import apoc.SystemPropertyKeys;
+import apoc.util.CollectionUtils;
+import apoc.util.ExtendedMapUtils;
 import apoc.util.Util;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +42,12 @@ import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.SystemDbUtil.withSystemDb;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.MappingMode.READ_ONLY;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 
 public class VectorDbUtil {
 
@@ -202,5 +208,39 @@ public class VectorDbUtil {
     public static void methodAndPayloadNull(Map<String, Object> config) {
         config.put(METHOD_KEY, null);
         config.put(BODY_KEY, null);
+    }
+
+    public static List addMetadataKeyToFields(Map<String, Object> config) {
+        List listFields = (List) config.getOrDefault(FIELDS_KEY, new ArrayList<>());
+
+        Map<String, Object> mapping = (Map<String, Object>) config.get(MAPPING_KEY);
+
+        String metadataKey = mapping == null
+                ? null
+                : (String) mapping.get(METADATA_KEY);
+
+        if (CollectionUtils.isEmpty(listFields)) {
+
+            if (StringUtils.isEmpty(metadataKey)) {
+                throw new RuntimeException(NO_FIELDS_ERROR_MSG);
+            }
+            listFields.add(metadataKey);
+        }
+
+        return listFields;
+    }
+
+    /**
+     * If the vectorDb is WEAVIATE and endpoint doesn't end with `/vN`, where N is a number,
+     * then add `/v1` to the endpoint
+     */
+    public static String appendVersionUrlIfNeeded(VectorDbHandler.Type type, String host) {
+        if (VectorDbHandler.Type.WEAVIATE == type) {
+            String regex = ".*(/v\\d+)$";
+            if (!host.matches(regex)) {
+                host = host + "/v1";
+            }
+        }
+        return host;
     }
 }

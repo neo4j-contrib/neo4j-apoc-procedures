@@ -5,6 +5,7 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import apoc.vectordb.VectorDb;
 import apoc.vectordb.VectorDbTestUtil;
+import apoc.vectordb.VectorMappingConfig;
 import apoc.vectordb.Weaviate;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -48,6 +49,7 @@ import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
 import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -248,7 +250,7 @@ public class WeaviateTest {
                     NODE_LABEL, "Test",
                     ENTITY_KEY, "myId",
                     METADATA_KEY, "foo", 
-                    MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
+                    MODE_KEY, VectorMappingConfig.MappingMode.CREATE_IF_MISSING.toString()
                 )
         );
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +

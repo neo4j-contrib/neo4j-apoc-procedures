@@ -46,12 +46,15 @@ import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
 import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.MappingMode;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
 import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
