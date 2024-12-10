@@ -1,4 +1,4 @@
 [submodule "apoc-core"]
 	path = apoc-core
 	url = https://github.com/neo4j/apoc
-	branch = 5.26_availabilitylistener_registry_update
+	branch = 5.26
