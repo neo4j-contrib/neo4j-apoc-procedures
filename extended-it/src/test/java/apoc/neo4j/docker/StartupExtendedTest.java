@@ -5,6 +5,7 @@ import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
+import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.neo4j.driver.Session;
@@ -23,7 +24,9 @@ import java.util.stream.Collectors;
 import static apoc.util.TestContainerUtil.ApocPackage.CORE;
 import static apoc.util.TestContainerUtil.ApocPackage.EXTENDED;
 import static apoc.util.TestContainerUtil.createDB;
+import static apoc.util.TestContainerUtil.dockerImageForNeo4j;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -105,6 +108,11 @@ public class StartupExtendedTest {
                 neo4jContainer.start();
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
+                String startupLog = neo4jContainer.getLogs();
+
+                assertFalse(startupLog.contains("SLF4J: Failed to load class \"org.slf4j.impl.StaticLoggerBinder\""));
+                assertFalse(startupLog.contains("SLF4J: Class path contains multiple SLF4J providers"));
+
                 final Session session = neo4jContainer.getSession();
 
                 sessionConsumer.accept(session);
@@ -113,8 +121,10 @@ public class StartupExtendedTest {
                 if (TestContainerUtil.isDockerImageAvailable(ex)) {
                     ex.printStackTrace();
                     fail("Should not have thrown exception when trying to start Neo4j: " + ex);
+                } else if (!TestUtil.isRunningInCI()) {
+                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
                 } else {
-                    fail("The docker image could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
+                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
                 }
             }
         }
