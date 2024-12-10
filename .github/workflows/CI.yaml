@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "dev", "5.26" ]
+    branches: [ "5.26" ]
   pull_request:
-    branches: [ "dev", "5.26" ]
+    branches: [ "5.26" ]
 
 env:
   CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
