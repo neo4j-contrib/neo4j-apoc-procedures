@@ -30,6 +30,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::import/load-xml.adoc[]
     ** xref::import/load-html.adoc[]
     ** xref::import/import-csv.adoc[]
+    ** xref::import/arrow.adoc[]
     ** xref::import/import-graphml.adoc[]
 
 * xref:export/index.adoc[]
