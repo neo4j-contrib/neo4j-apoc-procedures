@@ -1,7 +1,7 @@
 package apoc.coll;
 
 import apoc.Extended;
-import org.apache.commons.collections4.CollectionUtils;
+import apoc.util.CollectionUtils;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;

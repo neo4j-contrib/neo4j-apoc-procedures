@@ -7,7 +7,7 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.Pools;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
-import org.apache.commons.collections4.IterableUtils;
+import apoc.util.collection.Iterables;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -147,7 +147,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             final String propertyName = config.getUuidProperty();
             List<Node> nodes = config.isAddToSetLabels()
                     ? StreamSupport.stream(txData.assignedLabels().spliterator(), false).map(LabelEntry::node).collect(Collectors.toList())
-                    : IterableUtils.toList(txData.createdNodes());
+                    : Iterables.asList(txData.createdNodes());
             try {
                 nodes.forEach(node -> {
                     if (node.hasLabel(Label.label(label)) && !node.hasProperty(propertyName)) {
