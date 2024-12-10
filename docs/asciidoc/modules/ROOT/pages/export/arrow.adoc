@@ -2,7 +2,7 @@
 = Export to Apache Arrow
 :description: This section describes procedures that can be used to export data in Apache Arrow format.
 
-The export Apache Arrow procedures export data into a format that's used by many Apache tools and non.
+These procedures export data into a format that's used by many Apache and non-Apache tools.
 
 
 [[export-arrow-available-procedures]]

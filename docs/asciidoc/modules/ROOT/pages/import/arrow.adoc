@@ -5,7 +5,7 @@
 
 
 The following procedures allow you to read an Apache Arrow file exported via xref::export/arrow.adoc[apoc.export.arrow.* procedures].
-It could also potentially read other arrow files not created via the export procedures.
+It could also potentially read other Apache Arrow files that have not been created via the export procedures.
 
 [[load-arrow-available-procedures]]
 == Procedure and Function Overview
