@@ -130,4 +130,18 @@ public class VectorDbUtil {
         config.put(METHOD_KEY, null);
         config.put(BODY_KEY, null);
     }
+
+    /**
+     * If the vectorDb is WEAVIATE and endpoint doesn't end with `/vN`, where N is a number,
+     * then add `/v1` to the endpoint
+     */
+    public static String appendVersionUrlIfNeeded(VectorDbHandler.Type type, String host) {
+        if (VectorDbHandler.Type.WEAVIATE == type) {
+            String regex = ".*(/v\\d+)$";
+            if (!host.matches(regex)) {
+                host = host + "/v1";
+            }
+        }
+        return host;
+    }
 }
