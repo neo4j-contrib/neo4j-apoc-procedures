@@ -11,6 +11,7 @@ import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.assertion.Assert;
+import org.neo4j.test.rule.DbmsRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
+    public static String RESOURCES_PATH = "src/test/resources/";
 
     /**
      * Mock URLAccessChecker instance with checkURL(URL url) {return url}
@@ -143,6 +145,10 @@ public class ExtendedTestUtil {
             String actualErrMsg = e.getMessage();
             assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
         }
+    }
+
+    public static void clearDb(DbmsRule db) {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     public static String getLogFileContent() {
