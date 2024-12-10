@@ -14,16 +14,31 @@ import org.neo4j.procedure.Procedure;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.load.util.JdbcUtil.*;
+import static apoc.load.util.JdbcUtil.getConnection;
+import static apoc.load.util.JdbcUtil.getSqlOrKey;
+import static apoc.load.util.JdbcUtil.getUrlOrKey;
+import static apoc.load.util.JdbcUtil.obfuscateJdbcUrl;
 
 /**
  * @author mh
@@ -96,10 +111,7 @@ public class Jdbc {
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
-            String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
-            throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
+            throw logsErrorAndThrowsException(e, query, log);
         }
     }
 
@@ -134,11 +146,22 @@ public class Jdbc {
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
-            String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
-            throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
+            throw logsErrorAndThrowsException(e, query, log);
         }
+    }
+
+    private static RuntimeException logsErrorAndThrowsException(Exception e, String query, Log log) {
+        String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
+        String exceptionMsg = e.getMessage();
+
+        if(e.getMessage().contains("No suitable driver")) {
+            errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            exceptionMsg = obfuscateJdbcUrl(e.getMessage());
+        }
+
+        Exception ex = new Exception(exceptionMsg);
+        log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, exceptionMsg), ex);
+        return new RuntimeException(String.format(errorMessage, query, exceptionMsg, "Please download and copy the JDBC driver into $NEO4J_HOME/plugins, more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), ex);
     }
 
     static void closeIt(Log log, AutoCloseable...closeables) {

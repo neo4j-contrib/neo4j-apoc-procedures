@@ -1,7 +1,6 @@
 package apoc.load;
 
 
-import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -18,13 +17,11 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.zapodot.junit.ldap.EmbeddedLdapRule;
 import org.zapodot.junit.ldap.EmbeddedLdapRuleBuilder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedTestUtil.getLogFileContent;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -94,15 +91,6 @@ public class LoadLdapTest {
         // the config without dot after loadldap should print a log warn
         String logWarn = "Not to cause breaking-change, the current config `apoc.loadldapmyldap.config` is valid";
         assertTrue(getLogFileContent().contains(logWarn));
-    }
-
-    private static String getLogFileContent() {
-        try {
-            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
-            return Files.readString(logFile.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void testWithStringConfigCommon(String key) {
