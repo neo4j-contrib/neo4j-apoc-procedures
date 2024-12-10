@@ -21,14 +21,21 @@ package apoc.vectordb;
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.ENDPOINT_KEY;
 import static apoc.util.SystemDbUtil.withSystemDb;
+import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
+import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -132,6 +139,26 @@ public class VectorDbUtil {
             throw new RuntimeException(
                     ERROR_READONLY_MAPPING + "\n" + "Try the equivalent procedure, which is the " + procName);
         }
+    }
+
+    public static List addMetadataKeyToFields(Map<String, Object> config) {
+        List listFields = (List) config.getOrDefault(FIELDS_KEY, new ArrayList<>());
+
+        Map<String, Object> mapping = (Map<String, Object>) config.get(MAPPING_KEY);
+
+        String metadataKey = mapping == null
+                ? null
+                : (String) mapping.get(METADATA_KEY);
+
+        if (CollectionUtils.isEmpty(listFields)) {
+
+            if (StringUtils.isEmpty(metadataKey)) {
+                throw new RuntimeException(NO_FIELDS_ERROR_MSG);
+            }
+            listFields.add(metadataKey);
+        }
+
+        return listFields;
     }
 
     /**

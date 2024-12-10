@@ -1,13 +1,15 @@
 package apoc.vectordb;
 
 import static apoc.util.MapUtil.map;
-import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
+import static apoc.vectordb.VectorDbUtil.addMetadataKeyToFields;
 import static apoc.vectordb.VectorEmbeddingConfig.META_AS_SUBKEY_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.SCORE_KEY;
 
 import apoc.util.UrlResolver;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 
 public class MilvusHandler implements VectorDbHandler {
@@ -34,7 +36,7 @@ public class MilvusHandler implements VectorDbHandler {
         @Override
         public <T> VectorEmbeddingConfig fromGet(
                 Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
             Map<String, Object> additionalBodies = map("id", ids);
 
             return getVectorEmbeddingConfig(config, fields, collection, additionalBodies);
@@ -50,7 +52,7 @@ public class MilvusHandler implements VectorDbHandler {
                 String collection) {
             config.putIfAbsent(SCORE_KEY, "distance");
 
-            List<String> fields = procedureCallContext.outputFields().toList();
+            List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
             Map<String, Object> additionalBodies = map("data", List.of(vector), "limit", limit);
             if (filter != null) {
                 additionalBodies.put("filter", filter);
@@ -66,10 +68,8 @@ public class MilvusHandler implements VectorDbHandler {
                 Map<String, Object> additionalBodies) {
             config.putIfAbsent(META_AS_SUBKEY_KEY, false);
 
-            List listFields = (List) config.get(FIELDS_KEY);
-            if (listFields == null) {
-                throw new RuntimeException("You have to define `field` list of parameter to be returned");
-            }
+            List listFields = addMetadataKeyToFields(config);
+
             if (procFields.contains("vector") && !listFields.contains("vector")) {
                 listFields.add("vector");
             }

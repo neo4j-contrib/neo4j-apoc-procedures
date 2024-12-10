@@ -267,4 +267,5 @@ apoc.vectordb.milvus.getAndUpdate
 apoc.vectordb.milvus.query
 apoc.vectordb.milvus.queryAndUpdate
 apoc.vectordb.custom.get
+apoc.vectordb.custom
 apoc.vectordb.configure

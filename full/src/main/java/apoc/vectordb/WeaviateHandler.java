@@ -3,7 +3,7 @@ package apoc.vectordb;
 import static apoc.ml.RestAPIConfig.BODY_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.MapUtil.map;
-import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
+import static apoc.vectordb.VectorDbUtil.addMetadataKeyToFields;
 import static apoc.vectordb.VectorEmbeddingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
 
@@ -53,10 +53,8 @@ public class WeaviateHandler implements VectorDbHandler {
             config.putIfAbsent(METHOD_KEY, "POST");
             VectorEmbeddingConfig vectorEmbeddingConfig = getVectorEmbeddingConfig(config);
 
-            List list = (List) config.get(FIELDS_KEY);
-            if (list == null) {
-                throw new RuntimeException("You have to define `field` list of parameter to be returned");
-            }
+            List list = addMetadataKeyToFields(config);
+
             Object fieldList = String.join("\n", list);
 
             filter = filter == null ? "" : ", where: " + filter;

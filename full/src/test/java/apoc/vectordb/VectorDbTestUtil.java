@@ -1,5 +1,15 @@
 package apoc.vectordb;
 
+import apoc.util.MapUtil;
+import org.junit.Assume;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+
+import java.util.Map;
+
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
