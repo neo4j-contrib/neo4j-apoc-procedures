@@ -35,3 +35,13 @@ apoc.dv.queryAndLink(node :: NODE?, relName :: STRING?, name :: STRING?, params 
 |path|PATH?
 |===
 
+== Configuration parameters
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| direction | String | "OUT" | The direction of the relationships, i.e. outgoing ("OUT") or incoming ("IN").
+|===
