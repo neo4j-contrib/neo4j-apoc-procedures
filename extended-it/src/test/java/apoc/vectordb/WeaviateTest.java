@@ -31,7 +31,7 @@ import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
 import static apoc.util.WeaviateTestUtil.ADMIN_KEY;
 import static apoc.util.WeaviateTestUtil.COLLECTION_NAME;
 import static apoc.util.WeaviateTestUtil.FIELDS;
-import static apoc.util.WeaviateTestUtil.HOST;
+import static apoc.util.WeaviateTestUtil.HOST_WEAVIATE;
 import static apoc.util.WeaviateTestUtil.ID_1;
 import static apoc.util.WeaviateTestUtil.ID_2;
 import static apoc.util.WeaviateTestUtil.READONLY_AUTHORIZATION;
@@ -89,19 +89,19 @@ public class WeaviateTest {
         sysDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
         
         WEAVIATE_CONTAINER.start();
-        HOST = WEAVIATE_CONTAINER.getHttpHostAddress();
+        HOST_WEAVIATE = WEAVIATE_CONTAINER.getHttpHostAddress();
 
         TestUtil.registerProcedure(db, Weaviate.class, VectorDb.class, Prompt.class);
 
         testCall(db, WEAVIATE_CREATE_COLLECTION_APOC,
-                MapUtil.map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                MapUtil.map("host", HOST_WEAVIATE, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("TestCollection", value.get("class"));
                 });
 
         testResult(db, WEAVIATE_UPSERT_QUERY,
-                MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
+                MapUtil.map("host", HOST_WEAVIATE, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
                     assertEquals(COLLECTION_NAME, values.next().get("class"));
@@ -113,7 +113,7 @@ public class WeaviateTest {
         
         // -- delete vector
         testCall(db, WEAVIATE_DELETE_VECTOR_APOC,
-                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                map("host", HOST_WEAVIATE, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     List value = (List) r.get("value");
                     assertEquals(List.of("7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308", "7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309"), value);
@@ -123,7 +123,7 @@ public class WeaviateTest {
     @AfterClass
     public static void tearDown() throws Exception {
         testCallEmpty(db, WEAVIATE_DELETE_COLLECTION_APOC,
-                MapUtil.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
+                MapUtil.map("host", HOST_WEAVIATE, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
         );
 
         WEAVIATE_CONTAINER.stop();
@@ -138,7 +138,7 @@ public class WeaviateTest {
     @Test
     public void getInfo() {
         testResult(db, "CALL apoc.vectordb.weaviate.info($host, $collectionName, $conf)",
-                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     Map value = (Map) row.get("value");
@@ -151,7 +151,7 @@ public class WeaviateTest {
         assertFails(
                 db,
                 "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
-                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
                 "java.io.FileNotFoundException"
         );
     }
@@ -159,7 +159,7 @@ public class WeaviateTest {
     @Test
     public void getVectorsWithReadOnlyApiKey() {
         testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1], $conf)",
-                map("host", HOST, "id1", ID_1, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "id1", ID_1, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, FALSE);
@@ -171,7 +171,7 @@ public class WeaviateTest {
     public void writeOperationWithReadOnlyUser() {
         try {
             testCall(db, "CALL apoc.vectordb.weaviate.deleteCollection($host, 'TestCollection', $conf)",
-                    map("host", HOST, 
+                    map("host", HOST_WEAVIATE, 
                             "conf", map(HEADERS_KEY, READONLY_AUTHORIZATION)
                     ),
                     r -> fail()
@@ -184,7 +184,7 @@ public class WeaviateTest {
     @Test
     public void getVectorsWithoutVectorResult() {
         testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1], $conf)",
-                map("host", HOST, "id1", ID_1, "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "id1", ID_1, "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -196,7 +196,7 @@ public class WeaviateTest {
     @Test
     public void queryVectors() {
         testResult(db, WEAVIATE_QUERY_APOC,
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 WeaviateTestUtil::queryVectorsAssertions);
     }
 
@@ -204,7 +204,7 @@ public class WeaviateTest {
     public void queryVectorsWithoutVectorResult() {
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", map( FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "conf", map( FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -224,7 +224,7 @@ public class WeaviateTest {
     public void queryVectorsWithYield() {
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        "YIELD metadata, id RETURN * ORDER BY id",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                     assertLondonResult(r.next(), ID_2, FALSE);
@@ -237,7 +237,7 @@ public class WeaviateTest {
                         CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7],
                         '{operator: Equal, valueString: "London", path: ["city"]}',
                         5, $conf) YIELD metadata, id RETURN * ORDER BY id""",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), ID_2, FALSE);
                 });
@@ -247,7 +247,7 @@ public class WeaviateTest {
     public void queryVectorsWithLimit() {
         testResult(db, """
                         CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id RETURN * ORDER BY id""",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST_WEAVIATE, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                 });
@@ -268,7 +268,7 @@ public class WeaviateTest {
         );
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        "YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, NODE);
@@ -288,7 +288,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, NODE);
@@ -318,7 +318,7 @@ public class WeaviateTest {
                 METADATA_KEY, "foo"));
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, NODE);
@@ -347,7 +347,7 @@ public class WeaviateTest {
                         METADATA_KEY, "foo"));
 
         testResult(db, "CALL apoc.vectordb.weaviate.getAndUpdate($host, 'TestCollection', [$id1, $id2], $conf)",
-                map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
+                map("host", HOST_WEAVIATE, "id1", ID_1, "id2", ID_2, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, NODE);
@@ -376,7 +376,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.get($host, 'TestCollection', [$id1, $id2], $conf) " +
                        "YIELD vector, id, metadata, node RETURN * ORDER BY id",
-                MapUtil.map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", conf),
+                MapUtil.map("host", HOST_WEAVIATE, "id1", ID_1, "id2", ID_2, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "node")
         );
     }
@@ -394,7 +394,7 @@ public class WeaviateTest {
                 METADATA_KEY, "foo"));
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, REL);
@@ -425,7 +425,7 @@ public class WeaviateTest {
 
         testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
-                MapUtil.map("host", HOST, "conf", conf),
+                MapUtil.map("host", HOST_WEAVIATE, "conf", conf),
                 r -> assertReadOnlyProcWithMappingResults(r, "rel")
         );
     }
@@ -439,7 +439,7 @@ public class WeaviateTest {
         String expectedErrMsg = "distance between entrypoint and query node: vector lengths don't match: 4 vs 3";
         
         assertFails(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9], null, 5, $conf)",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 expectedErrMsg);
     }
 
@@ -456,7 +456,7 @@ public class WeaviateTest {
         );
         testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
                        " YIELD score, vector, id, metadata, rel RETURN * ORDER BY id",
-                map("host", HOST, "conf", conf),
+                map("host", HOST_WEAVIATE, "conf", conf),
                 r -> {
                     Map<String, Object> row = r.next();
                     Map<String, Object> props = ((Entity) row.get("rel")).getAllProperties();
@@ -481,21 +481,21 @@ public class WeaviateTest {
     @Test
     public void queryVectorsWithSystemDbStorage() {
         String keyConfig = "weaviate-config-foo";
-        String baseUrl = "http://" + HOST + "/v1";
+        String baseUrl = "http://" + HOST_WEAVIATE + "/v1";
         assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, false);
     }
 
     @Test
     public void queryVectorsWithSystemDbStorageWithUrlWithoutVersion() {
         String keyConfig = "weaviate-config-foo";
-        String baseUrl = "http://" + HOST;
+        String baseUrl = "http://" + HOST_WEAVIATE;
         assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, false);
     }
 
     @Test
     public void queryVectorsWithSystemDbStorageWithUrlV3Version() {
         String keyConfig = "weaviate-config-foo";
-        String baseUrl = "http://" + HOST + "/v3";
+        String baseUrl = "http://" + HOST_WEAVIATE + "/v3";
         assertQueryVectorsWithSystemDbStorage(keyConfig, baseUrl, true);
     }
 
@@ -522,7 +522,7 @@ public class WeaviateTest {
                     """
                 ,
                 MapUtil.map(
-                        "host", HOST,
+                        "host", HOST_WEAVIATE,
                         "id1", ID_1,
                         "conf", conf,
                         "confPrompt", MapUtil.map(API_KEY_CONF, openAIKey),
@@ -560,7 +560,7 @@ public class WeaviateTest {
                     db,
                     query,
                     params,
-                    "Caused by: java.io.FileNotFoundException: http://127.0.0.1:" +  HOST.split(":")[1] + "/v3/graphql"
+                    "Caused by: java.io.FileNotFoundException: http://127.0.0.1:" + HOST_WEAVIATE.split(":")[1] + "/v3/graphql"
             );
             return;
         }
