@@ -204,7 +204,7 @@ public class EntitiesExtendedTest {
                 db,
                 "MATCH (aldo:Person{name:'Cataldo Baglio'}), (movie:Movie) " +
                     "WITH aldo, movie " +
-                    "CALL apoc.relationship.match(aldo, 'ACTED_IN', {role:'Aldo'}, movie, {secondaryRoles: ['Ajeje Brazorf', 'Dracula']}) YIELD rel RETURN rel",
+                    "CALL apoc.rel.match(aldo, 'ACTED_IN', {role:'Aldo'}, movie, {secondaryRoles: ['Ajeje Brazorf', 'Dracula']}) YIELD rel RETURN rel",
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("ACTED_IN", rel.getType().name());
@@ -219,7 +219,7 @@ public class EntitiesExtendedTest {
                 db,
                 "MATCH (giacomino:Person{name:'Giacomino Poretti'}), (movie:Movie) " +
                         "WITH giacomino, movie " +
-                        "CALL apoc.relationship.match(giacomino, 'ACTED_IN', {role:'Giacomo'}, movie, null) YIELD rel RETURN rel",
+                        "CALL apoc.rel.match(giacomino, 'ACTED_IN', {role:'Giacomo'}, movie, null) YIELD rel RETURN rel",
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("ACTED_IN", rel.getType().name());
@@ -233,7 +233,7 @@ public class EntitiesExtendedTest {
                 db,
                 "MATCH (giova:Person{name:'Giovanni Storti'}), (movie:Movie) " +
                         "WITH giova, movie " +
-                        "CALL apoc.relationship.match(giova, 'ACTED_IN', null, movie, null) YIELD rel RETURN rel",
+                        "CALL apoc.rel.match(giova, 'ACTED_IN', null, movie, null) YIELD rel RETURN rel",
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals("ACTED_IN", rel.getType().name());
@@ -250,7 +250,7 @@ public class EntitiesExtendedTest {
                     db,
                     "MATCH (s:TestStart), (e:TestEnd) " +
                         "WITH s,e " +
-                        "CALL apoc.relationship.match(s, $relType, null, e, null) YIELD rel RETURN rel",
+                        "CALL apoc.rel.match(s, $relType, null, e, null) YIELD rel RETURN rel",
                     params,
                     row -> {
                         assertTrue(row.get("rel") instanceof Relationship);
@@ -265,7 +265,7 @@ public class EntitiesExtendedTest {
                 () -> testCall(db,
                         "MATCH (massimo:Director), (movie:Movie) " +
                                 "WITH massimo, movie " +
-                                "CALL apoc.relationship.match(massimo, null, null, null, movie) YIELD rel RETURN rel",
+                                "CALL apoc.rel.match(massimo, null, null, null, movie) YIELD rel RETURN rel",
                         row -> fail()),
                 IllegalArgumentException.class, INVALID_REL_TYPE_MESSAGE
         );
@@ -277,7 +277,7 @@ public class EntitiesExtendedTest {
                 () -> testCall(db,
                         "MATCH (massimo:Director), (movie:Movie) " +
                                 "WITH massimo, movie " +
-                                "CALL apoc.relationship.match(massimo, '', null, null, movie) YIELD rel RETURN rel",
+                                "CALL apoc.rel.match(massimo, '', null, null, movie) YIELD rel RETURN rel",
                         row -> fail()),
                 IllegalArgumentException.class, INVALID_REL_TYPE_MESSAGE
         );
@@ -322,7 +322,7 @@ public class EntitiesExtendedTest {
     }
 
     private void failEdgeMatchWithMessage(Runnable lambda, Class<? extends Exception> exceptionType, String message){
-        failMatchWithMessage(lambda, exceptionType, message, "apoc.relationship.match");
+        failMatchWithMessage(lambda, exceptionType, message, "apoc.rel.match");
     }
 
     private void failMatchWithMessage(Runnable lambda, Class<? extends Exception> exceptionType, String message, String apoc){

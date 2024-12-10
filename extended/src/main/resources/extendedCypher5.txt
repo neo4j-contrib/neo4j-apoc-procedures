@@ -195,7 +195,7 @@ apoc.redis.zadd
 apoc.redis.zcard
 apoc.redis.zrangebyscore
 apoc.redis.zrem
-apoc.relationship.match
+apoc.rel.match
 apoc.static.list
 apoc.static.set
 apoc.systemdb.execute

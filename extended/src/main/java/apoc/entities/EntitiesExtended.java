@@ -62,7 +62,7 @@ public class EntitiesExtended {
         return nodeResult.columnAs("n").stream().map(node -> new UpdatedNodeResult((Node) node));
     }
 
-    @Procedure(value = "apoc.relationship.match", mode = Mode.WRITE)
+    @Procedure(value = "apoc.rel.match", mode = Mode.WRITE)
     @Description("Matches the given `RELATIONSHIP` values with the given dynamic types/properties.")
     public Stream<UpdatedRelationshipResult> relationship(
             @Name(value = "startNode", description = "The start node of the relationship.") Node startNode,
