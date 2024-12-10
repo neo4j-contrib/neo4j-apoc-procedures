@@ -3,6 +3,7 @@ package apoc.ml;
 import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,6 +37,9 @@ public class OpenAI {
     public static final String PATH_CONF_KEY = "path";
     public static final String GPT_4O_MODEL = "gpt-4o";
     public static final String FAIL_ON_ERROR_CONF = "failOnError";
+    public static final String ENABLE_BACK_OFF_RETRIES_CONF_KEY = "enableBackOffRetries";
+    public static final String ENABLE_EXPONENTIAL_BACK_OFF_CONF_KEY = "exponentialBackoff";
+    public static final String BACK_OFF_RETRIES_CONF_KEY = "backOffRetries";
 
     @Context
     public ApocConfig apocConfig;
@@ -59,6 +63,9 @@ public class OpenAI {
 
     static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ApocConfig apocConfig, URLAccessChecker urlAccessChecker) throws JsonProcessingException, MalformedURLException {
         apiKey = (String) configuration.getOrDefault(APIKEY_CONF_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
+        boolean enableBackOffRetries = Util.toBoolean( configuration.get(ENABLE_BACK_OFF_RETRIES_CONF_KEY) );
+        Integer backOffRetries = Util.toInteger(configuration.getOrDefault(BACK_OFF_RETRIES_CONF_KEY, 5));
+        boolean exponentialBackoff = Util.toBoolean( configuration.get(ENABLE_EXPONENTIAL_BACK_OFF_CONF_KEY) );
         if (apiKey == null || apiKey.isBlank())
             throw new IllegalArgumentException("API Key must not be empty");
 
@@ -78,7 +85,7 @@ public class OpenAI {
         path = (String) configuration.getOrDefault(PATH_CONF_KEY, path);
         OpenAIRequestHandler apiType = type.get();
 
-        jsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
+        String sJsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
         headers.put("Content-Type", "application/json");
         apiType.addApiKey(headers, apiKey);
 
@@ -88,7 +95,14 @@ public class OpenAI {
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
         var url = apiType.getFullUrl(path, configuration, apocConfig);
-        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of(), urlAccessChecker);
+        return ExtendedUtil.withBackOffRetries(
+                () -> JsonUtil.loadJson(url, headers, payload, sJsonPath, true, List.of(), urlAccessChecker),
+                enableBackOffRetries, backOffRetries, exponentialBackoff,
+                exception -> {
+                    if(!exception.getMessage().contains("429"))
+                        throw new RuntimeException(exception);
+                }
+        );
     }
 
     private static void handleAPIProvider(OpenAIRequestHandler.Type type,
