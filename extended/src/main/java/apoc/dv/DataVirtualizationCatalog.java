@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 @Extended
 public class DataVirtualizationCatalog {
 
+    public static final String DIRECTION_CONF_KEY = "direction";
     @Context
     public Transaction tx;
 
@@ -95,7 +96,7 @@ public class DataVirtualizationCatalog {
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
 
-        String direction = (String) config.getOrDefault("direction", Direction.OUT.name());
+        String direction = (String) config.getOrDefault(DIRECTION_CONF_KEY, Direction.OUT.name());
 
         return tx.execute(procedureCallWithParams.getLeft(), procedureCallWithParams.getRight())
                 .stream()

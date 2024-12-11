@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.dv.DataVirtualizationCatalog.DIRECTION_CONF_KEY;
 import static apoc.dv.DataVirtualizationCatalogTestUtil.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.getUrlFileName;
@@ -64,7 +65,7 @@ public class DataVirtualizationCatalogTest {
         final String relType = "LINKED_TO";
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 APOC_DV_QUERY_AND_LINK_QUERY_PARAMS,
-//                Map.of("name", result.name(), "queryParams", result.queryParams(), "relType", relType, "config", Map.of("header", true)),
+//                map("name", result.name(), "queryParams", result.queryParams(), "relType", relType, "config", map("header", true)),
                 DataVirtualizationCatalogTestUtil::assertVirtualizeCSVQueryAndLinkContent);
 //                (row) -> {
 //                    Path path = (Path) row.get("path");
@@ -118,32 +119,9 @@ public class DataVirtualizationCatalogTest {
         getVirtualizeJdbcCommonResult(db, mysql, APOC_DV_ADD_QUERY, APOC_DV_QUERY_WITH_PARAM, APOC_DV_QUERY, db);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
-                        CONFIG_KEY, getJdbcCredentials(mysql)),
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
-//
-//        final String relType = "LINKED_TO_NEW";
-//        testCall(db, "MATCH (hook:Hook) WITH hook " +
-//                     "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, $config) yield path " +
-//                     "RETURN path ",
-//                Map.of("name", PERSON_NAME, "queryParams", APOC_DV_QUERY_WITH_PARAM, "relType", relType,
-//                        "config", getJdbcCredentials(mysql)),
-//                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node node = path.endNode();
-//                    assertEquals(result.country(), node.getProperty("Name"));
-//                    assertEquals(result.labels(), node.getLabels());
-//
-//                    Node hook = path.startNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(hook, relationship.getStartNode());
-//                    assertEquals(node, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
     }
 
     @Test
@@ -154,32 +132,12 @@ public class DataVirtualizationCatalogTest {
         withDirectionIn(config);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
-                        CONFIG_KEY, config),
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(
+                                DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
+                                CREDENTIALS_KEY, getJdbcCredentials(mysql)
+                        )),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
-        
-//        final String relType = "LINKED_TO_NEW";
-//        testCall(db, "MATCH (hook:Hook) WITH hook " +
-//                     "CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, $config) yield path " +
-//                     "RETURN path ",
-//                Map.of("name", PERSON_NAME, "queryParams", APOC_DV_QUERY_WITH_PARAM, "relType", RELTYPE_VALUE,
-//                        "config", config),
-//                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIn);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node hook = path.endNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//
-//                    Node node = path.startNode();
-//                    assertEquals(result.country(), node.getProperty("Name"));
-//                    assertEquals(result.labels(), node.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(node, relationship.getStartNode());
-//                    assertEquals(hook, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
     }
 
     @Test
@@ -187,93 +145,43 @@ public class DataVirtualizationCatalogTest {
         getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
-                        CONFIG_KEY, getJdbcCredentials(mysql)),
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))
+                ),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
-//        testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-//                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS,
-//                        CONFIG_KEY, Map.of(
-//                                "credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())
-//                        )),
-                
-//                Map.of("name", result.name(), "queryParams", result.queryParams(), "relType", relType,
-//                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()))),
-//                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node node = path.endNode();
-//                    assertEquals(result.country(), node.getProperty("Name"));
-//                    assertEquals(result.labels(), node.getLabels());
-//
-//                    Node hook = path.startNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(hook, relationship.getStartNode());
-//                    assertEquals(node, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
     }
-
 
     @Test
     public void testVirtualizeJDBCWithParameterMapAndDirectionIN() {
         getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
 
-        Map<String, Object> config = map("credentials", getJdbcCredentials(mysql));
-        withDirectionIn(config);
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
-                        CONFIG_KEY, config),
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(
+                                DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
+                                CREDENTIALS_KEY, getJdbcCredentials(mysql)
+                        )),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
-//
-//        testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-//                Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS,
-//                        CONFIG_KEY, Map.of(
-//                                "direction", "IN",
-//                                "credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword())
-//                        )),
-////                Map.of("name", result.name(), "queryParams", result.queryParams(), "relType", relType,
-////                        "config", Map.of("credentials", Map.of("user", mysql.getUsername(), "password", mysql.getPassword()),
-////                                "direction", "IN"
-////                        )),
-//                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node hook = path.endNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//
-//                    Node node = path.startNode();
-//                    assertEquals(result.country(), node.getProperty("Name"));
-//                    assertEquals(result.labels(), node.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(node, relationship.getStartNode());
-//                    assertEquals(hook, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
     }
 
     @Test
     public void testRemove() {
         db.executeTransactionally(APOC_DV_ADD_QUERY,
-                Map.of("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, JDBC_SELECT_QUERY)));
+                map("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, JDBC_SELECT_QUERY)));
 
-        testCallEmpty(db, "CALL apoc.dv.catalog.remove($name)", Map.of("name", JDBC_NAME));
+        testCallEmpty(db, "CALL apoc.dv.catalog.remove($name)", map("name", JDBC_NAME));
     }
 
     @Test
     public void testNameAsKey() {
-        Map<String, Object> params = Map.of(
+        Map<String, Object> params = map(
                 NAME_KEY, JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, JDBC_SELECT_QUERY)
         );
 
         db.executeTransactionally(APOC_DV_ADD_QUERY, params);
         db.executeTransactionally(APOC_DV_ADD_QUERY, params);
         testResult(db, "CALL apoc.dv.catalog.list()",
-                Map.of(),
+                map(),
                 (result) -> assertEquals(1, result.stream().count()));
     }
 
@@ -281,7 +189,7 @@ public class DataVirtualizationCatalogTest {
     public void testJDBCQueryWithMixedParamsTypes() {
         try {
             db.executeTransactionally(APOC_DV_ADD_QUERY,
-                    Map.of("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, JDBC_SELECT_QUERY_WITH_PARAM)));
+                    map("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, JDBC_SELECT_QUERY_WITH_PARAM)));
             Assert.fail("Exception is expected");
         } catch (Exception e) {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
@@ -294,17 +202,17 @@ public class DataVirtualizationCatalogTest {
     public void testVirtualizeJDBCWithDifferentParameterMap() {
         final String url = mysql.getJdbcUrl() + "?useSSL=false";
         testCall(db, APOC_DV_ADD_QUERY,
-                Map.of("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, VIRTUALIZE_JDBC_WITH_PARAMS_QUERY)),
+                map("name", JDBC_NAME, "map", getVirtualizeJDBCParameterMap(mysql, VIRTUALIZE_JDBC_WITH_PARAMS_QUERY)),
                 (row) -> assertDvCatalogAddOrInstall(row, url));
 
         String country = "Netherlands";
         String code2 = "NL";
         String headOfState = "Beatrix";
-        Map<String, Object> queryParams = Map.of("foo", country, "bar", code2, "baz", headOfState);
+        Map<String, Object> queryParams = map("foo", country, "bar", code2, "baz", headOfState);
 
         try {
             db.executeTransactionally(APOC_DV_QUERY,
-                    Map.of(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, queryParams,
+                    map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, queryParams,
                             CONFIG_KEY, getJdbcCredentials(mysql)),
                     Result::resultAsString);
             Assert.fail("Exception is expected");

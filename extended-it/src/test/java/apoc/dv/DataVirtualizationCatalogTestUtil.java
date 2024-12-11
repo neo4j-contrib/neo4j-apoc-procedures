@@ -336,55 +336,8 @@ public class DataVirtualizationCatalogTestUtil {
                 });
 
         db.executeTransactionally(CREATE_HOOK_QUERY, CREATE_HOOK_PARAMS);
-        
-//        String name = "jdbc_vr";
-//        String desc = "country details";
-//        List<Label> labels = List.of(Label.label("Country"));
-//        List<String> labelsAsString = List.of("Country");
-//        final String query = "SELECT * FROM country WHERE Name = ?";
-//        final String url = mysql.getJdbcUrl() + "?useSSL=false";
-//        Map<String, Object> map = map("type", "JDBC",
-//                "url", url, "query", query,
-//                "desc", desc,
-//                "labels", labelsAsString);
-//
-//        testCall(db, dvAdd,
-//                map("name", name, "map", map),
-//                (row) -> {
-//                    assertEquals(name, row.get("name"));
-//                    assertEquals(url, row.get("url"));
-//                    assertEquals("JDBC", row.get("type"));
-//                    assertEquals(labelsAsString, row.get("labels"));
-//                    assertEquals(desc, row.get("desc"));
-//                    assertEquals(List.of("?"), row.get("params"));
-//                });
-//
-//        testCallEmpty(db, "CALL apoc.dv.query($name, ['Italy'], $config)", map("name", name,
-//                "config", map("credentials", map("user", mysql.getUsername(), "password", mysql.getPassword()))));
-//
-//        String country = "Netherlands";
-//        List<String> queryParams = List.of(country);
-//
-//        testCall(db, "CALL apoc.dv.query($name, $queryParams, $config)",
-//                map("name", name, "queryParams", queryParams,
-//                        "config", map("credentials", map("user", mysql.getUsername(), "password", mysql.getPassword()))),
-//                (row) -> {
-//                    Node node = (Node) row.get("node");
-//                    assertEquals(country, node.getProperty("Name"));
-//                    assertEquals(labels, node.getLabels());
-//                });
-//
-//        String hookNodeName = "node to test linking";
-//
-//        db.executeTransactionally("create (:Hook {name: $hookNodeName})", map("hookNodeName", hookNodeName));
-//        return new VirtualizeJdbcResult(name, labels, country, queryParams, hookNodeName);
     }
-    
-//    record VirtualizeJdbcWithParameterResult(String name, List<Label> labels, String country, Map<String, Object> queryParams, String hookNodeName) { }
 
-//    static void getVirtualizeJdbcWithParamsCommonResult(GraphDatabaseService db, JdbcDatabaseContainer mysql, String url) {
-//        db, mysql, APOC_DV_ADD_QUERY, APOC_DV_QUERY, url, db);
-//    }
     
     static void getVirtualizeJdbcWithParamsCommonResult(GraphDatabaseService db, JdbcDatabaseContainer mysql,
                                                         String dvAdd, GraphDatabaseService dbWrite) throws QueryExecutionException {
@@ -401,11 +354,14 @@ public class DataVirtualizationCatalogTestUtil {
 //                "labels", labelsAsString);
 
         testCall(dbWrite, dvAdd,
-                map(NAME_KEY, JDBC_NAME, MAP_KEY, getVirtualizeJDBCParameterMap(mysql, VIRTUALIZE_JDBC_WITH_PARAMS_QUERY)),
+                map(DATABASE_NAME, GraphDatabaseSettings.DEFAULT_DATABASE_NAME,
+                        NAME_KEY, JDBC_NAME, MAP_KEY, getVirtualizeJDBCParameterMap(mysql, VIRTUALIZE_JDBC_WITH_PARAMS_QUERY)),
                 (row) -> assertDvCatalogAddOrInstall(row, url));
 
         testCallEmpty(db, APOC_DV_JDBC_WITH_PARAMS_QUERY,
-                map(NAME_KEY, JDBC_NAME, CONFIG_KEY, getJdbcCredentials(mysql))
+                map(NAME_KEY, JDBC_NAME, 
+                        CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))
+                )
         );
 
 //        String country = "Netherlands";

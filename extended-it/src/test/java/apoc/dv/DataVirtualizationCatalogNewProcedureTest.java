@@ -28,6 +28,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.custom.CypherProcedureTestUtil.startDbWithCustomApocConfigs;
+import static apoc.dv.DataVirtualizationCatalog.DIRECTION_CONF_KEY;
 import static apoc.dv.DataVirtualizationCatalogTestUtil.*;
 
 import static apoc.util.MapUtil.map;
@@ -43,11 +44,8 @@ public class DataVirtualizationCatalogNewProcedureTest {
     private static GraphDatabaseService sysDb;
     private static GraphDatabaseService db;
     private static DatabaseManagementService databaseManagementService;
-
-//    public static String url;
     
     public static JdbcDatabaseContainer mysql;
-    
 
     @Rule
     public TemporaryFolder storeDir = new TemporaryFolder();
@@ -106,7 +104,7 @@ public class DataVirtualizationCatalogNewProcedureTest {
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
-                        CONFIG_KEY, map("credentials", getJdbcCredentials(mysql))),
+                        CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
     }
 
@@ -119,14 +117,23 @@ public class DataVirtualizationCatalogNewProcedureTest {
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
                         CONFIG_KEY, map(
-                                "direction", "IN",
-                                "credentials", getJdbcCredentials(mysql)
+                                DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
+                                CREDENTIALS_KEY, getJdbcCredentials(mysql)
                         )),
                 DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
     }
     
-//    @Test
-//    public void testVirtualizeJDBCWithParameterMap() {
+    @Test
+    public void testVirtualizeJDBCWithParameterMap() {
+
+        getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_INSTALL_QUERY, sysDb);
+
+        testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(
+                                CREDENTIALS_KEY, getJdbcCredentials(mysql)
+                        )),
+                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
 //
 //        testCall(sysDb, APOC_DV_INSTALL_QUERY,
 //                map(DATABASE_NAME, GraphDatabaseSettings.DEFAULT_DATABASE_NAME,NAME_KEY, JDBC_NAME,
@@ -152,7 +159,21 @@ public class DataVirtualizationCatalogNewProcedureTest {
 //                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
 //                        CONFIG_KEY, getJdbcCredentials(mysql)),
 //                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
-//    }
+    }
+
+    @Test
+    public void testVirtualizeJDBCWithParameterMapAndDirectionIN() {
+
+        getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_INSTALL_QUERY, sysDb);
+
+        testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
+                map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
+                        CONFIG_KEY, map(
+                                DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
+                                CREDENTIALS_KEY, getJdbcCredentials(mysql)
+                        )),
+                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
+    }
 
     @Test
     public void testRemove() {
