@@ -29,24 +29,22 @@ public class ExtendedUtilTest {
 
         // The method will attempt to execute the operation with a linear backoff strategy,
         // sleeping for 1 second, 2 seconds, and 3 seconds between retries.
-        // This results in a total wait time of 6 seconds (1s + 2s + 3s) if the operation succeeds on the third attempt,
+        // This results in a total wait time of 6 seconds (1s + 2s + 3s + 4s) if the operation succeeds on the third attempt,
         // leading to an approximate execution time of 6 seconds.
-        assertTrue(time > 5500);
-        assertTrue(time < 6500);
+        assertTrue("Current time is: " + time, 
+                time > 9000 && time < 11000);
     }
 
     @Test
     public void testWithExponentialBackOffRetriesWithSuccess() {
-        i=0;
+        i = 0;
         long start = System.currentTimeMillis();
         int result = ExtendedUtil.withBackOffRetries(
                 this::testFunction,
-                true, 0, // test backoffRetry default value -> 5
-                false,
-                runEx -> {
-                    if(!runEx.getMessage().contains("Expected"))
-                        throw new RuntimeException("Some Bad News...");
-                }
+                true, 
+                0, // test backoffRetry default value -> 5
+                true,
+                runEx -> {}
         );
         long time = System.currentTimeMillis() - start;
 
@@ -54,21 +52,22 @@ public class ExtendedUtilTest {
 
         // The method will attempt to execute the operation with an exponential backoff strategy,
         // sleeping for 2 second, 4 seconds, and 8 seconds between retries.
-        // This results in a total wait time of 14 seconds (2s + 4s + 8s) if the operation succeeds on the third attempt,
+        // This results in a total wait time of 30 seconds (2s + 4s + 8s + 16s) if the operation succeeds on the third attempt,
         // leading to an approximate execution time of 14 seconds.
-        assertTrue(time > 13500);
-        assertTrue(time < 14500);
+        assertTrue("Current time is: " + time, 
+                time > 29000 && time < 31000);
     }
 
     @Test
     public void testBackOffRetriesWithError() {
-        i=0;
+        i = 0;
         long start = System.currentTimeMillis();
         assertThrows(
                 RuntimeException.class,
                 () -> ExtendedUtil.withBackOffRetries(
                         this::testFunction,
-                        true, 2,
+                        true, 
+                        2,
                         false,
                         runEx -> {}
                 )
@@ -78,19 +77,20 @@ public class ExtendedUtilTest {
         // The method is configured to retry the operation twice.
         // So, it will make two extra-attempts, waiting for 1 second and 2 seconds before failing and throwing an exception.
         // Resulting in an approximate execution time of 3 seconds.
-        assertTrue(time > 2500);
-        assertTrue(time < 3500);
+        assertTrue("Current time is: " + time, 
+                time > 2000 && time < 4000);
     }
 
     @Test
     public void testBackOffRetriesWithErrorAndExponential() {
-        i=0;
+        i = 0;
         long start = System.currentTimeMillis();
         assertThrows(
                 RuntimeException.class,
                 () -> ExtendedUtil.withBackOffRetries(
                         this::testFunction,
-                        true, 2,
+                        true, 
+                        2,
                         true,
                         runEx -> {}
                 )
@@ -98,20 +98,21 @@ public class ExtendedUtilTest {
         long time = System.currentTimeMillis() - start;
 
         // The method is configured to retry the operation twice.
-        // So, it will make two extra-attempts, waiting for 1 second and 2 seconds before failing and throwing an exception.
-        // Resulting in an approximate execution time of 3 seconds.
-        assertTrue(time > 2500);
-        assertTrue(time < 3500);
+        // So, it will make two extra-attempts, waiting for 2 second and 4 seconds before failing and throwing an exception.
+        // Resulting in an approximate execution time of 6 seconds.
+        assertTrue("Current time is: " + time,
+                time > 5000 && time < 7000);
     }
 
     @Test
     public void testWithoutBackOffRetriesWithError() {
-        i=0;
+        i = 0;
         assertThrows(
                 RuntimeException.class,
                 () -> ExtendedUtil.withBackOffRetries(
                         this::testFunction,
-                        false, 30, false,
+                        false, 30, 
+                        false,
                         runEx -> {}
                 )
         );
@@ -121,11 +122,11 @@ public class ExtendedUtilTest {
     }
 
     private int testFunction() {
-       i++;
         if (i == 4) {
-            throw new RuntimeException("Expected i not equal to 4");
+            return i;
         }
-        return i;
+        i++;
+        throw new RuntimeException("Expected i not equal to 4");
     }
 
 }

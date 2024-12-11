@@ -356,8 +356,10 @@ public class ExtendedUtil
             boolean exponential,
             Consumer<Exception> exceptionHandler
     ) {
-        T result = null;
-        backoffRetry = backoffRetry < 1 ? 5 : backoffRetry;
+        T result;
+        backoffRetry = backoffRetry < 1 
+                ? 5
+                : backoffRetry;
         int countDown = backoffRetry;
         exceptionHandler = Objects.requireNonNullElse(exceptionHandler, exe -> {});
         while (true) {
@@ -368,9 +370,8 @@ public class ExtendedUtil
                 if(!retry || countDown < 1) throw e;
                 exceptionHandler.accept(e);
                 countDown--;
-                backoffSleep(
-                        getDelay(backoffRetry, countDown, exponential)
-                );
+                long delay = getDelay(backoffRetry, countDown, exponential);
+                backoffSleep(delay);
             }
         }
         return result;
@@ -389,10 +390,11 @@ public class ExtendedUtil
         }
     }
 
-    private static long getDelay(Integer backoffRetry, Integer countDown, boolean exponential){
+    private static long getDelay(int backoffRetry, int countDown, boolean exponential) {
+        int backOffTime = backoffRetry - countDown;
         long sleepMultiplier = exponential ?
-                (long) Math.pow(2, backoffRetry - countDown) : // Exponential retry progression
-                backoffRetry - countDown; // Linear retry progression
+                (long) Math.pow(2, backOffTime) : // Exponential retry progression
+                backOffTime; // Linear retry progression
         return Math.min(
                 Duration.ofSeconds(1)
                         .multipliedBy(sleepMultiplier)
