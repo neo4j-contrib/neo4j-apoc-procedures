@@ -15,6 +15,10 @@ dependencies {
     
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.770'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation 'com.azure:azure-storage-blob:12.22.0'
     testImplementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0'
 
     configurations.all {

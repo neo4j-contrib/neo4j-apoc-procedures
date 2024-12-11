@@ -18,6 +18,8 @@
  */
 package apoc.load;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -25,7 +27,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import java.net.URL;
@@ -40,11 +41,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -71,40 +72,17 @@ public class LoadXlsTest {
             .getPath();
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule().withSetting(ApocSettings.apoc_import_file_enabled, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
-    }
-
-    @After
-    public void teardown() {
-        db.shutdown();
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
 
     @Test
     public void testLoadXls() throws Exception {
-        testResult(
-                db,
-                "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})",
-                map("url", loadTest), // 'file:load_test.xlsx'
-                (r) -> {
-                    assertRow(
-                            r,
-                            0L,
-                            "String",
-                            "Test",
-                            "Boolean",
-                            true,
-                            "Integer",
-                            2L,
-                            "Float",
-                            1.5d,
-                            "Array",
-                            asList(1L, 2L, 3L));
-                    assertFalse("Should not have another row", r.hasNext());
-                });
+        testLoadXlsCommon(db, loadTest);
     }
 
     @Test
@@ -637,5 +615,28 @@ public class LoadXlsTest {
         assertEquals(Set.copyOf(secondMap.values()), actualSecondList);
 
         assertFalse(r.hasNext());
+    }
+
+    public static void testLoadXlsCommon(GraphDatabaseService db, String url) {
+        testResult(
+                db,
+                "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})",
+                map("url", url), // 'file:load_test.xlsx'
+                (r) -> {
+                    assertRow(
+                            r,
+                            0L,
+                            "String",
+                            "Test",
+                            "Boolean",
+                            true,
+                            "Integer",
+                            2L,
+                            "Float",
+                            1.5d,
+                            "Array",
+                            asList(1L, 2L, 3L));
+                    assertFalse("Should not have another row", r.hasNext());
+                });
     }
 }

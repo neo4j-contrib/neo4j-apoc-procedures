@@ -44,6 +44,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -314,17 +315,8 @@ public class LoadHtmlTest {
 
     @Test
     public void testQueryMetadataWithGetLinks() {
-        Map<String, Object> query = map("links", "a[href]");
-
-        testCall(
-                db,
-                "CALL apoc.load.html($url,$query)",
-                map("url", new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
-                row -> {
-                    final List<Map<String, Object>> actual = (List) ((Map) row.get("value")).get("links");
-                    assertEquals(106, actual.size());
-                    assertTrue(actual.stream().allMatch(i -> i.get("tagName").equals("a")));
-                });
+        String url = new File("src/test/resources/wikipedia.html").toURI().toString();
+        testLoadHtmlWithGetLinksCommon(db, url);
     }
 
     @Test
@@ -646,6 +638,16 @@ public class LoadHtmlTest {
                         assertEquals("This is a new text node", tagStrong.get("text"));
                         assertEquals("strong", tagStrong.get("tagName"));
                     });
+        });
+    }
+
+    public static void testLoadHtmlWithGetLinksCommon(GraphDatabaseService db, String url) {
+        Map<String, Object> query = map("links", "a[href]");
+
+        testCall(db, "CALL apoc.load.html($url,$query)", map("url", url, "query", query), row -> {
+            final List<Map<String, Object>> actual = (List) ((Map) row.get("value")).get("links");
+            assertEquals(106, actual.size());
+            assertTrue(actual.stream().allMatch(i -> i.get("tagName").equals("a")));
         });
     }
 
