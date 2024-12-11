@@ -4,9 +4,9 @@ import apoc.Extended;
 import apoc.result.UpdatedNodeResult;
 import apoc.result.UpdatedRelationshipResult;
 import apoc.util.EntityUtil;
+import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedUtil;
 import apoc.util.Util;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
@@ -119,7 +119,7 @@ public class EntitiesExtended {
         onMatchProps = Objects.requireNonNullElse(onMatchProps, Util.map());
         labelNames = Objects.requireNonNullElse(labelNames, Collections.EMPTY_LIST);
 
-        if (MapUtils.isEmpty(identProps)) {
+        if (ExtendedMapUtils.isEmpty(identProps)) {
             throw new IllegalArgumentException(INVALID_IDENTIFY_PROPERTY_MESSAGE);
         }
 

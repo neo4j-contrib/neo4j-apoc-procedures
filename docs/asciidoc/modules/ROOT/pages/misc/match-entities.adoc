@@ -100,6 +100,89 @@ RETURN node;
 | (:Person {name: "Billy Reviewer", lastSeen: 2020-11-24T11:33:39.319Z, placeOfBirth: "Stars of the milky way, Always at the time of sunrise."})
 |===
 
+
+In addition, we can use the `apoc.node.match` along with the `apoc.load.json` to dynamically set nodes starting from a JSON.
+
+For example, given the following dataset:
+
+[source,cypher]
+----
+CREATE (giacomo:Person:Actor {name: 'Giacomino Poretti'}),
+    (aldo:Person:Actor {name: 'Cataldo Baglio'}),
+    (giovanni:Person:Actor {name: 'Giovanni Storti'})
+----
+
+and the following `all.json` file:
+
+[source,json]
+----
+[
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Giacomino Poretti"
+      },
+      "setProps":{
+         "bio":"Giacomo Poretti was born on April 26 1956 in Busto Garolfo",
+         "Alias":"Tafazzi"
+      }
+   },
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Giovanni Storti"
+      },
+      "setProps":{
+         "bio":"Giovanni Storti was born ...",
+         "Alias":"Rezzonico"
+      }
+   },
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Cataldo Baglio"
+      },
+      "setProps":{
+         "bio":"Cataldo Baglio was born somewhere",
+         "Alias":"Ajeje"
+      }
+   }
+]
+
+----
+
+
+we can execute the following query to MATCH and SET the `Person:Actor` nodes:
+
+[source,cypher]
+----
+CALL apoc.load.json("all.json") YIELD value
+WITH value
+CALL apoc.node.match(value.labels, value.matchProps, value.setProps)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Actor:Person {name: "Giacomino Poretti",bio: "Giacomo Poretti was born on April 26 1956 in Busto Garolfo",Alias: "Tafazzi"})
+| (:Actor:Person {name: "Giovanni Storti",bio: "Giovanni Storti was born ...",Alias: "Rezzonico"})
+| (:Actor:Person {name: "Cataldo Baglio",bio: "Cataldo Baglio was born somewhere",Alias: "Ajeje"})
+|===
+
+
+
 [[matching-relationship]]
 == Matching relationships
 
@@ -210,4 +293,74 @@ RETURN rel;
 |===
 | rel
 | [:REVIEW {lastSeen: 1984-12-21, rating: 9.5}]
+|===
+
+
+In addition, we can use the `apoc.rel.match` along with the `apoc.load.json` to dynamically set nodes starting from a JSON.
+
+For example, given the following dataset:
+
+[source,cypher]
+----
+CREATE (giacomo:Person:Actor {name: 'Giacomino Poretti'}),
+    (aldo:Person:Actor {name: 'Cataldo Baglio'}),
+    (m:Movie {title: 'Three Men and a Leg', `y:ear`: 1997, `mean-rating`: 8, `release date`: date('1997-12-27')})
+WITH aldo, m
+CREATE (aldo)-[:ACTED_IN {role: 'Aldo'}]->(m),
+    (aldo)-[:DIRECTED {role: 'Director'}]->(m)
+----
+
+and the following `all.json` file 
+(note that it leverage the elementId of start and end nodes, therefore the values are mutable):
+
+[source,json]
+----
+[
+   {
+      "startNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "endNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "type":"ACTED_IN",
+      "matchProps":{
+         "role":"Aldo"
+      },
+      "setProps":{
+         "ajeje":"Brazorf",
+         "conte":"Dracula"
+      }
+   },
+   {
+      "startNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "endNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "type":"DIRECTED",
+      "matchProps":{
+         "role":"Director"
+      },
+      "setProps":{
+         "description": "did stuff..",
+         "alias":"i dunnoaaaaaa"
+      }
+   }
+]
+----
+
+
+we can execute the following query to MATCH and SET the relationships:
+
+[source,cypher]
+----
+CALL apoc.load.json("all.json") YIELD value
+WITH value
+WHERE elementId(start) = value.startNodeId AND elementId(end) = value.endNodeId
+CALL apoc.rel.match(start, value.type, value.matchProps, end, value.setProps)
+YIELD rel
+RETURN rel
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:ACTED_IN {role: "Aldo",conte: "Dracula",ajeje: "Brazorf"}]
+| (:Actor:Person {name: "Giovanni Storti",bio: "Giovanni Storti was born ...",Alias: "Rezzonico"})
+| [:DIRECTED {bio: "did stuff..",alias: "i dunno",role: "Director"}]
 |===
