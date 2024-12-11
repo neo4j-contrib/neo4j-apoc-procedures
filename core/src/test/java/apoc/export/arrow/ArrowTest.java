@@ -30,24 +30,16 @@ import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.File;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.io.File;
+
 
 public class ArrowTest {
 
@@ -65,75 +57,11 @@ public class ArrowTest {
                     directory.toPath().toAbsolutePath())
             .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
-    public static final List<Map<String, Object>> EXPECTED = List.of(
-            new HashMap<>() {
-                {
-                    put("name", "Adam");
-                    put("bffSince", null);
-                    put("<source.id>", null);
-                    put("<id>", 0L);
-                    put("age", 42L);
-                    put("labels", List.of("User"));
-                    put("male", true);
-                    put("<type>", null);
-                    put("kids", List.of("Sam", "Anna", "Grace"));
-                    put(
-                            "place",
-                            Map.of("crs", "wgs-84-3d", "longitude", 33.46789D, "latitude", 13.1D, "height", 100.0D));
-                    put("<target.id>", null);
-                    put("since", null);
-                    put(
-                            "born",
-                            LocalDateTime.parse("2015-05-18T19:32:24.000")
-                                    .atOffset(ZoneOffset.UTC)
-                                    .toZonedDateTime());
-                }
-            },
-            new HashMap<>() {
-                {
-                    put("name", "Jim");
-                    put("bffSince", null);
-                    put("<source.id>", null);
-                    put("<id>", 1L);
-                    put("age", 42L);
-                    put("labels", List.of("User"));
-                    put("male", null);
-                    put("<type>", null);
-                    put("kids", null);
-                    put("place", null);
-                    put("<target.id>", null);
-                    put("since", null);
-                    put("born", null);
-                }
-            },
-            new HashMap<>() {
-                {
-                    put("name", null);
-                    put("bffSince", "P5M1DT12H");
-                    put("<source.id>", 0L);
-                    put("<id>", 0L);
-                    put("age", null);
-                    put("labels", null);
-                    put("male", null);
-                    put("<type>", "KNOWS");
-                    put("kids", null);
-                    put("place", null);
-                    put("<target.id>", 1L);
-                    put("since", 1993L);
-                    put("born", null);
-                }
-            });
+
 
     @BeforeClass
     public static void beforeClass() {
-        db.executeTransactionally(
-                "CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
-        TestUtil.registerProcedure(db, ExportArrow.class, LoadArrow.class, Graphs.class, Meta.class);
-    }
-
-    @AfterClass
-    public static void teardown() {
-        db.shutdown();
+        initDbCommon(db);
     }
 
     @Before
@@ -142,21 +70,13 @@ public class ArrowTest {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }
 
+    @AfterClass
+    public static void teardown() {
+        db.shutdown();
+    }
+
     private byte[] extractByteArray(Result result) {
         return result.<byte[]>columnAs("byteArray").next();
-    }
-
-    private String extractFileName(Result result) {
-        return result.<String>columnAs("file").next();
-    }
-
-    private <T> T readValue(String json, Class<T> clazz) {
-        if (json == null) return null;
-        try {
-            return JsonUtil.OBJECT_MAPPER.readValue(json, clazz);
-        } catch (JsonProcessingException e) {
-            return null;
-        }
     }
 
     @Test
@@ -215,7 +135,7 @@ public class ArrowTest {
         String file = db.executeTransactionally(
                 "CALL apoc.export.arrow.query('query_test.arrow', $query) YIELD file",
                 Map.of("query", returnQuery),
-                this::extractFileName);
+                ArrowTestUtil::extractFileName);
 
         // then
         final String query = "CALL apoc.load.arrow($file) YIELD value " + "RETURN value";
@@ -251,22 +171,7 @@ public class ArrowTest {
 
         // then
         final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " + "RETURN value";
-        db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
-            final List<Map<String, Object>> actual = getActual(result);
-            assertEquals(EXPECTED, actual);
-            return null;
-        });
-    }
-
-    private List<Map<String, Object>> getActual(Result result) {
-        return result.stream()
-                .map(m -> (Map<String, Object>) m.get("value"))
-                .map(m -> {
-                    final Map<String, Object> newMap = new HashMap(m);
-                    newMap.put("place", readValue((String) m.get("place"), Map.class));
-                    return newMap;
-                })
-                .collect(Collectors.toList());
+        testLoadArrow(db, query, Map.of("byteArray", byteArray));
     }
 
     @Test
@@ -277,15 +182,11 @@ public class ArrowTest {
                         + "CALL apoc.export.arrow.graph('graph_test.arrow', graph) YIELD file "
                         + "RETURN file",
                 Map.of(),
-                this::extractFileName);
+                ArrowTestUtil::extractFileName);
 
         // then
         final String query = "CALL apoc.load.arrow($file) YIELD value " + "RETURN value";
-        db.executeTransactionally(query, Map.of("file", file), result -> {
-            final List<Map<String, Object>> actual = getActual(result);
-            assertEquals(EXPECTED, actual);
-            return null;
-        });
+        testLoadArrow(db, query, Map.of("file", file));
     }
 
     @Test
@@ -310,26 +211,18 @@ public class ArrowTest {
 
         // then
         final String query = "CALL apoc.load.arrow.stream($byteArray) YIELD value " + "RETURN value";
-        db.executeTransactionally(query, Map.of("byteArray", byteArray), result -> {
-            final List<Map<String, Object>> actual = getActual(result);
-            assertEquals(EXPECTED, actual);
-            return null;
-        });
+        testLoadArrow(db, query, Map.of("byteArray", byteArray));
     }
 
     @Test
     public void testFileRoundtripArrowAll() {
         // given - when
         String file = db.executeTransactionally(
-                "CALL apoc.export.arrow.all('all_test.arrow') YIELD file", Map.of(), this::extractFileName);
+                "CALL apoc.export.arrow.all('all_test.arrow') YIELD file", Map.of(), ArrowTestUtil::extractFileName);
 
         // then
         final String query = "CALL apoc.load.arrow($file) YIELD value " + "RETURN value";
-        db.executeTransactionally(query, Map.of("file", file), result -> {
-            final List<Map<String, Object>> actual = getActual(result);
-            assertEquals(EXPECTED, actual);
-            return null;
-        });
+        testLoadArrow(db, query, Map.of("file", file));
     }
 
     @Test
@@ -365,7 +258,7 @@ public class ArrowTest {
         String file = db.executeTransactionally(
                 "CALL apoc.export.arrow.query('volume_test.arrow', 'MATCH (n:ArrowNode) RETURN n.id AS id') YIELD file ",
                 Map.of(),
-                this::extractFileName);
+                ArrowTestUtil::extractFileName);
 
         final List<Long> expected = LongStream.range(0, 10000).mapToObj(l -> l).collect(Collectors.toList());
 

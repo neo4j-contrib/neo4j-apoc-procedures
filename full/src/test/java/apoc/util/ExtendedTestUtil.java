@@ -2,6 +2,9 @@ package apoc.util;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallAssertions;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
@@ -16,9 +19,40 @@ import java.util.function.Consumer;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.ResultTransformer;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.assertion.Assert;
 
 public class ExtendedTestUtil {
+
+    public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
+        assertMapEquals(null, expected, actual);
+    }
+
+    public static void assertMapEquals(String errMsg, Map<String, Object> expected, Map<String, Object> actual) {
+        if (expected == null) {
+            assertNull(actual);
+        } else {
+            assertEquals(errMsg, expected.keySet(), actual.keySet());
+
+            actual.forEach((key, actualValue) -> {
+                Object expectedValue = expected.get(key);
+                boolean valuesAreArrays = key != null
+                        && actualValue != null
+                        && actualValue.getClass().isArray()
+                        && expectedValue.getClass().isArray();
+
+                if (actualValue instanceof Map) {
+                    assertMapEquals(errMsg, (Map<String, Object>) expectedValue, (Map<String, Object>) actualValue);
+                } else if (valuesAreArrays) {
+                    Object[] expectedArray = Iterators.array(expectedValue);
+                    Object[] actualArray = Iterators.array(actualValue);
+                    assertArrayEquals(expectedArray, actualArray);
+                } else {
+                    assertEquals(errMsg, expectedValue, actualValue);
+                }
+            });
+        }
+    }
 
     /**
      * similar to @link {@link TestUtil#testCallEventually(GraphDatabaseService, String, Consumer, long)}
