@@ -349,6 +349,13 @@ public class ExtendedUtil
         return floats;
     }
 
+    public static String joinStringLabels(Collection<String> labels){
+        return CollectionUtils.isNotEmpty(labels) ?
+                ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":")) :
+                "";
+    }
+            
+
     public static <T> T withBackOffRetries(
             Supplier<T> func,
             boolean retry,
