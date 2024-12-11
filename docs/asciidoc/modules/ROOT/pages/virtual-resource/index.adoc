@@ -113,6 +113,16 @@ phrase over the previous query.
 
 image::apoc.dv.jdbc-queryAndLink.png[scaledwidth="100%"]
 
+The default direction of the relationships is outgoing (i.e. `{direction: "OUT"}`), but it is possible to reverse it by the config parameters.
+Example:
+
+[source,cypher]
+----
+MATCH (hook:Hook) WITH hook
+CALL apoc.dv.queryAndLink(hook, $relType, $name, $queryParams, { direction: "IN" }) yield path
+RETURN path
+----
+
 === Listing the Virtualized Resource Catalog
 The apoc.dv.catalog.list procedure returns a list with all the existing Virtualized resources and their descriptions. It takes no parameters.
 
