@@ -25,7 +25,7 @@ import static apoc.util.WeaviateTestUtil.ADMIN_AUTHORIZATION;
 import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
 import static apoc.util.WeaviateTestUtil.COLLECTION_NAME;
 import static apoc.util.WeaviateTestUtil.FIELDS;
-import static apoc.util.WeaviateTestUtil.HOST_WEAVIATE;
+import static apoc.util.WeaviateTestUtil.HOST;
 import static apoc.util.WeaviateTestUtil.ID_1;
 import static apoc.util.WeaviateTestUtil.ID_2;
 import static apoc.util.WeaviateTestUtil.WEAVIATE_CONTAINER;
@@ -65,17 +65,17 @@ public class WeaviateEnterpriseTest {
                 .withExposedPorts(WEAVIATE_PORT);
         WEAVIATE_CONTAINER.start();
         
-        HOST_WEAVIATE = weaviateAlias + ":" + WEAVIATE_PORT;
+        HOST = weaviateAlias + ":" + WEAVIATE_PORT;
 
         testCall(session, WEAVIATE_CREATE_COLLECTION_APOC,
-                map("host", HOST_WEAVIATE, "conf", ADMIN_HEADER_CONF),
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertEquals("TestCollection", value.get("class"));
                 });
 
         testResult(session, WEAVIATE_UPSERT_QUERY,
-                map("host", HOST_WEAVIATE, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
+                map("host", HOST, "id1", ID_1, "id2", ID_2, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map<String, Object> row = r.next();
                     Map<String, Object> value = (Map<String, Object>) row.get("value");
@@ -92,7 +92,7 @@ public class WeaviateEnterpriseTest {
 
         // -- delete vector
         testCall(session, WEAVIATE_DELETE_VECTOR_APOC,
-                map("host", HOST_WEAVIATE, "conf", ADMIN_HEADER_CONF),
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     List value = (List) r.get("value");
                     assertEquals(List.of("7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308", "7ef2b3a7-1e56-4ddd-b8c3-2ca8901ce309"), value);
@@ -102,7 +102,7 @@ public class WeaviateEnterpriseTest {
     @AfterClass
     public static void tearDown() throws Exception {
         testCallEmpty(session, WEAVIATE_DELETE_COLLECTION_APOC,
-                MapUtil.map("host", HOST_WEAVIATE, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
+                MapUtil.map("host", HOST, "collectionName", COLLECTION_NAME, "conf", ADMIN_HEADER_CONF)
         );
         session.close();
         neo4jContainer.close();
@@ -112,7 +112,7 @@ public class WeaviateEnterpriseTest {
     @Test
     public void queryVectors() {
         testResult(session,  WEAVIATE_QUERY_APOC,
-                map("host", HOST_WEAVIATE, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 WeaviateTestUtil::queryVectorsAssertions);
     }
 }

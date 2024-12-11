@@ -35,7 +35,7 @@ public class WeaviateTestUtil {
     public static final String ID_1 = "8ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308";
     public static final String ID_2 = "9ef2b3a7-1e56-4ddd-b8c3-2ca8901ce308";
 
-    public static String HOST_WEAVIATE;
+    public static String HOST;
     public static final int WEAVIATE_PORT = 8080;
 
     public static final String WEAVIATE_CREATE_COLLECTION_APOC = "CALL apoc.vectordb.weaviate.createCollection($host, 'TestCollection', 'cosine', 4, $conf)";
