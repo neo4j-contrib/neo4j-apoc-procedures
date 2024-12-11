@@ -2,7 +2,6 @@ package apoc.kafka.consumer.kafka
 
 import apoc.kafka.PublishProcedures
 import apoc.kafka.consumer.procedures.StreamsSinkProcedures
-import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.AfterAll
@@ -20,6 +19,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.kernel.api.procedure.GlobalProcedures
 
 import apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED
+import org.apache.kafka.common.serialization.ByteArraySerializer
 
 open class KafkaEventSinkBaseTSE {
 
@@ -53,7 +53,7 @@ open class KafkaEventSinkBaseTSE {
     var temporaryFolder = TemporaryFolder()
 
     lateinit var kafkaProducer: KafkaProducer<String, ByteArray>
-    lateinit var kafkaAvroProducer: KafkaProducer<GenericRecord, GenericRecord>
+    lateinit var kafkaCustomProducer: KafkaProducer<GenericRecord, GenericRecord>
 
 
     // Test data
@@ -66,11 +66,11 @@ open class KafkaEventSinkBaseTSE {
         kafkaProducer = KafkaTestUtils.createProducer(
             bootstrapServers = KafkaEventSinkSuiteIT.kafka.bootstrapServers
         )
-        kafkaAvroProducer = KafkaTestUtils.createProducer(
+        kafkaCustomProducer = KafkaTestUtils.createProducer(
             bootstrapServers = KafkaEventSinkSuiteIT.kafka.bootstrapServers,
             schemaRegistryUrl = KafkaEventSinkSuiteIT.schemaRegistry.getSchemaRegistryUrl(),
-            keySerializer = KafkaAvroSerializer::class.java.name,
-            valueSerializer = KafkaAvroSerializer::class.java.name)
+            keySerializer = ByteArraySerializer::class.java.name,
+            valueSerializer = ByteArraySerializer::class.java.name)
     }
 
     fun createDbWithKafkaConfigs(vararg pairs: Pair<String, Any>) : GraphDatabaseService {
@@ -103,8 +103,8 @@ open class KafkaEventSinkBaseTSE {
         if (::kafkaProducer.isInitialized) {
             kafkaProducer.flushAndClose()
         }
-        if (::kafkaAvroProducer.isInitialized) {
-            kafkaAvroProducer.flushAndClose()
+        if (::kafkaCustomProducer.isInitialized) {
+            kafkaCustomProducer.flushAndClose()
         }
     }
 
