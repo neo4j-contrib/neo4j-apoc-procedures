@@ -10,7 +10,7 @@ At a minimum, to configure this, you will need:
 * `API_KEY`
 * `API_SECRET`
 
-More specifically the plugin has to be configured as follow:
+More specifically the procedures has to be configured as follows:
 
 .neo4j.conf
 [source,ini]

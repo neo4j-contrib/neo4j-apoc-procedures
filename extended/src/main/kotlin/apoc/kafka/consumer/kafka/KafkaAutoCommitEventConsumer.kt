@@ -1,7 +1,5 @@
 package apoc.kafka.consumer.kafka
 
-//import io.confluent.kafka.serializers.KafkaAvroDeserializer
-import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
@@ -52,8 +50,6 @@ open class KafkaAutoCommitEventConsumer(private val config: KafkaSinkConfigurati
     private val errorService: ErrorService = KafkaErrorService(config.asProperties(),
         ErrorService.ErrorConfig.from(emptyMap()),
         { s, e -> log.error(s,e as Throwable) })
-
-    // override fun invalidTopics(): List<String> = config.sinkConfiguration.topics.invalid
 
     private val isSeekSet = AtomicBoolean()
 

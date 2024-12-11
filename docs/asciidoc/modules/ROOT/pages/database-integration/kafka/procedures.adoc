@@ -5,12 +5,12 @@ ifdef::env-docs[]
 [abstract]
 --
 This chapter describes the APOC Kafka Procedures in the APOC Kafka Library.
-Use this section to configure Neo4j to know how procedures allow the functionality of the plugin
+Use this section to configure Neo4j to know how procedures allow the functionality of the procedures
 to be used ad-hoc in any Cypher query.
 --
 endif::env-docs[]
 
-The APOC Kafka plugin comes out with a list of procedures.
+The APOC Kafka procedures comes out with a list of procedures.
 
 == Configuration
 

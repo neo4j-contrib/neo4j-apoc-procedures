@@ -15,6 +15,15 @@ import java.nio.ByteBuffer
 import java.util.*
 import javax.lang.model.SourceVersion
 
+private fun convertData(data: Any?, stringWhenFailure: Boolean = false): Any? {
+    return when (data) {
+        null -> null
+        is ByteArray -> JSONUtils.readValue(data, Any::class.java)
+        is GenericRecord -> data.toMap()
+        else -> if (stringWhenFailure) data.toString() else throw RuntimeException("Unsupported type ${data::class.java.name}")
+    }
+}
+
 fun Map<String,String>.getInt(name:String, defaultValue: Int) = this.get(name)?.toInt() ?: defaultValue
 fun Map<*, *>.asProperties() = this.let {
     val properties = Properties()
@@ -66,14 +75,7 @@ fun IndexedRecord.toMap() = this.schema.fields
 
 fun Schema.toMap() = JSONUtils.asMap(this.toString())
 
-private fun convertData(data: Any?, stringWhenFailure: Boolean = false): Any? {
-    return when (data) {
-        null -> null
-        is ByteArray -> JSONUtils.readValue(data, Any::class.java)
-        is GenericRecord -> data.toMap()
-        else -> if (stringWhenFailure) data.toString() else throw RuntimeException("Unsupported type ${data::class.java.name}")
-    }
-}
+
 fun ConsumerRecord<*, *>.toStreamsSinkEntity(): StreamsSinkEntity {
     val key = convertData(this.key(), true)
     val value = convertData(this.value())

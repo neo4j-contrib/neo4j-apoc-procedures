@@ -3,12 +3,10 @@ package apoc.kafka.consumer
 import apoc.kafka.consumer.kafka.KafkaEventSink
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import org.neo4j.logging.Log
-import apoc.kafka.events.StreamsPluginStatus
 
 object StreamsEventSinkFactory {
-    fun getStreamsEventSink(config: Map<String, String>, //streamsQueryExecution: StreamsEventSinkQueryExecution,
-                          /*  streamsTopicService: StreamsTopicService, */log: Log, db: GraphDatabaseAPI): KafkaEventSink {
-        return KafkaEventSink(/*config, streamsQueryExecution, streamsTopicService, log, */db)
+    fun getStreamsEventSink(config: Map<String, String>, log: Log, db: GraphDatabaseAPI): KafkaEventSink {
+        return KafkaEventSink(db)
     }
 }
 

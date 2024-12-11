@@ -56,6 +56,7 @@ public class ExtendedApocGlobalComponents implements ApocGlobalComponents {
 
         serviceMap.put("cypherProcedures", cypherProcedureHandler);
 
+        // add kafkaHandler only if apoc.kafka.enabled=true
         boolean isKafkaEnabled = dependencies.apocConfig().getConfig().getBoolean(APOC_KAFKA_ENABLED, false);
         if (isKafkaEnabled) {
             try {

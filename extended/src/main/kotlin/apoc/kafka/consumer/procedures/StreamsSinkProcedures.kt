@@ -2,17 +2,14 @@ package apoc.kafka.consumer.procedures
 
 import apoc.kafka.config.StreamsConfig
 import apoc.kafka.consumer.StreamsEventConsumer
-//import apoc.kafka.consumer.StreamsSinkConfiguration
 import apoc.kafka.consumer.kafka.KafkaEventSink
-import apoc.kafka.events.StreamsPluginStatus
-import apoc.kafka.extensions.isDefaultDb
 import apoc.kafka.utils.KafkaUtil
 import apoc.kafka.utils.KafkaUtil.checkEnabled
+import apoc.util.QueueBasedSpliterator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import org.neo4j.logging.Log
@@ -24,7 +21,6 @@ import org.neo4j.procedure.Procedure
 import org.neo4j.procedure.TerminationGuard
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
-import java.util.stream.Collectors
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
 
@@ -94,7 +90,7 @@ class StreamsSinkProcedures {
             log?.debug("Data retrieved from topic $topic after $timeout milliseconds: $data")
         }
 
-        return StreamSupport.stream(QueueBasedSpliterator(data, tombstone, terminationGuard!!, timeout), false)
+        return StreamSupport.stream(QueueBasedSpliterator(data, tombstone, terminationGuard, timeout.toInt()), false)
     }
 
     private fun createConsumer(consumerConfig: Map<String, String>, topic: String): StreamsEventConsumer = runBlocking {
@@ -118,8 +114,5 @@ class StreamsSinkProcedures {
 
         fun unregisterStreamsEventSink(db: GraphDatabaseAPI) = streamsEventSinkStore.remove(KafkaUtil.getName(db))
 
-        fun hasStatus(db: GraphDatabaseAPI, status: StreamsPluginStatus) = getStreamsEventSink(db)?.status() == status
-
-        fun isRegistered(db: GraphDatabaseAPI) = getStreamsEventSink(db) != null
     }
 }
