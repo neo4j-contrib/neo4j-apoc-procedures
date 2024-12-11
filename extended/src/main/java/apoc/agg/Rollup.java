@@ -1,8 +1,8 @@
 package apoc.agg;
 
 import apoc.Extended;
+import apoc.util.ExtendedListUtils;
 import apoc.util.Util;
-import org.apache.commons.collections4.ListUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -106,7 +106,7 @@ public class Rollup {
             for (int i = 0; i <= groupKey.size(); i++) {
                 // add NULL_ROLLUP to remaining elements, 
                 // e.g. `[<firstGroupKey>, `NULL_ROLLUP`, `NULL_ROLLUP`]`
-                List<Object> partialKey = ListUtils.union(groupKey.subList(0, i), Collections.nCopies(groupKey.size() - i, NULL_ROLLUP));
+                List<Object> partialKey = ExtendedListUtils.union(groupKey.subList(0, i), Collections.nCopies(groupKey.size() - i, NULL_ROLLUP));
                 if (!rolledUpData.containsKey(partialKey)) {
                     rolledUpData.put(partialKey, new HashMap<>());
                 }

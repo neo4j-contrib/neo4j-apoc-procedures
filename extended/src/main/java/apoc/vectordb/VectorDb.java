@@ -5,10 +5,10 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ObjectResult;
+import apoc.util.ExtendedMapUtils;
 import apoc.util.JsonUtil;
 import apoc.util.SystemDbUtil;
 import apoc.util.Util;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -136,7 +136,7 @@ public class VectorDb {
         if (mapping.getEntityKey() == null) {
             return null;
         }
-        if (MapUtils.isEmpty(metadata)) {
+        if (ExtendedMapUtils.isEmpty(metadata)) {
             throw new RuntimeException("To use mapping config, the metadata should not be empty. Make sure you execute `YIELD metadata` on the procedure");
         }
         Map<String, Object> metaProps = new HashMap<>(metadata);
