@@ -28,6 +28,8 @@ dependencies {
     }
 
     implementation project(":extended")
+    
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
     testImplementation project(':extended').sourceSets.main.allJava
 
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
@@ -55,7 +57,9 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'chromadb', version: '1.20.2'
     testImplementation group: 'org.testcontainers', name: 'weaviate', version: '1.20.2'
     testImplementation group: 'org.testcontainers', name: 'milvus', version: '1.20.2'
-
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation 'com.azure:azure-storage-blob:12.22.0'
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'

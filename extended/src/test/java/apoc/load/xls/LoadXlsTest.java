@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
@@ -57,12 +58,9 @@ public class LoadXlsTest {
     }
 
     @Test public void testLoadXls() throws Exception {
-        testResult(db, "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
-                (r) -> {
-                    assertRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
-                    assertFalse("Should not have another row",r.hasNext());
-                });
+        testLoadXlsCommon(db, loadTest);
     }
+
     @Test public void testLoadBrokenHeader() throws Exception {
         BiFunction<String,Boolean,Long> query = (sheet,header) -> db.executeTransactionally(
                 "CALL apoc.load.xls($url,$sheet,{header:$header}) yield map return count(*) as c",
@@ -513,6 +511,15 @@ RETURN m.col_1,m.col_2,m.col_3
         assertEquals(Set.copyOf(secondMap.values()), actualSecondList);
 
         assertFalse(r.hasNext());
+    }
+
+    public static void testLoadXlsCommon(GraphDatabaseService db, String url) {
+        testResult(db, "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", 
+                map("url",url), // 'file:load_test.xlsx'
+                (r) -> {
+                    assertRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
+                    assertFalse("Should not have another row",r.hasNext());
+                });
     }
 
 }
