@@ -26,6 +26,7 @@ import static apoc.dv.DataVirtualizationCatalogTestUtil.*;
 import static apoc.util.ExtendedTestContainerUtil.dbIsWriter;
 import static apoc.util.ExtendedTestContainerUtil.getBoltAddress;
 import static apoc.util.ExtendedTestContainerUtil.getDriverIfNotReplica;
+import static apoc.util.MapUtil.map;
 import static apoc.util.SystemDbUtil.PROCEDURE_NOT_ROUTED_ERROR;
 import static apoc.util.TestContainerUtil.importFolder;
 import static apoc.util.TestContainerUtil.testCall;
@@ -76,8 +77,8 @@ public class DataVirtualizationCatalogClusterRoutingTest {
                     );
 
                     Node node = result.single().get(NODE_KEY).asNode();
-                    assertEquals(PERSON_NAME, node.get(NAME_KEY).asString());
-                    assertEquals(PERSON_AGE, node.get(AGE_KEY).asString());
+                    assertEquals(NAME_VALUE, node.get(NAME_KEY).asString());
+                    assertEquals(AGE_VALUE, node.get(AGE_KEY).asString());
                     assertEquals(List.of(LABELS_VALUE), node.labels());
 
                     return result.consume();
@@ -87,12 +88,14 @@ public class DataVirtualizationCatalogClusterRoutingTest {
         clusterSession.executeWrite(tx -> tx.run(CREATE_HOOK_QUERY, CREATE_HOOK_PARAMS).consume());
 
         clusterSession.executeRead(tx -> {
-                    final Result result = tx.run(APOC_DV_QUERY_AND_LINK_QUERY, APOC_DV_QUERY_AND_LINK_QUERY_PARAMS);
+                    final Result result = tx.run(APOC_DV_QUERY_AND_LINK_QUERY,
+                            map(NAME_KEY, CSV_NAME_VALUE, APOC_DV_QUERY_PARAMS_KEY, APOC_DV_QUERY_PARAMS, RELTYPE_KEY, RELTYPE_VALUE, CONFIG_KEY, CONFIG_VALUE)
+                    );
 
                     Path path = result.single().get("path").asPath();
                     Node node = path.end();
-                    assertEquals(PERSON_NAME, node.get(NAME_KEY).asString());
-                    assertEquals(PERSON_AGE, node.get(AGE_KEY).asString());
+                    assertEquals(NAME_VALUE, node.get(NAME_KEY).asString());
+                    assertEquals(AGE_VALUE, node.get(AGE_KEY).asString());
                     assertEquals(List.of(LABELS_VALUE), node.labels());
 
                     Node hook = path.start();

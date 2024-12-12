@@ -18,6 +18,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,76 +61,41 @@ public class DataVirtualizationCatalogTest {
     @Test
     public void testVirtualizeCSV() {
         final String url = getUrlFileName("test.csv").toString();
-        getCsvCommonResult(db, url);
+        getVirtualizeCSVCommonResult(db, APOC_DV_ADD_QUERY, APOC_DV_LIST, url, db);
 
-        final String relType = "LINKED_TO";
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
-                APOC_DV_QUERY_AND_LINK_QUERY_PARAMS,
-//                map("name", result.name(), "queryParams", result.queryParams(), "relType", relType, "config", map("header", true)),
+                map(NAME_KEY, CSV_NAME_VALUE, APOC_DV_QUERY_PARAMS_KEY, APOC_DV_QUERY_PARAMS, RELTYPE_KEY, RELTYPE_VALUE, CONFIG_KEY, CONFIG_VALUE),
                 DataVirtualizationCatalogTestUtil::assertVirtualizeCSVQueryAndLinkContent);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node node = path.endNode();
-//                    assertEquals(result.personName(), node.getProperty("name"));
-//                    assertEquals(result.personAge(), node.getProperty("age"));
-//                    assertEquals(List.of(Label.label("Person")), node.getLabels());
-//
-//                    Node hook = path.startNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(hook, relationship.getStartNode());
-//                    assertEquals(node, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
 
     }
 
     @Test
     public void testVirtualizeCSVWithCustomDirectionIN() {
         final String url = getUrlFileName("test.csv").toString();
-        getCsvCommonResult(db, url);
+        getVirtualizeCSVCommonResult(db, APOC_DV_ADD_QUERY, APOC_DV_LIST, url, db);
 
-        Map<String, Object> config = withDirectionIn(CONFIG_VALUE);
+        Map<String, Object> config = new HashMap<>(CONFIG_VALUE);
+        config.put(DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name());
+        
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, CSV_NAME_VALUE, APOC_DV_QUERY_PARAMS_KEY, APOC_DV_QUERY_PARAMS, RELTYPE_KEY, RELTYPE_VALUE, CONFIG_KEY, config),
                 DataVirtualizationCatalogTestUtil::assertVirtualizeCSVQueryAndLinkContentDirectionIN);
-//                (row) -> {
-//                    Path path = (Path) row.get("path");
-//                    Node hook = path.endNode();
-//                    assertEquals(result.hookNodeName(), hook.getProperty("name"));
-//                    assertEquals(List.of(Label.label("Hook")), hook.getLabels());
-//                    Node node = path.startNode();
-//
-//                    assertEquals(result.personName(), node.getProperty("name"));
-//                    assertEquals(result.personAge(), node.getProperty("age"));
-//                    assertEquals(List.of(Label.label("Person")), node.getLabels());
-//
-//                    Relationship relationship = path.lastRelationship();
-//                    assertEquals(node, relationship.getStartNode());
-//                    assertEquals(hook, relationship.getEndNode());
-//                    assertEquals(relType, relationship.getType().name());
-//                });
-
     }
 
     @Test
     public void testVirtualizeJDBC() {
-        getVirtualizeJdbcCommonResult(db, mysql, APOC_DV_ADD_QUERY, APOC_DV_QUERY_WITH_PARAM, APOC_DV_QUERY, db);
+        getVirtualizeJDBCCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
                         CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))),
-                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
+                DataVirtualizationCatalogTestUtil::assertVirtualizeJDBCQueryAndLinkContent);
     }
 
     @Test
     public void testVirtualizeJDBCWithCustomDirectionIN() {
-        getVirtualizeJdbcCommonResult(db, mysql, APOC_DV_ADD_QUERY, APOC_DV_QUERY_WITH_PARAM, APOC_DV_QUERY, db);
-
-        Map<String, Object> config = getJdbcCredentials(mysql);
-        withDirectionIn(config);
+        getVirtualizeJDBCCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
+        
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_APOC_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
@@ -137,23 +103,23 @@ public class DataVirtualizationCatalogTest {
                                 DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
                                 CREDENTIALS_KEY, getJdbcCredentials(mysql)
                         )),
-                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
+                DataVirtualizationCatalogTestUtil::assertVirtualizeJDBCQueryAndLinkContentDirectionIN);
     }
 
     @Test
     public void testVirtualizeJDBCWithParameterMap() {
-        getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
+        getVirtualizeJDBCWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
                         CONFIG_KEY, map(CREDENTIALS_KEY, getJdbcCredentials(mysql))
                 ),
-                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContent);
+                DataVirtualizationCatalogTestUtil::assertVirtualizeJDBCQueryAndLinkContent);
     }
 
     @Test
     public void testVirtualizeJDBCWithParameterMapAndDirectionIN() {
-        getVirtualizeJdbcWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
+        getVirtualizeJDBCWithParamsCommonResult(db, mysql, APOC_DV_ADD_QUERY, db);
 
         testCall(db, APOC_DV_QUERY_AND_LINK_QUERY,
                 map(NAME_KEY, JDBC_NAME, APOC_DV_QUERY_PARAMS_KEY, VIRTUALIZE_JDBC_QUERY_PARAMS, RELTYPE_KEY, VIRTUALIZE_JDBC_WITH_PARAMS_RELTYPE,
@@ -161,7 +127,7 @@ public class DataVirtualizationCatalogTest {
                                 DIRECTION_CONF_KEY, DataVirtualizationCatalog.Direction.IN.name(),
                                 CREDENTIALS_KEY, getJdbcCredentials(mysql)
                         )),
-                DataVirtualizationCatalogTestUtil::assertDvQueryAndLinkContentDirectionIN);
+                DataVirtualizationCatalogTestUtil::assertVirtualizeJDBCQueryAndLinkContentDirectionIN);
     }
 
     @Test
