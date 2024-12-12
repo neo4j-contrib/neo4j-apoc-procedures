@@ -216,6 +216,8 @@ apoc.coll.fillObject
 apoc.data.email
 apoc.node.rebind
 apoc.rel.rebind
+apoc.node.match
+apoc.rel.match
 apoc.static.get
 apoc.static.getAll
 apoc.trigger.nodesByLabel
