@@ -4,8 +4,8 @@ package apoc.vectordb;
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.CollectionUtils;
+import apoc.util.ExtendedMapUtils;
 import apoc.util.Util;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -95,7 +95,7 @@ public class VectorDbUtil {
      */
     private static void getMapping(Map<String, Object> config, Map<String, Object> props) {
         Map mappingConfVal = (Map) config.get(MAPPING_KEY);
-        if ( MapUtils.isEmpty(mappingConfVal) ) {
+        if ( ExtendedMapUtils.isEmpty(mappingConfVal) ) {
             String mappingStoreVal = (String) props.get(MAPPING_KEY);
             if (mappingStoreVal != null) {
                 config.put( MAPPING_KEY, Util.fromJson(mappingStoreVal, Map.class) );
