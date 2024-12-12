@@ -146,7 +146,6 @@ apoc.monitor.ids
 apoc.monitor.kernel
 apoc.monitor.store
 apoc.monitor.tx
-apoc.node.match
 apoc.nlp.aws.entities.graph
 apoc.nlp.aws.entities.stream
 apoc.nlp.aws.keyPhrases.graph
@@ -195,7 +194,6 @@ apoc.redis.zadd
 apoc.redis.zcard
 apoc.redis.zrangebyscore
 apoc.redis.zrem
-apoc.rel.match
 apoc.static.list
 apoc.static.set
 apoc.systemdb.execute
