@@ -1,6 +1,9 @@
 package apoc.util;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallAssertions;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 import java.util.Collections;
@@ -66,5 +69,15 @@ public class ExtendedTestUtil {
                 (v) -> v,
                 timeout,
                 TimeUnit.SECONDS);
+    }
+
+    public static void assertFails(
+            GraphDatabaseService db, String query, Map<String, Object> params, String expectedErrMsg) {
+        try {
+            testCall(db, query, params, r -> fail("Should fail due to " + expectedErrMsg));
+        } catch (Exception e) {
+            String actualErrMsg = e.getMessage();
+            assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
+        }
     }
 }
