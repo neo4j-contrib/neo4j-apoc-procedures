@@ -219,6 +219,15 @@ apoc.vectordb.chroma.get
 apoc.vectordb.chroma.getAndUpdate
 apoc.vectordb.chroma.query
 apoc.vectordb.chroma.queryAndUpdate
+apoc.vectordb.pinecone.createCollection
+apoc.vectordb.pinecone.delete
+apoc.vectordb.pinecone.deleteCollection
+apoc.vectordb.pinecone.get
+apoc.vectordb.pinecone.getAndUpdate
+apoc.vectordb.pinecone.info
+apoc.vectordb.pinecone.query
+apoc.vectordb.pinecone.queryAndUpdate
+apoc.vectordb.pinecone.upsert
 apoc.vectordb.qdrant.createCollection
 apoc.vectordb.qdrant.deleteCollection
 apoc.vectordb.qdrant.upsert

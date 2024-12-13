@@ -2,12 +2,12 @@ package apoc.vectordb;
 
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import apoc.util.MapUtil;
 import java.util.Map;
 import org.junit.Assume;
 import org.neo4j.graphdb.Entity;
@@ -96,13 +96,13 @@ public class VectorDbTestUtil {
     public static void assertReadOnlyProcWithMappingResults(Result r, String node) {
         Map<String, Object> row = r.next();
         Map<String, Object> props = ((Entity) row.get(node)).getAllProperties();
-        assertEquals(MapUtil.map("readID", "one"), props);
+        assertEquals(map("readID", "one"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
 
         row = r.next();
         props = ((Entity) row.get(node)).getAllProperties();
-        assertEquals(MapUtil.map("readID", "two"), props);
+        assertEquals(map("readID", "two"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
 
@@ -121,5 +121,15 @@ public class VectorDbTestUtil {
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
         db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
         return openAIKey;
+    }
+
+    public static void assertMetadataFooResult(Result r) {
+        Map<String, Object> row = r.next();
+        Map<String, Object> metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertEquals("one", metadata.get("foo"));
+        row = r.next();
+        metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertEquals("two", metadata.get("foo"));
+        assertFalse(r.hasNext());
     }
 }
