@@ -1,7 +1,7 @@
 package apoc.coll;
 
 import apoc.Extended;
-import apoc.util.CollectionUtils;
+import apoc.util.CollectionUtilsExtended;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -17,7 +17,7 @@ public class CollExtended {
     @UserFunction
     @Description("apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values")
     public DurationValue avgDuration(@Name("durations") List<DurationValue> list) {
-        if (CollectionUtils.isEmpty(list)) return null;
+        if (CollectionUtilsExtended.isEmpty(list)) return null;
 
         long count = 0;
 
