@@ -1,5 +1,6 @@
-package apoc.es;
+package apoc.full.it.es;
 
+import apoc.es.ElasticSearchHandler;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.BeforeClass;
@@ -21,7 +22,7 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
         Map<String, Object> config = Map.of("headers", basicAuthHeader, VERSION_KEY, ElasticSearchHandler.Version.EIGHT.name());
         Map<String, Object> params = Util.map("index", ES_INDEX,
                 "id", ES_ID, "type", ES_TYPE, "config", config);
-        
+
         String tag = "8.12.1";
         Map<String, String> envMap = Map.of(
                 "xpack.security.http.ssl.enabled", "false",
@@ -35,25 +36,25 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
     String getEsType() {
         return ES_TYPE;
     }
-    
+
     @Test
     public void testCreateIndexAPI() {
         TestUtil.testCall(db, "CALL apoc.es.put($host,'my-index-000001',null,null,null,null,$config)",
                 paramsWithBasicAuth,
                 r -> {
-            Object actual = ((Map) r.get("value")).get("index");
-            assertEquals("my-index-000001", actual);
-        });
+                    Object actual = ((Map) r.get("value")).get("index");
+                    assertEquals("my-index-000001", actual);
+                });
     }
-    
+
     @Test
     public void testGetIndexAPI() {
         TestUtil.testCall(db, "CALL apoc.es.get($host,$index,null,null,null,null,$config) yield value",
                 paramsWithBasicAuth,
                 r -> {
-            Set valueKeys = ((Map) r.get("value")).keySet();
-            assertEquals(Set.of(ES_INDEX), valueKeys);
-        });
+                    Set valueKeys = ((Map) r.get("value")).keySet();
+                    assertEquals(Set.of(ES_INDEX), valueKeys);
+                });
     }
 
     @Test
