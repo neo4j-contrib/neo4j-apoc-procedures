@@ -52,6 +52,9 @@ apoc.dv.catalog.list
 apoc.dv.catalog.remove
 apoc.dv.query
 apoc.dv.queryAndLink
+apoc.dv.catalog.install
+apoc.dv.catalog.drop
+apoc.dv.catalog.show
 apoc.es.delete
 apoc.es.get
 apoc.es.getRaw
