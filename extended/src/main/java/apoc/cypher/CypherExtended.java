@@ -5,10 +5,10 @@ import apoc.Pools;
 import apoc.result.CypherStatementMapResult;
 import apoc.result.MapResult;
 import apoc.util.CompressionAlgo;
-import apoc.util.EntityUtil;
+import apoc.util.EntityUtilExtended;
 import apoc.util.FileUtils;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
+import apoc.util.QueueBasedSpliteratorExtended;
+import apoc.util.QueueUtilExtended;
 import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.cypher.CypherUtils.runCypherQuery;
+import static apoc.cypher.CypherUtilsExtended.runCypherQuery;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
@@ -153,7 +153,7 @@ public class CypherExtended {
                 runDataStatementsInTx(scanner, internalQueue, params, addStatistics, timeout, reportError, fileName);
             }
         }, RowResult.TOMBSTONE);
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
+        return StreamSupport.stream(new QueueBasedSpliteratorExtended<>(queue, RowResult.TOMBSTONE, terminationGuard, Integer.MAX_VALUE), false);
     }
 
 
@@ -239,7 +239,7 @@ public class CypherExtended {
         }
         String error = e.getMessage();
         RowResult result = new RowResult(-1, Map.of("error", error), fileName);
-        QueueUtil.put(queue, result, 10);
+        QueueUtilExtended.put(queue, result, 10);
     }
 
     private Scanner createScannerFor(Reader reader) {
@@ -286,7 +286,7 @@ public class CypherExtended {
             AtomicBoolean closed = new AtomicBoolean(false);
             while (isOpenAndHasNext(result, closed)) {
                 terminationGuard.check();
-                Map<String, Object> res = EntityUtil.anyRebind(transaction, result.next());
+                Map<String, Object> res = EntityUtilExtended.anyRebind(transaction, result.next());
                 queue.put(new RowResult(row++, res, fileName));
             }
             if (addStatistics) {
@@ -454,7 +454,7 @@ public class CypherExtended {
             return total;
         });
 
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
+        return StreamSupport.stream(new QueueBasedSpliteratorExtended<>(queue, RowResult.TOMBSTONE, terminationGuard, (int)timeout),true)
                 .map(rowResult -> new MapResult(rowResult.result))
                 .onClose(() -> {
                     transactions.forEach(i -> Util.close(i));
@@ -505,7 +505,7 @@ public class CypherExtended {
         }
         return futures.stream().flatMap(f -> {
             try {
-                return EntityUtil.anyRebind(tx, f.get()).stream().map(CypherStatementMapResult::new);
+                return EntityUtilExtended.anyRebind(tx, f.get()).stream().map(CypherStatementMapResult::new);
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Error executing in parallel " + statement, e);
             }

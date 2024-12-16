@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.export.util.ExportConfig;
 import apoc.util.collection.Iterators;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
@@ -21,6 +22,7 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.storable.TimeValue;
 import org.neo4j.values.storable.Values;
 
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -350,7 +352,7 @@ public class ExtendedUtil
     }
 
     public static String joinStringLabels(Collection<String> labels){
-        return CollectionUtils.isNotEmpty(labels) ?
+        return CollectionUtilsExtended.isNotEmpty(labels) ?
                 ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":")) :
                 "";
     }
@@ -410,4 +412,17 @@ public class ExtendedUtil
         );
     }
 
+    public static Object getStringOrCompressedData(StringWriter writer, ExportConfig config) {
+        try {
+            final String compression = config.getCompressionAlgo();
+            final String writerString = writer.toString();
+            Object data = compression.equals(CompressionAlgo.NONE.name())
+                    ? writerString
+                    : CompressionAlgo.valueOf(compression).compress(writerString, config.getCharset());
+            writer.getBuffer().setLength(0);
+            return data;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

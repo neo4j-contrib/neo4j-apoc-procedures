@@ -2,9 +2,9 @@ package apoc.export.parquet;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.export.util.BatchTransaction;
+import apoc.export.util.BatchTransactionExtended;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
+import apoc.result.ImportProgressInfoExtended;
 import apoc.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -52,10 +52,10 @@ public class ImportParquet {
 
     @Procedure(name = "apoc.import.parquet", mode = Mode.WRITE)
     @Description("Imports parquet from the provided file or binary")
-    public Stream<ImportProgressInfo> importParquet(
+    public Stream<ImportProgressInfoExtended> importParquet(
             @Name("input") Object input,
             @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        ImportProgressInfo result =
+        ImportProgressInfoExtended result =
                 Util.inThread(pools, () -> {
 
                     String file = null;
@@ -69,9 +69,9 @@ public class ImportParquet {
                     final Map<Long, Long> idMapping = new HashMap<>();
                     try (ApocParquetReader reader = getReader(input, conf, urlAccessChecker)) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "parquet"));
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfoExtended(file, sourceInfo, "parquet"));
 
-                        BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
+                        BatchTransactionExtended btx = new BatchTransactionExtended(db, conf.getBatchSize(), reporter);
 
                         try {
                             Map<String, Object> recordMap;
@@ -116,7 +116,7 @@ public class ImportParquet {
                             btx.close();
                         }
 
-                        return (ImportProgressInfo) reporter.getTotal();
+                        return (ImportProgressInfoExtended) reporter.getTotal();
                     }
                 });
         return Stream.of(result);
