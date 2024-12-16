@@ -1,5 +1,6 @@
-package apoc.es;
+package apoc.full.it.es;
 
+import apoc.es.ElasticSearchHandler;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.BeforeClass;
@@ -22,10 +23,10 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
     public static final ElasticSearchHandler DEFAULT_HANDLER = ElasticSearchHandler.Version.DEFAULT.get();
 
     private static final Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID);
-    
+
     @BeforeClass
     public static void setUp() throws Exception {
-        
+
         Map<String, Object> config = Map.of("headers", basicAuthHeader);
         Map<String, Object> params = new HashMap<>(defaultParams);
         params.put("config", config);
@@ -33,7 +34,7 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
 
         String tag = "7.9.2";
         getElasticContainer(tag, Map.of(), params);
-        
+
         String httpHostAddress = elastic.getHttpHostAddress();
         HTTP_HOST_ADDRESS = String.format("elastic:%s@%s",
                 password,
@@ -65,17 +66,17 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
 
     @Test
     public void testStats() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.es.stats($host)", defaultParams, 
+        TestUtil.testCall(db, "CALL apoc.es.stats($host)", defaultParams,
                 commonEsStatsConsumer());
 
     }
 
     @Test
     public void testProceduresWithUrl() {
-        TestUtil.testCall(db, "CALL apoc.es.stats($url)", defaultParams, 
+        TestUtil.testCall(db, "CALL apoc.es.stats($url)", defaultParams,
                 commonEsStatsConsumer());
 
-        TestUtil.testCall(db, "CALL apoc.es.get($url,$index,$type,$id,null,null) yield value", defaultParams, 
+        TestUtil.testCall(db, "CALL apoc.es.get($url,$index,$type,$id,null,null) yield value", defaultParams,
                 commonEsGetConsumer());
     }
 
@@ -83,10 +84,10 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
     public void testProceduresWithUrlKeyConf() {
         apocConfig().setProperty("apoc.es.myUrlKey.url", HTTP_URL_ADDRESS);
 
-        TestUtil.testCall(db, "CALL apoc.es.stats('myUrlKey')", 
+        TestUtil.testCall(db, "CALL apoc.es.stats('myUrlKey')",
                 commonEsStatsConsumer());
 
-        TestUtil.testCall(db, "CALL apoc.es.get('myUrlKey',$index,$type,$id,null,null, $config) yield value", paramsWithBasicAuth, 
+        TestUtil.testCall(db, "CALL apoc.es.get('myUrlKey',$index,$type,$id,null,null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
 
@@ -100,7 +101,7 @@ public class ElasticVersionSevenTest extends ElasticSearchTest {
         TestUtil.testCall(db, "CALL apoc.es.get('myHostKey',$index,$type,$id,null,null, $config) yield value", paramsWithBasicAuth,
                 commonEsGetConsumer());
     }
-    
+
     @Test
     public void testGetWithQueryAsStringSingleParam() {
         TestUtil.testCall(db, "CALL apoc.es.get($host,$index,$type,$id,'_source_includes=name',null, {}) yield value", defaultParams,
