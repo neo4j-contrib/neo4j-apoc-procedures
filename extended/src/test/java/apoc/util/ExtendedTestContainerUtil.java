@@ -78,7 +78,7 @@ public class ExtendedTestContainerUtil
     }
 
     public static String getBoltAddress(Neo4jContainerExtension instance) {
-        return instance.getEnvMap().get("NEO4J_dbms_connector_bolt_advertised__address");
+        return instance.getEnvMap().get("NEO4J_server_bolt_advertised__address");
     }
 
     public static boolean dbIsWriter(String dbName, Session session, String boltAddress) {

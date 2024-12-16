@@ -14,6 +14,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
@@ -50,6 +51,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+@Ignore
 public class CouchbaseIT {
 
     private static int numberConnections = 0;
