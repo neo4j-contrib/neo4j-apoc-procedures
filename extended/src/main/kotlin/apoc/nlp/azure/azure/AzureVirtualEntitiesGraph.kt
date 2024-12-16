@@ -1,6 +1,6 @@
 package apoc.nlp.azure
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.graph.document.builder.DocumentToGraphExtended
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.VirtualGraph
@@ -33,7 +33,7 @@ data class AzureVirtualEntitiesGraph(private val results: List<Map<String, Any>>
             val virtualNodes = LinkedHashMap<MutableSet<String>, MutableSet<Node>>()
             val virtualNode = VirtualNode(sourceNode, sourceNode.propertyKeys.toList())
 
-            val documentToNodes = DocumentToGraph.DocumentToNodes(nonSourceNodes, transaction)
+            val documentToNodes = DocumentToGraphExtended.DocumentToNodes(nonSourceNodes, transaction)
             val entityNodes = mutableSetOf<Node>()
             val relationships = mutableSetOf<Relationship>()
             for (item in document) {
@@ -58,7 +58,7 @@ data class AzureVirtualEntitiesGraph(private val results: List<Map<String, Any>>
                         setProperties(entityNode, item)
                         entityNodes.add(entityNode)
 
-                        DocumentToGraph.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
+                        DocumentToGraphExtended.getNodesWithSameLabels(virtualNodes, labels).add(entityNode)
 
                         val nodeAndScore = Pair(entityNode, score)
                         relationships.add(NLPHelperFunctions.mergeRelationship(virtualNode, nodeAndScore, relType, relProperty))

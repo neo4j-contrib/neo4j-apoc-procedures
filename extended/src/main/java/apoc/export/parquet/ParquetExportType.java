@@ -1,6 +1,6 @@
 package apoc.export.parquet;
 
-import apoc.meta.Types;
+import apoc.meta.TypesExtended;
 import apoc.util.Util;
 import apoc.util.collection.Iterables;
 import org.apache.parquet.example.data.Group;
@@ -152,7 +152,7 @@ public interface ParquetExportType<TYPE, ROW> {
 
             type.stream()
                     .flatMap(m -> m.entrySet().stream())
-                    .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), fromMetaType(Types.of(e.getValue()))))
+                    .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), fromMetaType(TypesExtended.of(e.getValue()))))
                     .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey, Collectors.mapping(AbstractMap.SimpleEntry::getValue, Collectors.toSet())))
                     .forEach((key, value) -> toField(key, value, messageTypeBuilder));
 

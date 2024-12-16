@@ -20,7 +20,7 @@ package apoc.export.arrow;
 
 import apoc.Pools;
 import apoc.result.ByteArrayResult;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -57,7 +57,7 @@ public class ExportArrowService {
         }
     }
 
-    public Stream<ExportProgressInfo> file(String fileName, Object data, ArrowConfig config) {
+    public Stream<ExportProgressInfoExtended> file(String fileName, Object data, ArrowConfig config) {
         // we cannot use apocConfig().checkWriteAllowed(..) because the error is confusing
         //  since it says "... use the `{stream:true}` config", but with arrow procedures the streaming mode is
         // implemented via different procedures

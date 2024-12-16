@@ -43,7 +43,7 @@ public class ParquetUtil {
     public static String FIELD_TARGET_ID = "__target_id";
     public static String FIELD_TYPE = "__type";
 
-    public static String fromMetaType(apoc.meta.Types type) {
+    public static String fromMetaType(apoc.meta.TypesExtended type) {
         switch (type) {
             case INTEGER:
                 return "LONG";
@@ -51,8 +51,8 @@ public class ParquetUtil {
                 return "DOUBLE";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
-                if (innerType == apoc.meta.Types.LIST || innerType == apoc.meta.Types.MAP ) {
+                final apoc.meta.TypesExtended innerType = apoc.meta.TypesExtended.from(inner);
+                if (innerType == apoc.meta.TypesExtended.LIST || innerType == apoc.meta.TypesExtended.MAP ) {
                     return "ANYARRAY";
                 }
                 return fromMetaType(innerType) + "ARRAY";

@@ -20,8 +20,8 @@ package apoc.export.arrow;
 
 import apoc.convert.ConvertUtils;
 import apoc.export.util.ProgressReporter;
-import apoc.meta.Types;
-import apoc.result.ExportProgressInfo;
+import apoc.meta.TypesExtended;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.apache.arrow.memory.BufferAllocator;
@@ -54,13 +54,13 @@ import java.util.stream.StreamSupport;
 import static apoc.util.Util.labelStrings;
 import static apoc.util.Util.map;
 
-public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Stream<ExportProgressInfo>> {
+public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Stream<ExportProgressInfoExtended>> {
 
     Iterator<Map<String, Object>> toIterator(ProgressReporter reporter, IN data);
 
-    default Stream<ExportProgressInfo> export(IN data, ArrowConfig config) {
+    default Stream<ExportProgressInfoExtended> export(IN data, ArrowConfig config) {
         final OutputStream out = FileUtils.getOutputStream(getFileName());
-        ExportProgressInfo progressInfo = new ExportProgressInfo(getFileName(), getSource(data), "arrow");
+        ExportProgressInfoExtended progressInfo = new ExportProgressInfoExtended(getFileName(), getSource(data), "arrow");
         progressInfo.setBatchSize(config.getBatchSize());
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         int batchCount = 0;
@@ -147,7 +147,7 @@ public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Str
     public static String RELATIONSHIP = "relationship";
 
     public static Object writeJsonResult(Object value) {
-        Types type = Types.of(value);
+        TypesExtended type = TypesExtended.of(value);
         switch (type) {
             case NODE:
                 return nodeToMap((Node) value);

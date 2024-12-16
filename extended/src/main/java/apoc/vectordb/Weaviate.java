@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.util.CollectionUtilsExtended;
 import apoc.util.UrlResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -244,7 +244,7 @@ public class Weaviate {
                 v -> {
                     Map<String, Map> mapResult = (Map<String, Map>) v;
                     List<Map> errors = (List<Map>) mapResult.get("errors");
-                    if ( CollectionUtils.isNotEmpty(errors) ) {
+                    if ( CollectionUtilsExtended.isNotEmpty(errors) ) {
                         String message = "An error occurred during Weaviate API response: \n" + StringUtils.join(errors, "\n");
                         throw new RuntimeException(message);
                     }

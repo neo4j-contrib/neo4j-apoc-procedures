@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.export.util.BatchTransaction;
+import apoc.export.util.BatchTransactionExtended;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
@@ -459,7 +459,7 @@ public class XmlReadUtil {
             Map<String, Key> nodeKeys = new HashMap<>();
             Map<String, Key> relKeys = new HashMap<>();
             int count = 0;
-            BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter);
+            BatchTransactionExtended tx = new BatchTransactionExtended(db, batchSize * 10, reporter);
             try {
 
                 while (reader.hasNext()) {

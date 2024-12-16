@@ -21,13 +21,13 @@ public class GetProcedures {
     @Procedure
     @Description("apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's")
     public Stream<NodeResult> nodes(@Name("nodes") Object ids) {
-        return new Get((InternalTransaction) tx).nodes(ids);
+        return new GetExtended((InternalTransaction) tx).nodes(ids);
     }
 
     @Procedure
     @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
-        return new Get((InternalTransaction) tx).rels(ids);
+        return new GetExtended((InternalTransaction) tx).rels(ids);
     }
 
 }

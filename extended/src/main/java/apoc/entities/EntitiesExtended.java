@@ -3,7 +3,7 @@ package apoc.entities;
 import apoc.Extended;
 import apoc.result.UpdatedNodeResult;
 import apoc.result.UpdatedRelationshipResult;
-import apoc.util.EntityUtil;
+import apoc.util.EntityUtilExtended;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedUtil;
 import apoc.util.Util;
@@ -40,7 +40,7 @@ public class EntitiesExtended {
     @UserFunction("apoc.any.rebind")
     @Description("apoc.any.rebind(Object) - to rebind any rel, node, path, map, list or combination of them (i.e. executing a Transaction.getNodeById(node.getId()) / Transaction.getRelationshipById(rel.getId()))")
     public Object anyRebind(@Name("any") Object any) {
-        return EntityUtil.anyRebind(tx, any);
+        return EntityUtilExtended.anyRebind(tx, any);
     }
 
     @Procedure(value = "apoc.node.match", mode = Mode.WRITE)

@@ -3,7 +3,7 @@ package apoc.export.xls;
 import apoc.ApocConfig;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.result.ProgressInfo;
 import apoc.util.ExtendedListUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -50,7 +50,7 @@ public class ExportXlsHandler {
                                                         "Please see the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.export/apoc.export.xls.all/#_install_dependencies";
 
 
-    public static Stream<ExportProgressInfo> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ApocConfig apocConfig, GraphDatabaseService db) throws IOException {
+    public static Stream<ExportProgressInfoExtended> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ApocConfig apocConfig, GraphDatabaseService db) throws IOException {
         ExportConfig c = new ExportConfig(configMap);
         apocConfig.checkWriteAllowed(c, fileName);
         try (Transaction tx = db.beginTx();
@@ -58,7 +58,7 @@ public class ExportXlsHandler {
              SXSSFWorkbook wb = new SXSSFWorkbook(-1)) {
 
             XlsExportConfig config = new XlsExportConfig(configMap);
-            ProgressInfo progressInfo = new ExportProgressInfo(fileName, source, "xls");
+            ProgressInfo progressInfo = new ExportProgressInfoExtended(fileName, source, "xls");
             progressInfo.setBatches(config.getBatchSize());
             ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
@@ -78,7 +78,7 @@ public class ExportXlsHandler {
             wb.dispose();
             reporter.done();
             tx.commit();
-            return Stream.of((ExportProgressInfo) reporter.getTotal());
+            return Stream.of((ExportProgressInfoExtended) reporter.getTotal());
         }
     }
 

@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.load.LoadJsonUtils.loadJsonStream;
+import static apoc.load.LoadJsonUtilsExtended.loadJsonStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
 @Extended
