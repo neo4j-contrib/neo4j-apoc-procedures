@@ -18,11 +18,11 @@
  */
 package apoc.es;
 
+import static apoc.es.ElasticSearchHandler.Version;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static apoc.es.ElasticSearchHandler.Version;
 
 public class ElasticSearchConfig {
     public static final String HEADERS_KEY = "headers";
@@ -46,7 +46,7 @@ public class ElasticSearchConfig {
             headerConf.putIfAbsent("method", httpMethod);
         }
         this.headers = headerConf;
-        
+
         String versionConf = (String) config.getOrDefault(VERSION_KEY, Version.DEFAULT.name());
         this.version = Version.valueOf(versionConf).get();
     }

@@ -15,6 +15,7 @@ dependencies {
     
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.770'
     testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
+    testImplementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
