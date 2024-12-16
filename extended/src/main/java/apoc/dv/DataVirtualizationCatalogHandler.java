@@ -30,7 +30,6 @@ public class DataVirtualizationCatalogHandler {
         this.log = log;
     }
 
-
     private <T> T withSystemDb(Function<Transaction, T> action) {
         try (Transaction tx = systemDb.beginTx()) {
             T result = action.apply(tx);
