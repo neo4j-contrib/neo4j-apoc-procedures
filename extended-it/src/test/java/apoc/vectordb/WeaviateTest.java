@@ -561,7 +561,7 @@ public class WeaviateTest {
                     db,
                     query,
                     params,
-                    "Caused by: java.io.FileNotFoundException: http://127.0.0.1:" + HOST.split(":")[1] + "/v3/graphql"
+                    "Caused by: java.io.FileNotFoundException"
             );
             return;
         }

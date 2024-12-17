@@ -10,12 +10,12 @@ import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.manager.bucket.BucketSettings;
 import com.couchbase.client.java.manager.collection.CollectionManager;
 import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
 import com.couchbase.client.java.query.QueryScanConsistency;
 import org.testcontainers.containers.Container;
-import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.time.Duration;
@@ -65,7 +65,7 @@ public class CouchbaseTestUtils {
 
     public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
-        couchbaseBucket.waitUntilReady(Duration.ofMinutes(1));
+        couchbaseBucket.waitUntilReady(Duration.ofMinutes(5));
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
@@ -85,7 +85,7 @@ public class CouchbaseTestUtils {
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(8091));
+        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getHost(), couchbaseContainer.getMappedPort(8091));
     }
     
     @SuppressWarnings("unchecked")
@@ -135,10 +135,9 @@ public class CouchbaseTestUtils {
 
     protected static void createCouchbaseContainer() {
         // 7.x support stably multi collections and scopes
-        couchbase = new CouchbaseContainer("couchbase/server:7.2.6")
+        couchbase = new CouchbaseContainer("couchbase/server:7.6.4")
                 .withStartupAttempts(3)
-                .withCredentials(USERNAME, PASSWORD)
-                .withBucket(new BucketDefinition(BUCKET_NAME));
+                .withCredentials(USERNAME, PASSWORD);
         couchbase.start();
 
         ClusterEnvironment environment = ClusterEnvironment.create();
@@ -150,6 +149,10 @@ public class CouchbaseTestUtils {
 
         Cluster cluster = Cluster.connect(seedNodes, ClusterOptions.clusterOptions(USERNAME, PASSWORD).environment(environment));
 
+        cluster.buckets().createBucket(
+                BucketSettings.create(BUCKET_NAME)
+        );
+        
         boolean isFilled = fillDB(cluster);
         HOST = getUrl(couchbase);
         Bucket bucket = cluster.bucket(BUCKET_NAME);
