@@ -19,6 +19,7 @@
 package apoc.load;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedTestUtil.getLogFileContent;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -115,15 +116,6 @@ public class LoadLdapTest {
         // the config without dot after loadldap should print a log warn
         String logWarn = "Not to cause breaking-change, the current config `apoc.loadldapmyldap.config` is valid";
         assertTrue(getLogFileContent().contains(logWarn));
-    }
-
-    private static String getLogFileContent() {
-        try {
-            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
-            return Files.readString(logFile.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void testWithStringConfigCommon(String key) {

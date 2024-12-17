@@ -89,5 +89,9 @@ public class JdbcUtil {
         return sqlOrKey.contains(" ")
                 ? sqlOrKey
                 : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
+    }    
+
+    public static String obfuscateJdbcUrl(String query) {
+        return query.replaceAll("(jdbc:[^:]+://)([^\\s\\\"']+)", "$1*******");
     }
 }
