@@ -18,6 +18,7 @@ import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
 import com.couchbase.client.java.query.QueryScanConsistency;
 import org.testcontainers.containers.Container;
+import org.testcontainers.couchbase.BucketDefinition;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.time.Duration;
@@ -141,7 +142,8 @@ public class CouchbaseTestUtils {
         // 7.x support stably multi collections and scopes
         couchbase = new CouchbaseContainer("couchbase/server:7.6.4")
                 .withStartupAttempts(3)
-                .withCredentials(USERNAME, PASSWORD);
+                .withCredentials(USERNAME, PASSWORD)
+                .withBucket(new BucketDefinition(BUCKET_NAME));
         couchbase.start();
 
         ClusterEnvironment environment = ClusterEnvironment.create();
@@ -153,10 +155,6 @@ public class CouchbaseTestUtils {
 
         Cluster cluster = Cluster.connect(seedNodes, ClusterOptions.clusterOptions(USERNAME, PASSWORD).environment(environment));
 
-        cluster.buckets().createBucket(
-                BucketSettings.create(BUCKET_NAME)
-        );
-        
         boolean isFilled = fillDB(cluster);
         HOST = getUrl(couchbase);
         Bucket bucket = cluster.bucket(BUCKET_NAME);
