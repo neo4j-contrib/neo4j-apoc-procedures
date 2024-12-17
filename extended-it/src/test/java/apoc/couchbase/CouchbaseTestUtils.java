@@ -3,10 +3,12 @@ package apoc.couchbase;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
+import com.couchbase.client.core.service.ServiceType;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.diagnostics.WaitUntilReadyOptions;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.env.ClusterEnvironment;
@@ -65,7 +67,9 @@ public class CouchbaseTestUtils {
 
     public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
-        couchbaseBucket.waitUntilReady(Duration.ofMinutes(5));
+        WaitUntilReadyOptions waitOptions = WaitUntilReadyOptions.waitUntilReadyOptions()
+                .serviceTypes(ServiceType.QUERY);
+        couchbaseBucket.waitUntilReady(Duration.ofMinutes(5), waitOptions);
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
