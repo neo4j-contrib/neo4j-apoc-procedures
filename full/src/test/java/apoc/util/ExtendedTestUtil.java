@@ -1,8 +1,14 @@
 package apoc.util;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallAssertions;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -66,5 +72,24 @@ public class ExtendedTestUtil {
                 (v) -> v,
                 timeout,
                 TimeUnit.SECONDS);
+    }
+
+    public static void assertFails(
+            GraphDatabaseService db, String query, Map<String, Object> params, String expectedErrMsg) {
+        try {
+            testCall(db, query, params, r -> fail("Should fail due to " + expectedErrMsg));
+        } catch (Exception e) {
+            String actualErrMsg = e.getMessage();
+            assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
+        }
+    }
+
+    public static String getLogFileContent() {
+        try {
+            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
+            return Files.readString(logFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
