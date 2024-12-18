@@ -74,7 +74,8 @@ public class ExtendedTestUtil {
                 TimeUnit.SECONDS);
     }
 
-    public static void assertFails(GraphDatabaseService db, String query, Map<String,Object> params, String expectedErrMsg) {
+    public static void assertFails(
+            GraphDatabaseService db, String query, Map<String, Object> params, String expectedErrMsg) {
         try {
             testCall(db, query, params, r -> fail("Should fail due to " + expectedErrMsg));
         } catch (Exception e) {

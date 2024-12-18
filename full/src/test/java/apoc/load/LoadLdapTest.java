@@ -26,14 +26,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPSearchResults;
 import com.unboundid.ldap.sdk.LDAPConnection;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import org.junit.AfterClass;

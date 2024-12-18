@@ -51,14 +51,12 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 public class JdbcTest extends AbstractJdbcTest {
 
     @Rule
     public TemporaryFolder STORE_DIR = new TemporaryFolder();
-    
+
     private GraphDatabaseService db;
     private DatabaseManagementService dbms;
 
@@ -76,7 +74,7 @@ public class JdbcTest extends AbstractJdbcTest {
     public void setUp() throws Exception {
         dbms = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot().toPath()).build();
         db = dbms.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
-        
+
         apocConfig().setProperty("apoc.jdbc.derby.url", "jdbc:derby:derbyDB");
         apocConfig().setProperty("apoc.jdbc.test.sql", "SELECT * FROM PERSON");
         apocConfig().setProperty("apoc.jdbc.testparams.sql", "SELECT * FROM PERSON WHERE NAME = ?");
@@ -153,16 +151,15 @@ public class JdbcTest extends AbstractJdbcTest {
         String errorMsgWithObfuscatedUrl = "No suitable driver found for jdbc:ajeje://*******";
 
         // obfuscated exception
-        assertFails(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON WHERE NAME = ?',['John'])",
+        assertFails(
+                db,
+                "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON WHERE NAME = ?',['John'])",
                 Map.of("url", url),
-                errorMsgWithObfuscatedUrl
-        );
-        
-        // obfuscated log in `debug.log` 
+                errorMsgWithObfuscatedUrl);
+
+        // obfuscated log in `debug.log`
         String fileContent = getLogFileContent();
-        assertTrue("Actual log content is: " + fileContent,
-                fileContent.contains(errorMsgWithObfuscatedUrl)
-        );
+        assertTrue("Actual log content is: " + fileContent, fileContent.contains(errorMsgWithObfuscatedUrl));
     }
 
     @Test
