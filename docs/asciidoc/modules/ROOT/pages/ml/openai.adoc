@@ -27,6 +27,7 @@ If present, they take precedence over the analogous APOC configs.
 | apiType | analogous to `apoc.ml.openai.type` APOC config
 | endpoint | analogous to `apoc.ml.openai.url` APOC config
 | apiVersion | analogous to `apoc.ml.azure.api.version` APOC config
+| failOnError | If true (default), the procedure fails in case of empty, blank or null input
 |===
 
 
