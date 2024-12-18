@@ -50,7 +50,7 @@ def apocReleases(neo4jReleases) {
     def slurper = new JsonSlurper()
 
     // get tags
-    def pattern = ~/neo4jVersion\s*=\s*"(.*)".*/
+    def pattern = ~/neo4jVersion\s*=\s*["'](.*)["'].*/
     def releases = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/releases?page=1&per_page=500").getText())
     def neo4jToApoc = [:]
     def latestApoc, oldestApoc
