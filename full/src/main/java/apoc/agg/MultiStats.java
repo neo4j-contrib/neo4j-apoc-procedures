@@ -14,7 +14,6 @@ import org.neo4j.procedure.UserAggregationUpdate;
 
 @Extended
 public class MultiStats {
-    // test
 
     @UserAggregationFunction("apoc.agg.multiStats")
     @Description("Return a multi-dimensional aggregation")
