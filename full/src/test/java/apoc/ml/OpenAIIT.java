@@ -1,6 +1,7 @@
 package apoc.ml;
 
 import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
+import static apoc.ml.OpenAI.FAIL_ON_ERROR_CONF;
 import static apoc.ml.OpenAITestResultUtils.assertChatCompletion;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -147,13 +148,13 @@ public class OpenAIIT {
         assertNullInputFails(
                 db,
                 "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap()));
+                Map.of("apiKey", openaiKey, "conf", Map.of()));
     }
 
     @Test
     public void chatNull() {
         assertNullInputFails(
-                db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", emptyMap()));
+                db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", Map.of()));
     }
 
     @Test
@@ -175,7 +176,7 @@ public class OpenAIIT {
     @Test
     public void chatWithEmptyFails() {
         assertNullInputFails(
-                db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", emptyMap()));
+                db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)", Map.of("apiKey", openaiKey, "conf", Map.of()));
     }
 
     @Test

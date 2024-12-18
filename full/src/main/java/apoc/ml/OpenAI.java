@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +118,7 @@ public class OpenAI {
         */
         boolean failOnError = isFailOnError(configuration);
         if (checkNullInput(texts, failOnError)) return Stream.empty();
-        texts = texts.stream().filter(StringUtils::isNotBlank).toList();
+        texts = texts.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
         if (checkEmptyInput(texts, failOnError)) return Stream.empty();
         return getEmbeddingResult(texts, apiKey, configuration, apocConfig, (map, text) -> {
             Long index = (Long) map.get("index");
@@ -183,7 +184,7 @@ public class OpenAI {
             throws Exception {
         boolean failOnError = isFailOnError(configuration);
         if (checkNullInput(messages, failOnError)) return Stream.empty();
-        messages = messages.stream().filter(MapUtils::isNotEmpty).toList();
+        messages = messages.stream().filter(MapUtils::isNotEmpty).collect(Collectors.toList());
         if (checkEmptyInput(messages, failOnError)) return Stream.empty();
         String model = (String) configuration.putIfAbsent("model", "gpt-4o");
         return executeRequest(apiKey, configuration, "chat/completions", model, "messages", messages, "$", apocConfig)
