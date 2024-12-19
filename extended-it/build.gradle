@@ -16,7 +16,6 @@ test {
 dependencies {
     apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
-    api group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.36'
 
     def withoutJacksons = {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
