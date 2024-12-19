@@ -1,11 +1,12 @@
-This function is used inside an apoc.trigger.add.adoc Cypher statement.
+This function is intended to be used inside an apoc.trigger.install Cypher statement.
 
 We can use it to conditionally run Cypher statements when properties are added or removed.
 For example, we can connect nodes with a `genre` property to a `Genre` node, with the following trigger:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add(
+CALL apoc.trigger.install(
+  'neo4j',
   'triggerTest',
   'UNWIND apoc.trigger.propertiesByKey($assignedNodeProperties, "genre") as prop
    WITH prop.node as n
