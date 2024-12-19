@@ -287,7 +287,7 @@ public class XmlGraphMLReader {
                     StartElement element = event.asStartElement();
                     String name = element.getName().getLocalPart();
                     boolean isNameGexf = readerType.equals(ReaderType.GEXF) && name.equals("gexf");
-                    if (name.equals("graphml") || name.equals("graph") || isNameGexf) continue;
+                    if (name.equals("graphml") || name.equals("graph")) continue;
                     if (readerType.equals(ReaderType.GEXF) && name.equals("attribute")) {
                         String id = getAttribute(element, ID);
                         String type = getAttribute(element, DATA_TYPE);
