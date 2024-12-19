@@ -1,0 +1,48 @@
+This function is intended to be used within an xref::overview/apoc.trigger/apoc.trigger.install.adoc[] Cypher statement.
+
+If we want to create a 'before' or 'after' trigger query using `$deletedRelationships`, and retrieve entity information such as the type and/or properties, we cannot use the classic Cypher functions type() and properties().
+Instead, we have to leverage virtual relationships through the function `apoc.trigger.toRelationship(rel, $removedRelationshipProperties)`.
+
+For example, to create a new `Report` node with a list of deleted relationship IDs and the type retrieved for each deleted relationship, we can execute:
+[source,cypher]
+----
+CALL apoc.trigger.install(
+    'neo4j', 'myTrigger',
+    "UNWIND $deletedRelationships as deletedRel
+    WITH apoc.trigger.toRelationship(deletedRel, $removedRelationshipProperties) AS deletedRel
+    CALL apoc.merge.node(
+          ['Report'],
+          {type: apoc.rel.type(deletedRel)},
+          {created: datetime()},
+          {updated: datetime()}
+    ) YIELD node AS report
+    WITH report, deletedRel
+    SET report.deletedIds = coalesce(report.deletedIds, [])+[id(deletedRel)]" ,
+    {phase:'before'}
+);
+----
+
+Now, let's create and delete a `IN_GENRE` relationship between a `Movie` node and a `Genre` node:
+
+[source,cypher]
+----
+MERGE (movie:Movie {title: "The White Tiger"})
+MERGE (genre:Genre {name: "Triller"})
+MERGE (movie)-[IN_GENRE]->(genre);
+MATCH (movie:Movie {title: "The White Tiger"})-[r:IN_GENRE]->(genre:Genre {name: "Triller"}) DELETE r;
+----
+
+Finally, let's check the `Report` node:
+
+[source,cypher]
+----
+MATCH (report:Report {labels: ['IN_GENRE']})
+RETURN report;
+----
+
+.Results
+[opts="header"]
+|===
+| report
+| (:Report {"created": "2024-12-12T08:33:27.188000000Z", "deletedIds": [12], "type": "IN_GENRE"})
+|===
