@@ -27,8 +27,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/*
- This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
+/**
+ * This test is just to verify if the APOC procedures and functions are correctly deployed into a Neo4j instance without any startup issue.
+ * <br/>
+ * NOTE: if we have an error like `Caused by: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find org.neo4j:neo4j:5.25.0.`,
+ * there is probably inconsistency between the neo4j version of APOC Core and the Extended version,
+ * so we need to set the environment variable `NEO4JVERSION=<correctVersion>`, e.g. `NEO4JVERSION=5.25.1`,
+ * which is valued via {@link TestContainerUtil#executeGradleTasks(File, String...)} present in APOC Core and therefore not modifiable by APOC Extended
  */
 public class StartupExtendedTest {
     private static final String APOC_HELP_QUERY = "CALL apoc.help('') YIELD core, type, name WHERE core = $core and type = $type RETURN name";
