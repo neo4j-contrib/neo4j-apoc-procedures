@@ -2,7 +2,7 @@ package apoc.load.xls;
 
 import apoc.Extended;
 import apoc.export.util.CountingInputStream;
-import apoc.meta.Types;
+import apoc.meta.TypesExtended;
 import apoc.util.FileUtils;
 import apoc.util.MissingDependencyException;
 import apoc.util.Util;
@@ -26,7 +26,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
 import static apoc.load.xls.LoadXlsHandler.getXlsSpliterator;
-import static apoc.util.DateParseUtil.dateParse;
+import static apoc.util.DateParseUtilExtended.dateParse;
 import static apoc.util.ExtendedUtil.dateFormat;
 import static apoc.util.ExtendedUtil.durationParse;
 import static apoc.util.Util.*;
@@ -147,7 +147,7 @@ public class LoadXls {
         public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), DEFAULT_ARRAY_SEP, false);
         final String name;
         final Collection<Object> nullValues;
-        final Types type;
+        final TypesExtended type;
         final boolean array;
         final boolean ignore;
         final char arraySep;
@@ -161,7 +161,7 @@ public class LoadXls {
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
             this.nullValues = (Collection<Object>) mapping.getOrDefault("nullValues", emptyList());
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
-            this.type = Types.from(mapping.getOrDefault("type", "STRING").toString());
+            this.type = TypesExtended.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
             this.dateFormat = mapping.getOrDefault("dateFormat", StringUtils.EMPTY).toString();
             this.dateParse = convertFormat(mapping.getOrDefault("dateParse", null));

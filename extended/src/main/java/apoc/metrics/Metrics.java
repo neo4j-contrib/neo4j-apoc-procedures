@@ -2,7 +2,7 @@ package apoc.metrics;
 
 import apoc.Extended;
 import apoc.export.util.CountingReader;
-import apoc.load.CSVResult;
+import apoc.load.CSVResultExtended;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.CompressionAlgo;
@@ -138,8 +138,8 @@ public class Metrics {
      * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
      * header row.  We want to discard those.
      */
-    private static final Predicate<CSVResult> duplicatedHeaderRows = new Predicate <CSVResult> () {
-        public boolean test(CSVResult o) {
+    private static final Predicate<CSVResultExtended> duplicatedHeaderRows = new Predicate <CSVResultExtended> () {
+        public boolean test(CSVResultExtended o) {
             if (o == null) return false;
 
             Map<String,Object> map = o.map;

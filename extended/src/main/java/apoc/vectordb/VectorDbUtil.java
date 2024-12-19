@@ -3,7 +3,7 @@ package apoc.vectordb;
 
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
-import apoc.util.CollectionUtils;
+import apoc.util.CollectionUtilsExtended;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
@@ -151,7 +151,7 @@ public class VectorDbUtil {
                 ? null
                 : (String) mapping.get(METADATA_KEY);
 
-        if (CollectionUtils.isEmpty(listFields)) {
+        if (CollectionUtilsExtended.isEmpty(listFields)) {
 
             if (StringUtils.isEmpty(metadataKey)) {
                 throw new RuntimeException(NO_FIELDS_ERROR_MSG);
