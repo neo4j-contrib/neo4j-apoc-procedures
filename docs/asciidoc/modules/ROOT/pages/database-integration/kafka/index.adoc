@@ -1,0 +1,73 @@
+= Kafka
+
+[[kafka]]
+
+
+[[apoc_neo4j_plugin_quickstart]]
+== APOC Kafka Procedures
+
+NOTE: to enable the Kafka dependencies we need to set the APOC configuration `apoc.kafka.enabled=true`
+
+Any configuration option that starts with `apoc.kafka.` controls how the procedures itself behaves.
+
+=== Install dependencies
+
+The Kafka dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-kafka-dependencies-{apoc-release}-all.jar[apoc-kafka-dependencies-{apoc-release}-all.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+[[kafka-settings]]
+=== Kafka settings
+
+Any configuration option that starts with `apoc.kafka.` will be passed to the underlying Kafka driver. Neo4j
+Kafka procedures uses the official Confluent Kafka producer and consumer java clients.
+Configuration settings which are valid for those connectors will also work for APOC Kafka.
+
+For example, in the Kafka documentation linked below, the configuration setting named `batch.size` should be stated as
+`apoc.kafka.batch.size` in APOC Kafka.
+
+The following are common configuration settings you may wish to use.
+.Most Common Needed Configuration Settings
+|===
+|Setting Name |Description |Default Value
+
+|apoc.kafka.max.poll.records
+|The maximum number of records to pull per batch from Kafka. Increasing this number will mean
+larger transactions in Neo4j memory and may improve throughput.
+|500
+
+|apoc.kafka.buffer.memory
+|The total bytes of memory the producer can use to buffer records waiting.  Use this to adjust
+how much memory the procedures may require to hold messages not yet delivered to Neo4j
+|33554432
+
+|apoc.kafka.batch.size
+|(Producer only) The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes.
+|16384
+
+|apoc.kafka.max.partition.fetch.bytes
+|(Consumer only) The maximum amount of data per-partition the server will return. Records are fetched in batches by the consumer. If the first record batch in the first non-empty partition of the fetch is larger than this limit, the batch will still be returned to ensure that the consumer can make progress.
+|1048576
+
+|apoc.kafka.group.id
+|A unique string that identifies the consumer group this consumer belongs to.
+|N/A
+|===
+
+=== Configure Kafka Connection
+
+If you are running locally or against a standalone machine, configure `apoc.conf` to point to that server:
+
+.neo4j.conf
+[source,ini]
+----
+apoc.kafka.bootstrap.servers=localhost:9092
+----
+
+If you are using Confluent Cloud (managed Kafka), you can connect to Kafka as described in
+the xref:database-integration/kafka/cloud.adoc#confluent_cloud[Confluent Cloud] section
+
+
+==== Restart Neo4j
+
+Once the plugin is installed and configured, restarting the database will make it active.
+If you have configured Neo4j to consume from kafka, it will begin immediately processing messages.

@@ -1,0 +1,39 @@
+== Configuration
+
+You can set the following configuration values in your `neo4j.conf`, here are the defaults.
+
+.neo4j.conf (with default values)
+[source]
+----
+apoc.kafka.bootstrap.servers=localhost:9092
+apoc.kafka.acks=1
+apoc.kafka.retries=2
+apoc.kafka.batch.size=16384
+apoc.kafka.buffer.memory=33554432
+apoc.kafka.reindex.batch.size=1000
+apoc.kafka.session.timeout.ms=15000
+apoc.kafka.connection.timeout.ms=10000
+apoc.kafka.replication=1
+apoc.kafka.linger.ms=1
+apoc.kafka.transactional.id=
+apoc.kafka.topic.discovery.polling.interval=300000
+apoc.kafka.log.compaction.strategy=delete
+----
+
+[NOTE]
+====
+**To use the Kafka transactions please set `kafka.transactional.id` and `kafka.acks` properly**.
+Checkout this {url-confluent-blog}/transactions-apache-kafka/[blog post] for further details about transactions in Apache Kafka
+====
+
+See the https://kafka.apache.org/documentation/#brokerconfigs[Apache Kafka documentation] for details on these settings.
+
+In case you Kafka broker is configured with `auto.create.topics.enable` to `false`,
+all the messages sent to topics that don't exist are discarded;
+this because the `KafkaProducer.send()` method blocks the execution, as explained in https://issues.apache.org/jira/browse/KAFKA-3539[KAFKA-3539].
+You can tune the custom property `kafka.topic.discovery.polling.interval` in order to
+periodically check for new topics into the Kafka cluster so the procedures will be able
+to send events to the defined topics.
+
+
+

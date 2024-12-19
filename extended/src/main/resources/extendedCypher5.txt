@@ -276,3 +276,6 @@ apoc.vectordb.milvus.info
 apoc.vectordb.custom.get
 apoc.vectordb.custom
 apoc.vectordb.configure
+apoc.kafka.consume
+apoc.kafka.publish
+apoc.kafka.publish.sync
