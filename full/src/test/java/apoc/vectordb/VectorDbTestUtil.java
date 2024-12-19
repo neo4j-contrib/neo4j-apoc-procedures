@@ -1,5 +1,15 @@
 package apoc.vectordb;
 
+import apoc.util.MapUtil;
+import org.junit.Assume;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+
+import java.util.Map;
+
+import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
@@ -121,5 +131,15 @@ public class VectorDbTestUtil {
         Assume.assumeNotNull("No OPENAI_KEY environment configured", openAIKey);
         db.executeTransactionally("CREATE (:Rag {readID: 'one'}), (:Rag {readID: 'two'})");
         return openAIKey;
+    }
+
+    public static void assertMetadataFooResult(Result r) {
+        Map<String, Object> row = r.next();
+        Map<String, Object> metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertEquals("one", metadata.get("foo"));
+        row = r.next();
+        metadata = (Map<String, Object>) row.get(DEFAULT_METADATA);
+        assertEquals("two", metadata.get("foo"));
+        assertFalse(r.hasNext());
     }
 }

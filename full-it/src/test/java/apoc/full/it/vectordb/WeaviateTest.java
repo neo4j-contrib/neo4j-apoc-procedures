@@ -1,7 +1,28 @@
 package apoc.full.it.vectordb;
 
+import apoc.ml.Prompt;
+import apoc.util.ExtendedTestUtil;
+import apoc.util.MapUtil;
+import apoc.util.TestUtil;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
+import org.testcontainers.weaviate.WeaviateContainer;
+
+import java.util.List;
+import java.util.Map;
+
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
@@ -31,6 +52,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -60,6 +82,7 @@ public class WeaviateTest {
     private static final List<String> FIELDS = List.of("city", "foo");
     private static final String ADMIN_KEY = "jane-secret-key";
     private static final String READONLY_KEY = "ian-secret-key";
+    private static final String COLLECTION_NAME = "TestCollection";
 
     private static final WeaviateContainer WEAVIATE_CONTAINER = new WeaviateContainer(
                     "semitechnologies/weaviate:1.24.5")
@@ -157,6 +180,27 @@ public class WeaviateTest {
     }
 
     @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.weaviate.info($host, $collectionName, $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(COLLECTION_NAME, value.get("class"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
+                "java.io.FileNotFoundException"
+        );
+    }
+
+    @Test
     public void getVectorsWithReadOnlyApiKey() {
         testResult(
                 db,
@@ -223,7 +267,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertBerlinResult(row, ID_1, FALSE);
@@ -243,7 +287,7 @@ public class WeaviateTest {
                 db,
                 "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) "
                         + " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
-                map("host", HOST, "conf", map("fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(Map.of("city", "Berlin", "foo", "one"), row.get("metadata"));
@@ -269,7 +313,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                     assertLondonResult(r.next(), ID_2, FALSE);
@@ -287,7 +331,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), ID_2, FALSE);
                 });
@@ -302,7 +346,7 @@ public class WeaviateTest {
                         "host",
                         HOST,
                         "conf",
-                        map(ALL_RESULTS_KEY, true, "fields", FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                        map(ALL_RESULTS_KEY, true, FIELDS_KEY, FIELDS, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), ID_1, FALSE);
                 });
@@ -314,7 +358,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -328,8 +372,8 @@ public class WeaviateTest {
                         "myId",
                         METADATA_KEY,
                         "foo",
-                        CREATE_KEY,
-                        true));
+                        MODE_KEY,
+                        MappingMode.CREATE_IF_MISSING.toString()));
         testResult(
                 db,
                 "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) "
@@ -382,7 +426,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -462,7 +506,7 @@ public class WeaviateTest {
         Map<String, Object> conf = map(
                 ALL_RESULTS_KEY,
                 true,
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -510,7 +554,7 @@ public class WeaviateTest {
                 "CREATE (:Start)-[:TEST {myId: 'one'}]->(:End), (:Start)-[:TEST {myId: 'two'}]->(:End)");
 
         Map<String, Object> conf = map(
-                "fields",
+                FIELDS_KEY,
                 FIELDS,
                 HEADERS_KEY,
                 ADMIN_AUTHORIZATION,
@@ -633,5 +677,62 @@ public class WeaviateTest {
                         "confPrompt", MapUtil.map(API_KEY_CONF, openAIKey),
                         "attributes", List.of("city", "foo")),
                 VectorDbTestUtil::assertRagWithVectors);
+    }
+
+    @Test
+    public void queryVectorsWithMetadataKeyNoFields() {
+        testResult(db, "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                       " YIELD score, vector, id, metadata RETURN * ORDER BY id",
+                map("host", HOST, "conf", map(
+                        ALL_RESULTS_KEY, true,
+                        MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                                NODE_LABEL, "Test",
+                                ENTITY_KEY, "myId",
+                                METADATA_KEY, "foo"
+                        ),
+                        HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                VectorDbTestUtil::assertMetadataFooResult);
+    }
+
+    @Test
+    public void queryVectorsWithNoMetadataKeyNoFields() {
+        Map<String, Object> params = map("host", HOST, "conf", map(
+                ALL_RESULTS_KEY, true,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId"
+                ),
+                HEADERS_KEY, ADMIN_AUTHORIZATION));
+        String query = "CALL apoc.vectordb.weaviate.query($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                " YIELD score, vector, id, metadata RETURN * ORDER BY id";
+        ExtendedTestUtil.assertFails(db, query, params, NO_FIELDS_ERROR_MSG);
+    }
+
+    @Test
+    public void queryAndUpdateMetadataKeyWithoutFieldsTest() {
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                HEADERS_KEY, ADMIN_AUTHORIZATION,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId",
+                        METADATA_KEY, "foo"));
+        testResult(db, "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) " +
+                        " YIELD score, vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                VectorDbTestUtil::assertMetadataFooResult);
+    }
+
+    @Test
+    public void queryAndUpdateWithCreateNodeUsingExistingNodeFailWithNoMetadataKeyAndNoFields() {
+        db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
+        Map<String, Object> params = map("host", HOST,
+                "conf", Map.of(ALL_RESULTS_KEY, true,
+                    HEADERS_KEY, ADMIN_AUTHORIZATION,
+                    MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "myId")));
+        String query = "CALL apoc.vectordb.weaviate.queryAndUpdate($host, 'TestCollection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf) YIELD score, vector, id, metadata, node RETURN * ORDER BY id";
+        ExtendedTestUtil.assertFails(db, query, params, NO_FIELDS_ERROR_MSG);
     }
 }

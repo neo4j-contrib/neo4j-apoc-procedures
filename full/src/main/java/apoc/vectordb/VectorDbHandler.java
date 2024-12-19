@@ -22,6 +22,8 @@ public interface VectorDbHandler {
     enum Type {
         CHROMA(new ChromaHandler()),
         QDRANT(new QdrantHandler()),
+        PINECONE(new PineconeHandler()),
+        MILVUS(new MilvusHandler()),
         WEAVIATE(new WeaviateHandler());
 
         private final VectorDbHandler handler;
