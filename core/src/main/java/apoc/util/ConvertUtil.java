@@ -3,6 +3,7 @@ package apoc.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -10,13 +11,12 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -248,7 +248,7 @@ public class ConvertUtil {
         return Math.min(
                 Duration.ofSeconds(1).multipliedBy(sleepMultiplier).toMillis(),
                 Duration.ofSeconds(30).toMillis() // Max 30s
-        );
+                );
     }
 
     public static String joinStringLabels(Collection<String> labels) {

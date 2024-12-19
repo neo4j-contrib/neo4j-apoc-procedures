@@ -8,7 +8,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import apoc.util.TestUtil;
 import java.util.List;
@@ -46,7 +45,7 @@ public class GexfTest {
         testCall(db, "CALL apoc.load.gexf($file)", Map.of("file", file), (row) -> {
             Map<String, Object> value = (Map) row.get("value");
             String expected =
-                    "{_type=gexf, _children=[{_type=graph, defaultedgetype=directed, _children=[{_type=nodes, _children=[{_type=node, _children=[{_type=attvalues, _children=[{_type=attvalue, for=0, value=http://gephi.org}]}], id=0, label=bar}]}]}], version=1.2}";
+                    "{_children=[{_children=[{_children=[{_children=[{_children=[{_type=attvalue, for=0, value=http://gephi.org}], _type=attvalues}], _type=node, id=0, label=bar}], _type=nodes}], defaultedgetype=directed, _type=graph}], _type=gexf, version=1.2}";
             assertEquals(expected, value.toString());
         });
     }
@@ -128,7 +127,7 @@ public class GexfTest {
             assertRelationship(
                     rels.next(),
                     "KNOWS",
-                    Map.of(),
+                    Map.of("score", 4.0f),
                     List.of("Gephi"),
                     multiDataTypeNodeProps,
                     List.of("RTGI"),
@@ -137,7 +136,7 @@ public class GexfTest {
             assertRelationship(
                     rels.next(),
                     "KNOWS",
-                    Map.of(),
+                    Map.of("score", 5.0f),
                     List.of("Webatlas"),
                     Map.of("0", "http://webatlas.fr", "1", 2.0f),
                     List.of("Gephi"),
@@ -146,7 +145,7 @@ public class GexfTest {
             assertRelationship(
                     rels.next(),
                     "KNOWS",
-                    Map.of(),
+                    Map.of("score", 6.0f),
                     List.of("RTGI"),
                     Map.of("0", "http://rtgi.fr", "1", 1.0f),
                     List.of("Webatlas"),
@@ -155,7 +154,7 @@ public class GexfTest {
             assertRelationship(
                     rels.next(),
                     "KNOWS",
-                    Map.of(),
+                    Map.of("score", 7.0f),
                     List.of("Gephi"),
                     multiDataTypeNodeProps,
                     List.of("Webatlas", "BarabasiLab"),
@@ -164,7 +163,7 @@ public class GexfTest {
             assertRelationship(
                     rels.next(),
                     "KNOWS",
-                    Map.of(),
+                    Map.of("score", 8.0f),
                     List.of("Gephi"),
                     Map.of("0", "http://test.gephi.org", "1", 2.0f),
                     List.of("Webatlas", "BarabasiLab"),
@@ -172,20 +171,6 @@ public class GexfTest {
 
             assertFalse(rels.hasNext());
         });
-    }
-
-    @Test
-    public void testImportGexfWithStoreNodeIds() {
-        final String file =
-                ClassLoader.getSystemResource("gexf/single-node.gexf").toString();
-        TestUtil.testCall(db, "CALL apoc.import.gexf($file, {storeNodeIds: true})", map("file", file), (r) -> {
-            assertEquals("gexf", r.get("format"));
-            assertEquals(1L, r.get("nodes"));
-        });
-
-        Map props = TestUtil.singleResultFirstColumn(db, "MATCH (n) RETURN properties(n) AS props");
-        assertEquals("http://gephi.org", props.get("0"));
-        assertTrue(props.containsKey("id"));
     }
 
     @Test

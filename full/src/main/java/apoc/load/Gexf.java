@@ -73,7 +73,7 @@ public class Gexf {
             if (exportConfig.storeNodeIds()) graphReader.storeNodeIds();
 
             try (CountingReader reader = FileUtils.readerFor(urlOrBinaryFile, exportConfig.getCompressionAlgo())) {
-                graphReader.parseXML(reader, terminationGuard);
+                graphReader.parseXML(reader, terminationGuard, XmlGraphMLReader.ReaderType.GEXF);
             }
 
             return reporter.getTotal();

@@ -331,8 +331,8 @@ public class XmlGraphMLReader {
                                 addLabels((Node) last, value.toString());
                             } else if (!this.labels || isNode || !id.equals("label")) {
                                 value = readerType.equals(ReaderType.GRAPHML)
-                                        ? toValidValue(value, key.name, dataMap)
-                                        : value;
+                                        ? value
+                                        : toValidValue(value, key.name, dataMap);
                                 last.setProperty(key.name, value);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
@@ -347,8 +347,7 @@ public class XmlGraphMLReader {
                         String id = getAttribute(element, ID);
                         Node node = tx.getTransaction().createNode();
                         if (this.labels) {
-                            String labels = getAttribute(
-                                    element, readerType.labels);
+                            String labels = getAttribute(element, readerType.labels);
                             addLabels(node, labels);
                         }
                         if (storeNodeIds) node.setProperty("id", id);

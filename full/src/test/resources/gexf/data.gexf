@@ -76,11 +76,31 @@
             <attvalue for="score" value="3"/>
           </attvalues>
       </edge>
-      <edge source="0" target="2" kind="KNOWS" />
-      <edge source="1" target="0" kind="KNOWS" />
-      <edge source="2" target="1" kind="KNOWS" />
-      <edge source="0" target="3" kind="KNOWS" />
-      <edge source="5" target="3" kind="KNOWS" />
+      <edge source="0" target="2" kind="KNOWS">
+          <attvalues>
+            <attvalue for="score" value="4.0"/>
+          </attvalues>
+      </edge>
+      <edge source="1" target="0" kind="KNOWS">
+          <attvalues>
+            <attvalue for="score" value="5.0"/>
+          </attvalues>
+      </edge>
+      <edge source="2" target="1" kind="KNOWS">
+          <attvalues>
+            <attvalue for="score" value="6.0"/>
+          </attvalues>
+      </edge>
+      <edge source="0" target="3" kind="KNOWS">
+          <attvalues>
+            <attvalue for="score" value="7.0"/>
+          </attvalues>
+      </edge>
+      <edge source="5" target="3" kind="KNOWS">
+          <attvalues>
+            <attvalue for="score" value="8.0"/>
+          </attvalues>
+      </edge>
     </edges>
   </graph>
 </gexf>
