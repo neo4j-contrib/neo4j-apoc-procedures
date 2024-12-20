@@ -1,7 +1,7 @@
 package apoc.convert;
 
 import apoc.Extended;
-import apoc.meta.Types;
+import apoc.meta.TypesExtended;
 import apoc.util.collection.Iterables;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -49,7 +49,7 @@ public class ConvertExtended {
      * which handle complex types, like list/map of nodes/rels/paths
      */
     private Object writeYamlResult(Object value) {
-        Types type = Types.of(value);
+        TypesExtended type = TypesExtended.of(value);
         return switch (type) {
             case NODE -> nodeToMap((Node) value);
             case RELATIONSHIP -> relToMap((Relationship) value);

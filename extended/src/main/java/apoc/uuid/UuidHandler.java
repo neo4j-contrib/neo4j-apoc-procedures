@@ -183,7 +183,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         UUID uuid = UUID.randomUUID();
         switch (uuidFormat) {
             case base64:
-                return UuidUtil.generateBase64Uuid(uuid);
+                return UuidUtilExtended.generateBase64Uuid(uuid);
             case hex:
             default:
                 return uuid.toString();

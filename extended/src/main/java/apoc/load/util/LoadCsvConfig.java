@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.load.Mapping;
+import apoc.load.MappingExtended;
 import apoc.util.CompressionConfig;
 
 import java.util.*;
@@ -33,7 +33,7 @@ public class LoadCsvConfig extends CompressionConfig {
     private List<String> ignore;
     private List<String> nullValues;
     private Map<String, Map<String, Object>> mapping;
-    private Map<String, Mapping> mappings;
+    private Map<String, MappingExtended> mappings;
 
     public LoadCsvConfig(Map<String, Object> config) {
         super(config);
@@ -75,12 +75,12 @@ public class LoadCsvConfig extends CompressionConfig {
     }
 
 
-    private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
+    private Map<String, MappingExtended> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
-        HashMap<String, Mapping> result = new HashMap<>(mapping.size());
+        HashMap<String, MappingExtended> result = new HashMap<>(mapping.size());
         for (Map.Entry<String, Map<String, Object>> entry : mapping.entrySet()) {
             String name = entry.getKey();
-            result.put(name, new Mapping(name, entry.getValue(), arraySep, ignore.contains(name)));
+            result.put(name, new MappingExtended(name, entry.getValue(), arraySep, ignore.contains(name)));
         }
         return result;
     }
@@ -117,7 +117,7 @@ public class LoadCsvConfig extends CompressionConfig {
         return nullValues;
     }
 
-    public Map<String, Mapping> getMappings() {
+    public Map<String, MappingExtended> getMappings() {
         return mappings;
     }
 

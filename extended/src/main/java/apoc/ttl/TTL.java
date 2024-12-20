@@ -10,7 +10,7 @@ import org.neo4j.procedure.*;
 
 import java.util.Map;
 
-import static apoc.date.DateUtils.unit;
+import static apoc.date.DateUtilsExtended.unit;
 
 @Extended
 public class TTL {

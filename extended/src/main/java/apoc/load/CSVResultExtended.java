@@ -1,0 +1,103 @@
+/*
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package apoc.load;
+
+import apoc.load.util.Results;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+
+public class CSVResultExtended {
+    public long lineNo;
+    public List<Object> list;
+    public List<String> strings;
+    public Map<String, Object> map;
+    public Map<String, String> stringMap;
+
+    public CSVResultExtended(
+            String[] header,
+            String[] list,
+            long lineNo,
+            boolean ignore,
+            Map<String, MappingExtended> mapping,
+            List<String> nullValues,
+            EnumSet<Results> results) {
+        this.lineNo = lineNo;
+        removeNullValues(list, nullValues);
+
+        this.strings = results.contains(Results.strings)
+                ? (List) createList(header, list, ignore, mapping, false)
+                : emptyList();
+        this.stringMap = results.contains(Results.stringMap)
+                ? (Map) createMap(header, list, ignore, mapping, false)
+                : emptyMap();
+        this.map = results.contains(Results.map) ? createMap(header, list, ignore, mapping, true) : emptyMap();
+        this.list = results.contains(Results.list) ? createList(header, list, ignore, mapping, true) : emptyList();
+    }
+
+    public void removeNullValues(String[] list, List<String> nullValues) {
+        if (nullValues.isEmpty()) return;
+        for (int i = 0; i < list.length; i++) {
+            if (nullValues.contains(list[i])) list[i] = null;
+        }
+    }
+
+    private List<Object> createList(
+            String[] header, String[] list, boolean ignore, Map<String, MappingExtended> mappings, boolean convert) {
+        if (!ignore && mappings.isEmpty()) return asList((Object[]) list);
+        ArrayList<Object> result = new ArrayList<>(list.length);
+        for (int i = 0; i < header.length; i++) {
+            String name = header[i];
+            if (name == null) continue;
+            MappingExtended mapping = mappings.get(name);
+            if (mapping != null) {
+                if (mapping.ignore) continue;
+                result.add(convert ? mapping.convert(list[i]) : list[i]);
+            } else {
+                result.add(list[i]);
+            }
+        }
+        return result;
+    }
+
+    private Map<String, Object> createMap(
+            String[] header, String[] list, boolean ignore, Map<String, MappingExtended> mappings, boolean convert) {
+        if (header == null) return null;
+        Map<String, Object> map = new LinkedHashMap<>(header.length, 1f);
+        for (int i = 0; i < header.length; i++) {
+            String name = header[i];
+            if (ignore && name == null) continue;
+            MappingExtended mapping = mappings.get(name);
+            if (mapping == null) {
+                map.put(name, list[i]);
+            } else {
+                if (mapping.ignore) continue;
+                map.put(mapping.name, convert ? mapping.convert(list[i]) : list[i]);
+            }
+        }
+        return map;
+    }
+}

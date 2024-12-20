@@ -2,7 +2,7 @@ package apoc.trigger;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.coll.SetBackedList;
+import apoc.coll.SetBackedListExtended;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -74,12 +74,12 @@ TriggerExtended {
                             }
                         }
                     }
-                    if (!nodeSet.isEmpty()) return new SetBackedList<>(nodeSet);
+                    if (!nodeSet.isEmpty()) return new SetBackedListExtended<>(nodeSet);
                 } else if (list.get(0) instanceof Node) {
                     if (labelString==null) {
                         Set<Node> nodeSet = new HashSet<>(map.size()*list.size());
                         map.values().forEach((l) -> nodeSet.addAll((Collection<Node>)l));
-                        return new SetBackedList<>(nodeSet);
+                        return new SetBackedListExtended<>(nodeSet);
                     }
                 }
             }

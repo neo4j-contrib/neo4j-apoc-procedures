@@ -16,7 +16,8 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
-import static apoc.algo.PathFindingUtils.buildPathExpander;
+
+import static apoc.algo.PathFindingUtilsExtended.buildPathExpander;
 
 @Extended
 public class PathFindingExtended {
@@ -41,7 +42,7 @@ public class PathFindingExtended {
                 new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 CommonEvaluators.doubleCostEvaluator(weightPropertyName),
-                new PathFindingUtils.GeoEstimateEvaluatorPointCustom(pointPropertyName));
+                new PathFindingUtilsExtended.GeoEstimateEvaluatorPointCustom(pointPropertyName));
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }
     

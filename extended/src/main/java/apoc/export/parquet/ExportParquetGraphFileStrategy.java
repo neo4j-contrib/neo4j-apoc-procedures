@@ -2,7 +2,7 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.util.collection.Iterables;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
@@ -21,7 +21,7 @@ public class ExportParquetGraphFileStrategy extends ExportParquetFileStrategy<En
     }
 
     @Override
-    public Stream<ExportProgressInfo> export(SubGraph data, ParquetConfig config) {
+    public Stream<ExportProgressInfoExtended> export(SubGraph data, ParquetConfig config) {
         return super.export(data, config);
     }
 
