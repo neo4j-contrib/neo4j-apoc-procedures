@@ -1,5 +1,6 @@
 package apoc.full.it.gc;
 
+import apoc.export.arrow.ImportArrow;
 import apoc.load.Gexf;
 import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
@@ -38,6 +39,7 @@ public class ImportGoogleCloudStorageTest {
     @Test
     public void testImportArrow() {
         initDbCommon(db);
+        TestUtil.registerProcedure(db, ImportArrow.class);
         createNodesForImportTests(db);
         
         String url = gcsUrl(gcs, "test_all.arrow");

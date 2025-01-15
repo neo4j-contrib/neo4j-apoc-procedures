@@ -1,5 +1,7 @@
 package apoc.full.it.s3;
 
+import apoc.export.arrow.ImportArrow;
+import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -40,6 +42,7 @@ public class ImportS3Test extends S3BaseTest {
     @Test
     public void testImportArrow() {
         initDbCommon(db);
+        TestUtil.registerProcedure(db, ImportArrow.class);
         createNodesForImportTests(db);
         
         String fileWithPath = EXTENDED_RESOURCES_PATH + "test_all.arrow";
