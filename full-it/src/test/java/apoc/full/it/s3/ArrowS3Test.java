@@ -1,6 +1,8 @@
 package apoc.full.it.s3;
 
 import apoc.export.arrow.ArrowTestUtil;
+import apoc.export.arrow.ImportArrow;
+import apoc.util.TestUtil;
 import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +28,7 @@ public class ArrowS3Test extends S3BaseTest {
     @Before
     public void beforeClass() {
         initDbCommon(db);
+        TestUtil.registerProcedure(db, ImportArrow.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
     }

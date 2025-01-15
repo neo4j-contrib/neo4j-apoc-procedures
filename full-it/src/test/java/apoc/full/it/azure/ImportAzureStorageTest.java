@@ -1,5 +1,11 @@
 package apoc.full.it.azure;
 
+import apoc.export.arrow.ExportArrow;
+import apoc.export.arrow.ImportArrow;
+import apoc.graph.Graphs;
+import apoc.load.LoadArrow;
+import apoc.meta.Meta;
+import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +35,7 @@ public class ImportAzureStorageTest extends AzureStorageBaseTest {
     @Test
     public void testImportArrow() {
         initDbCommon(db);
+        TestUtil.registerProcedure(db, ImportArrow.class);
         createNodesForImportTests(db);
         
         String fileWithPath = EXTENDED_RESOURCES_PATH + "test_all.arrow";
