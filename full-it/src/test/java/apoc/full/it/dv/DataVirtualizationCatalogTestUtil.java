@@ -10,6 +10,7 @@ import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAM
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -33,7 +34,7 @@ public class DataVirtualizationCatalogTestUtil {
     public static final String DESC_VALUE = "person's details";
     public static final List<String> EXPECTED_LIST = List.of("$name", "$head_of_state", "$CODE2");
     public static final List<String> EXPECTED_LIST_SORTED =
-            List.of("$name", "$head_of_state", "$CODE2").stream().sorted().toList();
+            List.of("$name", "$head_of_state", "$CODE2").stream().sorted().collect(Collectors.toList());
     public static final String FILE_URL = getUrlFileName(CSV_TEST_FILE).toString();
     public static final String HOOK_NODE_NAME_KEY = "hookNodeName";
     public static final String HOOK_NODE_NAME_VALUE = "node to test linking";

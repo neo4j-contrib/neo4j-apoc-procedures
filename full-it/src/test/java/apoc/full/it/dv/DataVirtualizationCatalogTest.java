@@ -2,6 +2,7 @@ package apoc.full.it.dv;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.dv.DataVirtualizationCatalog.DIRECTION_CONF_KEY;
 import static apoc.full.it.dv.DataVirtualizationCatalogTestUtil.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.getUrlFileName;
@@ -19,6 +20,7 @@ import apoc.util.TestUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -248,7 +250,7 @@ public class DataVirtualizationCatalogTest {
             final Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertTrue(rootCause instanceof IllegalArgumentException);
             final List<String> actualParams =
-                    queryParams.keySet().stream().map(s -> "$" + s).sorted().toList();
+                    queryParams.keySet().stream().map(s -> "$" + s).sorted().collect(Collectors.toList());
             assertEquals(
                     String.format(
                             "Expected query parameters are %s, actual are %s", EXPECTED_LIST_SORTED, actualParams),

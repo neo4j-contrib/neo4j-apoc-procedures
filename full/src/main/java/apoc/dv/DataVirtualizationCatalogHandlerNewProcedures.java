@@ -49,10 +49,7 @@ public class DataVirtualizationCatalogHandlerNewProcedures {
     public Stream<VirtualizedResource> show(String databaseName) {
         return withSystemDb(tx -> {
             return tx
-                    .findNodes(
-                            SystemLabels.DataVirtualizationCatalog,
-                            SystemPropertyKeys.database.name(),
-                            databaseName)
+                    .findNodes(SystemLabels.DataVirtualizationCatalog, SystemPropertyKeys.database.name(), databaseName)
                     .stream()
                     .map(node -> {
                         try {

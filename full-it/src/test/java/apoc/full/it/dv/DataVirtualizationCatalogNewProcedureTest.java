@@ -2,6 +2,7 @@ package apoc.full.it.dv;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.dv.DataVirtualizationCatalog.DIRECTION_CONF_KEY;
 import static apoc.full.it.dv.DataVirtualizationCatalogTestUtil.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -21,6 +22,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.AfterClass;
@@ -262,7 +264,7 @@ public class DataVirtualizationCatalogNewProcedureTest {
         final String url = getVirtualizeJDBCUrl(mysql);
         final List<String> expectedParams = List.of("$name", "$head_of_state", "$CODE2");
         final List<String> sortedExpectedParams =
-                expectedParams.stream().sorted().toList();
+                expectedParams.stream().sorted().collect(Collectors.toList());
         testCall(
                 sysDb,
                 APOC_DV_INSTALL_QUERY,
@@ -293,7 +295,7 @@ public class DataVirtualizationCatalogNewProcedureTest {
             final List<String> actualParams = VIRTUALIZE_JDBC_QUERY_WRONG_PARAMS.keySet().stream()
                     .map(s -> "$" + s)
                     .sorted()
-                    .toList();
+                    .collect(Collectors.toList());
             assertEquals(
                     String.format(
                             "Expected query parameters are %s, actual are %s", sortedExpectedParams, actualParams),
