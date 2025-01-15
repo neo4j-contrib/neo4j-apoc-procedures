@@ -1,6 +1,8 @@
 package apoc.dv;
 
 import apoc.util.SystemDbUtil;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.procedure.SystemProcedure;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -11,9 +13,6 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class DataVirtualizationCatalogNewProcedures {
     @Context
@@ -37,7 +36,7 @@ public class DataVirtualizationCatalogNewProcedures {
     public Stream<VirtualizedResource.VirtualizedResourceDTO> install(
             @Name("name") String name,
             @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
-            @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         checkIsValidDatabase(databaseName);
 
         return Stream.of(new DataVirtualizationCatalogHandlerNewProcedures()
@@ -50,9 +49,7 @@ public class DataVirtualizationCatalogNewProcedures {
     @Procedure(name = "apoc.dv.catalog.drop", mode = Mode.WRITE)
     @Description("Remove a virtualized resource config by name")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> drop(
-            @Name("name") String name,
-            @Name(value = "databaseName", defaultValue = "neo4j") String databaseName
-    ) {
+            @Name("name") String name, @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkIsValidDatabase(databaseName);
         return new DataVirtualizationCatalogHandlerNewProcedures()
                 .drop(databaseName, name)
@@ -63,12 +60,10 @@ public class DataVirtualizationCatalogNewProcedures {
     @Procedure(name = "apoc.dv.catalog.show", mode = Mode.READ)
     @Description("List all virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> show(
-            @Name(value = "databaseName", defaultValue = "neo4j") String databaseName
-    ) {
+            @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkIsValidDatabase(databaseName);
         return new DataVirtualizationCatalogHandlerNewProcedures()
                 .show(databaseName)
                 .map(VirtualizedResource::toDTO);
     }
-
 }
