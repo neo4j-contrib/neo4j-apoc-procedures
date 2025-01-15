@@ -39,11 +39,6 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-
-
 @Extended
 public class DataVirtualizationCatalog {
 
@@ -63,8 +58,7 @@ public class DataVirtualizationCatalog {
     @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.install")
     @Description("Add a virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
-            @Name("name") String name,
-            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+            @Name("name") String name, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return Stream.of(new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
                         .add(VirtualizedResource.from(name, config)))
                 .map(VirtualizedResource::toDTO);
@@ -73,9 +67,7 @@ public class DataVirtualizationCatalog {
     @Deprecated
     @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.drop")
     @Description("Remove a virtualized resource config by name")
-    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(
-            @Name("name") String name
-    ) {
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
         return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
                 .remove(name)
                 .map(VirtualizedResource::toDTO);
