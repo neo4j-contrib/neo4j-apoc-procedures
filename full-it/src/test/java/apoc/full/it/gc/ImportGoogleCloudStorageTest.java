@@ -1,7 +1,6 @@
 package apoc.full.it.gc;
 
 import apoc.export.arrow.ImportArrow;
-import apoc.load.Gexf;
 import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
 import org.junit.BeforeClass;
@@ -17,7 +16,6 @@ import static apoc.export.arrow.ArrowTestUtil.MAPPING_ALL;
 import static apoc.export.arrow.ArrowTestUtil.initDbCommon;
 import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
 import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
-import static apoc.util.GexfTestUtil.testImportGexfCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 
 public class ImportGoogleCloudStorageTest {

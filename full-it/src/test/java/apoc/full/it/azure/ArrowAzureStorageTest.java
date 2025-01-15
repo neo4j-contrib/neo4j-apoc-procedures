@@ -1,12 +1,10 @@
 package apoc.full.it.azure;
 
 import apoc.export.arrow.ArrowTestUtil;
-import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -23,8 +21,7 @@ import static apoc.export.arrow.ArrowTestUtil.testLoadArrow;
 public class ArrowAzureStorageTest extends AzureStorageBaseTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseInternalSettings.enable_experimental_cypher_versions, true);
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void beforeClass() {
