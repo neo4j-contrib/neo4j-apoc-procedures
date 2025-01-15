@@ -1,25 +1,29 @@
 package apoc.vectordb;
 
 import apoc.ml.RestAPIConfig;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+
 import java.util.List;
 import java.util.Map;
-import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
+
+import static apoc.vectordb.VectorEmbeddingConfig.*;
 
 public interface VectorEmbeddingHandler {
 
-    <T> VectorEmbeddingConfig fromGet(
-            Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection);
+    <T> VectorEmbeddingConfig fromGet(Map<String, Object> config,
+                                      ProcedureCallContext procedureCallContext,
+                                      List<T> ids,
+                                      String collection);
 
-    VectorEmbeddingConfig fromQuery(
-            Map<String, Object> config,
-            ProcedureCallContext procedureCallContext,
-            List<Double> vector,
-            Object filter,
-            long limit,
-            String collection);
+    VectorEmbeddingConfig fromQuery(Map<String, Object> config,
+                                    ProcedureCallContext procedureCallContext,
+                                    List<Double> vector,
+                                    Object filter,
+                                    long limit,
+                                    String collection);
 
-    static VectorEmbeddingConfig populateApiBodyRequest(
-            VectorEmbeddingConfig config, Map<String, Object> additionalBodies) {
+    default VectorEmbeddingConfig populateApiBodyRequest(VectorEmbeddingConfig config,
+                                                        Map<String, Object> additionalBodies) {
 
         RestAPIConfig apiConfig = config.getApiConfig();
         Map<String, Object> body = apiConfig.getBody();

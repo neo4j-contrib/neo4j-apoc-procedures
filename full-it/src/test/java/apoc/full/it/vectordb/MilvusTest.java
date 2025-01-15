@@ -7,8 +7,6 @@ import apoc.util.Util;
 import apoc.vectordb.Milvus;
 import apoc.vectordb.VectorDb;
 import apoc.vectordb.VectorDbTestUtil;
-import apoc.vectordb.VectorMappingConfig;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,10 +33,11 @@ import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
+import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
 import static apoc.vectordb.VectorDbTestUtil.ragSetup;
-import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
@@ -47,14 +46,12 @@ import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
 import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
 import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
 import static apoc.vectordb.VectorMappingConfig.MappingMode;
-import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
+import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
@@ -62,6 +59,8 @@ import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME
 public class MilvusTest {
     private static final List<String> FIELDS = List.of("city", "foo");
     private static final MilvusContainer MILVUS_CONTAINER = new MilvusContainer("milvusdb/milvus:v2.4.0");
+    private static final String READONLY_KEY = "my_readonly_api_key";
+    private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
     
     private static String HOST;
 
@@ -82,7 +81,7 @@ public class MilvusTest {
         MILVUS_CONTAINER.start();
 
         HOST = MILVUS_CONTAINER.getEndpoint();
-        TestUtil.registerProcedure(db, Milvus.class, VectorDb.class);
+        TestUtil.registerProcedure(db, Milvus.class, VectorDb.class, Prompt.class);
 
         testCall(db, "CALL apoc.vectordb.milvus.createCollection($host, 'test_collection', 'COSINE', 4)",
                 map("host", HOST),
@@ -91,11 +90,13 @@ public class MilvusTest {
                     assertEquals(200L, value.get("code"));
                 });
 
-        testCall(db, "CALL apoc.vectordb.milvus.upsert($host, 'test_collection',\n" +
-                     "[\n" +
-                     "    {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: \"Berlin\", foo: \"one\"}},\n" +
-                     "    {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: \"London\", foo: \"two\"}}\n" +
-                     "])",
+        testCall(db, """
+                        CALL apoc.vectordb.milvus.upsert($host, 'test_collection',
+                        [
+                            {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+                            {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+                        ])
+                        """,
                 map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -122,6 +123,28 @@ public class MilvusTest {
     }
 
     @Test
+    public void getInfo() {
+        testResult(db, "CALL apoc.vectordb.milvus.info($host, 'test_collection', '', $conf) ",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(200L, value.get("code"));
+                });
+    }
+    
+    @Test
+    public void getInfoNotExistentCollection() {
+        testResult(db, "CALL apoc.vectordb.milvus.info($host, 'wrong_collection', '', $conf) ",
+                map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map value = (Map) row.get("value");
+                    assertEquals(100L, value.get("code"));
+                });
+    }
+
+    @Test
     public void getVectorsWithoutVectorResult() {
         testResult(db, "CALL apoc.vectordb.milvus.get($host, 'test_collection', [1], $conf) ",
                 map("host", HOST, "conf", map(FIELDS_KEY, FIELDS)),
@@ -135,11 +158,13 @@ public class MilvusTest {
 
     @Test
     public void deleteVector() {
-        testCall(db, "CALL apoc.vectordb.milvus.upsert($host, 'test_collection',\n" +
-                     "[\n" +
-                     "    {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}},\n" +
-                     "    {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}}\n" +
-                     "])",
+        testCall(db, """
+                        CALL apoc.vectordb.milvus.upsert($host, 'test_collection',
+                        [
+                            {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
+                            {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
+                        ])
+                        """,
                 map("host", HOST),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -206,9 +231,10 @@ public class MilvusTest {
 
     @Test
     public void queryVectorsWithFilter() {
-        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],\n" +
-                       "'city == \"London\"',\n" +
-                       "5, $conf) YIELD metadata, id",
+        testResult(db, """
+                        CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],
+                        'city == "London"',
+                        5, $conf) YIELD metadata, id""",
                 map("host", HOST,
                         "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
@@ -219,7 +245,8 @@ public class MilvusTest {
 
     @Test
     public void queryVectorsWithLimit() {
-        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id",
+        testResult(db, """
+                        CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 1, $conf) YIELD metadata, id""",
                 map("host", HOST,
                         "conf", map(FIELDS_KEY, FIELDS, ALL_RESULTS_KEY, true)
                 ),
@@ -237,7 +264,7 @@ public class MilvusTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        MODE_KEY, VectorMappingConfig.MappingMode.CREATE_IF_MISSING.toString()
+                        MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()
                 )
         );
         testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
@@ -305,6 +332,24 @@ public class MilvusTest {
     }
 
     @Test
+    public void getReadOnlyVectorsWithMapping() {
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
+
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                FIELDS_KEY, FIELDS,
+                MAPPING_KEY, map(EMBEDDING_KEY, "vect",
+                        NODE_LABEL, "Test",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo"));
+
+        testResult(db, "CALL apoc.vectordb.milvus.get($host, 'test_collection', [1, 2], $conf) " +
+                       "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "node")
+        );
+    }
+
+    @Test
     public void queryVectorsWithCreateNodeUsingExistingNode() {
 
         db.executeTransactionally("CREATE (:Test {myId: 'one'}), (:Test {myId: 'two'})");
@@ -343,7 +388,8 @@ public class MilvusTest {
                 MAPPING_KEY, map(EMBEDDING_KEY, "vect",
                 REL_TYPE, "TEST",
                 ENTITY_KEY, "myId",
-                METADATA_KEY, "foo"));
+                METADATA_KEY, "foo")
+        );
         testResult(db, "CALL apoc.vectordb.milvus.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
                 map("host", HOST, "conf", conf),
                 r -> {
@@ -363,17 +409,20 @@ public class MilvusTest {
 
     @Test
     public void queryReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
-                MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally("CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
-        try {
-            testCall(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                    map("host", HOST, "conf", conf),
-                    r -> fail()
-            );
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = map(ALL_RESULTS_KEY, true,
+                FIELDS_KEY, FIELDS,
+                MAPPING_KEY, map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo")
+        );
+
+        testResult(db, "CALL apoc.vectordb.milvus.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], null, 5, $conf)",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel")
+        );
     }
 
     @Test
@@ -421,16 +470,19 @@ public class MilvusTest {
         Map<String, Object> conf = map(
                 FIELDS_KEY, FIELDS,
                 ALL_RESULTS_KEY, true,
+                HEADERS_KEY, READONLY_AUTHORIZATION,
                 MAPPING_KEY, map(NODE_LABEL, "Rag",
                         ENTITY_KEY, "readID",
                         METADATA_KEY, "foo")
         );
 
         testResult(db,
-                "CALL apoc.vectordb.milvus.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector\n" +
-                "WITH collect(node) as paths\n" +
-                "CALL apoc.ml.rag(paths, $attributes, \"Which city has foo equals to one?\", $confPrompt) YIELD value\n" +
-                "RETURN value"
+                """
+                    CALL apoc.vectordb.milvus.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector
+                    WITH collect(node) as paths
+                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
+                    RETURN value
+                    """
                 ,
                 map(
                         "host", HOST,

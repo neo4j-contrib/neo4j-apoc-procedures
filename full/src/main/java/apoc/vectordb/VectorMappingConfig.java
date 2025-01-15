@@ -4,10 +4,8 @@ import java.util.Collections;
 import java.util.Map;
 
 public class VectorMappingConfig {
-    public enum MappingMode {
-        READ_ONLY,
-        UPDATE_EXISTING,
-        CREATE_IF_MISSING
+    enum MappingMode {
+        READ_ONLY, UPDATE_EXISTING, CREATE_IF_MISSING
     }
 
     public static final String METADATA_KEY = "metadataKey";
@@ -17,8 +15,7 @@ public class VectorMappingConfig {
     public static final String EMBEDDING_KEY = "embeddingKey";
     public static final String SIMILARITY_KEY = "similarity";
     public static final String MODE_KEY = "mode";
-    public static final String NO_FIELDS_ERROR_MSG =
-            "You need to define either the 'field' list parameter, or the 'metadataKey' string parameter within the `embeddingConfig` parameter";
+    public static final String NO_FIELDS_ERROR_MSG = "You need to define either the 'field' list parameter, or the 'metadataKey' string parameter within the `embeddingConfig` parameter";
 
     private final String metadataKey;
     private final String entityKey;
@@ -43,8 +40,8 @@ public class VectorMappingConfig {
 
         this.similarity = (String) mapping.getOrDefault(SIMILARITY_KEY, "cosine");
 
-        String modeValue = (String) mapping.getOrDefault(MODE_KEY, MappingMode.UPDATE_EXISTING.toString());
-        this.mode = MappingMode.valueOf(modeValue.toUpperCase());
+        String modeValue = (String) mapping.getOrDefault(MODE_KEY, MappingMode.UPDATE_EXISTING.toString() );
+        this.mode = MappingMode.valueOf( modeValue.toUpperCase() );
     }
 
     public String getMetadataKey() {
