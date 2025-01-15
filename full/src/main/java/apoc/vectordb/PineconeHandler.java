@@ -69,7 +69,7 @@ public class PineconeHandler implements VectorDbHandler {
          */
         @Override
         public <T> VectorEmbeddingConfig fromGet(
-                Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids) {
+                Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection) {
             List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
 
             config.put(BODY_KEY, null);
@@ -118,7 +118,7 @@ public class PineconeHandler implements VectorDbHandler {
             headers.remove(METHOD_KEY);
             apiConfig.setHeaders(headers);
 
-            return VectorEmbeddingHandler.populateApiBodyRequest(conf, additionalBodies);
+            return populateApiBodyRequest(conf, additionalBodies);
         }
     }
 }
