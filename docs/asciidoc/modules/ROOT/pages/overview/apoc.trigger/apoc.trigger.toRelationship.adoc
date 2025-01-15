@@ -2,7 +2,7 @@
 = apoc.trigger.toRelationship
 :description: This section contains reference documentation for the apoc.trigger.toRelationship function.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 == Signature
 

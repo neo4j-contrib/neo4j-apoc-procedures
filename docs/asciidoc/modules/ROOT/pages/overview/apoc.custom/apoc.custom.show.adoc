@@ -2,7 +2,7 @@
 = apoc.custom.show
 :description: This section contains reference documentation for the apoc.custom.show procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 Provides a list of custom procedures/function registered

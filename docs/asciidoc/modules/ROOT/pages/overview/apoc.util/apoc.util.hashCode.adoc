@@ -2,7 +2,7 @@
 = apoc.util.hashCode
 :description: This section contains reference documentation for the apoc.util.hashCode function.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 [.emphasis]
 apoc.util.hashCode(value) - Returns the java.lang.Object#hashCode() of the value
