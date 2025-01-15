@@ -27,6 +27,8 @@ import apoc.util.MapUtil;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZoneId;
@@ -286,6 +288,9 @@ public class Jdbc {
                             .atZone(zoneId)
                             .toOffsetDateTime();
                 } else {
+                    if (value instanceof LocalDateTime) {
+                        return value;
+                    }
                     return ((java.sql.Timestamp) value).toLocalDateTime();
                 }
             }
@@ -300,6 +305,9 @@ public class Jdbc {
                 }
             }
             if (Types.DATE == sqlType) {
+                if (value instanceof LocalDate) {
+                    return value;
+                }
                 return ((java.sql.Date) value).toLocalDate();
             }
 

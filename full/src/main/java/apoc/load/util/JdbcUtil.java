@@ -31,7 +31,6 @@ import us.fatehi.utility.datasource.DatabaseConnectionSource;
 import us.fatehi.utility.datasource.DatabaseConnectionSources;
 import us.fatehi.utility.datasource.MultiUseUserCredentials;
 
-
 public class JdbcUtil {
 
     private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";

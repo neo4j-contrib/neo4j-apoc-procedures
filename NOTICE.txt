@@ -198,11 +198,11 @@ Apache-2.0
   mercator_2.12-0.2.1.jar
   metrics-core-3.2.4.jar
   netty-all-4.1.100.Final.jar
-  netty-buffer-4.1.111.Final.jar
-  netty-codec-4.1.111.Final.jar
+  netty-buffer-4.1.115.Final.jar
+  netty-codec-4.1.115.Final.jar
   netty-codec-dns-4.1.100.Final.jar
   netty-codec-haproxy-4.1.100.Final.jar
-  netty-codec-http-4.1.111.Final.jar
+  netty-codec-http-4.1.115.Final.jar
   netty-codec-http2-4.1.100.Final.jar
   netty-codec-memcache-4.1.100.Final.jar
   netty-codec-mqtt-4.1.100.Final.jar
@@ -211,24 +211,24 @@ Apache-2.0
   netty-codec-socks-4.1.100.Final.jar
   netty-codec-stomp-4.1.100.Final.jar
   netty-codec-xml-4.1.100.Final.jar
-  netty-common-4.1.111.Final.jar
-  netty-handler-4.1.111.Final.jar
+  netty-common-4.1.115.Final.jar
+  netty-handler-4.1.115.Final.jar
   netty-handler-proxy-4.1.100.Final.jar
   netty-handler-ssl-ocsp-4.1.100.Final.jar
-  netty-resolver-4.1.111.Final.jar
+  netty-resolver-4.1.115.Final.jar
   netty-resolver-dns-4.1.100.Final.jar
   netty-resolver-dns-classes-macos-4.1.100.Final.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-x86_64.jar
-  netty-transport-4.1.111.Final.jar
-  netty-transport-classes-epoll-4.1.111.Final.jar
+  netty-transport-4.1.115.Final.jar
+  netty-transport-classes-epoll-4.1.115.Final.jar
   netty-transport-classes-kqueue-4.1.100.Final.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.111.Final.jar
+  netty-transport-native-epoll-4.1.115.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.115.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.115.Final.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.111.Final.jar
+  netty-transport-native-unix-common-4.1.115.Final.jar
   netty-transport-rxtx-4.1.100.Final.jar
   netty-transport-sctp-4.1.100.Final.jar
   netty-transport-udt-4.1.100.Final.jar
@@ -239,7 +239,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.7.jar
+  reactor-core-3.6.13.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
@@ -361,7 +361,7 @@ Eclipse Public License - v 1.0
   eclipse-collections-10.4.0.jar
   eclipse-collections-api-10.4.0.jar
   junit-4.13.2.jar
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.20.8.jar
 
 Eclipse Public License - v 1.0
   logback-classic-1.2.10.jar
@@ -390,13 +390,13 @@ Eclipse Public License - v 2.0
   osgi-resource-locator-1.0.3.jar
 
 GNU General Public License
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.20.8.jar
 
 GNU General Public License (GPL), version 2, with the Classpath exception
   jnr-posix-3.0.44.jar
 
 GNU Lesser General Public License
-  schemacrawler-15.04.01.jar
+  schemacrawler-16.20.8.jar
 
 GNU Lesser General Public License
   logback-classic-1.2.10.jar
@@ -471,6 +471,7 @@ MIT
   reactive-streams-1.0.4.jar
   slf4j-api-1.7.36.jar
   slf4j-api-2.0.11.jar
+  slf4j-jdk14-2.0.10.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar
   testcontainers-1.19.7.jar
