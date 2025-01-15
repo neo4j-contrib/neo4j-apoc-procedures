@@ -2,8 +2,7 @@ package apoc.full.it.dv;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.dv.DataVirtualizationCatalog.DIRECTION_CONF_KEY;
-import static apoc.dv.DataVirtualizationCatalogTestUtil.*;
+import static apoc.full.it.dv.DataVirtualizationCatalogTestUtil.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
@@ -14,7 +13,6 @@ import static org.junit.Assert.assertTrue;
 
 import apoc.create.Create;
 import apoc.dv.DataVirtualizationCatalog;
-import apoc.dv.DataVirtualizationCatalogTestUtil;
 import apoc.load.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;

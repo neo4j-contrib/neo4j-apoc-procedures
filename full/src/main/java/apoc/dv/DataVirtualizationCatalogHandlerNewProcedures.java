@@ -2,14 +2,16 @@ package apoc.dv;
 
 import static apoc.util.SystemDbUtil.withSystemDb;
 
+import apoc.SystemLabels;
 import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
+import org.neo4j.internal.helpers.collection.Pair;
 
 public class DataVirtualizationCatalogHandlerNewProcedures {
 
@@ -19,11 +21,11 @@ public class DataVirtualizationCatalogHandlerNewProcedures {
         return withSystemDb(tx -> {
             Node node = Util.mergeNode(
                     tx,
-                    ExtendedSystemLabels.DataVirtualizationCatalog,
+                    SystemLabels.DataVirtualizationCatalog,
                     null,
                     Pair.of(SystemPropertyKeys.database.name(), databaseName),
                     Pair.of(SystemPropertyKeys.name.name(), vr.name));
-            node.setProperty(ExtendedSystemPropertyKeys.data.name(), JsonUtil.writeValueAsString(vr));
+            node.setProperty(SystemPropertyKeys.data.name(), JsonUtil.writeValueAsString(vr));
             return vr;
         });
     }
@@ -32,7 +34,7 @@ public class DataVirtualizationCatalogHandlerNewProcedures {
         withSystemDb(tx -> {
             tx
                     .findNodes(
-                            ExtendedSystemLabels.DataVirtualizationCatalog,
+                            SystemLabels.DataVirtualizationCatalog,
                             SystemPropertyKeys.database.name(),
                             databaseName,
                             SystemPropertyKeys.name.name(),
@@ -48,14 +50,14 @@ public class DataVirtualizationCatalogHandlerNewProcedures {
         return withSystemDb(tx -> {
             return tx
                     .findNodes(
-                            ExtendedSystemLabels.DataVirtualizationCatalog,
+                            SystemLabels.DataVirtualizationCatalog,
                             SystemPropertyKeys.database.name(),
                             databaseName)
                     .stream()
                     .map(node -> {
                         try {
                             Map<String, Object> map = JsonUtil.OBJECT_MAPPER.readValue(
-                                    node.getProperty(ExtendedSystemPropertyKeys.data.name())
+                                    node.getProperty(SystemPropertyKeys.data.name())
                                             .toString(),
                                     Map.class);
                             String name = node.getProperty(SystemPropertyKeys.name.name())
@@ -65,7 +67,7 @@ public class DataVirtualizationCatalogHandlerNewProcedures {
                             throw new RuntimeException(e);
                         }
                     })
-                    .toList()
+                    .collect(Collectors.toList())
                     .stream();
         });
     }
