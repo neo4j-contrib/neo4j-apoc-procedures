@@ -1,5 +1,6 @@
 package apoc.full.it.util;
 
+import apoc.util.Util;
 import apoc.xml.XmlTestUtils;
 import org.junit.Assert;
 import org.neo4j.driver.internal.util.Iterables;
