@@ -201,8 +201,9 @@ public class VectorDb {
         }
 
         if (embedding == null) {
-            String embeddingErrMsg = "The embedding value is null. Make sure you execute `YIELD embedding` on the procedure and you configured `%s: true`"
-                    .formatted(ALL_RESULTS_KEY);
+            String embeddingErrMsg = String.format(
+                    "The embedding value is null. Make sure you execute `YIELD embedding` on the procedure and you configured `%s: true`",
+                    ALL_RESULTS_KEY);
             throw new RuntimeException(embeddingErrMsg);
         }
 

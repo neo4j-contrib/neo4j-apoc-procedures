@@ -3,7 +3,6 @@ package apoc.full.it.vectordb;
 import apoc.util.MapUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
-import apoc.util.WeaviateTestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -15,26 +14,13 @@ import org.testcontainers.containers.Network;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.full.it.vectordb.WeaviateTestUtil.*;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
 import static apoc.util.Util.map;
-import static apoc.util.WeaviateTestUtil.ADMIN_AUTHORIZATION;
-import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
-import static apoc.util.WeaviateTestUtil.COLLECTION_NAME;
-import static apoc.util.WeaviateTestUtil.FIELDS;
-import static apoc.util.WeaviateTestUtil.HOST;
-import static apoc.util.WeaviateTestUtil.ID_1;
-import static apoc.util.WeaviateTestUtil.ID_2;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_CONTAINER;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_CREATE_COLLECTION_APOC;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_DELETE_COLLECTION_APOC;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_DELETE_VECTOR_APOC;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_PORT;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_QUERY_APOC;
-import static apoc.util.WeaviateTestUtil.WEAVIATE_UPSERT_QUERY;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.FIELDS_KEY;
 import static org.junit.Assert.assertEquals;
@@ -53,7 +39,7 @@ public class WeaviateEnterpriseTest {
         Network network = Network.newNetwork();
         
         // We build the project, the artifact will be placed into ./build/libs
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true)
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.FULL), true)
                 .withNetwork(network)
                 .withNetworkAliases("neo4j");
         neo4jContainer.start();

@@ -7,7 +7,6 @@ import apoc.result.MapResult;
 import apoc.util.UrlResolver;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -18,6 +17,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
@@ -141,7 +141,7 @@ public class Weaviate {
 
         List<Object> objects = ids.stream()
                 .peek(id -> {
-                    String endpoint = "%s/objects/%s/%s".formatted(restAPIConfig.getBaseUrl(), collection, id);
+                    String endpoint = String.format("%s/objects/%s/%s", restAPIConfig.getBaseUrl(), collection, id);
                     restAPIConfig.setEndpoint(endpoint);
                     try {
                         executeRequest(restAPIConfig);
@@ -149,7 +149,7 @@ public class Weaviate {
                         throw new RuntimeException(e);
                     }
                 })
-                .toList();
+                .collect(Collectors.toList());
         return Stream.of(new ListResult(objects));
     }
 
@@ -183,7 +183,7 @@ public class Weaviate {
          */
         config.putIfAbsent(METHOD_KEY, null);
 
-        List<String> fields = procedureCallContext.outputFields().toList();
+        List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
         
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
@@ -194,7 +194,7 @@ public class Weaviate {
 
         return ids.stream()
                 .flatMap(id -> {
-                    String endpoint = "%s/objects/%s/%s".formatted(conf.getApiConfig().getBaseUrl(), collection, id) + suffix;
+                    String endpoint = String.format("%s/objects/%s/%s", conf.getApiConfig().getBaseUrl(), collection, id) + suffix;
                     conf.getApiConfig().setEndpoint(endpoint);
                     try {
                         return executeRequest(conf.getApiConfig())
@@ -235,7 +235,7 @@ public class Weaviate {
 
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
         
-        return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
+        return getEmbeddingResultStream(conf, procedureCallContext, tx,
                 v -> {
                     Object getValue = ((Map<String, Map>) v).get("data").get("Get");
                     Object collectionValue = ((Map) getValue).get(collection);

@@ -58,10 +58,15 @@ public class ExtendedTestUtil {
      */
     public static void testResultEventually(
             GraphDatabaseService db, String call, Consumer<Result> resultConsumer, long timeout) {
+        testResultEventually(db, call, Collections.emptyMap(), resultConsumer, timeout);
+    }
+    
+    public static void testResultEventually(
+            GraphDatabaseService db, String call, Map<String, Object> params, Consumer<Result> resultConsumer, long timeout) {
         assertEventually(
                 () -> {
                     try {
-                        return db.executeTransactionally(call, Map.of(), r -> {
+                        return db.executeTransactionally(call, params, r -> {
                             resultConsumer.accept(r);
                             return true;
                         });

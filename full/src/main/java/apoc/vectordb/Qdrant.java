@@ -5,7 +5,6 @@ import apoc.ml.RestAPIConfig;
 import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;

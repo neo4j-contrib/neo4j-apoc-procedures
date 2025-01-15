@@ -99,14 +99,12 @@ public class QdrantTest {
                     assertEquals("ok", value.get("status"));
                 });
 
-        testCall(db, """
-                        CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',
-                        [
-                            {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
-                            {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
-                        ],
-                        $conf)
-                        """,
+        testCall(db, "CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',\n" +
+                     "[\n" +
+                     "    {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: \"Berlin\", foo: \"one\"}},\n" +
+                     "    {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: \"London\", foo: \"two\"}}\n" +
+                     "],\n" +
+                     "$conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -196,14 +194,12 @@ public class QdrantTest {
 
     @Test
     public void deleteVector() {
-        testCall(db, """
-                        CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',
-                        [
-                            {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}},
-                            {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: "baz"}}
-                        ],
-                        $conf)
-                        """,
+        testCall(db, "CALL apoc.vectordb.qdrant.upsert($host, 'test_collection',\n" +
+                     "[\n" +
+                     "    {id: 3, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}},\n" +
+                     "    {id: 4, vector: [0.19, 0.81, 0.75, 0.11], metadata: {foo: \"baz\"}}\n" +
+                     "],\n" +
+                     "$conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -233,12 +229,10 @@ public class QdrantTest {
         );
 
         testResult(db,
-                """
-                    CALL apoc.vectordb.qdrant.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector
-                    WITH collect(node) as paths
-                    CALL apoc.ml.rag(paths, $attributes, "Which city has foo equals to one?", $confPrompt) YIELD value
-                    RETURN value
-                     """
+                "CALL apoc.vectordb.qdrant.getAndUpdate($host, 'test_collection', [1, 2], $conf) YIELD node, metadata, id, vector\n" +
+                "WITH collect(node) as paths\n" +
+                "CALL apoc.ml.rag(paths, $attributes, \"Which city has foo equals to one?\", $confPrompt) YIELD value\n" +
+                "RETURN value"
                 ,
                 map(
                         "host", HOST,
@@ -306,12 +300,11 @@ public class QdrantTest {
 
     @Test
     public void queryVectorsWithFilter() {
-        testResultEventually(db, """
-                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],
-                        { must:
-                            [ { key: "city", match: { value: "London" } } ]
-                        },
-                        5, $conf) YIELD metadata, id""",
+        testResultEventually(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],\n" +
+                                 "{ must:\n" +
+                                 "    [ { key: \"city\", match: { value: \"London\" } } ]\n" +
+                                 "},\n" +
+                                 "5, $conf) YIELD metadata, id",
                 map("host", HOST,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),
@@ -323,8 +316,7 @@ public class QdrantTest {
 
     @Test
     public void queryVectorsWithLimit() {
-        testResultEventually(db, """
-                        CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id""",
+        testResultEventually(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id",
                 map("host", HOST,
                         "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)
                 ),

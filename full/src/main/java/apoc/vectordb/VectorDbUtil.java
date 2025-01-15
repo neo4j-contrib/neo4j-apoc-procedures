@@ -20,9 +20,8 @@ package apoc.vectordb;
 
 
 import apoc.SystemPropertyKeys;
-import apoc.util.CollectionUtils;
-import apoc.util.ExtendedMapUtils;
 import apoc.util.Util;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static apoc.ml.RestAPIConfig.BASE_URL_KEY;
 import static apoc.ml.RestAPIConfig.BODY_KEY;
