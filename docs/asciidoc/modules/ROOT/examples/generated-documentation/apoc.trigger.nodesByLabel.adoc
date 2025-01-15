@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.nodesByLabel.adoc[apoc.trigger.nodesByLabel icon:book[]] +
 
-``
+`apoc.trigger.nodesByLabel(labelEntries, label)` - function to filter labelEntries by label, to be used within a trigger kernelTransaction with `$assignedLabels`, `$removedLabels`, `$assigned/removedNodeProperties`.
 ¦label:function[]
 ¦label:apoc-full[]

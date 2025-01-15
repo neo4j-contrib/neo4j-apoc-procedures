@@ -2,7 +2,7 @@
 = apoc.custom.dropFunction
 :description: This section contains reference documentation for the apoc.custom.dropFunction procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 Eventually drops the targeted custom function

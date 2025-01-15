@@ -1,5 +1,5 @@
 ¦xref::overview/apoc.trigger/apoc.trigger.propertiesByKey.adoc[apoc.trigger.propertiesByKey icon:book[]] +
 
-``
+`apoc.trigger.propertiesByKey(propertyEntries, key)` - function to filter propertyEntries by property-key, to be used within a trigger kernelTransaction with `$assignedNode/RelationshipProperties` and `$removedNode/RelationshipProperties`. Returns [`old`,`new`,`key`,`node`,`relationship`].
 ¦label:function[]
 ¦label:apoc-full[]

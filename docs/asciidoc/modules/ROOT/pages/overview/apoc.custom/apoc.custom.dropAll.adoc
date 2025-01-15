@@ -2,7 +2,7 @@
 = apoc.custom.dropAll
 :description: This section contains reference documentation for the apoc.custom.dropAll procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 Eventually drops all previously added custom procedures/functions and returns info

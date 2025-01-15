@@ -1,7 +1,7 @@
 = apoc.convert.fromYaml
 :description: This section contains reference documentation for the apoc.convert.fromYaml function.
 
-label:function[] label:apoc-extended[]
+label:function[] label:apoc-full[]
 
 [.emphasis]
 apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value

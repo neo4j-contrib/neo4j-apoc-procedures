@@ -1,7 +1,7 @@
 = apoc.import.arrow
 :description: This section contains reference documentation for the apoc.import.arrow procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
