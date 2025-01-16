@@ -41,6 +41,7 @@ import org.neo4j.procedure.Procedure;
 
 @Extended
 public class DataVirtualizationCatalog {
+    public static final String DIRECTION_CONF_KEY = "direction";
 
     @Context
     public Transaction tx;
@@ -54,7 +55,8 @@ public class DataVirtualizationCatalog {
     @Context
     public ApocConfig apocConfig;
 
-    @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.install")
     @Description("Add a virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
             @Name("name") String name, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
@@ -63,7 +65,8 @@ public class DataVirtualizationCatalog {
                 .map(VirtualizedResource::toDTO);
     }
 
-    @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.drop")
     @Description("Remove a virtualized resource config by name")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
         return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
@@ -71,7 +74,8 @@ public class DataVirtualizationCatalog {
                 .map(VirtualizedResource::toDTO);
     }
 
-    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ, deprecatedBy = "apoc.dv.catalog.show")
     @Description("List all virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
         return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
@@ -105,7 +109,7 @@ public class DataVirtualizationCatalog {
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
 
-        String direction = (String) config.getOrDefault("direction", Direction.OUT.name());
+        String direction = (String) config.getOrDefault(DIRECTION_CONF_KEY, Direction.OUT.name());
 
         return tx.execute(procedureCallWithParams.first(), procedureCallWithParams.other()).stream()
                 .map(m -> (Node) m.get(("node")))
@@ -126,7 +130,7 @@ public class DataVirtualizationCatalog {
         return new VirtualRelationship(n, node, relationshipType);
     }
 
-    enum Direction {
+    public enum Direction {
         IN,
         OUT;
     }
