@@ -10,6 +10,7 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * xref::misc/spatial.adoc[]
 * xref::misc/static-values.adoc[]
 * xref::misc/utility-functions.adoc[]
+* xref::misc/match-entities.adoc[]
 
 
 

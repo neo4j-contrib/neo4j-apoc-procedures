@@ -162,6 +162,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::misc/spatial.adoc[]
     ** xref::misc/static-values.adoc[]
     ** xref::misc/utility-functions.adoc[]
+    ** xref::misc/match-entities.adoc[]
 
 * xref:indexes/index.adoc[]
     ** xref::indexes/schema-index-operations.adoc[]
