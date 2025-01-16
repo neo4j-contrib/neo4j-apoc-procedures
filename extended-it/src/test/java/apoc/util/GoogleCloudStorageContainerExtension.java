@@ -18,11 +18,15 @@
  */
 package apoc.util;
 
-import static java.net.HttpURLConnection.HTTP_OK;
-
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
+
+import static java.net.HttpURLConnection.HTTP_OK;
+
+import com.google.cloud.storage.Bucket;
 
 public class GoogleCloudStorageContainerExtension extends GenericContainer<GoogleCloudStorageContainerExtension> {
 
@@ -44,7 +48,7 @@ public class GoogleCloudStorageContainerExtension extends GenericContainer<Googl
     }
 
     public static String gcsUrl(GoogleCloudStorageContainerExtension gcs, String file) {
-        String path = String.format("b/folder/o/%s?alt=media", file);
+        String path = "b/folder/o/%s?alt=media".formatted(file);
         return String.format("http://%s:%d/storage/v1/%s", gcs.getContainerIpAddress(), gcs.getMappedPort(4443), path);
     }
 }
