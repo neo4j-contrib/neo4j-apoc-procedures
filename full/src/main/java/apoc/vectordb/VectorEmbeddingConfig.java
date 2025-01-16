@@ -2,6 +2,7 @@ package apoc.vectordb;
 
 import apoc.ml.RestAPIConfig;
 import apoc.util.Util;
+
 import java.util.Map;
 
 public class VectorEmbeddingConfig {
@@ -12,20 +13,23 @@ public class VectorEmbeddingConfig {
     public static final String TEXT_KEY = "textKey";
     public static final String ID_KEY = "idKey";
     public static final String MAPPING_KEY = "mapping";
-
+    
     public static final String DEFAULT_ID = "id";
     public static final String DEFAULT_TEXT = "text";
     public static final String DEFAULT_VECTOR = "vector";
     public static final String DEFAULT_METADATA = "metadata";
     public static final String DEFAULT_SCORE = "score";
     public static final String ALL_RESULTS_KEY = "allResults";
+    public static final String META_AS_SUBKEY_KEY = "metaAsSubKey";
 
     private final String idKey;
     private final String textKey;
     private final String vectorKey;
     private final String metadataKey;
     private final String scoreKey;
+
     private final boolean allResults;
+    private final boolean metaAsSubKey;
 
     private final VectorMappingConfig mapping;
     private final RestAPIConfig apiConfig;
@@ -39,6 +43,8 @@ public class VectorEmbeddingConfig {
         this.allResults = Util.toBoolean(config.get(ALL_RESULTS_KEY));
         this.mapping = new VectorMappingConfig((Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of()));
 
+        this.metaAsSubKey = Util.toBoolean(config.getOrDefault(META_AS_SUBKEY_KEY, true));
+        
         this.apiConfig = new RestAPIConfig(config);
     }
 
@@ -64,6 +70,10 @@ public class VectorEmbeddingConfig {
 
     public boolean isAllResults() {
         return allResults;
+    }
+
+    public boolean isMetaAsSubKey() {
+        return metaAsSubKey;
     }
 
     public VectorMappingConfig getMapping() {
