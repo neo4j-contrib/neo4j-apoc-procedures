@@ -1,9 +1,12 @@
 package apoc.util;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class ExtendedUtil {
     public static <T> T withBackOffRetries(
@@ -54,5 +57,11 @@ public class ExtendedUtil {
                 Duration.ofSeconds(1).multipliedBy(sleepMultiplier).toMillis(),
                 Duration.ofSeconds(30).toMillis() // Max 30s
                 );
+    }
+
+    public static String joinStringLabels(Collection<String> labels) {
+        return CollectionUtils.isNotEmpty(labels)
+                ? ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":"))
+                : "";
     }
 }
