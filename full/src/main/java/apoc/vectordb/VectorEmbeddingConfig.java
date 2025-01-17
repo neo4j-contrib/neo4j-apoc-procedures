@@ -2,7 +2,6 @@ package apoc.vectordb;
 
 import apoc.ml.RestAPIConfig;
 import apoc.util.Util;
-
 import java.util.Map;
 
 public class VectorEmbeddingConfig {
@@ -13,7 +12,7 @@ public class VectorEmbeddingConfig {
     public static final String TEXT_KEY = "textKey";
     public static final String ID_KEY = "idKey";
     public static final String MAPPING_KEY = "mapping";
-    
+
     public static final String DEFAULT_ID = "id";
     public static final String DEFAULT_TEXT = "text";
     public static final String DEFAULT_VECTOR = "vector";
@@ -44,7 +43,7 @@ public class VectorEmbeddingConfig {
         this.mapping = new VectorMappingConfig((Map<String, Object>) config.getOrDefault(MAPPING_KEY, Map.of()));
 
         this.metaAsSubKey = Util.toBoolean(config.getOrDefault(META_AS_SUBKEY_KEY, true));
-        
+
         this.apiConfig = new RestAPIConfig(config);
     }
 

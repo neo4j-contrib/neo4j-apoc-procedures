@@ -1,8 +1,20 @@
 package apoc.vectordb;
 
+import static apoc.ml.RestAPIConfig.BODY_KEY;
+import static apoc.ml.RestAPIConfig.METHOD_KEY;
+import static apoc.vectordb.VectorDb.executeRequest;
+import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
+import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
+import static apoc.vectordb.VectorDbUtil.*;
+
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.MapResult;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -12,23 +24,10 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static apoc.ml.RestAPIConfig.BODY_KEY;
-import static apoc.ml.RestAPIConfig.METHOD_KEY;
-import static apoc.vectordb.VectorDb.executeRequest;
-import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
-import static apoc.vectordb.VectorDbHandler.Type.MILVUS;
-import static apoc.vectordb.VectorDbUtil.*;
-
 @Extended
 public class Milvus {
     public static final VectorDbHandler DB_HANDLER = MILVUS.get();
-    
+
     @Context
     public ProcedureCallContext procedureCallContext;
 
@@ -38,49 +37,53 @@ public class Milvus {
     @Context
     public GraphDatabaseService db;
 
-
     @Procedure("apoc.vectordb.milvus.info")
-    @Description("apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist")
-    public Stream<MapResult> info(@Name("hostOrKey") String hostOrKey, @Name("collection") String collection, @Name(value = "dbName", defaultValue = "default") String dbName,  @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    @Description(
+            "apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist")
+    public Stream<MapResult> info(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name(value = "dbName", defaultValue = "default") String dbName,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
         String url = "%s/collections/describe";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         config.put(BODY_KEY, Map.of("dbName", dbName, "collectionName", collection));
 
-        RestAPIConfig restAPIConfig = new RestAPIConfig( config, Map.of(), Map.of() );
+        RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
 
-        return executeRequest(restAPIConfig)
-                .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
     @Procedure("apoc.vectordb.milvus.createCollection")
-    @Description("apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
-    public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
-                                              @Name("similarity") String similarity,
-                                              @Name("size") Long size,
-                                              @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    @Description(
+            "apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
+    public Stream<MapResult> createCollection(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name("similarity") String similarity,
+            @Name("size") Long size,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
         String url = "%s/collections/create";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
-        Map<String, Object> additionalBodies = Map.of("collectionName", collection,
-                "dimension", size,
-                "metricType", similarity
-        );
+        Map<String, Object> additionalBodies =
+                Map.of("collectionName", collection, "dimension", size, "metricType", similarity);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig)
-                .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
     @Procedure("apoc.vectordb.milvus.deleteCollection")
-    @Description("apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
+    @Description(
+            "apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
-            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
 
         String url = "%s/collections/drop";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
@@ -88,18 +91,18 @@ public class Milvus {
         Map<String, Object> additionalBodies = Map.of("collectionName", collection);
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig)
-                .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
     @Procedure("apoc.vectordb.milvus.upsert")
-    @Description("apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
+    @Description(
+            "apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
     public Stream<MapResult> upsert(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Map<String, Object>> vectors,
-            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
 
         String url = "%s/entities/upsert";
 
@@ -113,21 +116,20 @@ public class Milvus {
                     return map;
                 })
                 .collect(Collectors.toList());
-        Map<String, Object> additionalBodies = Map.of("data", data,
-                "collectionName", collection);
+        Map<String, Object> additionalBodies = Map.of("data", data, "collectionName", collection);
         RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(restAPIConfig)
-                .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
     @Procedure("apoc.vectordb.milvus.delete")
-    @Description("apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
+    @Description(
+            "apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
     public Stream<MapResult> delete(
             @Name("hostOrKey") String hostOrKey,
             @Name("collection") String collection,
             @Name("vectors") List<Object> ids,
-            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
 
         String url = "%s/entities/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
@@ -136,86 +138,102 @@ public class Milvus {
         String filter = "id in " + ids;
         Map<String, Object> additionalBodies = Map.of("collectionName", collection, "filter", filter);
         RestAPIConfig apiConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
-        return executeRequest(apiConfig)
-                .map(v -> (Map<String,Object>) v)
-                .map(MapResult::new);
+        return executeRequest(apiConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.get")
-    @Description("apoc.vectordb.milvus.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
-    public Stream<EmbeddingResult> get(@Name("hostOrKey") String hostOrKey,
-                                         @Name("collection") String collection,
-                                         @Name("ids") List<Object> ids,
-                                         @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    @Description(
+            "apoc.vectordb.milvus.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
+    public Stream<EmbeddingResult> get(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name("ids") List<Object> ids,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
         setReadOnlyMappingMode(configuration);
         return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.getAndUpdate", mode = Mode.WRITE)
-    @Description("apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
-    public Stream<EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
-                                                @Name("collection") String collection,
-                                                @Name("ids") List<Object> ids,
-                                                @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration/*, true*/);
+    @Description(
+            "apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities")
+    public Stream<EmbeddingResult> getAndUpdate(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name("ids") List<Object> ids,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
+        return getCommon(hostOrKey, collection, ids, configuration /*, true*/);
     }
 
-    private Stream<EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) throws Exception {
+    private Stream<EmbeddingResult> getCommon(
+            String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) throws Exception {
         String url = "%s/entities/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
         VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
-        return getEmbeddingResultStream(conf, procedureCallContext, tx,
-                v -> getMapStream((Map) v));
+        return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> getMapStream((Map) v));
     }
 
     @Procedure(value = "apoc.vectordb.milvus.query")
-    @Description("apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
-    public Stream<EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
-                                         @Name("collection") String collection,
-                                         @Name(value = "vector", defaultValue = "[]") List<Double> vector,
-                                         @Name(value = "filter", defaultValue = "null") Object filter,
-                                         @Name(value = "limit", defaultValue = "10") long limit,
-                                         @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    @Description(
+            "apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    public Stream<EmbeddingResult> query(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name(value = "vector", defaultValue = "[]") List<Double> vector,
+            @Name(value = "filter", defaultValue = "null") Object filter,
+            @Name(value = "limit", defaultValue = "10") long limit,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
         setReadOnlyMappingMode(configuration);
         return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.milvus.queryAndUpdate", mode = Mode.WRITE)
-    @Description("apoc.vectordb.milvus.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
-    public Stream<EmbeddingResult> queryAndUpdate(@Name("hostOrKey") String hostOrKey,
-                                         @Name("collection") String collection,
-                                         @Name(value = "vector", defaultValue = "[]") List<Double> vector,
-                                         @Name(value = "filter", defaultValue = "null") Object filter,
-                                         @Name(value = "limit", defaultValue = "10") long limit,
-                                         @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
+    @Description(
+            "apoc.vectordb.milvus.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    public Stream<EmbeddingResult> queryAndUpdate(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name(value = "vector", defaultValue = "[]") List<Double> vector,
+            @Name(value = "filter", defaultValue = "null") Object filter,
+            @Name(value = "limit", defaultValue = "10") long limit,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
         return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     private Stream<Map> getMapStream(Map v) {
         var data = v.get("data");
 
-        return ((List<Map>) data).stream()
-                .map(i -> {
-                    var metadata = new HashMap<>(i);
-                    metadata.remove("id");
-                    metadata.remove("vector");
-                    metadata.remove("distance");
+        return ((List<Map>) data).stream().map(i -> {
+            var metadata = new HashMap<>(i);
+            metadata.remove("id");
+            metadata.remove("vector");
+            metadata.remove("distance");
 
-                    i.put("metadata", metadata);
+            i.put("metadata", metadata);
 
-                    return i;
-                });
+            return i;
+        });
     }
 
-    private Stream<EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Object filter, long limit, Map<String, Object> configuration) throws Exception {
+    private Stream<EmbeddingResult> queryCommon(
+            String hostOrKey,
+            String collection,
+            List<Double> vector,
+            Object filter,
+            long limit,
+            Map<String, Object> configuration)
+            throws Exception {
         String url = "%s/entities/search";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
-        
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        
-        return getEmbeddingResultStream(conf, procedureCallContext, tx,
-                v -> getMapStream((Map) v));
+
+        VectorEmbeddingConfig conf =
+                DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+
+        return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> getMapStream((Map) v));
     }
 
     private Map<String, Object> getVectorDbInfo(
