@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
@@ -41,6 +39,25 @@ public class Weaviate {
 
     @Context
     public GraphDatabaseService db;
+
+    @Procedure("apoc.vectordb.weaviate.info")
+    @Description(
+            "apoc.vectordb.weaviate.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
+    public Stream<MapResult> createCollection(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
+        var config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema/%s");
+
+        methodAndPayloadNull(config);
+
+        Map<String, Object> additionalBodies = Map.of("class", collection);
+
+        RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), additionalBodies);
+
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
+    }
 
     @Procedure("apoc.vectordb.weaviate.createCollection")
     @Description(
@@ -148,7 +165,7 @@ public class Weaviate {
             @Name("collection") String collection,
             @Name("ids") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.get")
@@ -159,20 +176,13 @@ public class Weaviate {
             @Name("collection") String collection,
             @Name("ids") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        setReadOnlyMappingMode(configuration);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     private Stream<EmbeddingResult> getCommon(
-            String hostOrKey,
-            String collection,
-            List<Object> ids,
-            Map<String, Object> configuration,
-            boolean readOnly) {
+            String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/schema");
-
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
-        }
 
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
@@ -182,7 +192,8 @@ public class Weaviate {
         config.putIfAbsent(METHOD_KEY, null);
 
         List<String> fields = procedureCallContext.outputFields().collect(Collectors.toList());
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+
         boolean hasEmbedding = fields.contains("vector") && conf.isAllResults();
         boolean hasMetadata = fields.contains("metadata");
         VectorMappingConfig mapping = conf.getMapping();
@@ -214,8 +225,8 @@ public class Weaviate {
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        setReadOnlyMappingMode(configuration);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.weaviate.queryAndUpdate", mode = Mode.WRITE)
@@ -229,7 +240,7 @@ public class Weaviate {
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     private Stream<EmbeddingResult> queryCommon(
@@ -238,25 +249,15 @@ public class Weaviate {
             List<Double> vector,
             Object filter,
             long limit,
-            Map<String, Object> configuration,
-            boolean readOnly)
+            Map<String, Object> configuration)
             throws Exception {
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, "%s/graphql");
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.weaviate.queryAndUpdate");
-        }
-
         VectorEmbeddingConfig conf =
                 DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+
         return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> {
-            Map<String, Map> mapResult = (Map<String, Map>) v;
-            List<Map> errors = (List<Map>) mapResult.get("errors");
-            if (CollectionUtils.isNotEmpty(errors)) {
-                String message = "An error occurred during Weaviate API response: \n" + StringUtils.join(errors, "\n");
-                throw new RuntimeException(message);
-            }
-            Object getValue = mapResult.get("data").get("Get");
+            Object getValue = ((Map<String, Map>) v).get("data").get("Get");
             Object collectionValue = ((Map) getValue).get(collection);
             return ((List<Map>) collectionValue).stream().map(i -> {
                 Map additional = (Map) i.remove("_additional");

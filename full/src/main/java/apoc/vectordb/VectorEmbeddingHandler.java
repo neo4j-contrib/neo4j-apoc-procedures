@@ -10,7 +10,7 @@ import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 public interface VectorEmbeddingHandler {
 
     <T> VectorEmbeddingConfig fromGet(
-            Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids);
+            Map<String, Object> config, ProcedureCallContext procedureCallContext, List<T> ids, String collection);
 
     VectorEmbeddingConfig fromQuery(
             Map<String, Object> config,
@@ -20,7 +20,7 @@ public interface VectorEmbeddingHandler {
             long limit,
             String collection);
 
-    static VectorEmbeddingConfig populateApiBodyRequest(
+    default VectorEmbeddingConfig populateApiBodyRequest(
             VectorEmbeddingConfig config, Map<String, Object> additionalBodies) {
 
         RestAPIConfig apiConfig = config.getApiConfig();

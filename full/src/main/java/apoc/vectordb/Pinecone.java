@@ -184,7 +184,7 @@ public class Pinecone {
         String url = "%s/vectors/fetch";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
 
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, index);
 
         return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> {
             Object vectors = ((Map) v).get("vectors");

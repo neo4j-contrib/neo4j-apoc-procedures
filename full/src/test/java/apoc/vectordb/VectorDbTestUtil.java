@@ -8,6 +8,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import apoc.util.MapUtil;
 import java.util.Map;
 import org.junit.Assume;
 import org.neo4j.graphdb.Entity;
@@ -96,13 +97,13 @@ public class VectorDbTestUtil {
     public static void assertReadOnlyProcWithMappingResults(Result r, String node) {
         Map<String, Object> row = r.next();
         Map<String, Object> props = ((Entity) row.get(node)).getAllProperties();
-        assertEquals(map("readID", "one"), props);
+        assertEquals(MapUtil.map("readID", "one"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
 
         row = r.next();
         props = ((Entity) row.get(node)).getAllProperties();
-        assertEquals(map("readID", "two"), props);
+        assertEquals(MapUtil.map("readID", "two"), props);
         assertNotNull(row.get("vector"));
         assertNotNull(row.get("id"));
 

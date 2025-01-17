@@ -41,6 +41,25 @@ public class ChromaDb {
     @Context
     public GraphDatabaseService db;
 
+    @Procedure("apoc.vectordb.chroma.info")
+    @Description(
+            "apoc.vectordb.chroma.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
+    public Stream<MapResult> info(
+            @Name("hostOrKey") String hostOrKey,
+            @Name("collection") String collection,
+            @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
+            throws Exception {
+        String url = "%s/api/v1/collections/%s";
+
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+
+        methodAndPayloadNull(config);
+
+        RestAPIConfig restAPIConfig = new RestAPIConfig(config, Map.of(), Map.of());
+
+        return executeRequest(restAPIConfig).map(v -> (Map<String, Object>) v).map(MapResult::new);
+    }
+
     @Procedure("apoc.vectordb.chroma.createCollection")
     @Description(
             "apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
@@ -114,9 +133,9 @@ public class ChromaDb {
         String url = "%s/api/v1/collections/%s/delete";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        VectorEmbeddingConfig apiConfig =
-                DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids));
-        return executeRequest(apiConfig.getApiConfig()).map(v -> (List) v).map(ListResult::new);
+        VectorEmbeddingConfig conf =
+                DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, getStringIds(ids), collection);
+        return executeRequest(conf.getApiConfig()).map(v -> (List) v).map(ListResult::new);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.get")
@@ -128,7 +147,8 @@ public class ChromaDb {
             @Name("ids") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, true);
+        setReadOnlyMappingMode(configuration);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.getAndUpdate", mode = Mode.WRITE)
@@ -140,20 +160,17 @@ public class ChromaDb {
             @Name("ids") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration, false);
+        return getCommon(hostOrKey, collection, ids, configuration);
     }
 
     private Stream<EmbeddingResult> getCommon(
-            String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration, boolean readOnly)
-            throws Exception {
+            String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) throws Exception {
         String url = "%s/api/v1/collections/%s/get";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.chroma.getAndUpdate");
-        }
+        VectorEmbeddingConfig apiConfig =
+                DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
 
-        VectorEmbeddingConfig apiConfig = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids);
         return getEmbeddingResultStream(apiConfig, procedureCallContext, tx, v -> listToMap((Map) v).stream());
     }
 
@@ -168,7 +185,8 @@ public class ChromaDb {
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, true);
+        setReadOnlyMappingMode(configuration);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.chroma.queryAndUpdate", mode = Mode.WRITE)
@@ -182,7 +200,7 @@ public class ChromaDb {
             @Name(value = "limit", defaultValue = "10") long limit,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration, false);
+        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
     }
 
     private Stream<EmbeddingResult> queryCommon(
@@ -191,19 +209,14 @@ public class ChromaDb {
             List<Double> vector,
             Map<String, Object> filter,
             long limit,
-            Map<String, Object> configuration,
-            boolean readOnly)
+            Map<String, Object> configuration)
             throws Exception {
         String url = "%s/api/v1/collections/%s/query";
         Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
 
-        if (readOnly) {
-            checkMappingConf(configuration, "apoc.vectordb.chroma.queryAndUpdate");
-        }
-
-        VectorEmbeddingConfig apiConfig =
+        VectorEmbeddingConfig conf =
                 DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
-        return getEmbeddingResultStream(apiConfig, procedureCallContext, tx, v -> listOfListsToMap((Map) v).stream());
+        return getEmbeddingResultStream(conf, procedureCallContext, tx, v -> listOfListsToMap((Map) v).stream());
     }
 
     private Map<String, Object> getVectorDbInfo(
