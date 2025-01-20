@@ -285,7 +285,7 @@ public class VectorDb {
             Node node = Util.mergeNode(transaction, label, null, Pair.of(SystemPropertyKeys.name.name(), configKey));
 
             Map mapping = (Map) config.get("mapping");
-            String host = (String) config.get("host");
+            String host = appendVersionUrlIfNeeded(type, (String) config.get("host"));
             Object credentials = config.get("credentials");
 
             if (host != null) {

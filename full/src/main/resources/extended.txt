@@ -219,6 +219,7 @@ apoc.vectordb.chroma.deleteCollection
 apoc.vectordb.chroma.upsert
 apoc.vectordb.chroma.delete
 apoc.vectordb.chroma.get
+apoc.vectordb.chroma.info
 apoc.vectordb.chroma.getAndUpdate
 apoc.vectordb.chroma.query
 apoc.vectordb.chroma.queryAndUpdate
@@ -236,6 +237,7 @@ apoc.vectordb.qdrant.deleteCollection
 apoc.vectordb.qdrant.upsert
 apoc.vectordb.qdrant.delete
 apoc.vectordb.qdrant.get
+apoc.vectordb.qdrant.info
 apoc.vectordb.qdrant.getAndUpdate
 apoc.vectordb.qdrant.query
 apoc.vectordb.qdrant.queryAndUpdate
