@@ -28,9 +28,9 @@ import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 import apoc.create.Create;
+import apoc.entities.EntitiesExtended;
 import apoc.load.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
-import apoc.nodes.NodesExtended;
 import apoc.util.TestUtil;
 import java.util.Collections;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class PeriodicExtendedTest {
         TestUtil.registerProcedure(
                 db,
                 Periodic.class,
-                NodesExtended.class,
+                EntitiesExtended.class,
                 GCPProcedures.class,
                 Create.class,
                 PeriodicExtended.class,
