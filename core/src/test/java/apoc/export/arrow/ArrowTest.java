@@ -26,6 +26,14 @@ import static apoc.export.arrow.ArrowTestUtil.testLoadArrow;
 import static org.junit.Assert.assertEquals;
 
 import apoc.ApocSettings;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,16 +43,6 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-
 
 public class ArrowTest {
 
@@ -61,8 +59,6 @@ public class ArrowTest {
                     GraphDatabaseSettings.load_csv_file_url_root,
                     directory.toPath().toAbsolutePath())
             .withSetting(ApocSettings.apoc_export_file_enabled, true);
-
-
 
     @BeforeClass
     public static void beforeClass() {

@@ -1,5 +1,16 @@
 package apoc.full.it.s3;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
+import static apoc.ApocConfig.apocConfig;
+import static apoc.full.it.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
+import static apoc.full.it.util.ExtendedITUtil.testLoadJsonCommon;
+import static apoc.full.it.util.ExtendedITUtil.testLoadXmlCommon;
+import static apoc.load.LoadCsvTest.commonTestLoadCsv;
+import static apoc.load.LoadHtmlTest.testLoadHtmlWithGetLinksCommon;
+import static apoc.load.LoadXlsTest.testLoadXlsCommon;
+import static apoc.util.s3.S3TestUtil.putToS3AndGetUrl;
+
 import apoc.load.LoadCsv;
 import apoc.load.LoadDirectory;
 import apoc.load.LoadHtml;
@@ -14,17 +25,6 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.full.it.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
-import static apoc.full.it.util.ExtendedITUtil.testLoadJsonCommon;
-import static apoc.full.it.util.ExtendedITUtil.testLoadXmlCommon;
-import static apoc.load.LoadCsvTest.commonTestLoadCsv;
-import static apoc.load.LoadHtmlTest.testLoadHtmlWithGetLinksCommon;
-import static apoc.load.LoadXlsTest.testLoadXlsCommon;
-import static apoc.util.s3.S3TestUtil.putToS3AndGetUrl;
-
 public class LoadS3Test extends S3BaseTest {
 
     @Rule
@@ -32,7 +32,8 @@ public class LoadS3Test extends S3BaseTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadDirectory.class, LoadJson.class, LoadHtml.class, LoadXls.class, Xml.class);
+        TestUtil.registerProcedure(
+                db, LoadCsv.class, LoadDirectory.class, LoadJson.class, LoadHtml.class, LoadXls.class, Xml.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
     }
@@ -66,5 +67,4 @@ public class LoadS3Test extends S3BaseTest {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "wikipedia.html");
         testLoadHtmlWithGetLinksCommon(db, url);
     }
-
 }

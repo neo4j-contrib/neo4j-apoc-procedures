@@ -21,6 +21,9 @@ dependencies {
     testImplementation 'com.azure:azure-storage-blob:12.22.0'
     testImplementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0'
 
+    testImplementation 'org.mock-server:mockserver-netty:5.15.0'
+    testImplementation 'org.mock-server:mockserver-client-java:5.15.0'
+    
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'

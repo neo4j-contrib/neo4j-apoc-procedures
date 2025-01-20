@@ -1,11 +1,23 @@
 package apoc.export.arrow;
 
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import apoc.graph.Graphs;
 import apoc.load.LoadArrow;
 import apoc.meta.Meta;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -18,19 +30,6 @@ import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.LocalDateTimeValue;
 import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.virtual.VirtualValues;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 public class ArrowTestUtil {
     public static String ARROW_BASE_FOLDER = "target/arrowImport";

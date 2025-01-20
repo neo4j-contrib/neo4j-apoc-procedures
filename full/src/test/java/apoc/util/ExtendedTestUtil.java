@@ -86,36 +86,6 @@ public class ExtendedTestUtil {
         assertMapEquals(expectedEndNodeProps, endNode.getAllProperties());
     }
 
-    public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
-        assertMapEquals(null, expected, actual);
-    }
-
-    public static void assertMapEquals(String errMsg, Map<String, Object> expected, Map<String, Object> actual) {
-        if (expected == null) {
-            assertNull(actual);
-        } else {
-            assertEquals(errMsg, expected.keySet(), actual.keySet());
-
-            actual.forEach((key, actualValue) -> {
-                Object expectedValue = expected.get(key);
-                boolean valuesAreArrays = key != null
-                        && actualValue != null
-                        && actualValue.getClass().isArray()
-                        && expectedValue.getClass().isArray();
-
-                if (actualValue instanceof Map) {
-                    assertMapEquals(errMsg, (Map<String, Object>) expectedValue, (Map<String, Object>) actualValue);
-                } else if (valuesAreArrays) {
-                    Object[] expectedArray = Iterators.array(expectedValue);
-                    Object[] actualArray = Iterators.array(actualValue);
-                    assertArrayEquals(expectedArray, actualArray);
-                } else {
-                    assertEquals(errMsg, expectedValue, actualValue);
-                }
-            });
-        }
-    }
-
     /**
      * similar to @link {@link TestUtil#testCallEventually(GraphDatabaseService, String, Consumer, long)}
      * but re-execute the {@link GraphDatabaseService#executeTransactionally(String, Map, ResultTransformer)} in case of error

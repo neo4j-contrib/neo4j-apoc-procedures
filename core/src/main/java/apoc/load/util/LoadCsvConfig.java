@@ -24,7 +24,6 @@ import static java.util.Collections.emptyList;
 
 import apoc.load.Mapping;
 import apoc.util.CompressionConfig;
-import apoc.util.Util;
 import java.util.*;
 
 public class LoadCsvConfig extends CompressionConfig {
@@ -91,7 +90,7 @@ public class LoadCsvConfig extends CompressionConfig {
         }
         return separator;
     }
-    
+
     private Map<String, Mapping> createMapping(
             Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
