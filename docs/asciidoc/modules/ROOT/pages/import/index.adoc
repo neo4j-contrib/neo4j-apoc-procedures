@@ -20,4 +20,5 @@ For more information on these procedures, see:
 * xref::import/load-html.adoc[]
 * xref::import/import-csv.adoc[]
 * xref::import/import-graphml.adoc[]
+* xref::import/gexf.adoc[]
 * xref::import/arrow.adoc[]
