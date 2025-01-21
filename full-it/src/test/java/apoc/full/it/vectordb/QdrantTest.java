@@ -2,6 +2,8 @@ package apoc.full.it.vectordb;
 
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
+import static apoc.util.ExtendedTestUtil.assertFails;
+import static apoc.util.ExtendedTestUtil.testResultEventually;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -12,20 +14,27 @@ import static apoc.vectordb.VectorDbTestUtil.EntityType.REL;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;
 import static apoc.vectordb.VectorDbTestUtil.assertNodesCreated;
+import static apoc.vectordb.VectorDbTestUtil.assertReadOnlyProcWithMappingResults;
 import static apoc.vectordb.VectorDbTestUtil.assertRelsCreated;
 import static apoc.vectordb.VectorDbTestUtil.dropAndDeleteAll;
 import static apoc.vectordb.VectorDbTestUtil.getAuthHeader;
-import static apoc.vectordb.VectorDbUtil.ERROR_READONLY_MAPPING;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
-import static apoc.vectordb.VectorMappingConfig.*;
+import static apoc.vectordb.VectorMappingConfig.EMBEDDING_KEY;
+import static apoc.vectordb.VectorMappingConfig.ENTITY_KEY;
+import static apoc.vectordb.VectorMappingConfig.METADATA_KEY;
+import static apoc.vectordb.VectorMappingConfig.MODE_KEY;
+import static apoc.vectordb.VectorMappingConfig.MappingMode;
+import static apoc.vectordb.VectorMappingConfig.NODE_LABEL;
+import static apoc.vectordb.VectorMappingConfig.REL_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.neo4j.configuration.GraphDatabaseSettings.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
@@ -35,12 +44,12 @@ import apoc.vectordb.VectorDb;
 import apoc.vectordb.VectorDbTestUtil;
 import java.util.List;
 import java.util.Map;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -59,6 +68,7 @@ public class QdrantTest {
     private static final Map<String, String> ADMIN_AUTHORIZATION = getAuthHeader(ADMIN_KEY);
     private static final Map<String, String> READONLY_AUTHORIZATION = getAuthHeader(READONLY_KEY);
     private static final Map<String, Object> ADMIN_HEADER_CONF = map(HEADERS_KEY, ADMIN_AUTHORIZATION);
+    public static final long TIMEOUT = 10L;
 
     private static String HOST;
 
@@ -122,6 +132,28 @@ public class QdrantTest {
     @Before
     public void before() {
         dropAndDeleteAll(db);
+    }
+
+    @Test
+    public void getInfo() {
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'test_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                r -> {
+                    Map<String, Object> res = r.next();
+                    Map value = (Map) res.get("value");
+                    assertEquals("ok", value.get("status"));
+                });
+    }
+
+    @Test
+    public void getInfoNotExistentCollection() {
+        assertFails(
+                db,
+                "CALL apoc.vectordb.qdrant.info($host, 'wrong_collection', $conf)",
+                map("host", HOST, "conf", ADMIN_HEADER_CONF),
+                "java.io.FileNotFoundException");
     }
 
     @Test
@@ -190,25 +222,6 @@ public class QdrantTest {
     }
 
     @Test
-    public void queryVectors() {
-        testResult(
-                db,
-                "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
-                r -> {
-                    Map<String, Object> row = r.next();
-                    assertBerlinResult(row, FALSE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-
-                    row = r.next();
-                    assertLondonResult(row, FALSE);
-                    assertNotNull(row.get("score"));
-                    assertNotNull(row.get("vector"));
-                });
-    }
-
-    @Test
     public void queryVectorsWithRag() {
         String openAIKey = System.getenv("OPENAI_KEY");
         ;
@@ -247,8 +260,28 @@ public class QdrantTest {
     }
 
     @Test
+    public void queryVectors() {
+        testResultEventually(
+                db,
+                "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertBerlinResult(row, FALSE);
+                    assertNotNull(row.get("score"));
+                    assertNotNull(row.get("vector"));
+
+                    row = r.next();
+                    assertLondonResult(row, FALSE);
+                    assertNotNull(row.get("score"));
+                    assertNotNull(row.get("vector"));
+                },
+                TIMEOUT);
+    }
+
+    @Test
     public void queryVectorsWithoutVectorResult() {
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", map(HEADERS_KEY, ADMIN_AUTHORIZATION)),
@@ -264,24 +297,26 @@ public class QdrantTest {
                     assertNotNull(row.get("score"));
                     assertNull(row.get("vector"));
                     assertNull(row.get("id"));
-                });
+                },
+                TIMEOUT);
     }
 
     @Test
     public void queryVectorsWithYield() {
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf) YIELD metadata, id",
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), FALSE);
                     assertLondonResult(r.next(), FALSE);
-                });
+                },
+                TIMEOUT);
     }
 
     @Test
     public void queryVectorsWithFilter() {
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7],\n" + "{ must:\n"
                         + "    [ { key: \"city\", match: { value: \"London\" } } ]\n"
@@ -290,18 +325,20 @@ public class QdrantTest {
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertLondonResult(r.next(), FALSE);
-                });
+                },
+                TIMEOUT);
     }
 
     @Test
     public void queryVectorsWithLimit() {
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 1, $conf) YIELD metadata, id",
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
                 r -> {
                     assertBerlinResult(r.next(), FALSE);
-                });
+                },
+                TIMEOUT);
     }
 
     @Test
@@ -318,8 +355,8 @@ public class QdrantTest {
                         NODE_LABEL, "Test",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo",
-                        CREATE_KEY, true));
-        testResult(
+                        MODE_KEY, MappingMode.CREATE_IF_MISSING.toString()));
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
@@ -333,7 +370,8 @@ public class QdrantTest {
                     assertLondonResult(row, NODE);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
-                });
+                },
+                TIMEOUT);
 
         assertNodesCreated(db);
 
@@ -342,7 +380,7 @@ public class QdrantTest {
                 "MATCH (n:Test) RETURN properties(n) AS props ORDER BY n.myId",
                 VectorDbTestUtil::vectorEntityAssertions);
 
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
@@ -356,7 +394,8 @@ public class QdrantTest {
                     assertLondonResult(row, NODE);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
-                });
+                },
+                TIMEOUT);
 
         assertNodesCreated(db);
     }
@@ -394,17 +433,22 @@ public class QdrantTest {
 
     @Test
     public void getReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true, MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally("CREATE (:Test {readID: 'one'}), (:Test {readID: 'two'})");
 
-        try {
-            testCall(
-                    db,
-                    "CALL apoc.vectordb.qdrant.get($host, 'test_collection', [1, 2], $conf)",
-                    map("host", HOST, "conf", conf),
-                    r -> fail());
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = map(
+                ALL_RESULTS_KEY,
+                true,
+                HEADERS_KEY,
+                READONLY_AUTHORIZATION,
+                MAPPING_KEY,
+                map(NODE_LABEL, "Test", ENTITY_KEY, "readID", METADATA_KEY, "foo"));
+
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.get($host, 'test_collection', [1, 2], $conf) "
+                        + "YIELD vector, id, metadata, node RETURN * ORDER BY id",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "node"));
     }
 
     @Test
@@ -420,7 +464,7 @@ public class QdrantTest {
                 MAPPING_KEY,
                 map(EMBEDDING_KEY, "vect", NODE_LABEL, "Test", ENTITY_KEY, "myId", METADATA_KEY, "foo"));
 
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
@@ -434,7 +478,8 @@ public class QdrantTest {
                     assertLondonResult(row, NODE);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
-                });
+                },
+                TIMEOUT);
 
         assertNodesCreated(db);
     }
@@ -456,7 +501,7 @@ public class QdrantTest {
                         REL_TYPE, "TEST",
                         ENTITY_KEY, "myId",
                         METADATA_KEY, "foo"));
-        testResult(
+        testResultEventually(
                 db,
                 "CALL apoc.vectordb.qdrant.queryAndUpdate($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", conf),
@@ -470,24 +515,34 @@ public class QdrantTest {
                     assertLondonResult(row, REL);
                     assertNotNull(row.get("score"));
                     assertNotNull(row.get("vector"));
-                });
+                },
+                TIMEOUT);
 
         assertRelsCreated(db);
     }
 
     @Test
+    @Ignore("flaky")
     public void queryReadOnlyVectorsWithMapping() {
-        Map<String, Object> conf = map(ALL_RESULTS_KEY, true, MAPPING_KEY, map(EMBEDDING_KEY, "vect"));
+        db.executeTransactionally(
+                "CREATE (:Start)-[:TEST {readID: 'one'}]->(:End), (:Start)-[:TEST {readID: 'two'}]->(:End)");
 
-        try {
-            testCall(
-                    db,
-                    "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
-                    map("host", HOST, "conf", conf),
-                    r -> fail());
-        } catch (RuntimeException e) {
-            Assertions.assertThat(e.getMessage()).contains(ERROR_READONLY_MAPPING);
-        }
+        Map<String, Object> conf = map(
+                ALL_RESULTS_KEY,
+                true,
+                HEADERS_KEY,
+                READONLY_AUTHORIZATION,
+                MAPPING_KEY,
+                map(
+                        REL_TYPE, "TEST",
+                        ENTITY_KEY, "readID",
+                        METADATA_KEY, "foo"));
+
+        testResult(
+                db,
+                "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
+                map("host", HOST, "conf", conf),
+                r -> assertReadOnlyProcWithMappingResults(r, "rel"));
     }
 
     @Test

@@ -45,6 +45,7 @@ dependencies {
     api group: 'org.testcontainers', name: 'qdrant', version: '1.19.7'
     api group: 'org.testcontainers', name: 'chromadb', version: '1.19.7'
     api group: 'org.testcontainers', name: 'weaviate', version: '1.19.7'
+    api group: 'org.testcontainers', name: 'milvus', version: '1.19.7'
     api group: 'org.apache.arrow', name: 'arrow-vector', version: '16.1.0'
     api group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '16.1.0'
 }

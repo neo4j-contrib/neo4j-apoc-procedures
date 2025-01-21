@@ -5,7 +5,6 @@ import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.util.Util.listOfNumbersToFloatArray;
 import static apoc.util.Util.setProperties;
 import static apoc.vectordb.VectorDbUtil.*;
-import static apoc.vectordb.VectorDbUtil.appendVersionUrlIfNeeded;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 
@@ -166,15 +165,21 @@ public class VectorDb {
             Node node;
             Object propValue = metaProps.get(mapping.getMetadataKey());
             node = transaction.findNode(Label.label(mapping.getNodeLabel()), mapping.getEntityKey(), propValue);
-            if (node == null && mapping.isCreate()) {
-                node = transaction.createNode(Label.label(mapping.getNodeLabel()));
-                node.setProperty(mapping.getEntityKey(), propValue);
+            switch (mapping.getMode()) {
+                case READ_ONLY:
+                    // do nothing, just return the entity
+                    break;
+                case UPDATE_EXISTING:
+                    setPropsIfEntityExists(mapping, metaProps, embedding, node);
+                    break;
+                case CREATE_IF_MISSING:
+                    if (node == null) {
+                        node = transaction.createNode(Label.label(mapping.getNodeLabel()));
+                        node.setProperty(mapping.getEntityKey(), propValue);
+                    }
+                    setPropsIfEntityExists(mapping, metaProps, embedding, node);
+                    break;
             }
-            if (node != null) {
-                setProperties(node, metaProps);
-                setVectorProp(mapping, embedding, node);
-            }
-
             return node;
         } catch (MultipleFoundException e) {
             throw new RuntimeException("Multiple nodes found");
@@ -192,14 +197,26 @@ public class VectorDb {
             Object propValue = metaProps.get(mapping.getMetadataKey());
             rel = transaction.findRelationship(
                     RelationshipType.withName(mapping.getRelType()), mapping.getEntityKey(), propValue);
-            if (rel != null) {
-                setProperties(rel, metaProps);
-                setVectorProp(mapping, embedding, rel);
+            switch (mapping.getMode()) {
+                case READ_ONLY:
+                    // do nothing, just return the entity
+                    break;
+                case UPDATE_EXISTING:
+                case CREATE_IF_MISSING:
+                    setPropsIfEntityExists(mapping, metaProps, embedding, rel);
             }
 
             return rel;
         } catch (MultipleFoundException e) {
             throw new RuntimeException("Multiple relationships found");
+        }
+    }
+
+    private static void setPropsIfEntityExists(
+            VectorMappingConfig mapping, Map<String, Object> metaProps, List<Double> embedding, Entity entity) {
+        if (entity != null) {
+            setProperties(entity, metaProps);
+            setVectorProp(mapping, embedding, entity);
         }
     }
 
