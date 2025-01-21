@@ -64,8 +64,11 @@ dependencies {
 
     
     apt project(':processor')
-    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
-
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective, { // mandatory to run @ServiceProvider based META-INF code generation
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-util'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-util-ajax'
+    }
     antlr "org.antlr:antlr4:4.13.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
@@ -83,6 +86,19 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
+    
+    // --> TODO? api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.4.0', withoutServers.andThen(withoutLoggers)
+    
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.53.v20231009'
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.53.v20231009'
+// https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util-ajax
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '9.4.53.v20231009'
+
+
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
+    //testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '12.0.16'
 
     // These will be dependencies packaged with the .jar
     implementation project(':common')
