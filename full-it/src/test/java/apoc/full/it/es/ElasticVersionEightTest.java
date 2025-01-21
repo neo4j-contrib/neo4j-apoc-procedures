@@ -5,8 +5,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import apoc.es.ElasticSearchHandler;
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,10 +25,13 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
                 Map.of("headers", basicAuthHeader, VERSION_KEY, ElasticSearchHandler.Version.EIGHT.name());
         Map<String, Object> params = Util.map("index", ES_INDEX, "id", ES_ID, "type", ES_TYPE, "config", config);
 
-        String tag = "8.12.1";
+        String tag = "8.14.3";
         Map<String, String> envMap = Map.of(
                 "xpack.security.http.ssl.enabled", "false",
-                "cluster.routing.allocation.disk.threshold_enabled", "false");
+                "cluster.routing.allocation.disk.threshold_enabled", "false",
+                "xpack.license.self_generated.type",
+                        "trial" // To avoid error "current license is non-compliant for [Reciprocal Rank Fusion (RRF)]"
+                );
 
         getElasticContainer(tag, envMap, params);
     }
@@ -72,6 +78,134 @@ public class ElasticVersionEightTest extends ElasticSearchTest {
                 "CALL apoc.es.query($host, null, null, 'pretty', {`_source`: {includes: ['name']}}, $config) yield value",
                 paramsWithBasicAuth,
                 this::searchQueryPayloadAssertions);
+    }
+
+    @Test
+    public void testSearchRRF() throws JsonProcessingException {
+        String payload = "{\n" + "  \"mappings\": {\n"
+                + "    \"properties\": {\n"
+                + "      \"text\": {\n"
+                + "        \"type\": \"text\"\n"
+                + "      },\n"
+                + "      \"vector\": {\n"
+                + "        \"type\": \"dense_vector\",\n"
+                + "        \"dims\": 1,\n"
+                + "        \"index\": true,\n"
+                + "        \"similarity\": \"l2_norm\"\n"
+                + "      },\n"
+                + "      \"integer\": {\n"
+                + "        \"type\": \"integer\"\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}";
+
+        setPayload(payload, paramsWithBasicAuth);
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.put($host, 'example-index', null, null, null, $payload, $config)",
+                paramsWithBasicAuth,
+                r -> {
+                    Object actual = ((Map) r.get("value")).get("index");
+                    assertEquals("example-index", actual);
+                });
+
+        assertPutForRRF();
+
+        paramsWithBasicAuth.remove("payload");
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.post($host, 'example-index/_refresh', null, null, '', $config)",
+                paramsWithBasicAuth,
+                r -> {
+                    Object actual = ((Map) ((Map) r.get("value")).get("_shards")).get("successful");
+                    assertEquals(1L, actual);
+                });
+
+        payload = " {\n" + "     \"retriever\": {\n"
+                + "         \"rrf\": {\n"
+                + "             \"retrievers\": [\n"
+                + "                 {\n"
+                + "                     \"standard\": {\n"
+                + "                         \"query\": {\n"
+                + "                             \"term\": {\n"
+                + "                                 \"text\": \"rrf\"\n"
+                + "                             }\n"
+                + "                         }\n"
+                + "                     }\n"
+                + "                 },\n"
+                + "                 {\n"
+                + "                     \"knn\": {\n"
+                + "                         \"field\": \"vector\",\n"
+                + "                         \"query_vector\": [3],\n"
+                + "                         \"k\": 5,\n"
+                + "                         \"num_candidates\": 5\n"
+                + "                     }\n"
+                + "                 }\n"
+                + "             ],\n"
+                + "             \"window_size\": 5,\n"
+                + "             \"rank_constant\": 1\n"
+                + "         }\n"
+                + "     },\n"
+                + "     \"size\": 3,\n"
+                + "     \"aggs\": {\n"
+                + "         \"int_count\": {\n"
+                + "             \"terms\": {\n"
+                + "                 \"field\": \"integer\"\n"
+                + "             }\n"
+                + "         }\n"
+                + "     }\n"
+                + " }";
+
+        setPayload(payload, paramsWithBasicAuth);
+        TestUtil.testCall(
+                db,
+                "CALL apoc.es.getRaw($host,'example-index/_search',$payload,$config) yield value",
+                paramsWithBasicAuth,
+                r -> {
+                    Object result = ((Map) ((Map) ((Map) r.get("value")).get("hits")).get("total")).get("value");
+                    assertEquals(5L, result);
+                });
+
+        TestUtil.testCall(
+                db, "CALL apoc.es.delete($host,'example-index',null,null,null,$config)", paramsWithBasicAuth, r -> {
+                    boolean acknowledged = ((boolean) ((Map) r.get("value")).get("acknowledged"));
+                    assertTrue(acknowledged);
+                });
+
+        paramsWithBasicAuth.put("index", ES_INDEX);
+    }
+
+    private void assertPutForRRF() {
+        List<Pair<String, String>> payloads = List.of(
+                Pair.of("example-index/_doc/1", "{ \"text\" : \"rrf\", \"vector\" : [5], \"integer\": 1 }"),
+                Pair.of("example-index/_doc/2", "{ \"text\" : \"rrf rrf\", \"vector\" : [4], \"integer\": 2 }"),
+                Pair.of("example-index/_doc/3", "{ \"text\" : \"rrf rrf rrf\", \"vector\" : [3], \"integer\": 1 }"),
+                Pair.of("example-index/_doc/4", "{ \"text\" : \"rrf rrf rrf rrf\", \"integer\": 2 }"),
+                Pair.of("example-index/_doc/5", "{ \"vector\" : [0], \"integer\": 1 }"));
+
+        payloads.forEach(payload -> {
+            try {
+                Map mapPayload = JsonUtil.OBJECT_MAPPER.readValue(payload.getRight(), Map.class);
+                paramsWithBasicAuth.put("payload", mapPayload);
+                paramsWithBasicAuth.put("index", payload.getLeft());
+                TestUtil.testCall(
+                        db,
+                        "CALL apoc.es.put($host, $index, null, null, null, $payload, $config)",
+                        paramsWithBasicAuth,
+                        r -> {
+                            Object actual = ((Map) r.get("value")).get("result");
+                            assertEquals("created", actual);
+                        });
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private void setPayload(String payload, Map<String, Object> params) throws JsonProcessingException {
+        Map<String, Object> mapPayload = JsonUtil.OBJECT_MAPPER.readValue(payload, Map.class);
+        params.put("payload", mapPayload);
     }
 
     private void searchQueryPayloadAssertions(Map<String, Object> r) {
