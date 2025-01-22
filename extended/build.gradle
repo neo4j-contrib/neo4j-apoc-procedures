@@ -92,13 +92,14 @@ dependencies {
     testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0'
     
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.53.v20231009'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.57.v20241219'
+    // testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.53.v20231009'
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.53.v20231009'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.57.v20241219'
 // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util-ajax
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '9.4.53.v20231009'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '9.4.57.v20241219'
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.4.53.v20231009'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.4.57.v20241219'
 
 
 
