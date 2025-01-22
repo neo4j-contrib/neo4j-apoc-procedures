@@ -88,6 +88,8 @@ dependencies {
     }
     
     // --> TODO? api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.4.0', withoutServers.andThen(withoutLoggers)
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0'
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0'
     
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
     testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.53.v20231009'
@@ -95,6 +97,9 @@ dependencies {
     testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.53.v20231009'
 // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util-ajax
     testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '9.4.53.v20231009'
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.4.53.v20231009'
+
 
 
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
@@ -142,7 +147,7 @@ dependencies {
 
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
+
 
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
