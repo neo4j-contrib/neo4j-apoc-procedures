@@ -32,7 +32,11 @@ public class ExtendedApocConfigExtensionFactory extends ExtensionFactory<Extende
                 .get(neo4j_home)
                 .resolve(Config.DEFAULT_CONFIG_DIR_NAME)
                 .toString();
-        return new ExtendedApocConfig(dependencies.log(), dependencies.globalProceduresRegistry(), defaultConfigPath);
+        return new ExtendedApocConfig(
+                dependencies.config(),
+                dependencies.log(), 
+                dependencies.globalProceduresRegistry(), 
+                defaultConfigPath);
 
     }
 }
