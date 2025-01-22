@@ -1,5 +1,7 @@
 package apoc.agg;
 
+import static apoc.agg.AggregationUtil.updateAggregationValues;
+
 import apoc.Extended;
 import java.util.HashMap;
 import java.util.List;
@@ -38,26 +40,13 @@ public class MultiStats {
 
                         map.compute(property.toString(), (propKey, propVal) -> {
                             Map<String, Number> propMap = Objects.requireNonNullElseGet(propVal, HashMap::new);
-                            Number count = propMap.compute(
-                                    "count", ((subKey, subVal) -> subVal == null ? 1 : subVal.longValue() + 1));
-                            if (property instanceof Number) {
-                                Number numberProp = (Number) property;
-                                Number sum = propMap.compute("sum", ((subKey, subVal) -> {
-                                    if (subVal == null) return numberProp;
-                                    if (subVal instanceof Long && numberProp instanceof Long) {
-                                        Long long2 = (Long) numberProp;
-                                        Long long1 = (Long) subVal;
-                                        return long1 + long2;
-                                    }
-                                    return subVal.doubleValue() + numberProp.doubleValue();
-                                }));
 
-                                propMap.compute(
-                                        "avg",
-                                        ((subKey, subVal) -> subVal == null
-                                                ? numberProp.doubleValue()
-                                                : sum.doubleValue() / count.doubleValue()));
-                            }
+                            String countKey = "count";
+                            String sumKey = "sum";
+                            String avgKey = "avg";
+
+                            updateAggregationValues(propMap, property, countKey, sumKey, avgKey);
+
                             return propMap;
                         });
                         return map;
