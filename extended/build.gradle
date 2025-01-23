@@ -68,6 +68,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty', module: 'jetty-server'
         exclude group: 'org.eclipse.jetty', module: 'jetty-util'
         exclude group: 'org.eclipse.jetty', module: 'jetty-util-ajax'
+        exclude group: 'org.eclipse.jetty.ee10'
     }
     antlr "org.antlr:antlr4:4.13.2", {
         exclude group: 'org.glassfish'
@@ -77,6 +78,7 @@ dependencies {
 
     def withoutServers = {
         exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.ee10'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
@@ -88,24 +90,29 @@ dependencies {
     }
     
     // --> TODO? api group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.4.0', withoutServers.andThen(withoutLoggers)
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0'
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0'
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.1'
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.1'
     
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.24'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '12.0.16'
+    // https://mvnrepository.com/artifact/org.eclipse.jetty.ee10/jetty-ee10-servlet
+    testImplementation group: 'org.eclipse.jetty.ee10', name: 'jetty-ee10-servlet', version: '12.0.16'
+
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlet
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '11.0.24'
+    //testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '12.0.16'
 
     // https://mvnrepository.com/artifact/org.eclipse.jetty.ee10/jetty-ee10-servlet
     //implementation group: 'org.eclipse.jetty.ee10', name: 'jetty-ee10-servlet', version: '12.0.16'
 
     // testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.53.v20231009'
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '11.0.24'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '12.0.16'
 // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util-ajax
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '11.0.24'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '12.0.16'
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '11.0.24'
+    // https://mvnrepository.com/artifact/org.eclipse.jetty.ee10/jetty-ee10-webapp
+    testImplementation group: 'org.eclipse.jetty.ee10', name: 'jetty-ee10-webapp', version: '12.0.16'
+
 
 
 
