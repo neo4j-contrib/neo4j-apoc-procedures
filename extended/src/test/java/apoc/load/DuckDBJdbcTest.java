@@ -471,7 +471,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         
         
         // workaround, DuckDB is shifted 1 hour later
-        ps.setTime(4, java.sql.Time.valueOf("16:37:00"));
+        ps.setTime(4, AbstractJdbcTest.time);
         ps.setNull(5, Types.DATE);
         int rows = ps.executeUpdate();
         assertEquals(1, rows);
