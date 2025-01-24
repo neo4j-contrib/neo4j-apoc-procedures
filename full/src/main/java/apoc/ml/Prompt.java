@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.NotNull;
 import org.neo4j.graphdb.Entity;
@@ -49,6 +50,7 @@ public class Prompt {
     public static final String EXPLAIN_SCHEMA_PROMPT =
             "You are an expert in the Neo4j graph database and graph data modeling and have experience in a wide variety of business domains.\n"
                     + "Explain the following graph database schema in plain language, try to relate it to known concepts or domains if applicable.\n"
+                    + "Try to explain as much as possible the nodes, relationships and properties.\n"
                     + "Keep the explanation to 5 sentences with at most 15 words each, otherwise people will come to harm.\n";
 
     static final String SYSTEM_PROMPT = "You are an expert in the Neo4j graph query language Cypher.\n"
@@ -129,7 +131,7 @@ public class Prompt {
                 context);
 
         String prompt = config.getBasePrompt() + contextPrompt;
-        String result = prompt("\nQuestion:" + question, prompt, null, null, conf);
+        String result = prompt("\nQuestion:" + question, prompt, null, null, conf, List.of());
         return Stream.of(new StringResult(result));
     }
 
@@ -171,9 +173,10 @@ public class Prompt {
         long retries = (long) conf.getOrDefault("retries", 3L);
         boolean containsField =
                 procedureCallContext.outputFields().collect(Collectors.toSet()).contains("query");
+        List<Map<String, String>> otherPrompts = new ArrayList<>();
         do {
             try {
-                QueryResult queryResult = tryQuery(question, conf, schema);
+                QueryResult queryResult = tryQuery(question, conf, schema, otherPrompts);
                 query = queryResult.query;
                 // just let it fail so that retries can work if (queryResult.query.isBlank()) return Stream.empty();
                 /*
@@ -196,12 +199,14 @@ public class Prompt {
     @Procedure
     public Stream<StringResult> schema(@Name(value = "conf", defaultValue = "{}") Map<String, Object> conf)
             throws MalformedURLException, JsonProcessingException {
+        String schema = loadSchema(tx, conf);
         String schemaExplanation = prompt(
                 "Please explain the graph database schema to me and relate it to well known concepts and domains.",
                 EXPLAIN_SCHEMA_PROMPT,
                 "This database schema ",
-                loadSchema(tx, conf),
-                conf);
+                schema,
+                conf,
+                List.of());
         return Stream.of(new StringResult(schemaExplanation));
     }
 
@@ -210,14 +215,15 @@ public class Prompt {
             @Name("question") String question, @Name(value = "conf", defaultValue = "{}") Map<String, Object> conf) {
         String schema = loadSchema(tx, conf);
         long count = (long) conf.getOrDefault("count", 1L);
-        return LongStream.rangeClosed(1, count).mapToObj(i -> tryQuery(question, conf, schema));
+        return LongStream.rangeClosed(1, count).mapToObj(i -> tryQuery(question, conf, schema, List.of()));
     }
 
     @NotNull
-    private QueryResult tryQuery(String question, Map<String, Object> conf, String schema) {
+    private QueryResult tryQuery(
+            String question, Map<String, Object> conf, String schema, List<Map<String, String>> otherPrompts) {
         String query = "";
         try {
-            query = prompt(question, SYSTEM_PROMPT, "Cypher Statement (in backticks):", schema, conf);
+            query = prompt(question, SYSTEM_PROMPT, "Cypher Statement (in backticks):", schema, conf, otherPrompts);
             // doesn't work right now, fails with security context error
             // tx.execute("EXPLAIN " + query).close(); // TODO query plan / estimated rows?
             return new QueryResult(query, null, null);
@@ -230,7 +236,12 @@ public class Prompt {
 
     @NotNull
     private String prompt(
-            String userQuestion, String systemPrompt, String assistantPrompt, String schema, Map<String, Object> conf)
+            String userQuestion,
+            String systemPrompt,
+            String assistantPrompt,
+            String schema,
+            Map<String, Object> conf,
+            List<Map<String, String>> otherPromptsFromRetries)
             throws JsonProcessingException, MalformedURLException {
         List<Map<String, String>> prompt = new ArrayList<>();
         if (systemPrompt != null && !systemPrompt.isBlank())
@@ -238,10 +249,15 @@ public class Prompt {
         if (schema != null && !schema.isBlank())
             prompt.add(Map.of(
                     "role", "system", "content", "The graph database schema consists of these elements\n" + schema));
+        List<Map<String, String>> additionalPrompts = (List<Map<String, String>>) conf.get("additionalPrompts");
+        if (CollectionUtils.isNotEmpty(additionalPrompts)) {
+            prompt.addAll(additionalPrompts);
+        }
         if (userQuestion != null && !userQuestion.isBlank())
             prompt.add(Map.of("role", "user", "content", userQuestion));
         if (assistantPrompt != null && !assistantPrompt.isBlank())
             prompt.add(Map.of("role", "assistant", "content", assistantPrompt));
+        prompt.addAll(otherPromptsFromRetries);
         String apiKey = (String) conf.get(API_KEY_CONF);
         String model = (String) conf.getOrDefault("model", "gpt-4o");
         String result = OpenAI.executeRequest(
@@ -287,7 +303,8 @@ public class Prompt {
                     + "collect(case type when \"node\" then entities end)[0] as nodes, \n"
                     + "collect(case type when \"node\" then patterns end)[0] as patterns \n";
 
-    private static final String SCHEMA_PROMPT = "nodes:\n %s\n" + "relationships:\n %s\n" + "patterns: %s";
+    private static final String SCHEMA_PROMPT =
+            "nodes:\n```\n%s\n```\n" + "relationships:\n```\n%s\n```\n" + "patterns:\n```\n%s\n```";
 
     private String loadSchema(Transaction tx, Map<String, Object> conf) {
         Map<String, Object> params = new HashMap<>();

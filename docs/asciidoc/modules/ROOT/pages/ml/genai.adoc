@@ -91,6 +91,7 @@ RETURN m.title
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
 | model | The Open AI model | no, default `gpt-3.5-turbo`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+| additionalPrompts | To specify other prompts to be passed to improve the request
 |===
 
 .Results
@@ -100,6 +101,107 @@ RETURN m.title
 | value | the result of the query
 | cypher | the query used to compute the result
 |===
+
+
+We can use the `additionalPrompts` config to improve the request, e.g. adding the natural language description of the schema (like the output of the `apoc.ml.schema` for instance).
+Since OpenAI is mainly trained to elaborate natural language questions asked in, rather than Cypher queries, by using this configuration it is possible to achieve better results.
+For example, given the https://neo4j.com/docs/getting-started/appendix/tutorials/guide-import-relational-and-etl/[Northwind dataset] we can execute:
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.schema({apiKey: $apiKey}) YIELD value
+WITH value
+CALL apoc.ml.query("Which 5 employees had sold the product 'Chocolade' and has the highest selling count of another product?
+  Please returns the employee identificator, the other product name and the count orders of another product",
+{
+    retries: 8,
+    retryWithError: true,
+    apiKey: $apiKey,
+    additionalPrompts: [
+        {role: "system", content: "The human description of the schema is the following:\n" + value}
+    ]
+})
+YIELD query, value RETURN query, value
+----
+
+with a result similar to the following.
+
+NOTE: the results are not deterministic and will potentially change each time the query is re-executed
+
+.Results
+[%autowidth, opts=header]
+|===
+| query | value
+| "cypher
+MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o) AS orderCount
+ORDER BY orderCount DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, orderCount
+LIMIT 5
+" 
+| {
+"otherProduct": "Gnocchi di nonna Alice",
+"employeeID": "4",
+"orderCount": 14
+}
+| "cypher
+MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o) AS orderCount
+ORDER BY orderCount DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, orderCount
+LIMIT 5
+"
+| {
+"otherProduct": "Pâté chinois",
+"employeeID": "4",
+"orderCount": 12
+}
+| "cypher
+MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o) AS orderCount
+ORDER BY orderCount DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, orderCount
+LIMIT 5
+"
+| {
+"otherProduct": "Gumbär Gummibärchen",
+"employeeID": "3",
+"orderCount": 12
+}
+| "cypher
+MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o) AS orderCount
+ORDER BY orderCount DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, orderCount
+LIMIT 5
+"
+| {
+"otherProduct": "Flotemysost",
+"employeeID": "1",
+"orderCount": 12
+}
+| "cypher
+MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o) AS orderCount
+ORDER BY orderCount DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, orderCount
+LIMIT 5
+"
+| {
+"otherProduct": "Pavlova",
+"employeeID": "1",
+"orderCount": 11
+}
+|===
+
+Respect to using the procedure without the natural language schema description, the output has fewer hallucinations, 
+like properties hold by different labels and relationships linked to other entities.
 
 
 == Describe the graph model with natural language
@@ -125,6 +227,7 @@ RETURN *
 +---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 1 row
 ----
+
 
 .Input Parameters
 [%autowidth, opts=header]
@@ -205,6 +308,7 @@ RETURN DISTINCT a.name
 | apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
 | model | The Open AI model | no, default `gpt-3.5-turbo`
 | sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
+| additionalPrompts | To specify other prompts to be passed to improve the request
 |===
 
 .Results
@@ -213,6 +317,47 @@ RETURN DISTINCT a.name
 | name | description
 | value | the description of the dataset
 |===
+
+
+We can use the `additionalPrompts` config to improve the request, e.g. adding the natural language description of the schema (like the output of the `apoc.ml.schema` for instance).
+Since OpenAI is mainly trained to elaborate natural language questions asked in, rather than Cypher queries, by using this configuration it is possible to achieve better results.
+For example, given the https://neo4j.com/docs/getting-started/appendix/tutorials/guide-import-relational-and-etl/[Northwind dataset] we can execute:
+
+.Query call
+[source,cypher]
+----
+CALL apoc.ml.schema({apiKey: $apiKey}) YIELD value
+WITH value
+CALL apoc.ml.cypher("Which 5 employees had sold the product 'Chocolade' and has the highest selling count of another product? 
+  Please returns the employee identificator, the other product name and the count orders of another product",
+{
+  count: 1,
+  apiKey: $apiKey,
+  additionalPrompts: [
+    {role: "system", content: "The human description of the schema is the following:\n" + value}
+  ]
+})
+YIELD value RETURN value
+----
+
+with a result similar to the following.
+
+NOTE: the results are not deterministic and will potentially change each time the query is re-executed
+
+.Results
+[%autowidth, opts=header]
+|===
+| value
+| MATCH (p:Product {productName: 'Chocolade'})<-[:CONTAINS]-(o:Order)<-[:SOLD]-(e:Employee)
+MATCH (e)-[:SOLD]->(o2:Order)-[:CONTAINS]->(p2:Product)
+WITH e, p2, COUNT(DISTINCT o2) AS ordersCnt
+ORDER BY ordersCnt DESC
+RETURN e.employeeID AS employeeID, p2.productName AS otherProduct, ordersCnt
+LIMIT 5
+|===
+
+Respect to using the procedure without the natural language schema description, the output has fewer hallucinations,
+like properties hold by different labels and relationships linked to other entities.
 
 == Create a natural language query explanation from a cypher query
 
