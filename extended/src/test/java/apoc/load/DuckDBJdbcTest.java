@@ -59,7 +59,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Analytics.class);
         
         conn = DriverManager.getConnection(JDBC_DUCKDB);
-        createPersonTableAndData();
+        createPersonTableAndData(conn);
 
         String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
         try (Transaction tx = db.beginTx()) {
@@ -156,6 +156,13 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals("New York City", result.get(nameKey));
                     assertEquals("US", result.get(countryKey));
 
+                    row = r.next();
+                    result = (Map) row.get(rowKey);
+                    rank = (long) result.get(rankKey);
+                    assertEquals(5, rank);
+                    assertEquals("Seattle", result.get(nameKey));
+                    assertEquals("US", result.get(countryKey));
+                    
                     assertFalse(r.hasNext());
                 });
     }
@@ -461,7 +468,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                 });
     }
 
-    private void createPersonTableAndData() throws SQLException {
+    private void createPersonTableAndData(Connection conn) throws SQLException {
         try { conn.createStatement().execute("DROP TABLE PERSON"); } catch (SQLException se) {/*ignore*/}
         conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), SURNAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP, TEST_TIME TIME, NULL_DATE DATE)");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,null,?,?,?,?)");

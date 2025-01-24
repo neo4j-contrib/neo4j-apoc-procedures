@@ -165,7 +165,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
                         "url", getUrl(postgress),
                         "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
                 ),
-                r -> commonAnalyticsAssertions(r, 1));
+                r -> commonAnalyticsAssertions(r, 1L, 3L, 5L));
     }
 
     @Test
@@ -190,19 +190,19 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
                         "url", getUrl(postgress),
                         "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
                 ),
-                r -> commonAnalyticsAssertions(r, 2));
+                r -> commonAnalyticsAssertions(r, 2L, 4L, 6L));
     }
 
-    private static void commonAnalyticsAssertions(Result r, int expected3rdResult) {
-        assertRowRank(r.next(), 1);
-        assertRowRank(r.next(), 1);
+    private static void commonAnalyticsAssertions(Result r, long expected3rdResult, long expected7thResult, long expected9thResult) {
+        assertRowRank(r.next(), 1L);
+        assertRowRank(r.next(), 1L);
         assertRowRank(r.next(), expected3rdResult);
-        assertRowRank(r.next(), 2);
-        assertRowRank(r.next(), 3);
-        assertRowRank(r.next(), 3);
-        assertRowRank(r.next(), 4);
-        assertRowRank(r.next(), 5);
-        assertRowRank(r.next(), 6);
+        assertRowRank(r.next(), 2L);
+        assertRowRank(r.next(), 3L);
+        assertRowRank(r.next(), 3L);
+        assertRowRank(r.next(), expected7thResult);
+        assertRowRank(r.next(), 5L);
+        assertRowRank(r.next(), expected9thResult);
 
         assertFalse(r.hasNext());
     }
