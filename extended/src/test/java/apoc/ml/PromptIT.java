@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -29,6 +30,7 @@ import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 import static apoc.ml.Prompt.UNKNOWN_ANSWER;
 import static apoc.ml.RagConfig.*;
+import static apoc.util.ExtendedUtil.splitSemicolonAndRemoveBlanks;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -37,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.Assert.fail;
 
 public class PromptIT {
 
@@ -67,7 +68,6 @@ public class PromptIT {
 
     @Before
     public void setUp() {
-        TestUtil.registerProcedure(db, Prompt.class, OpenAI.class, Meta.class, Strings.class, Coll.class);
         String movies = Util.readResourceFile("movies.cypher");
         try (Transaction tx = db.beginTx()) {
             tx.execute(movies);
@@ -79,7 +79,23 @@ public class PromptIT {
             tx.execute(rag);
             tx.commit();
         }
+        TestUtil.registerProcedure(db, Prompt.class, OpenAI.class, Meta.class, Strings.class, Coll.class);
+        
+        String northwindEntities = Util.readResourceFile("northwind_dataset.cypher");
+        try (Transaction tx = db.beginTx()) {
+            for (String query: splitSemicolonAndRemoveBlanks(northwindEntities)) {
+                tx.execute(query);
+            }
+            tx.commit();
+        }
 
+        String northwindSchema = Util.readResourceFile("northwind_schema.cypher");
+        try (Transaction tx = db.beginTx()) {
+            for (String query: splitSemicolonAndRemoveBlanks(northwindSchema)) {
+                tx.execute(query);
+            }
+            tx.commit();
+        }
     }
     
     @After
@@ -119,16 +135,24 @@ public class PromptIT {
                         "retries", 2L,
                         "apiKey", OPENAI_KEY
                 ),
-                (r) -> {
-                    List<Map<String, Object>> list = r.stream().toList();
-                    Assertions.assertThat(list).hasSize(12);
-                    Assertions.assertThat(list.stream()
-                                    .map(m -> m.get("query"))
-                                    .filter(Objects::nonNull)
-                                    .map(Object::toString)
-                                    .map(String::trim))
-                            .isNotEmpty();
-                });
+                r -> testQueryAssertions(r, 12)
+        );
+    }
+
+    private void testQueryAssertions(Result r, Integer size) {
+        List<Map<String, Object>> list = r.stream().toList();
+        System.out.println("list = " + list);
+        if (size == null) {
+            Assertions.assertThat(list).isNotEmpty();
+        } else {
+            Assertions.assertThat(list).hasSize(size);
+        }
+        Assertions.assertThat(list.stream()
+                        .map(m -> m.get("query"))
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                        .map(String::trim))
+                .isNotEmpty();
     }
 
     @Test
@@ -191,15 +215,105 @@ public class PromptIT {
                         "apiKey", OPENAI_KEY
                 ),
                 (r) -> {
-                    List<Map<String, Object>> list = r.stream().toList();
-                    Assertions.assertThat(list).hasSize((int) numOfQueries);
-                    Assertions.assertThat(list.stream()
-                                    .map(m -> m.get("query"))
-                                    .filter(Objects::nonNull)
-                                    .map(Object::toString)
-                                    .filter(StringUtils::isNotEmpty))
-                            .hasSize((int) numOfQueries);
+                    testCypherAssertions((int) numOfQueries, r);
                 });
+    }
+
+    private void testCypherAssertions(int numOfQueries, Result r) {
+        List<Map<String, Object>> list = r.stream().toList();
+        System.out.println("list = " + list);
+        Assertions.assertThat(list).hasSize(numOfQueries);
+        Assertions.assertThat(list.stream()
+                        .map(m -> m.get("query"))
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                        .filter(StringUtils::isNotEmpty))
+                .hasSize(numOfQueries);
+    }
+
+    @Test
+    public void testCypherWithSchemaExplanationAndQuestionAboutCrossSellingCount() {
+
+        String question = "Which 5 employees had sold the product 'Chocolade' and has the highest selling count of another product? " +
+                          "Please returns the employee identificator, the other product name and the count orders of another product";
+        testCypherWithSchemaCommon(question, 5);
+    }
+
+    @Test
+    public void testCypherWithSchemaExplanationAndQuestionAboutEmployeeOrganization() {
+
+        String question = "How are Employees organized? Who reports to whom?";
+        testCypherWithSchemaCommon(question, null);
+    }
+
+    @Test
+    public void testCypherWithSchemaExplanationAndQuestionAboutEmployeeReport() {
+
+        String question = "Which Employees report to each other indirectly?";
+        testCypherWithSchemaCommon(question,  null);
+    }
+
+    @Test
+    public void testCypherWithSchemaExplanationAndQuestionAboutHierarchy() {
+
+        String question = "How many orders were made by each part of the hierarchy?\n";
+        testCypherWithSchemaCommon(question, null);
+    }
+
+    private void testCypherWithSchemaCommon(String question, Integer size) {
+        long numOfQueries = 4L;
+        String schema = TestUtil.singleResultFirstColumn(db, "CALL apoc.ml.schema({apiKey: $apiKey})",
+                Map.of("apiKey", OPENAI_KEY));
+
+        String humanDescriptionSchema = "The human description of the schema is the following:" +
+                                        "```\n%s\n```"
+                                                .formatted(schema);
+
+        List<Map> additionalPrompts = List.of(
+                Map.of("role", "system", "content", humanDescriptionSchema)
+        );
+        
+        testResult(db, """
+                CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})
+                """,
+                Map.of(
+                        "query", question,
+                        "numOfQueries", numOfQueries,
+                        "apiKey", OPENAI_KEY
+                ),
+                (r) -> testCypherAssertions((int) numOfQueries, r)
+        );
+        
+        testResult(db, "CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey, additionalPrompts: $additionalPrompts})",
+                Map.of(
+                        "query", question,
+                        "numOfQueries", numOfQueries,
+                        "apiKey", OPENAI_KEY,
+                        "additionalPrompts", additionalPrompts
+                ),
+                (r) -> testCypherAssertions((int) numOfQueries, r)
+        );
+
+        testResult(db, """
+                CALL apoc.ml.query($query, {apiKey: $apiKey, retries: $retries, retryWithError: true}) YIELD query
+                """,
+                Map.of(
+                        "query", question,
+                        "retries", 10L,
+                        "apiKey", OPENAI_KEY
+                ),
+                r -> testQueryAssertions(r, size)
+        );
+
+        testResult(db, "CALL apoc.ml.query($query, {apiKey: $apiKey, additionalPrompts: $additionalPrompts, retries: $retries, retryWithError: true}) YIELD query ",
+                Map.of(
+                        "query", question,
+                        "retries", 10L,
+                        "apiKey", OPENAI_KEY,
+                        "additionalPrompts", additionalPrompts
+                ),
+                r -> testQueryAssertions(r, size)
+        );
     }
 
     @Test

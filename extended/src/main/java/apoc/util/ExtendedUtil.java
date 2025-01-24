@@ -183,7 +183,6 @@ public class ExtendedUtil
             case "node", "relationship":
                 return JsonUtil.parse(value, null, Map.class);
             case "no_value":
-            case "NO_VALUE":
                 return null;
             case "listboolean":
                 value = StringUtils.removeStart(value, "[");
@@ -353,6 +352,12 @@ public class ExtendedUtil
         return CollectionUtils.isNotEmpty(labels) ?
                 ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":")) :
                 "";
+    }
+
+    public static List<String> splitSemicolonAndRemoveBlanks(String value) {
+        return Arrays.stream(value.split(";\n"))
+                .filter(i -> !i.isBlank())
+                .toList();
     }
             
 
