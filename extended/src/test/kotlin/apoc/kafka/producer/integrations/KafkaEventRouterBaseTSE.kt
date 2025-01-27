@@ -1,10 +1,9 @@
 package apoc.kafka.producer.integrations
 
 import apoc.ExtendedApocConfig.APOC_KAFKA_ENABLED
-import apoc.kafka.events.OperationType
-import apoc.kafka.events.StreamsTransactionEvent
 import apoc.kafka.common.support.KafkaTestUtils
 import apoc.kafka.common.support.KafkaTestUtils.getDbServices
+import apoc.kafka.common.utils.Neo4jUtilsTest
 import apoc.util.DbmsTestUtil
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.junit.*
@@ -38,20 +37,6 @@ open class KafkaEventRouterBaseTSE { // TSE (Test Suit Element)
                 KafkaEventRouterSuiteIT.tearDownContainer()
             }
         }
-
-        // common methods
-        fun isValidRelationship(event: StreamsTransactionEvent, type: OperationType) = when (type) {
-            OperationType.created -> event.payload.before == null
-                    && event.payload.after?.let { it.properties?.let { it.isNullOrEmpty() } } ?: false
-                    && event.schema.properties == emptyMap<String, String>()
-            OperationType.updated -> event.payload.before?.let { it.properties?.let { it.isNullOrEmpty() } } ?: false
-                    && event.payload.after?.let { it.properties == mapOf("type" to "update") } ?: false
-                    && event.schema.properties == mapOf("type" to "String")
-            OperationType.deleted -> event.payload.before?.let { it.properties == mapOf("type" to "update") } ?: false
-                    && event.payload.after == null
-                    && event.schema.properties == mapOf("type" to "String")
-            else -> throw IllegalArgumentException("Unsupported OperationType")
-        }
     }
 
     lateinit var kafkaConsumer: KafkaConsumer<String, ByteArray>
@@ -77,8 +62,7 @@ open class KafkaEventRouterBaseTSE { // TSE (Test Suit Element)
     fun createDbWithKafkaConfigs(vararg pairs: Pair<String, Any>) : GraphDatabaseService {
         val mutableMapOf = mutableMapOf<String, Any>(
             APOC_KAFKA_ENABLED to "true",
-            "apoc.kafka.bootstrap.servers" to KafkaEventRouterSuiteIT.kafka.bootstrapServers,
-            "bootstrap.servers" to  KafkaEventRouterSuiteIT.kafka.bootstrapServers
+            Neo4jUtilsTest.KAFKA_BOOTSTRAP_SERVER to KafkaEventRouterSuiteIT.kafka.bootstrapServers
         )
         
         mutableMapOf.putAll(mapOf(*pairs))

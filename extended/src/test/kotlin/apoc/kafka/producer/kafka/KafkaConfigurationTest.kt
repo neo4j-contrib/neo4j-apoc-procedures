@@ -1,5 +1,6 @@
 package apoc.kafka.producer.kafka
 
+import apoc.kafka.common.utils.Neo4jUtilsTest
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -9,7 +10,8 @@ class KafkaConfigurationTest {
 
     @Test
     fun shouldCreateConfiguration() {
-        val map = mapOf("apoc.kafka.bootstrap.servers" to "kafka:5678",
+        val map = mapOf(
+            Neo4jUtilsTest.KAFKA_BOOTSTRAP_SERVER to "kafka:5678",
                 "apoc.kafka.acks" to "10",
                 "apoc.kafka.retries" to 1,
                 "apoc.kafka.batch.size" to 10,
@@ -32,7 +34,7 @@ class KafkaConfigurationTest {
 
         val properties = kafkaConfig.asProperties()
 
-        assertEquals(map["apoc.kafka.bootstrap.servers"], properties["bootstrap.servers"])
+        assertEquals(map[Neo4jUtilsTest.KAFKA_BOOTSTRAP_SERVER], properties["bootstrap.servers"])
         assertEquals(map["apoc.kafka.acks"], properties["acks"])
         assertEquals(map["apoc.kafka.retries"], properties["retries"])
         assertEquals(map["apoc.kafka.batch.size"], properties["batch.size"])

@@ -48,11 +48,6 @@ class KafkaEventRouterSuiteIT {
                 kafka.stop()
             }, UninitializedPropertyAccessException::class.java)
         }
-
-        fun registerPublishProcedure(db: GraphDatabaseService) {
-//            (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(GlobalProcedures::class.java)
-//                    .registerProcedure(PublishProcedures::class.java)
-        }
     }
 
 }

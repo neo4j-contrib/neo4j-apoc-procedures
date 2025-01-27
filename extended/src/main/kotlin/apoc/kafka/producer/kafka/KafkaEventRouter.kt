@@ -29,7 +29,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
                        private val db: GraphDatabaseService,
                        private val log: Log) {
 
-    /*override*/ val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
+    val eventRouterConfiguration: StreamsEventRouterConfiguration = StreamsEventRouterConfiguration
         .from(config, db.databaseName(), db.isDefaultDb(), log)
 
 
@@ -44,13 +44,12 @@ class KafkaEventRouter(private val config: Map<String, String>,
         else -> KafkaStatus.STOPPED
     }
 
-    /*override*/ fun start() = runBlocking {
+    fun start() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == KafkaStatus.RUNNING) {
                 return@runBlocking
             }
             log.info("Initialising Kafka Connector")
-            kafkaAdminService.start()
             val props = kafkaConfig.asProperties()
             producer = Neo4jKafkaProducer(props)
             producer!!.initTransactions()
@@ -58,7 +57,7 @@ class KafkaEventRouter(private val config: Map<String, String>,
         }
     }
 
-    /*override*/ fun stop() = runBlocking {
+    fun stop() = runBlocking {
         mutex.withLock(producer) {
             if (status(producer) == KafkaStatus.STOPPED) {
                 return@runBlocking

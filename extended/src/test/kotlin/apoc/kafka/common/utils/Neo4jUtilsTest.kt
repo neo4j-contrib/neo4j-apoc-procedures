@@ -11,6 +11,8 @@ class Neo4jUtilsTest {
     companion object {
         @ClassRule @JvmField
         val db = ImpermanentDbmsRule()
+        
+        val KAFKA_BOOTSTRAP_SERVER = "apoc.kafka.bootstrap.servers"
     }
 
     @Test

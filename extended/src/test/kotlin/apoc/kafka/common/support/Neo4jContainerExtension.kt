@@ -1,5 +1,6 @@
 package apoc.kafka.common.support
 
+import apoc.kafka.common.utils.Neo4jUtilsTest
 import apoc.kafka.utils.KafkaUtil
 import org.neo4j.driver.AuthToken
 import org.neo4j.driver.AuthTokens
@@ -108,7 +109,7 @@ class Neo4jContainerExtension(dockerImage: String): Neo4jContainer<Neo4jContaine
 
     fun withKafka(network: Network, bootstrapServers: String): Neo4jContainerExtension {
         withNetwork(network)
-        withNeo4jConfig("apoc.kafka.bootstrap.servers", bootstrapServers)
+        withNeo4jConfig(Neo4jUtilsTest.KAFKA_BOOTSTRAP_SERVER, bootstrapServers)
         return this
     }
 

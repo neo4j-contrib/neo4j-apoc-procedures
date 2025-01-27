@@ -24,7 +24,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
         val db = createDbWithKafkaConfigs()
 
         val topic = UUID.randomUUID().toString()
-        KafkaEventRouterSuiteIT.registerPublishProcedure(db)
         kafkaConsumer.subscribe(listOf(topic))
         val message = "Hello World"
         db.execute("CALL apoc.kafka.publish('$topic', '$message')")
@@ -41,7 +40,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
     fun testProcedureWithKey() {
         val db = createDbWithKafkaConfigs()
         val topic = UUID.randomUUID().toString()
-        KafkaEventRouterSuiteIT.registerPublishProcedure(db)
         kafkaConsumer.subscribe(listOf(topic))
         val message = "Hello World"
         val keyRecord = "test"
@@ -58,7 +56,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
     fun testProcedureWithKeyAsMap() {
         val db = createDbWithKafkaConfigs()
         val topic = UUID.randomUUID().toString()
-        KafkaEventRouterSuiteIT.registerPublishProcedure(db)
         kafkaConsumer.subscribe(listOf(topic))
         val message = "Hello World"
         val keyRecord = mapOf("one" to "Foo", "two" to "Baz", "three" to "Bar")
@@ -75,7 +72,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
         val db = createDbWithKafkaConfigs()
         // db.start()
         val topic = UUID.randomUUID().toString()
-        KafkaEventRouterSuiteIT.registerPublishProcedure(db)
         kafkaConsumer.subscribe(listOf(topic))
         val message = "Hello World"
         val keyRecord = "test"
@@ -90,7 +86,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
         val db = createDbWithKafkaConfigs()
         // db.start()
         val topic = UUID.randomUUID().toString()
-        KafkaEventRouterSuiteIT.registerPublishProcedure(db)
         kafkaConsumer.subscribe(listOf(topic))
         val message = "Hello World"
         val keyRecord = "test"
@@ -209,7 +204,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
             it.createTopics(listOf(NewTopic(topic, 5, 1)))
                     .all()
                     .get()
-            KafkaEventRouterSuiteIT.registerPublishProcedure(db)
             kafkaConsumer.subscribe(listOf(topic))
 
             val message = "Hello World"
@@ -239,7 +233,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
             it.createTopics(listOf(NewTopic(topic, 3, 1)))
                     .all()
                     .get()
-            KafkaEventRouterSuiteIT.registerPublishProcedure(db)
             kafkaConsumer.subscribe(listOf(topic))
 
             val message = "Hello World"
@@ -267,7 +260,6 @@ class KafkaEventRouterProcedureTSE : KafkaEventRouterBaseTSE() {
             it.createTopics(listOf(NewTopic(topic, 3, 1)))
                     .all()
                     .get()
-            KafkaEventRouterSuiteIT.registerPublishProcedure(db)
             kafkaConsumer.subscribe(listOf(topic))
 
             val message = "Hello World"
