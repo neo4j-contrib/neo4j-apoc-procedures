@@ -1,6 +1,6 @@
 [WARNING]
 ====
-// tag::warnings[]
+// tag::restricted[]
 The Extended APOC library contains over 150 functions and procedures.
 
 It is *not* recommended to load all of these into the dbms, but instead use the principle of least privilege.
@@ -30,5 +30,5 @@ Please note that if you have APOC Core installed,
 the same goes for the `dbms.security.procedures.allowlist` one, 
 so setting `dbms.security.procedures.unrestricted=package.name.*` will unrestrict both Extended and Core procedures / functions.
 
-// end::warnings[]
+// end::restricted[]
 ====
