@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.DateValue;
@@ -28,11 +29,19 @@ import java.time.*;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.load.Analytics.BATCH_SIZE_CONF_KEY;
+import static apoc.load.Analytics.EMPTY_NEO4J_QUERY_ERROR;
+import static apoc.load.Analytics.EMPTY_SQL_QUERY_ERROR;
+import static apoc.load.Analytics.TABLE_NAME_CONF_KEY;
+import static apoc.load.Analytics.WRITE_MODE_CONF_KEY;
+import static apoc.load.Analytics.WRONG_BATCH_SIZE_ERR;
+import static apoc.load.util.JdbcUtil.KEY_NOT_FOUND_MESSAGE;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DuckDBJdbcTest extends AbstractJdbcTest {
@@ -64,6 +73,89 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
     @After
     public void tearDown() throws SQLException {
         conn.close();
+    }
+    
+    @Test
+    public void testLoadJdbcAnalyticsWithPivotOnAndAppendMode() throws SQLException {
+        String customTable = "table_append";
+        
+        Statement statement = conn.createStatement();
+        String createTableSql = String.format("CREATE TABLE %s (country VARCHAR, name VARCHAR, population INTEGER, year INTEGER)", customTable);
+        statement.execute(createTableSql);
+        String insertSql = String.format("INSERT INTO %s VALUES ('FG','Zapponeta',1005,2000), ('FG','Zapponeta',1065,2010)", customTable);
+        statement.execute(insertSql);
+        
+        String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
+
+        String analyticsSql = String.format("""
+                PIVOT %s
+                ON year
+                USING sum(population)
+                ORDER by name
+                """, 
+                customTable);
+
+        testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                map(
+                        "queryCypher", cypher,
+                        "sql", analyticsSql,
+                        "url", JDBC_DUCKDB,
+                        "config", map(
+                                TABLE_NAME_CONF_KEY, customTable, 
+                                WRITE_MODE_CONF_KEY, Analytics.WriteMode.APPEND.toString()
+                        )
+                ),
+                r -> {
+                    String rowKey = "row";
+                    String nameKey = "name";
+                    String countryKey = "country";
+
+                    pivotOnAssertions(r, rowKey, nameKey, countryKey);
+                    Map<String, Object> row = r.next();
+                    var result = (Map) row.get(rowKey);
+                    assertEquals("Zapponeta", result.get(nameKey));
+                    assertEquals("FG", result.get(countryKey));
+                    assertEquals("1005", result.get("2000"));
+                    assertEquals("1065", result.get("2010"));
+                    assertNull(result.get("2020"));
+                    
+                    assertFalse(r.hasNext());
+                });
+
+        String dropSql = String.format("DROP TABLE %s", customTable);
+        statement.execute(dropSql);
+    }
+    
+    @Test
+    public void testLoadJdbcAnalyticsWithWrongBatchSize() {
+        assertFails(db, "CALL apoc.jdbc.analytics('match (n) return n', $url, 'SELECT country FROM tableName', [], $conf)",
+                map("url", JDBC_DUCKDB, "conf", map(BATCH_SIZE_CONF_KEY, -7)),
+                WRONG_BATCH_SIZE_ERR
+        );
+    }
+    
+    @Test
+    public void testLoadJdbcAnalyticsWithEmptySQL() {
+        assertFails(db, "CALL apoc.jdbc.analytics('match (n) return n', $url, '')", 
+                map("url", JDBC_DUCKDB),
+                EMPTY_SQL_QUERY_ERROR
+        );
+    }
+    
+    @Test
+    public void testLoadJdbcAnalyticsWithEmptyCypher() {
+        assertFails(db, "CALL apoc.jdbc.analytics('', $url, 'SELECT country FROM tableName')",
+                map("url", JDBC_DUCKDB),
+                EMPTY_NEO4J_QUERY_ERROR
+        );
+    }
+    
+    @Test
+    public void testLoadJdbcAnalyticsWithEmptyUrl() {
+        assertFails(db, "CALL apoc.jdbc.analytics('match (n) return n', '', 'SELECT country FROM tableName')",
+                map(),
+                String.format(KEY_NOT_FOUND_MESSAGE, "")
+        );
     }
 
     @Test
@@ -322,36 +414,42 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                         "config", map(Analytics.TABLE_NAME_CONF_KEY, customTable)
                 ),
                 r -> {
-                    Map<String, Object> row = r.next();
+                    
                     String rowKey = "row";
                     String nameKey = "name";
                     String countryKey = "country";
-
-                    var result = (Map) row.get(rowKey);
-                    assertEquals("Amsterdam", result.get(nameKey));
-                    assertEquals("NL", result.get(countryKey));
-                    assertEquals(1005.0, result.get("2000"));
-                    assertEquals(1065.1, result.get("2010"));
-                    assertEquals(1158.2, result.get("2020"));
-
-                    row = r.next();
-                    result = (Map) row.get(rowKey);
-                    assertEquals("New York City", result.get(nameKey));
-                    assertEquals("US", result.get(countryKey));
-                    assertEquals(8015.6, result.get("2000"));
-                    assertEquals(8175.7, result.get("2010"));
-                    assertEquals(8772.8, result.get("2020"));
-
-                    row = r.next();
-                    result = (Map) row.get(rowKey);
-                    assertEquals("Seattle", result.get(nameKey));
-                    assertEquals("US", result.get(countryKey));
-                    assertEquals(564.3, result.get("2000"));
-                    assertEquals(608.4, result.get("2010"));
-                    assertEquals(738.5, result.get("2020"));
+                    pivotOnAssertions(r, rowKey, nameKey, countryKey);
 
                     assertFalse(r.hasNext());
                 });
+    }
+
+    private static void pivotOnAssertions(Result r, String rowKey, String nameKey, String countryKey) {
+        Map<String, Object> row = r.next();
+        var result = (Map) row.get(rowKey);
+        assertEquals("Amsterdam", result.get(nameKey));
+        assertEquals("NL", result.get(countryKey));
+        assertEquals(1005.0, result.get("2000"));
+        assertEquals(1065.1, result.get("2010"));
+        assertEquals(1158.2, result.get("2020"));
+
+        row = r.next();
+        result = (Map) row.get(rowKey);
+        assertEquals("New York City", result.get(nameKey));
+        assertEquals("US", result.get(countryKey));
+        assertEquals(8015.6, result.get("2000"));
+        assertEquals(8175.7, result.get("2010"));
+        assertEquals(8772.8, result.get("2020"));
+
+        row = r.next();
+        result = (Map) row.get(rowKey);
+        assertEquals("Seattle", result.get(nameKey));
+        assertEquals("US", result.get(countryKey));
+        assertEquals(564.3, result.get("2000"));
+        assertEquals(608.4, result.get("2010"));
+        assertEquals(738.5, result.get("2020"));
+
+        assertFalse(r.hasNext());
     }
 
     @Test
