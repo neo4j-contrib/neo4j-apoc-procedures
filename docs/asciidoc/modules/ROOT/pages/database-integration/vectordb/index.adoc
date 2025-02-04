@@ -60,7 +60,7 @@ to be used in `*.get` and `.*query` procedures, except for the `apoc.vectordb.cu
 
 Therefore, to store the vector info, we can execute the `CALL apoc.vectordb.configure(vectorName, keyConfig, databaseName, $configMap)`,
 where `vectorName` can be "QDRANT", "CHROMA", "PINECONE", "MILVUS" or "WEAVIATE", 
-that indicates info to be reused respectively by `apoc.vectordb.qdrant.*`, `apoc.vectordb.chroma.*` and `apoc.vectordb.weaviate.*`.
+that indicates info to be reused respectively by `apoc.vectordb.qdrant.\*`,`apoc.vectordb.chroma.*` and `apoc.vectordb.weaviate.*`.
 
 Then `keyConfig` is the configuration name, `databaseName` is the database where the config will be set,
 
