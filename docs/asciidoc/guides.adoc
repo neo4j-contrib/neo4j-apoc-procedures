@@ -2,19 +2,10 @@
 
 == Awesome Procedures on Cypher (APOC)
 
-include::../readme.adoc[tags=intro-text,leveloffset=+2]
+include::../../readme.adoc[tags=intro-text,leveloffset=+2]
 
-include::../readme.adoc[tags=calling-procedures]
+include::../../readme.adoc[tags=calling-procedures]
 
-== Helpers
-
-=== Built-in Help Command
-
-include::overview.adoc[tags=help]
-
-=== Built-in Package and Procedure Count
-
-include::overview.adoc[tags=procedurecount]
 
 == APOC Guides by Section
 

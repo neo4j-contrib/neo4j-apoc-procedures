@@ -1,3 +1,6 @@
+[[triggers]]
+= Trigger Extended procedures
+
 APOC Core provides a set of procedures for running Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
 
 https://neo4j.com/docs/apoc/current/background-operations/triggers/[See here for more info].

@@ -1,3 +1,6 @@
+[[apoc-load-directory-async]]
+= Directory listeners
+
 The apoc.load.directory.async procedures are used for managing triggers.
 Each trigger consists of a listener observing one or more folders which will trigger the execution of a custom cypher query.
 The following procedures can be used to add, remove and list triggers:
