@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
@@ -13,17 +13,15 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.load.Jdbc.executeQuery;
-import static apoc.load.Jdbc.executeUpdate;
-import static apoc.load.util.JdbcUtil.getConnection;
-import static apoc.load.util.JdbcUtil.getUrlOrKey;
+import static apoc.load.jdbc.Jdbc.executeQuery;
+import static apoc.load.jdbc.Jdbc.executeUpdate;
+import static apoc.load.util.JdbcUtil.*;
 
 @Extended
 public class Analytics {
@@ -31,10 +29,17 @@ public class Analytics {
     public static final String TABLE_NAME_CONF_KEY = "tableName";
     public static final String TABLE_NAME_DEFAULT_CONF_KEY = "neo4j_tmp_table";
 
-    enum Provider {
-        DEFAULT,
-        POSTGRES,
-        MYSQL
+    public enum Provider {
+        DUCKDB(DUCK_TYPE_MAP, "\"%s\" %s"),
+        POSTGRES(POSTGRES_TYPE_MAP, "\"%s\" %s"),
+        MYSQL(MYSQL_TYPE_MAP, "`%s` %s");
+        
+        public final Map<Class<?>, String> typeMap;
+        public final String tableTypeTemplate;
+        Provider(Map<Class<?>, String> typeMap, String tableTypeTemplate) {
+            this.typeMap = typeMap;
+            this.tableTypeTemplate = tableTypeTemplate;
+        }
     }
 
     @Context
@@ -55,7 +60,7 @@ public class Analytics {
             @Name(value = "params", defaultValue = "[]") List<Object> params,
             @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         AtomicReference<String> createTable = new AtomicReference<>();
-        final Provider provider = Provider.valueOf((String) config.getOrDefault(PROVIDER_CONF_KEY, Provider.DEFAULT.name()));
+        final Provider provider = Provider.valueOf((String) config.getOrDefault(PROVIDER_CONF_KEY, Provider.DUCKDB.name()));
         final String tableName = (String) config.getOrDefault(TABLE_NAME_CONF_KEY, TABLE_NAME_DEFAULT_CONF_KEY);
 
         AtomicReference<String> columns = new AtomicReference<>();
@@ -74,7 +79,6 @@ public class Analytics {
 
                         // convert Neo4j row result to SQL row
                         final String row = getStreamSortedByKey(map)
-                              //  .map(e -> addFieldToTempTable(e, sqlTypesForTempTable, provider))
                                 .map(Map.Entry::getValue)
                                 .map(Analytics::formatSqlValue)
                                 .collect(Collectors.joining(","));
@@ -130,7 +134,10 @@ public class Analytics {
      */
     private String getTempTableClause(Map<String, Object> map, Provider provider, String tableName) {
         String sqlFields = getStreamSortedByKey(map)
-                .map(e -> e.getKey() + " " + mapSqlType(provider, e.getValue()))
+                .map(e -> {
+                    String type = mapSqlType(provider, e.getValue());
+                    return provider.tableTypeTemplate.formatted(e.getKey(), type);
+                })
                 .collect(Collectors.joining(","));
 
         return "CREATE TEMPORARY TABLE %s (%s)".formatted(tableName, sqlFields);
@@ -142,23 +149,22 @@ public class Analytics {
                 .sorted(Map.Entry.comparingByKey());
     }
 
-
-    private static String formatSqlValue(Object x) {
-        final String stringValue = x.toString();
-        if (x instanceof Number) return stringValue;
+    private static String formatSqlValue(Object val) {
+        String stringValue = val.toString();
+        if (val instanceof Number) {
+            return stringValue;
+        }
+        if (val instanceof ZonedDateTime zonedDateTime) {
+            stringValue = toSqlCompatibleDateTime(zonedDateTime);
+        }
+        if (val instanceof OffsetTime zonedDateTime) {
+            stringValue = toSqlCompatibleTimeFormat(zonedDateTime);
+        }
         return String.format("'%s'", stringValue.replace("'", "''"));
     }
-
+    
     private String mapSqlType(Provider provider, Object value) {
-        return switch (provider) {
-            case MYSQL, POSTGRES -> {
-                if (value instanceof Number) yield "INTEGER";
-                else yield "VARCHAR(1000)";
-            }
-            default -> {
-                if (value instanceof Number) yield "INTEGER";
-                else yield "VARCHAR";
-            }
-        };
+        Class<?> clazz = value.getClass();
+        return provider.typeMap.getOrDefault(clazz, VARCHAR_TYPE);
     }
 }

@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.util.Util;
 
@@ -9,6 +9,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public abstract class AbstractJdbcTest {
+    protected static final String MATCH_SQL_ANALYTICS = "MATCH (n:City) RETURN n.localdatetime AS localdatetime, n.localtime AS localtime, n.duration AS duration, n.date AS date, n.datetime AS datetime, n.time AS time, n.country AS country, n.name AS name, n.year AS year, n.population AS population";
 
     protected static java.sql.Date hireDate = new java.sql.Date(new Calendar.Builder().setDate(2017, 04, 25).build().getTimeInMillis());
 

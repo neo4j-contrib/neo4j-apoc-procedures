@@ -1,5 +1,8 @@
 package apoc.load;
 
+import apoc.load.jdbc.AbstractJdbcTest;
+import apoc.load.jdbc.Analytics;
+import apoc.load.jdbc.Jdbc;
 import apoc.periodic.Periodic;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
@@ -20,7 +23,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static apoc.load.Analytics.PROVIDER_CONF_KEY;
+import static apoc.load.jdbc.Analytics.PROVIDER_CONF_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -44,7 +47,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     public static void setUp() throws Exception {
         postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
         postgress.start();
-        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class, Strings.class, Analytics.class);
+        TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Strings.class, Analytics.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
 
         String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
@@ -145,22 +148,27 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcAnalytics() {
-        String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
 
         String sql = """
-    SELECT
-        country,
-        name,
-        year,
-        population,
-        RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
-    FROM %s
-    ORDER BY rank, country, name;
-               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+            SELECT
+                country,
+                name,
+                year,
+                date,
+                time,
+                datetime,
+                localtime,
+                localdatetime,
+                duration,
+                population,
+                RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
+            FROM %s
+            ORDER BY rank, country, name;
+            """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
         
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                 map(
-                        "queryCypher", cypher,
+                        "queryCypher", MATCH_SQL_ANALYTICS,
                         "sql", sql,
                         "url", getUrl(postgress),
                         "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
@@ -170,13 +178,18 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcAnalyticsWindow() {
-        String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
 
         String sql = """
                 SELECT
                     country,
                     name,
                     year,
+                    date,
+                    time,
+                    datetime,
+                    localtime,
+                    localdatetime,
+                    duration,
                     population,
                     ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) rank
                 FROM %s
@@ -185,10 +198,10 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                 map(
-                        "queryCypher", cypher,
+                        "queryCypher", MATCH_SQL_ANALYTICS,
                         "sql", sql,
                         "url", getUrl(postgress),
-                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
+                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
                 ),
                 r -> commonAnalyticsAssertions(r, 2L, 4L, 6L));
     }

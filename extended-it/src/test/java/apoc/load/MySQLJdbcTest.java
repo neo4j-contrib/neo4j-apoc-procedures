@@ -1,5 +1,8 @@
 package apoc.load;
 
+import apoc.load.jdbc.AbstractJdbcTest;
+import apoc.load.jdbc.Analytics;
+import apoc.load.jdbc.Jdbc;
 import apoc.util.s3.MySQLContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -20,7 +23,7 @@ import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
-import static apoc.load.Analytics.PROVIDER_CONF_KEY;
+import static apoc.load.jdbc.Analytics.PROVIDER_CONF_KEY;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -68,13 +71,18 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
 
         @Test
         public void testLoadJdbcAnalytics() {
-            String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
 
             String sql = """
                 SELECT
                     country,
                     name,
                     year,
+                    date,
+                    time,
+                    datetime,
+                    localtime,
+                    localdatetime,
+                    duration,
                     population,
                     RANK() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
                 FROM %s
@@ -82,7 +90,7 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
                """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
             testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                     map(
-                            "queryCypher", cypher,
+                            "queryCypher", MATCH_SQL_ANALYTICS,
                             "sql", sql,
                             "url", mysql.getJdbcUrl(),
                             "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
@@ -92,13 +100,18 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
 
         @Test
         public void testLoadJdbcAnalyticsWindow() {
-            String cypher = "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population";
 
             String sql = """
                 SELECT
                     country,
                     name,
                     year,
+                    date,
+                    time,
+                    datetime,
+                    localtime,
+                    localdatetime,
+                    duration,
                     population,
                     ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
                 FROM %s
@@ -107,7 +120,7 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
 
             testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                     map(
-                            "queryCypher", cypher,
+                            "queryCypher", MATCH_SQL_ANALYTICS,
                             "sql", sql,
                             "url", mysql.getJdbcUrl(),
                             "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())

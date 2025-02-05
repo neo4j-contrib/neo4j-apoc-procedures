@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
@@ -61,7 +61,7 @@ public class Jdbc {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure
+    @Procedure(name = "apoc.load.driver")
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
     public void driver(@Name("driverClass") String driverClass) {
         loadDriver(driverClass);
@@ -75,7 +75,7 @@ public class Jdbc {
         }
     }
 
-    @Procedure(mode = Mode.READ)
+    @Procedure(name = "apoc.load.jdbc", mode = Mode.READ)
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
@@ -92,7 +92,7 @@ public class Jdbc {
         String url = getUrlOrKey(urlOrKey);
         String query = getSqlOrKey(tableOrSelect);
         try {
-            Connection connection = conn != null ? conn : (Connection) getConnection(url, loadJdbcConfig, Connection.class);
+            Connection connection = conn == null ? (Connection) getConnection(url, loadJdbcConfig, Connection.class) : conn;
             // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
             connection.setAutoCommit(loadJdbcConfig.isAutoCommit());
             try {
@@ -119,7 +119,7 @@ public class Jdbc {
         }
     }
 
-    @Procedure(mode = Mode.DBMS)
+    @Procedure(name = "apoc.load.jdbcUpdate", mode = Mode.DBMS)
     @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
     public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         log.info( String.format( "Executing SQL update: %s", query ) );
@@ -134,7 +134,7 @@ public class Jdbc {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
-            Connection connection = conn != null ? conn : (Connection) getConnection(url,jdbcConfig, Connection.class);
+            Connection connection = conn == null ? (Connection) getConnection(url,jdbcConfig, Connection.class) : conn;
             try {
                 PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 stmt.setFetchSize(5000);

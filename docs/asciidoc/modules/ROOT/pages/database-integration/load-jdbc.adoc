@@ -526,25 +526,25 @@ CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE
 CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----
 
-== Load JDBC - Analytics
+== JDBC Analytics
 
 You can use the `apoc.jdbc.analytics(<cypherQuery>, <jdbcUrl>, <sqlQueryOverTemporaryTable>, <paramsList>, $config)`
 to create a temporary table starting from a Cypher query
-and delegate complex analytics to the database defined JDBC URL.
+and delegate complex analytics to the database defined by JDBC URL.
 
 Please note that the returning SQL column names have to be consistent with the one provided by the Cypher query.
 
 In addition to the configurations of the `apoc.load.jdbc` procedure, the `apoc.jdbc.analytics` provides the following ones:
 
-[cols="1m,2,1"]
+[opts=header, cols="1m,2,1"]
 |===
+| name | description | default value
 | tableName | the temporary table name | neo4j_tmp_table
-| provider | the SQL provider, to handle data type based on it, possible values are "POSTGRES", "MYSQL" and "DEFAULT"  | "DEFAULT"
+| provider | the SQL provider, to handle data type based on it, possible values are "POSTGRES", "MYSQL" and "DUCKDB"  | "DUCKDB"
 |===
 
 
 It is possible to specify a provider in the config parameters.
-The default value is "DUCKDB".
 
 You can reproduce the following queries using some nodes:
 
@@ -566,7 +566,6 @@ CREATE (:City {country: 'US', name: 'New York City', year: 2020, population: 877
 Example to get the rank of the current row with gaps.
 Fields of the SQL query should be consistent with the Cypher query.
 For detailed information go to https://duckdb.org/docs/sql/functions/window_functions.html#rank
-
 
 
 [source,cypher]
@@ -626,6 +625,31 @@ CALL apoc.jdbc.analytics(
 )
 ----
 
+In DuckDB, we can also use an in-memory instance using the `jdbc:duckdb:` URL:
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  'jdbc:duckdb:',
+  "PIVOT 'neo4j_tmp_table'
+    ON year
+    USING sum(population)
+    ORDER by name"
+)
+----
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  $url,
+  "PIVOT 'neo4j_tmp_table'
+    ON year
+    USING sum(population)
+    ORDER by name"
+)
+----
 
 === MySQL
 

@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
@@ -65,7 +65,7 @@ public class JdbcTest extends AbstractJdbcTest {
         apocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
         apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
         apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
-        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class);
+        TestUtil.registerProcedure(db, Jdbc.class, Periodic.class);
         createPersonTableAndData();
     }
 
