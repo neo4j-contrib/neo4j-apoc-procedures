@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_EE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE :${{inputs.project-name}}:check --parallel
     - name: Archive test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: ${{inputs.project-name}}-test-results
