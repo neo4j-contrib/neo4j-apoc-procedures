@@ -50,7 +50,10 @@ jobs:
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
           NEO4JVERSION=`aws --no-cli-pager codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }}  --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --status Published --query "versions[?starts_with(version, '$neo4j_version_base')].version | [0]" --output json | sed 's/"//g'`
+          echo "Pre - found NEO4JVERSION=$NEO4JVERSION"
+          echo "Pre - found neo4jVersion=$neo4jVersion"
           if [ -z "$NEO4JVERSION" ]; then
+            echo "im here..."
             NEO4JVERSION="$neo4jVersion"
           fi
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
