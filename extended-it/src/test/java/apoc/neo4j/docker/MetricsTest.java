@@ -30,7 +30,7 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
  * @since 13.02.19
  */
 // TODO Investigate why this test is not working. Possibly increase timeout for container
-@Ignore
+// @Ignore
 public class MetricsTest {
 
     private static Neo4jContainerExtension neo4jContainer;

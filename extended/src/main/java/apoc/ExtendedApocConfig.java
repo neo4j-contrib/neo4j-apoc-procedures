@@ -1,6 +1,6 @@
 package apoc;
 
-import static org.neo4j.configuration.GraphDatabaseSettings.configuration_directory;
+import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 
 import apoc.util.SimpleRateLimiter;
 
@@ -8,6 +8,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -18,7 +19,6 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
-import org.neo4j.configuration.Config;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -60,7 +60,6 @@ public class ExtendedApocConfig extends LifecycleAdapter
     private final String defaultConfigPath;
 
     private Configuration config;
-    private Config neo4jConfig;
 
     private static ExtendedApocConfig theInstance;
 
@@ -74,12 +73,7 @@ public class ExtendedApocConfig extends LifecycleAdapter
 
     public static final String CONFIG_DIR = "config-dir=";
 
-    public ExtendedApocConfig(
-            Config neo4jConfig,
-            LogService log, 
-            GlobalProcedures globalProceduresRegistry, 
-            String defaultConfigPath) {
-        this.neo4jConfig = neo4jConfig;
+    public ExtendedApocConfig(LogService log, GlobalProcedures globalProceduresRegistry, String defaultConfigPath) {
         this.log = log.getInternalLog(ApocConfig.class);
         this.defaultConfigPath = defaultConfigPath;
         theInstance = this;
@@ -106,7 +100,26 @@ public class ExtendedApocConfig extends LifecycleAdapter
     }
 
     protected String determineNeo4jConfFolder() {
-        return neo4jConfig.get(configuration_directory).toString();
+        String command = System.getProperty(SUN_JAVA_COMMAND);
+        if (command == null) {
+            log.warn(
+                    "system property %s is not set, assuming %s as conf dir. This might cause `apoc.conf` not getting loaded.",
+                    SUN_JAVA_COMMAND, defaultConfigPath);
+            return defaultConfigPath;
+        } else {
+            final String neo4jConfFolder = Stream.of(command.split("--"))
+                    .map(String::trim)
+                    .filter(s -> s.startsWith(CONFIG_DIR))
+                    .map(s -> s.substring(CONFIG_DIR.length()))
+                    .findFirst()
+                    .orElse(defaultConfigPath);
+            if (defaultConfigPath.equals(neo4jConfFolder)) {
+                log.info("cannot determine conf folder from sys property %s, assuming %s", command, defaultConfigPath);
+            } else {
+                log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
+            }
+            return neo4jConfFolder;
+        }
     }
 
     /**
