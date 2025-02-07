@@ -49,7 +49,7 @@ jobs:
         run: |
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
           echo "neo4j_version_base=$neo4j_version_base"
-          NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
+          NEO4JVERSION=`aws --no-cli-pager codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }}  --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --status Published --query "versions[?starts_with(version, '$neo4j_version_base')].version | [0]" --output json | sed 's/"//g'`
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
           echo "Found NEO4JVERSION=$NEO4JVERSION"
           if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
@@ -71,7 +71,7 @@ jobs:
           ./gradlew --no-daemon --info -Pneo4jVersionOverride=$NEO4JVERSION --init-script init.gradle clean
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3.28.8
         with:
           languages: ${{ matrix.language }}
 
@@ -79,7 +79,7 @@ jobs:
         run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava compileTestJava
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3.28.8
         with:
           category: "/language:${{matrix.language}}"
   
