@@ -23,7 +23,6 @@ import static apoc.export.parquet.ParquetTestUtil.testImportAllCommon;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
-@Ignore("It fails due to `java.lang.NoClassDefFoundError: org/eclipse/jetty/servlet`")
 public class ParquetHdfsTest {
 
     private static final File directory = new File("target/hdfs-parquet-import");
