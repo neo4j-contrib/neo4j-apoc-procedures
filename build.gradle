@@ -23,7 +23,8 @@ allprojects {
 apply plugin: 'java-library'
 println "CODEARTIFACT_DOWNLOAD_URL value"
 println System.getenv("CODEARTIFACT_DOWNLOAD_URL")
-if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+if (System.env.CI != null && System.getenv("RELEASE_BRANCH_NAME") != "false") {
+//if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
     println("im here...")
     
     apply from: 'teamcity-repository.gradle'

@@ -7,6 +7,7 @@ on:
     branches: [ "2025.01" ]
 
 env:
+  CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
   ECR_NEO4J_DOCKER_URL: ${{ secrets.ECR_NEO4J_DOCKER_URL }}
   BRANCH_NAME: ${{ github.event.pull_request.base.ref }}
@@ -30,14 +31,14 @@ jobs:
           else
             echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
           fi
-      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
-        run: |
-          if [[ $RELEASE_BRANCH_NAME ]]; then
-            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
-          else
-            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
-          fi
-          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
+#      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
+#        run: |
+#          if [[ $RELEASE_BRANCH_NAME ]]; then
+#            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
+#          else
+#            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
+#          fi
+#          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -47,11 +48,11 @@ jobs:
 
       - name: Configure CodeArtifact Authentication Token
         run: |
-          if [[ !$RELEASE_BRANCH_NAME ]]; then
-            CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
-            echo "::add-mask::$CODEARTIFACT_TOKEN"
-            echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
-          fi
+#          if [[ !$RELEASE_BRANCH_NAME ]]; then
+          CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+#          fi
       
       - name: Login in to AWS ECR
         run: |
@@ -117,14 +118,14 @@ jobs:
           else
             echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
           fi
-      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
-        run: |
-          if [[ $RELEASE_BRANCH_NAME ]]; then
-            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
-          else
-            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
-          fi
-          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
+#      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
+#        run: |
+#          if [[ $RELEASE_BRANCH_NAME ]]; then
+#            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
+#          else
+#            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
+#          fi
+#          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -134,11 +135,11 @@ jobs:
 
       - name: Configure CodeArtifact Authentication Token
         run: |
-          if [[ !$RELEASE_BRANCH_NAME ]]; then
-            CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
-            echo "::add-mask::$CODEARTIFACT_TOKEN"
-            echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
-          fi
+#          if [[ !$RELEASE_BRANCH_NAME ]]; then
+          CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+#          fi
       
       - name: Login in to AWS ECR
         run: |
