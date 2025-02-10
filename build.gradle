@@ -37,9 +37,9 @@ repositories {
                 password System.getenv('CODEARTIFACT_TOKEN')
             }
         }
-    } else {
-        mavenCentral()
     }
+    mavenCentral()
+    
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
