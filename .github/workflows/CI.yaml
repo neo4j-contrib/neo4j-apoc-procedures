@@ -37,6 +37,7 @@ jobs:
           else
             echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
           fi
+          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -116,6 +117,14 @@ jobs:
           else
             echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
           fi
+      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
+        run: |
+          if [[ $RELEASE_BRANCH_NAME ]]; then
+            echo "CODEARTIFACT_DOWNLOAD_URL=null" >> $GITHUB_ENV
+          else
+            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
+          fi
+          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL"
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
