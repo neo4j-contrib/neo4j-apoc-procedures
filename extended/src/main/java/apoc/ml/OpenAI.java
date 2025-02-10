@@ -8,7 +8,6 @@ import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
