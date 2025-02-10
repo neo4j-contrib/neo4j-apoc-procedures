@@ -9,7 +9,7 @@ public class MySQLContainerExtension extends MySQLContainer<MySQLContainerExtens
 
     public MySQLContainerExtension(String imageName) {
         super(imageName);
-        this.withInitScript("init_mysql.sql");
+        this.withInitScript("init_mysql_for_load_jdbc.sql");
         this.withUrlParam("user", "test");
         this.withUrlParam("password", "test");
         this.withUrlParam("useSSL", "false");

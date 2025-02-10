@@ -1,14 +1,16 @@
 package apoc.load;
 
-import apoc.util.s3.MySQLContainerExtension;
+import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import apoc.util.s3.MySQLContainerExtension;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -19,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEventually;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -36,7 +39,7 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         @BeforeClass
         public static void setUpContainer() {
             mysql.start();
-            TestUtil.registerProcedure(db, Jdbc.class);
+            TestUtil.registerProcedure(db, Jdbc.class, Periodic.class);
         }
 
         @AfterClass
@@ -53,6 +56,11 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         @Test
         public void testIssue3496() {
             MySQLJdbcTest.testIssue3496(db, mysql);
+        }
+
+        @Test
+        public void testWithPeriodicRepeat() {
+            MySQLJdbcTest.testPeriodicRepeat(db, mysql);
         }
     }
     
@@ -67,7 +75,7 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         @BeforeClass
         public static void setUpContainer() {
             mysql.start();
-            TestUtil.registerProcedure(db, Jdbc.class);
+            TestUtil.registerProcedure(db, Jdbc.class, Periodic.class);
         }
 
         @AfterClass
@@ -85,8 +93,57 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         public void testIssue3496() {
             MySQLJdbcTest.testIssue3496(db, mysql);
         }
-    }
 
+        @Test
+        public void testWithPeriodicRepeat() {
+            MySQLJdbcTest.testPeriodicRepeat(db, mysql);
+        }
+    }
+    
+
+    private static void testPeriodicRepeat(DbmsRule db, MySQLContainerExtension mysql) {
+        String url = mysql.getJdbcUrl();
+
+        String sqlQuery = "insert ignore into merchandise_id (id, source) values ('112233', 'Example Data 112233')";
+        String query = """
+                    call apoc.periodic.repeat(
+                        '000. test',
+                        'call apoc.load.jdbcUpdate(
+                    			$url,
+                    			$sqlQuery,
+                    			[],
+                    			{credentials: {user: $user, password: $password}}) YIELD row',
+                        1,
+                        { params: $params }
+                    );
+                    """;
+
+        db.executeTransactionally(
+                query,
+                Util.map("params", Util.map(
+                        "url", url,
+                        "sqlQuery", sqlQuery,
+                        "user", mysql.getUsername(),
+                        "password", mysql.getPassword()
+                )),
+                Result::resultAsString
+        );
+
+        testCallEventually(db, """
+                        WITH $url as url
+                        CALL apoc.load.jdbc(url, "merchandise_id", [], {credentials: {user: $user, password: $password}}) YIELD row
+                        RETURN count(*);
+                        """,
+                Util.map(
+                        "url", url,
+                        "user", mysql.getUsername(),
+                        "password", mysql.getPassword()
+                ),
+                (row) -> assertEquals(2L, row.get("count(*)")),
+                3
+        );
+    }
+    
     private static void testLoadJdbc(DbmsRule db, MySQLContainerExtension mysql) {
         // with the config {timezone: 'UTC'} and `preserveInstants=true&connectionTimeZone=SERVER` to make the result deterministic,
         // since `TIMESTAMP` values are automatically converted from the session time zone to UTC for storage, and vice versa.
