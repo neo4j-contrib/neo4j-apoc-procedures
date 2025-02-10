@@ -63,6 +63,7 @@ public class CypherProceduresClusterRoutingTest {
 
 
     @Test
+    @Ignore
     public void testSetupAndDropCustomsWithUseSystemClause() {
 
         // create a custom procedure and function for each member

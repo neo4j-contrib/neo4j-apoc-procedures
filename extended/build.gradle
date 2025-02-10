@@ -133,11 +133,31 @@ dependencies {
 
     testImplementation group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
+    
+    def withoutServerEE8 = {
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.aggregate'
+        exclude group: 'org.apache.hive', module: 'hive-service'
+        exclude group: 'org.eclipse.jetty.ee8'
+        exclude group: 'org.eclipse.jetty.http2'
+    }
+
+    testImplementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective, withoutServerEE8
+    testImplementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective, withoutServerEE8
+    testImplementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
+    testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
+    testImplementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
+
+    def hadoopVersion = '3.4.0'
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: hadoopVersion
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: hadoopVersion
+    testImplementation group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: hadoopVersion
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
     testImplementation project(':test-utils'), {
         exclude group: 'org.apache.hadoop'
         exclude group: 'org.neo4j'
+        exclude group: 'org.neo4j.community'
     }
     testImplementation project(':core')
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
@@ -167,21 +187,6 @@ dependencies {
     testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1', {
         exclude group: 'org.apache.commons', module: 'commons-collections4'
     }
-
-    def withoutServerEE8 = {
-        exclude group: 'org.eclipse.jetty.ee8'
-    }
-    
-    testImplementation group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective, withoutServerEE8
-    testImplementation group: 'org.neo4j', name: 'log-test-utils', version: neo4jVersionEffective, withoutServerEE8
-    testImplementation group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
-    testImplementation group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
-    testImplementation group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests", withoutServerEE8
-
-    def hadoopVersion = '3.4.1'
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: hadoopVersion
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: hadoopVersion
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: hadoopVersion
     
     configurations.configureEach {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
