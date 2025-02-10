@@ -63,8 +63,8 @@ dependencies {
     testImplementation sourceSets.main.java
 
     
-    apt project(':processor')
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
+    apt project(':processor')
 
     antlr "org.antlr:antlr4:4.13.2", {
         exclude group: 'org.glassfish'
