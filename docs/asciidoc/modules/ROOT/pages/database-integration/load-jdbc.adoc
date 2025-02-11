@@ -639,18 +639,6 @@ CALL apoc.jdbc.analytics(
 )
 ----
 
-[source,cypher]
-----
-CALL apoc.jdbc.analytics(
-  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
-  $url,
-  "PIVOT 'neo4j_tmp_table'
-    ON year
-    USING sum(population)
-    ORDER by name"
-)
-----
-
 === MySQL
 
 Returns the rank of the current row within its partition, with gaps.

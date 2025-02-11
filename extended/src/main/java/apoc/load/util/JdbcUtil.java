@@ -66,6 +66,7 @@ public class JdbcUtil {
         POSTGRES_TYPE_MAP.put(ZonedDateTime.class, "DATE");
         POSTGRES_TYPE_MAP.put(OffsetDateTime.class, "DATE");
         POSTGRES_TYPE_MAP.put(String.class, VARCHAR_TYPE);
+        POSTGRES_TYPE_MAP.put(byte[].class, "bytea");
 
         // MySQL mappings
         MYSQL_TYPE_MAP.putAll(DUCK_TYPE_MAP);

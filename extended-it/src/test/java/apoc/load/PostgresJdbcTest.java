@@ -20,6 +20,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -50,11 +51,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Strings.class, Analytics.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
 
-        String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
-        try (Transaction tx = db.beginTx()) {
-            tx.execute(movies);
-            tx.commit();
-        }
+        createAnalyticsDataset(db);
     }
 
     @AfterClass
@@ -161,19 +158,21 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
                 localdatetime,
                 duration,
                 population,
+                blobdata,
                 RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
             FROM %s
             ORDER BY rank, country, name;
             """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
-        
+
+        List<Long> expectedResults = List.of(1L, 1L, 1L, 2L, 3L, 3L, 3L, 5L, 5L);
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                 map(
-                        "queryCypher", MATCH_SQL_ANALYTICS,
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
                         "sql", sql,
                         "url", getUrl(postgress),
                         "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
                 ),
-                r -> commonAnalyticsAssertions(r, 1L, 3L, 5L));
+                r -> commonAnalyticsAssertions(r, expectedResults));
     }
 
     @Test
@@ -191,31 +190,28 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
                     localdatetime,
                     duration,
                     population,
+                    blobdata,
                     ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) rank
                 FROM %s
                 ORDER BY rank, country, name;
                """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
 
+        List<Long> expectedResults = List.of(1L, 1L, 2L, 2L, 3L, 3L, 4L, 5L, 6L);
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                 map(
-                        "queryCypher", MATCH_SQL_ANALYTICS,
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
                         "sql", sql,
                         "url", getUrl(postgress),
                         "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
                 ),
-                r -> commonAnalyticsAssertions(r, 2L, 4L, 6L));
+                r -> commonAnalyticsAssertions(r, expectedResults));
     }
 
-    private static void commonAnalyticsAssertions(Result r, long expected3rdResult, long expected7thResult, long expected9thResult) {
-        assertRowRank(r.next(), 1L);
-        assertRowRank(r.next(), 1L);
-        assertRowRank(r.next(), expected3rdResult);
-        assertRowRank(r.next(), 2L);
-        assertRowRank(r.next(), 3L);
-        assertRowRank(r.next(), 3L);
-        assertRowRank(r.next(), expected7thResult);
-        assertRowRank(r.next(), 5L);
-        assertRowRank(r.next(), expected9thResult);
+    private static void commonAnalyticsAssertions(Result r, List<Long> expectedResults) {
+        expectedResults.forEach(expected -> {
+            Map<String, Object> actual = r.next();
+            assertRowRank(actual, expected);
+        });
 
         assertFalse(r.hasNext());
     }

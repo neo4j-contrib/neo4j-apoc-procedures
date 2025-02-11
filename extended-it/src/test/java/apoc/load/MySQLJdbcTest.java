@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static apoc.load.jdbc.Analytics.PROVIDER_CONF_KEY;
@@ -43,14 +44,10 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
         public static DbmsRule db = new ImpermanentDbmsRule();
         
         @BeforeClass
-        public static void setUpContainer() {
+        public static void setUpContainer() throws Exception {
             mysql.start();
             TestUtil.registerProcedure(db, Jdbc.class, Analytics.class);
-            String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
-            try (Transaction tx = db.beginTx()) {
-                tx.execute(movies);
-                tx.commit();
-            }
+            createAnalyticsDataset(db);
         }
 
         @AfterClass
@@ -84,18 +81,20 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
                     localdatetime,
                     duration,
                     population,
+                    blobData,
                     RANK() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
                 FROM %s
                 ORDER BY country, name;
                """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+            List<String> expectedResults = List.of("3", "1", "2", "1", "5", "3", "5", "1", "3");
             testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                     map(
-                            "queryCypher", MATCH_SQL_ANALYTICS,
+                            "queryCypher", MATCH_ANALYTICS_QUERY,
                             "sql", sql,
                             "url", mysql.getJdbcUrl(),
                             "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
                     ),
-                    r -> commonAnalyticsAssertions(r, "1", "3", "5"));
+                    r -> commonAnalyticsAssertions(r, expectedResults));
         }
 
         @Test
@@ -113,32 +112,28 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
                     localdatetime,
                     duration,
                     population,
+                    blobData,
                     ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
                 FROM %s
                 ORDER BY country, name;
                """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
 
+            List<String> expectedResults = List.of("3", "1", "2", "1", "6", "4", "5", "2", "3");
             testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
                     map(
-                            "queryCypher", MATCH_SQL_ANALYTICS,
+                            "queryCypher", MATCH_ANALYTICS_QUERY,
                             "sql", sql,
                             "url", mysql.getJdbcUrl(),
                             "config", map(PROVIDER_CONF_KEY, Analytics.Provider.MYSQL.name())
                     ),
-                    r -> commonAnalyticsAssertions(r, "2", "4", "6"));
+                    r -> commonAnalyticsAssertions(r, expectedResults));
         }
 
-        private static void commonAnalyticsAssertions(Result r, 
-                          String expected4thResult, String expected5thResult, String expected6thResult) {
-            assertRowRank(r.next(), "1");
-            assertRowRank(r.next(), "2");
-            assertRowRank(r.next(), "3");
-            assertRowRank(r.next(), expected4thResult);
-            assertRowRank(r.next(), expected5thResult);
-            assertRowRank(r.next(), expected6thResult);
-            assertRowRank(r.next(), "1");
-            assertRowRank(r.next(), "3");
-            assertRowRank(r.next(), "5");
+        private static void commonAnalyticsAssertions(Result r, List<String> expectedResults) {
+            expectedResults.forEach(expected -> {
+                Map<String, Object> actual = r.next();
+                assertRowRank(actual, expected);
+            });
 
             assertFalse(r.hasNext());
         }

@@ -12,14 +12,11 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
@@ -39,6 +36,7 @@ import static apoc.load.util.JdbcUtil.getConnection;
 import static apoc.load.util.JdbcUtil.getSqlOrKey;
 import static apoc.load.util.JdbcUtil.getUrlOrKey;
 import static apoc.load.util.JdbcUtil.obfuscateJdbcUrl;
+import static apoc.util.ExtendedUtil.getNeo4jValue;
 
 /**
  * @author mh
@@ -297,7 +295,32 @@ public class Jdbc {
                     throw new RuntimeException(e);
                 }
             }
-            return value;
+            if (Types.BLOB == sqlType) {
+                Blob blobValue = (Blob) value;
+                return convertBlobToByteArray(blobValue);
+            }
+            
+            return getNeo4jValue(value);
+        }
+
+        public static byte[] convertBlobToByteArray(Blob blob) {
+
+            try (InputStream inputStream = blob.getBinaryStream();
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+
+                // Read from the Blob's input stream and write to the ByteArrayOutputStream
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                // Convert the output stream into a byte array
+                return outputStream.toByteArray();
+            } catch (Exception e) {
+                throw new RuntimeException("Error converting Blob to byte array", e);
+            }
         }
 
         private boolean handleEndOfResults() throws SQLException {

@@ -3,6 +3,7 @@ package apoc.load.jdbc;
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -39,6 +40,24 @@ public class Analytics {
         Provider(Map<Class<?>, String> typeMap, String tableTypeTemplate) {
             this.typeMap = typeMap;
             this.tableTypeTemplate = tableTypeTemplate;
+        }
+
+        public String byteArrayToBlobString(byte[] data) {
+            if (data == null) {
+                throw new IllegalArgumentException("Data and database type must not be null");
+            }
+
+            // Convert byte array to a hexadecimal string digestible by the DBMS
+            String hexString = Hex.encodeHexString(data);
+
+            return switch (this) {
+                case DUCKDB:
+                    yield "X'%s'".formatted(hexString);
+                case MYSQL:
+                    yield "0x" + hexString;
+                case POSTGRES:
+                    yield "decode('%s', 'hex')".formatted(hexString);
+            };
         }
     }
 
@@ -80,7 +99,7 @@ public class Analytics {
                         // convert Neo4j row result to SQL row
                         final String row = getStreamSortedByKey(map)
                                 .map(Map.Entry::getValue)
-                                .map(Analytics::formatSqlValue)
+                                .map(i -> Analytics.formatSqlValue(i, provider))
                                 .collect(Collectors.joining(","));
                         
                         // add SQL row for query insert
@@ -118,7 +137,7 @@ public class Analytics {
 
         // Step 2. Insert data in temp table
         executeUpdate(urlOrKey, queryInsert.get(), config, connection, log, paramsArray);
-        
+
         try {
             // Step 3. Return data from temp table
             return executeQuery(urlOrKey, sqlQuery, config, connection, log, paramsArray);
@@ -149,7 +168,7 @@ public class Analytics {
                 .sorted(Map.Entry.comparingByKey());
     }
 
-    private static String formatSqlValue(Object val) {
+    private static String formatSqlValue(Object val, Provider provider) {
         String stringValue = val.toString();
         if (val instanceof Number) {
             return stringValue;
@@ -160,10 +179,16 @@ public class Analytics {
         if (val instanceof OffsetTime zonedDateTime) {
             stringValue = toSqlCompatibleTimeFormat(zonedDateTime);
         }
+        if (val instanceof byte[] bytes) {
+            stringValue = provider.byteArrayToBlobString(bytes);
+        }
         return String.format("'%s'", stringValue.replace("'", "''"));
     }
     
     private String mapSqlType(Provider provider, Object value) {
+        if (value == null) {
+            return VARCHAR_TYPE;
+        }
         Class<?> clazz = value.getClass();
         return provider.typeMap.getOrDefault(clazz, VARCHAR_TYPE);
     }

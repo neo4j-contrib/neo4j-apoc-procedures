@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.DateValue;
@@ -59,11 +58,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         conn = DriverManager.getConnection(JDBC_DUCKDB);
         createPersonTableAndData(conn);
 
-        String movies = Util.readResourceFile(ANALYTICS_CYPHER_FILE);
-        try (Transaction tx = db.beginTx()) {
-            tx.execute(movies);
-            tx.commit();
-        }
+        createAnalyticsDataset(db);
     }
 
     @After
@@ -86,6 +81,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                 localdatetime,
                 duration,
                 population,
+                blobData,
                 RANK() OVER (PARTITION BY country ORDER BY year DESC) AS rank
             FROM %s
             ORDER BY rank, country, name, date;
@@ -93,7 +89,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
             .formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql)",
                 map(
-                        "queryCypher", MATCH_SQL_ANALYTICS,
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
                         "sql", sql,
                         "url", JDBC_DUCKDB
                 ),
@@ -115,6 +111,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("1989").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -128,6 +125,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2009").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -141,6 +139,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2009").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -154,6 +153,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("1989").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -167,6 +167,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("1999").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -180,6 +181,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2009").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -193,6 +195,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2019").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -206,6 +209,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2009").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
 
                     row = r.next();
                     result = (Map) row.get(rowKey);
@@ -219,6 +223,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertEquals(LocalDateTimeValue.parse("2019").asObjectCopy(), result.get("localdatetime"));
                     assertEquals(timeExpected, result.get("localtime"));
                     assertEquals("PT45S", result.get("duration"));
+                    assertTrue(result.get("blobdata") instanceof byte[]);
                     
                     assertFalse(r.hasNext());
                 });
@@ -240,6 +245,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                         localdatetime,
                         duration,
                         population,
+                        blobData,
                         ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS rank
                     FROM %s
                     ORDER BY rank, country, name, date
@@ -255,7 +261,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
 
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql)",
                 map(
-                        "queryCypher", MATCH_SQL_ANALYTICS,
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
                         "sql", sql,
                         "url", JDBC_DUCKDB
                 ),
@@ -305,7 +311,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                 PIVOT %s
                 ON year
                 USING sum(population)
-                ORDER by name
+                ORDER by name, country
                 """.formatted(customTable);
 
         testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
@@ -347,7 +353,6 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     assertFalse(r.hasNext());
                 });
     }
-
 
     @Test
     public void testLoadJdbc() {
