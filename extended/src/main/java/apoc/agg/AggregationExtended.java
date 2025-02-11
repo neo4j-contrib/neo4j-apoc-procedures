@@ -14,7 +14,7 @@ import org.neo4j.procedure.UserAggregationUpdate;
 
 import java.util.Map;
 import java.util.function.BiPredicate;
-// TEST CI
+
 @Extended
 public class AggregationExtended {
 
