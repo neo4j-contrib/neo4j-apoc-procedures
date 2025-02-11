@@ -25,8 +25,8 @@ println "CODEARTIFACT_DOWNLOAD_URL value"
 println System.getenv("CODEARTIFACT_DOWNLOAD_URL")
 println "RELEASE_BRANCH_NAME value"
 println System.getenv("RELEASE_BRANCH_NAME")
-if (System.env.CI != null && System.getenv("RELEASE_BRANCH_NAME") == "false") {
-//if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+//if (System.env.CI != null && System.getenv("RELEASE_BRANCH_NAME") == "false") {
+if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
     println("im here 1...")
     
     apply from: 'teamcity-repository.gradle'
@@ -37,7 +37,8 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-    if (System.getenv("RELEASE_BRANCH_NAME") == "false" && (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")) {
+//    if (System.getenv("RELEASE_BRANCH_NAME") == "false" && (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")) {
+    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
         println("im here 2...")
         maven {
             url System.getenv('CODEARTIFACT_DOWNLOAD_URL')

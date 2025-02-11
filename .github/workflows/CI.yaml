@@ -7,7 +7,6 @@ on:
     branches: [ "2025.01" ]
 
 env:
-  CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
   ECR_NEO4J_DOCKER_URL: ${{ secrets.ECR_NEO4J_DOCKER_URL }}
   BRANCH_NAME: ${{ github.event.pull_request.base.ref }}
@@ -30,6 +29,13 @@ jobs:
             echo "RELEASE_BRANCH_NAME=true" >> $GITHUB_ENV
           else
             echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
+          fi
+      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
+        run: |
+          if [[ $RELEASE_BRANCH_NAME ]]; then
+            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
+          else
+            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
           fi
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
@@ -107,6 +113,13 @@ jobs:
             echo "RELEASE_BRANCH_NAME=true" >> $GITHUB_ENV
           else
             echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
+          fi
+      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
+        run: |
+          if [[ $RELEASE_BRANCH_NAME ]]; then
+            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
+          else
+            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
           fi
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
