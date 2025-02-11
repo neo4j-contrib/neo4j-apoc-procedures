@@ -1,4 +1,4 @@
 [submodule "apoc-core"]
 	path = apoc-core
 	url = https://github.com/neo4j/apoc
-	branch = 2025.01
+	branch = vga91-patch-1
