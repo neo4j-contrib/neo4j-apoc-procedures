@@ -129,7 +129,7 @@ public class ExtendedUtil
         return getNeo4jValue(object);
     }
 
-    private static Object getNeo4jValue(Object object) {
+    public static Object getNeo4jValue(Object object) {
         try {
             // we test if is a valid Neo4j type
             Values.of(object);

@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
@@ -12,14 +12,11 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
@@ -39,6 +36,7 @@ import static apoc.load.util.JdbcUtil.getConnection;
 import static apoc.load.util.JdbcUtil.getSqlOrKey;
 import static apoc.load.util.JdbcUtil.getUrlOrKey;
 import static apoc.load.util.JdbcUtil.obfuscateJdbcUrl;
+import static apoc.util.ExtendedUtil.getNeo4jValue;
 
 /**
  * @author mh
@@ -61,7 +59,7 @@ public class Jdbc {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure
+    @Procedure(name = "apoc.load.driver")
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
     public void driver(@Name("driverClass") String driverClass) {
         loadDriver(driverClass);
@@ -75,20 +73,24 @@ public class Jdbc {
         }
     }
 
-    @Procedure(mode = Mode.READ)
+    @Procedure(name = "apoc.load.jdbc", mode = Mode.READ)
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         params = params != null ? params : Collections.emptyList();
-        return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
+        return executeQuery(urlOrKey, tableOrSelect, config, log, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
+    public static Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Log log, Object... params) {
+        return executeQuery(urlOrKey, tableOrSelect, config, null, log, params);
+    }
+
+    public static Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Connection conn, Log log, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
         String url = getUrlOrKey(urlOrKey);
         String query = getSqlOrKey(tableOrSelect);
         try {
-            Connection connection = (Connection) getConnection(url,loadJdbcConfig, Connection.class);
+            Connection connection = conn == null ? (Connection) getConnection(url, loadJdbcConfig, Connection.class) : conn;
             // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
             connection.setAutoCommit(loadJdbcConfig.isAutoCommit());
             try {
@@ -115,25 +117,29 @@ public class Jdbc {
         }
     }
 
-    @Procedure(mode = Mode.DBMS)
+    @Procedure(name = "apoc.load.jdbcUpdate", mode = Mode.DBMS)
     @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
     public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         log.info( String.format( "Executing SQL update: %s", query ) );
-        return executeUpdate(urlOrKey, query, config, params.toArray(new Object[params.size()]));
+        return executeUpdate(urlOrKey, query, config, log, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
+    public static Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Log log, Object...params) {
+        return executeUpdate(urlOrKey, query, config, null, log, params);
+    }
+    
+    public static Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Connection conn, Log log, Object...params) {
         String url = getUrlOrKey(urlOrKey);
         LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
-            Connection connection = (Connection) getConnection(url,jdbcConfig, Connection.class);
+            Connection connection = conn == null ? (Connection) getConnection(url,jdbcConfig, Connection.class) : conn;
             try {
                 PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 stmt.setFetchSize(5000);
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     int updateCount = stmt.executeUpdate();
-                    closeIt(log, stmt, connection);
+                    if (conn == null) closeIt(log, stmt, connection);
                     Map<String, Object> result = MapUtil.map("count", updateCount);
                     return Stream.of(result)
                             .map(RowResult::new);
@@ -247,7 +253,11 @@ public class Jdbc {
                 return value;
             }
             if (Types.TIME == sqlType) {
-                return ((java.sql.Time)value).toLocalTime();
+                // With DuckDB the value is already a LocalTime
+                if (value instanceof java.sql.Time time) {
+                    return time.toLocalTime();
+                }
+                return value;
             }
             if (Types.TIME_WITH_TIMEZONE == sqlType) {
                 return OffsetTime.parse(value.toString());
@@ -271,7 +281,11 @@ public class Jdbc {
                 }
             }
             if (Types.DATE == sqlType) {
-                return ((java.sql.Date)value).toLocalDate();
+                // With DuckDB the value is already a LocalDate
+                if (value instanceof java.sql.Date date) {
+                    return date.toLocalDate();
+                }
+                return value;
             }
 
             if (Types.ARRAY == sqlType) {
@@ -281,7 +295,32 @@ public class Jdbc {
                     throw new RuntimeException(e);
                 }
             }
-            return value;
+            if (Types.BLOB == sqlType) {
+                Blob blobValue = (Blob) value;
+                return convertBlobToByteArray(blobValue);
+            }
+            
+            return getNeo4jValue(value);
+        }
+
+        public static byte[] convertBlobToByteArray(Blob blob) {
+
+            try (InputStream inputStream = blob.getBinaryStream();
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+
+                // Read from the Blob's input stream and write to the ByteArrayOutputStream
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                // Convert the output stream into a byte array
+                return outputStream.toByteArray();
+            } catch (Exception e) {
+                throw new RuntimeException("Error converting Blob to byte array", e);
+            }
         }
 
         private boolean handleEndOfResults() throws SQLException {
