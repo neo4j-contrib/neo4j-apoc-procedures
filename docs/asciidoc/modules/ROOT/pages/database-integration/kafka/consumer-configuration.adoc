@@ -1,0 +1,33 @@
+=== Configuration summary
+
+You can set the following Kafka configuration values in your `neo4j.conf`, here are the defaults.
+
+.neo4j.conf
+[source,subs="verbatim,attributes"]
+----
+apoc.kafka.bootstrap.servers=localhost:9092
+apoc.kafka.auto.offset.reset=earliest
+apoc.kafka.group.id=neo4j
+apoc.kafka.enable.auto.commit=true
+apoc.kafka.key.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer
+apoc.kafka.value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+{environment}.topic.cypher.<TOPIC_NAME>=<CYPHER_QUERY>
+{environment}.topic.cdc.sourceId=<LIST_OF_TOPICS_SEPARATED_BY_SEMICOLON>
+{environment}.topic.cdc.schema=<LIST_OF_TOPICS_SEPARATED_BY_SEMICOLON>
+{environment}.topic.cud=<LIST_OF_TOPICS_SEPARATED_BY_SEMICOLON>
+{environment}.topic.pattern.node.<TOPIC_NAME>=<NODE_EXTRACTION_PATTERN>
+{environment}.topic.pattern.relationship.<TOPIC_NAME>=<RELATIONSHIP_EXTRACTION_PATTERN>
+{environment}.enabled=<true/false, default=false>
+
+----
+
+See the https://kafka.apache.org/documentation/#brokerconfigs[Apache Kafka documentation] for details on these settings.
+
+[NOTE]
+
+if `apoc.kafka.cluster.only` is set to true, APOC Kafka will refuse to start in single instance mode,
+or when run in the context of the backup operation. This is an important safety guard to ensure that operations do not occur in unexpected situations for production deploys
+
+See the https://kafka.apache.org/documentation/#brokerconfigs[Apache Kafka documentation] for details on these settings.
+
