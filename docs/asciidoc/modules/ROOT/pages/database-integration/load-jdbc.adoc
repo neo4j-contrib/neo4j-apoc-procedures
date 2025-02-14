@@ -2,7 +2,7 @@
 = Load JDBC (RDBMS)
 :description: This section describes procedures that can be used to import data from databases that have JDBC support.
 
-
+If you want to use DuckDB you should download and import the driver from https://repo1.maven.org/maven2/org/duckdb/duckdb_jdbc/1.1.3/duckdb_jdbc-1.1.3.jar[Maven Repository]
 
 Data Integration is an important topic.
 Reading data from relational databases to create and augment data models is a very helpful exercise.
@@ -524,4 +524,180 @@ CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE
 [source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----
+
+== JDBC Analytics
+
+You can use the `apoc.jdbc.analytics(<cypherQuery>, <jdbcUrl>, <sqlQueryOverTemporaryTable>, <paramsList>, $config)`
+to create a temporary table starting from a Cypher query
+and delegate complex analytics to the database defined by JDBC URL.
+
+Please note that the returning SQL column names have to be consistent with the one provided by the Cypher query.
+
+In addition to the configurations of the `apoc.load.jdbc` procedure, the `apoc.jdbc.analytics` provides the following ones:
+
+[opts=header, cols="1m,2,1"]
+|===
+| name | description | default value
+| tableName | the temporary table name | neo4j_tmp_table
+| provider | the SQL provider, to handle data type based on it, possible values are "POSTGRES", "MYSQL" and "DUCKDB"  | "DUCKDB"
+|===
+
+
+It is possible to specify a provider in the config parameters.
+
+You can reproduce the following queries using some nodes:
+
+[source, cypher]
+----
+CREATE (:City {country: 'NL', name: 'Amsterdam', year: 2000, population: 1005})
+CREATE (:City {country: 'NL', name: 'Amsterdam', year: 2010, population: 1065})
+CREATE (:City {country: 'NL', name: 'Amsterdam', year: 2020, population: 1158})
+CREATE (:City {country: 'US', name: 'Seattle', year: 2000, population: 564})
+CREATE (:City {country: 'US', name: 'Seattle', year:2010, population: 608})
+CREATE (:City {country: 'US', name: 'Seattle', year: 2020, population: 738})
+CREATE (:City {country: 'US', name: 'New York City', year: 2000, population: 8015})
+CREATE (:City {country: 'US', name: 'New York City', year: 2010, population: 8175})
+CREATE (:City {country: 'US', name: 'New York City', year: 2020, population: 8772})
+----
+
+=== DuckDB
+
+Example to get the rank of the current row with gaps.
+Fields of the SQL query should be consistent with the Cypher query.
+For detailed information go to https://duckdb.org/docs/sql/functions/window_functions.html#rank
+
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  $url,
+  "SELECT
+     country,
+     name,
+     year,
+     population,
+     RANK() OVER (PARTITION BY country ORDER BY year DESC) AS rank
+   FROM 'neo4j_tmp_table'
+   ORDER BY rank, country, name;"
+)
+----
+
+Another example to get a Pivot table using window functions
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  $url,
+  "WITH ranked_data AS (
+        SELECT
+            country,
+            name,
+            year,
+            population,
+            ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS rank
+        FROM 'neo4j_tmp_table'
+        ORDER BY rank, country, name
+    )
+    SELECT *
+    FROM ranked_data
+    PIVOT (
+        sum(population)
+        FOR country IN ('NL', 'US')
+        GROUP BY year
+    )"
+)
+----
+
+Or using directly a `PIVOT <table> ON <column>` clause:
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  $url,
+  "PIVOT 'neo4j_tmp_table'
+    ON year
+    USING sum(population)
+    ORDER by name"
+)
+----
+
+In DuckDB, we can also use an in-memory instance using the `jdbc:duckdb:` URL:
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+  "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+  'jdbc:duckdb:',
+  "PIVOT 'neo4j_tmp_table'
+    ON year
+    USING sum(population)
+    ORDER by name"
+)
+----
+
+=== MySQL
+
+Returns the rank of the current row within its partition, with gaps.
+For further information go to
+https://dev.mysql.com/doc/refman/8.4/en/window-function-descriptions.html#function_rank
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+ "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+ $url,
+ "SELECT
+     country,
+     name,
+     year,
+     population,
+     RANK() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
+  FROM 'neo4j_tmp_table'
+  ORDER BY country, name;",
+ $params,
+ { provider: "MYSQL" })
+----
+
+Here an example of ROW_NUMBER window function with MySQL:
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+ "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+ $url,
+ "SELECT
+      country,
+      name,
+      year,
+      population,
+      ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) AS 'rank'
+  FROM 'neo4j_tmp_table'
+  ORDER BY country, name;",
+ $params,
+ { provider: "MYSQL" })
+----
+
+=== PostgreSQL
+
+Here an example with Window functions.
+
+[source,cypher]
+----
+CALL apoc.jdbc.analytics(
+ "MATCH (n:City) RETURN n.country AS country, n.name AS name, n.year AS year, n.population AS population",
+ $url,
+ "SELECT
+      country,
+      name,
+      year,
+      population,
+      RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
+  FROM 'neo4j_tmp_table'
+  ORDER BY rank, country, name;",
+ $params,
+ { provider: "POSTGRES" })
 ----

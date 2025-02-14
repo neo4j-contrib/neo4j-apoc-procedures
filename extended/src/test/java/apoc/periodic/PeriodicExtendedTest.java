@@ -1,7 +1,7 @@
 package apoc.periodic;
 
 import apoc.create.Create;
-import apoc.load.Jdbc;
+import apoc.load.jdbc.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
 import apoc.entities.EntitiesExtended;
 import apoc.util.TestUtil;

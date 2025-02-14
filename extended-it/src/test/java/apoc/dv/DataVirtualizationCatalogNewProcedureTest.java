@@ -1,7 +1,7 @@
 package apoc.dv;
 
 import apoc.create.Create;
-import apoc.load.Jdbc;
+import apoc.load.jdbc.Jdbc;
 import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
