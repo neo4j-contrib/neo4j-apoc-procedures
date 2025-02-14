@@ -2,8 +2,8 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.result.ByteArrayResult;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
+import apoc.util.QueueBasedSpliteratorExtended;
+import apoc.util.QueueUtilExtended;
 import apoc.util.Util;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetWriter;
@@ -53,24 +53,24 @@ public abstract class ExportParquetStreamStrategy<TYPE, IN> implements ExportPar
 
                     if (batchCount > 0 && batchCount % config.getBatchSize() == 0) {
                         byte[] bytes = writeBatch(rows, data, config);
-                        QueueUtil.put(queue, new ByteArrayResult(bytes), 10);
+                        QueueUtilExtended.put(queue, new ByteArrayResult(bytes), 10);
                     }
                     ++batchCount;
                 }
                 if (!rows.isEmpty()) {
                     byte[] bytes = writeBatch(rows, data, config);
-                    QueueUtil.put(queue, new ByteArrayResult(bytes), 10);
+                    QueueUtilExtended.put(queue, new ByteArrayResult(bytes), 10);
                 }
                 return true;
             } catch (Exception e) {
                 logger.error("Exception while extracting Parquet data:", e);
             } finally {
-                QueueUtil.put(queue, ByteArrayResult.NULL, 10);
+                QueueUtilExtended.put(queue, ByteArrayResult.NULL, 10);
             }
             return true;
         });
 
-        QueueBasedSpliterator<ByteArrayResult> spliterator = new QueueBasedSpliterator<>(queue, ByteArrayResult.NULL, terminationGuard, Integer.MAX_VALUE);
+        QueueBasedSpliteratorExtended<ByteArrayResult> spliterator = new QueueBasedSpliteratorExtended<>(queue, ByteArrayResult.NULL, terminationGuard, Integer.MAX_VALUE);
         return StreamSupport.stream(spliterator, false);
     }
 

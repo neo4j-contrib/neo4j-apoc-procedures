@@ -4,10 +4,10 @@ import apoc.ApocConfig;
 import apoc.Description;
 import apoc.Extended;
 import apoc.export.cypher.ExportFileManager;
-import apoc.export.cypher.FileManagerFactory;
+import apoc.export.cypher.FileManagerFactoryExtended;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.result.ProgressInfo;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
@@ -63,14 +63,14 @@ public class SystemDb {
     @Admin
     @Procedure(name = "apoc.systemdb.export.metadata")
     @Description("apoc.systemdb.export.metadata($conf) - export the apoc feature saved in system db (that is: customProcedures, triggers, uuids, and dvCatalogs) in multiple files called <FILE_NAME>.<FEATURE_NAME>.<DB_NAME>.cypher")
-    public Stream<ExportProgressInfo> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
+    public Stream<ExportProgressInfoExtended> metadata(@Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         final SystemDbConfig conf = new SystemDbConfig(config);
         final String fileName = conf.getFileName();
         apocConfig.checkWriteAllowed(null, fileName);
 
-        ProgressInfo progressInfo = new ExportProgressInfo(fileName, null, "cypher");
+        ProgressInfo progressInfo = new ExportProgressInfoExtended(fileName, null, "cypher");
         ProgressReporter progressReporter = new ProgressReporter(null, null, progressInfo);
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName + ".cypher", true, ExportConfig.EMPTY);
+        ExportFileManager cypherFileManager = FileManagerFactoryExtended.createFileManager(fileName + ".cypher", true, ExportConfig.EMPTY);
         withSystemDbTransaction(tx -> {
             tx.getAllNodes()
                     .stream()
@@ -93,7 +93,7 @@ public class SystemDb {
         });
 
         progressReporter.done();
-        return Stream.of((ExportProgressInfo) progressReporter.getTotal());
+        return Stream.of((ExportProgressInfoExtended) progressReporter.getTotal());
     }
 
     @Admin

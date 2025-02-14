@@ -2,9 +2,9 @@ package apoc.export.arrow;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.export.util.BatchTransaction;
+import apoc.export.util.BatchTransactionExtended;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
+import apoc.result.ImportProgressInfoExtended;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.apache.arrow.memory.RootAllocator;
@@ -68,9 +68,9 @@ public class ImportArrow {
     
     @Procedure(name = "apoc.import.arrow", mode = Mode.WRITE)
     @Description("Imports entities from the provided Arrow file or byte array")
-    public Stream<ImportProgressInfo> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
+    public Stream<ImportProgressInfoExtended> importFile(@Name("input") Object input, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        ImportProgressInfo result =
+        ImportProgressInfoExtended result =
                 Util.inThread(pools, () -> {
                     String file = null;
                     String sourceInfo = "binary";
@@ -87,8 +87,8 @@ public class ImportArrow {
                     try (ArrowReader reader = getReader(input);
                          VectorSchemaRoot schemaRoot = reader.getVectorSchemaRoot()) {
 
-                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfo(file, sourceInfo, "arrow"));
-                        BatchTransaction btx = new BatchTransaction(db, conf.getBatchSize(), reporter);
+                        final ProgressReporter reporter = new ProgressReporter(null, null, new ImportProgressInfoExtended(file, sourceInfo, "arrow"));
+                        BatchTransactionExtended btx = new BatchTransactionExtended(db, conf.getBatchSize(), reporter);
                         try {
                             while (hasElements(counter, reader, schemaRoot)) {
 
@@ -146,7 +146,7 @@ public class ImportArrow {
                             btx.close();
                         }
 
-                        return (ImportProgressInfo) reporter.getTotal();
+                        return (ImportProgressInfoExtended) reporter.getTotal();
                     }
                 });
 

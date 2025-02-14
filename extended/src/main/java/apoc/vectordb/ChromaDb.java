@@ -4,7 +4,7 @@ import apoc.Extended;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.util.CollectionUtilsExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -242,16 +242,16 @@ public class ChromaDb {
         final List<Map> result = new ArrayList<>();
         for (int i = 0; i < ids.size(); i++) {
             Map<String, Object> map = map(DEFAULT_ID, ids.get(i));
-            if (CollectionUtils.isNotEmpty(distances)) {
+            if (CollectionUtilsExtended.isNotEmpty(distances)) {
                 map.put(DEFAULT_SCORE, distances.get(i));
             }
-            if (CollectionUtils.isNotEmpty(metadatas)) {
+            if (CollectionUtilsExtended.isNotEmpty(metadatas)) {
                 map.put(DEFAULT_METADATA, metadatas.get(i));
             }
-            if (CollectionUtils.isNotEmpty(documents)) {
+            if (CollectionUtilsExtended.isNotEmpty(documents)) {
                 map.put(DEFAULT_TEXT, documents.get(i));
             }
-            if (CollectionUtils.isNotEmpty(embeddings)) {
+            if (CollectionUtilsExtended.isNotEmpty(embeddings)) {
                 map.put(DEFAULT_VECTOR, embeddings.get(i));
             }
             result.add(map);

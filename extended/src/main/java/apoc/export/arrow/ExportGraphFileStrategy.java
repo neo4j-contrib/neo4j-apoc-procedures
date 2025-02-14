@@ -20,7 +20,7 @@ package apoc.export.arrow;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import apoc.util.collection.Iterables;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
@@ -78,7 +78,7 @@ public class ExportGraphFileStrategy implements ExportArrowFileStrategy<SubGraph
     }
 
     @Override
-    public Stream<ExportProgressInfo> export(SubGraph data, ArrowConfig config) {
+    public Stream<ExportProgressInfoExtended> export(SubGraph data, ArrowConfig config) {
         schemaFor(List.of(createConfigMap(data, config)));
         return ExportArrowFileStrategy.super.export(data, config);
     }

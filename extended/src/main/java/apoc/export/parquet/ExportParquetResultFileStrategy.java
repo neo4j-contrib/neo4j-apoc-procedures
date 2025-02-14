@@ -2,7 +2,7 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.result.ExportProgressInfoExtended;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -44,7 +44,7 @@ public class ExportParquetResultFileStrategy extends ExportParquetFileStrategy<M
     }
 
     @Override
-    public Stream<ExportProgressInfo> export(Result data, ParquetConfig config) {
+    public Stream<ExportProgressInfoExtended> export(Result data, ParquetConfig config) {
         return super.export(data, config);
     }
 

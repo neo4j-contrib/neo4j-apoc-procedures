@@ -1,7 +1,7 @@
 package apoc.es;
 
 import apoc.Extended;
-import apoc.load.LoadJsonUtils;
+import apoc.load.LoadJsonUtilsExtended;
 import apoc.result.LoadDataMapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -127,6 +127,6 @@ public class ElasticSearch {
     }
 
     private Stream<LoadDataMapResult> loadJsonStream(@Name("url") Object url, ElasticSearchConfig conf, @Name("payload") String payload) {
-        return LoadJsonUtils.loadJsonStream(url, conf.getHeaders(), payload, "", true, null, null, null, urlAccessChecker);
+        return LoadJsonUtilsExtended.loadJsonStream(url, conf.getHeaders(), payload, "", true, null, null, null, urlAccessChecker);
     }
 }
