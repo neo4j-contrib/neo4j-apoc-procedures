@@ -44,6 +44,7 @@ public class ExtendedApocConfig extends LifecycleAdapter
     public static final String APOC_ML_WATSON_URL = "apoc.ml.watson.url";
     public static final String APOC_AWS_KEY_ID = "apoc.aws.key.id";
     public static final String APOC_AWS_SECRET_KEY = "apoc.aws.secret.key";
+    public static final String APOC_KAFKA_ENABLED = "apoc.kafka.enabled";
     public enum UuidFormatType { hex, base64 }
 
     // These were earlier added via the Neo4j config using the ApocSettings.java class
