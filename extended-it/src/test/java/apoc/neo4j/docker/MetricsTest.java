@@ -5,7 +5,6 @@ import apoc.util.TestContainerUtil.ApocPackage;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -29,7 +28,6 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
  * @author as
  * @since 13.02.19
  */
-// TODO Investigate why this test is not working. Possibly increase timeout for container
 public class MetricsTest {
 
     private static Neo4jContainerExtension neo4jContainer;
@@ -62,24 +60,32 @@ public class MetricsTest {
         }
     }
     
-    // TODO: Investigate broken test. It hangs for more than 30 seconds for no reason.
     @Test
-    @Ignore
     public void shouldGetMetrics() {
         session.executeRead(tx -> tx.run("RETURN 1 AS num;").consume());
-        String metricKey = "neo4j.system.check_point.total_time";
+
+        List<String> metricsList = session.run("CALL apoc.metrics.list")
+                .list(i -> i.get("name").asString());
+        
+        for (String metric: metricsList) {
+            metricsGetAssertion(metric);
+        }
+    }
+
+    private void metricsGetAssertion(String metric) {
         assertEventually(() -> {
                     try {
                         return session.run("CALL apoc.metrics.get($metricKey)",
-                                map("metricKey", metricKey))
+                                        map("metricKey", metric))
                                 .list()
                                 .get(0)
                                 .asMap();
                     } catch (Exception e) {
+                        System.out.println("e = " + e);
                         return Map.<String, Object>of();
                     }
                 },
-                map -> Set.of("timestamp", "metric", "map").equals(map.keySet()) && map.get("metric").equals(metricKey),
+                map -> Set.of("timestamp", "metric", "map").equals(map.keySet()) && map.get("metric").equals(metric),
                 30L, TimeUnit.SECONDS);
     }
 
