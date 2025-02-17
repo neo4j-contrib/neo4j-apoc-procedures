@@ -5,10 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
-import apoc.util.CompressionAlgo;
-import apoc.util.ExtendedFileUtils;
-import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.util.*;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -190,7 +187,9 @@ public class Metrics {
         String url = file.getAbsolutePath();
         CountingReader reader = null;
         try {
-            reader = FileUtils.readerFor(url, CompressionAlgo.NONE.name(), urlAccessChecker);
+            reader = FileUtils.getStreamConnection(SupportedProtocols.file, url, null, null, urlAccessChecker)
+                    .toCountingInputStream(CompressionAlgo.NONE.name())
+                    .asReader();
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)
                     .filter(Metrics.duplicatedHeaderRows)
