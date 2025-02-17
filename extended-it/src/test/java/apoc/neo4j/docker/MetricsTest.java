@@ -62,12 +62,13 @@ public class MetricsTest {
         }
     }
     
-    // TODO: Investigate broken test. It hangs for more than 30 seconds for no reason.
     @Test
-    @Ignore
     public void shouldGetMetrics() {
         session.executeRead(tx -> tx.run("RETURN 1 AS num;").consume());
-        String metricKey = "neo4j.system.check_point.total_time";
+        String metricKey = "neo4j.database.system.check_point.total_time";
+        
+        // --> TODO - USE THIS ? session.run("CALL apoc.metrics.list").list()
+        
         assertEventually(() -> {
                     try {
                         return session.run("CALL apoc.metrics.get($metricKey)",
@@ -76,6 +77,7 @@ public class MetricsTest {
                                 .get(0)
                                 .asMap();
                     } catch (Exception e) {
+                        System.out.println("e = " + e);
                         return Map.<String, Object>of();
                     }
                 },
