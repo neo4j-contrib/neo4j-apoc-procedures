@@ -8,7 +8,6 @@ import apoc.load.util.LoadCsvConfig;
 import apoc.util.CompressionAlgo;
 import apoc.util.ExtendedFileUtils;
 import apoc.util.FileUtils;
-import apoc.util.SupportedProtocols;
 import apoc.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
@@ -191,9 +190,7 @@ public class Metrics {
         String url = file.getAbsolutePath();
         CountingReader reader = null;
         try {
-            reader = FileUtils.getStreamConnection(SupportedProtocols.file, url, null, null, urlAccessChecker)
-                    .toCountingInputStream(CompressionAlgo.NONE.name())
-                    .asReader();
+            reader = FileUtils.readerFor(url, CompressionAlgo.NONE.name(), urlAccessChecker);
             return new LoadCsv()
                     .streamCsv(url, new LoadCsvConfig(config), reader)
                     .filter(Metrics.duplicatedHeaderRows)
