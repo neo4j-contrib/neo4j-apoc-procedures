@@ -9,7 +9,6 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
@@ -29,7 +28,6 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
-@Ignore("It fails due to `java.lang.NoClassDefFoundError: org/eclipse/jetty/servlet`")
 public class LoadHdfsTest {
 
     @ClassRule

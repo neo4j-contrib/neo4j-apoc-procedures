@@ -51,7 +51,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
-@Ignore
 public class CouchbaseIT {
 
     private static int numberConnections = 0;
