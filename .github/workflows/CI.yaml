@@ -7,6 +7,7 @@ on:
     branches: [ "2025.01" ]
 
 env:
+  CODEARTIFACT_DOWNLOAD_URL: ${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}
   CODEARTIFACT_USERNAME: ${{ secrets.CODEARTIFACT_USERNAME }}
   ECR_NEO4J_DOCKER_URL: ${{ secrets.ECR_NEO4J_DOCKER_URL }}
   BRANCH_NAME: ${{ github.event.pull_request.base.ref }}
@@ -23,20 +24,6 @@ jobs:
       matrix:
         language: [ 'java', 'javascript' ]
     steps:
-      - name: Set RELEASE_BRANCH_NAME based on branch name
-        run: |
-          if [[ "$BRANCH_NAME" =~ [0-9]{4}\.(0[1-9]|1[0-2]) || "$BRANCH_NAME" =~ ^5\.[0-9]+$ ]]; then
-            echo "RELEASE_BRANCH_NAME=true" >> $GITHUB_ENV
-          else
-            echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
-          fi
-      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
-        run: |
-          if [[ $RELEASE_BRANCH_NAME ]]; then
-            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
-          else
-            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
-          fi
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -68,7 +55,7 @@ jobs:
           fi
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
           echo "Found NEO4JVERSION=$NEO4JVERSION"
-          if [[ $RELEASE_BRANCH_NAME ]]; then
+          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
             NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
             NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
           else
@@ -80,7 +67,6 @@ jobs:
           echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
           echo "Current branch BRANCH_NAME=$BRANCH_NAME"
-          echo "Current branch RELEASE_BRANCH_NAME=$RELEASE_BRANCH_NAME"
 
       - name: Compile Java
         run: |
@@ -107,20 +93,6 @@ jobs:
         project: [ 'extended', 'extended-it' ]
     runs-on: ubuntu-latest
     steps:
-      - name: Set RELEASE_BRANCH_NAME based on branch name
-        run: |
-          if [[ "$BRANCH_NAME" =~ [0-9]{4}\.(0[1-9]|1[0-2]) || "$BRANCH_NAME" =~ ^5\.[0-9]+$ ]]; then
-            echo "RELEASE_BRANCH_NAME=true" >> $GITHUB_ENV
-          else
-            echo "RELEASE_BRANCH_NAME=false" >> $GITHUB_ENV
-          fi
-      - name: Set CODEARTIFACT_DOWNLOAD_URL based on BRANCH_NAME
-        run: |
-          if [[ $RELEASE_BRANCH_NAME ]]; then
-            echo "CODEARTIFACT_DOWNLOAD_URL=" >> $GITHUB_ENV
-          else
-            echo "CODEARTIFACT_DOWNLOAD_URL=${{ secrets.CODEARTIFACT_DOWNLOAD_URL }}" >> $GITHUB_ENV
-          fi
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -158,7 +130,7 @@ jobs:
           NEO4JVERSION=`aws codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --query "versions[?starts_with(version,'$neo4j_version_base')] | [0].version" | tr -d '" '`
           echo "NEO4JVERSION=$NEO4JVERSION" >> "$GITHUB_ENV"
           echo "Found NEO4JVERSION=$NEO4JVERSION"
-          if [[ $RELEASE_BRANCH_NAME ]]; then
+          if [[ $BRANCH_NAME =~ ^5.[0-9]+$ ]]; then
             NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
             NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
           else
@@ -170,7 +142,6 @@ jobs:
           echo "NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE" >> "$GITHUB_ENV"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
           echo "Current branch BRANCH_NAME=$BRANCH_NAME"
-          echo "Current branch RELEASE_BRANCH_NAME=$RELEASE_BRANCH_NAME"
 
       - name: Init gradle
         run: |
