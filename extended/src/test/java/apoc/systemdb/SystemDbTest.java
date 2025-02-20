@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.ApocConfig.apocConfig;
@@ -122,8 +123,8 @@ public class SystemDbTest {
     @Test
     public void testExportMetadata() {
         // We test triggers
-        final String triggerOne = "CALL apoc.trigger.add('firstTrigger', 'RETURN $alpha', {phase:\"after\"}, {params: {alpha:1}});";
-        final String triggerTwo = "CALL apoc.trigger.add('beta', 'RETURN 1', {}, {params: {}});";
+        final String triggerOne = "CALL apoc.trigger.add('firstTrigger', 'CYPHER 5 RETURN $alpha', {phase:\"after\"}, {params: {alpha:1}});";
+        final String triggerTwo = "CALL apoc.trigger.add('beta', 'CYPHER 5 RETURN 1', {}, {params: {}});";
         // In this case we paused to test that it will be exported as paused
         final String pauseTrigger = "CALL apoc.trigger.pause('beta');";
         db.executeTransactionally(triggerOne);
@@ -154,7 +155,13 @@ public class SystemDbTest {
         
         assertEquals(Set.of(constraintForUuid), readFileLines("metadata.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("metadata.Uuid.neo4j.cypher", directory));
-        assertEquals(Set.of(triggerOne, triggerTwo, pauseTrigger), readFileLines("metadata.Trigger.neo4j.cypher", directory));
+        Set<String> expectedTriggers = Stream.of(triggerOne, triggerTwo, pauseTrigger)
+                .map(SystemDbTest::removeDuplicatedWhitespaces)
+                .collect(Collectors.toSet());
+        Set<String> actualTriggers = readFileLines("metadata.Trigger.neo4j.cypher", directory).stream()
+                .map(SystemDbTest::removeDuplicatedWhitespaces)
+                .collect(Collectors.toSet());
+        assertEquals(expectedTriggers, actualTriggers);
         final String declareProcedureOutput = "CALL apoc.custom.declareProcedure('declareBar(one = 2 :: INTEGER, two = 3 :: INTEGER) :: (sum :: INTEGER)', 'RETURN $one + $two as sum', 'READ', '');";
         assertEquals(Set.of(declareProcedureOutput), readFileLines("metadata.CypherProcedure.neo4j.cypher", directory));
         final String declareFunctionOutput = "CALL apoc.custom.declareFunction('declareFoo(input :: INTEGER | FLOAT) :: INTEGER', 'RETURN $input as answer', false, '');";
@@ -176,6 +183,14 @@ public class SystemDbTest {
 
         assertEquals(Set.of(constraintForUuid), readFileLines("custom.Uuid.schema.neo4j.cypher", directory));
         assertEquals(Set.of(uuidStatement), readFileLines("custom.Uuid.neo4j.cypher", directory));
+    }
+
+    /**
+     * Remove possible multiple whitespaces, e.g. "CYPHER 5  <query>",
+     * since is handled by Core and not modifiable from Extended
+     */
+    private static String removeDuplicatedWhitespaces(String val) {
+        return val.replaceAll("\\s+", " ");
     }
 
     @Test

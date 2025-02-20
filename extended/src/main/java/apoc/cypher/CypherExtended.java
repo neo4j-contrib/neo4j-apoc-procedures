@@ -18,6 +18,7 @@ import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -83,6 +84,9 @@ public class CypherExtended {
 
     @Context
     public URLAccessChecker urlAccessChecker;
+
+    @Context
+    public ProcedureCallContext procedureCallContext;
 
     @Procedure(name = "apoc.cypher.runFile", mode = WRITE)
     @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
@@ -386,7 +390,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -473,7 +477,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);
