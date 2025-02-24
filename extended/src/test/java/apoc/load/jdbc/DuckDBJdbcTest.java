@@ -29,12 +29,7 @@ import java.time.*;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.load.Analytics.BATCH_SIZE_CONF_KEY;
-import static apoc.load.Analytics.EMPTY_NEO4J_QUERY_ERROR;
-import static apoc.load.Analytics.EMPTY_SQL_QUERY_ERROR;
-import static apoc.load.Analytics.TABLE_NAME_CONF_KEY;
-import static apoc.load.Analytics.WRITE_MODE_CONF_KEY;
-import static apoc.load.Analytics.WRONG_BATCH_SIZE_ERR;
+import static apoc.load.jdbc.Analytics.*;
 import static apoc.load.util.JdbcUtil.KEY_NOT_FOUND_MESSAGE;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;

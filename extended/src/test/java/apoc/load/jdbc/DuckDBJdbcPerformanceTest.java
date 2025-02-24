@@ -1,4 +1,4 @@
-package apoc.load;
+package apoc.load.jdbc;
 
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
