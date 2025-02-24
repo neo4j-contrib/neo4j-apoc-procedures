@@ -32,30 +32,6 @@ import org.neo4j.test.assertion.Assert;
 
 public class ExtendedTestUtil {
 
-    public static void assertRelationship(
-            Relationship rel,
-            String expectedRelType,
-            Map<String, Object> expectedProps,
-            List<String> expectedStartNodeLabels,
-            Map<String, Object> expectedStartNodeProps,
-            List<String> expectedEndNodeLabels,
-            Map<String, Object> expectedEndNodeProps) {
-
-        Node startNode = rel.getStartNode();
-        Node endNode = rel.getEndNode();
-        assertMapEquals(expectedProps, rel.getAllProperties());
-        assertEquals(RelationshipType.withName(expectedRelType), rel.getType());
-        Set<Label> expectedStartLabelSet =
-                expectedStartNodeLabels.stream().map(Label::label).collect(Collectors.toSet());
-
-        assertEquals(expectedStartLabelSet, Iterables.asSet(startNode.getLabels()));
-        assertMapEquals(expectedStartNodeProps, startNode.getAllProperties());
-        Set<Label> expectedEndLabelSet =
-                expectedEndNodeLabels.stream().map(Label::label).collect(Collectors.toSet());
-        assertEquals(expectedEndLabelSet, Iterables.asSet(endNode.getLabels()));
-        assertMapEquals(expectedEndNodeProps, endNode.getAllProperties());
-    }
-
     public static void assertMapEquals(Map<String, Object> expected, Map<String, Object> actual) {
         assertMapEquals(null, expected, actual);
     }
@@ -84,6 +60,30 @@ public class ExtendedTestUtil {
                 }
             });
         }
+    }
+
+    public static void assertRelationship(
+            Relationship rel,
+            String expectedRelType,
+            Map<String, Object> expectedProps,
+            List<String> expectedStartNodeLabels,
+            Map<String, Object> expectedStartNodeProps,
+            List<String> expectedEndNodeLabels,
+            Map<String, Object> expectedEndNodeProps) {
+
+        Node startNode = rel.getStartNode();
+        Node endNode = rel.getEndNode();
+        assertMapEquals(expectedProps, rel.getAllProperties());
+        assertEquals(RelationshipType.withName(expectedRelType), rel.getType());
+        Set<Label> expectedStartLabelSet =
+                expectedStartNodeLabels.stream().map(Label::label).collect(Collectors.toSet());
+
+        assertEquals(expectedStartLabelSet, Iterables.asSet(startNode.getLabels()));
+        assertMapEquals(expectedStartNodeProps, startNode.getAllProperties());
+        Set<Label> expectedEndLabelSet =
+                expectedEndNodeLabels.stream().map(Label::label).collect(Collectors.toSet());
+        assertEquals(expectedEndLabelSet, Iterables.asSet(endNode.getLabels()));
+        assertMapEquals(expectedEndNodeProps, endNode.getAllProperties());
     }
 
     /**
