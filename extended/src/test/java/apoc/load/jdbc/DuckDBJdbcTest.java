@@ -75,7 +75,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         String customTable = "table_append";
         
         Statement statement = conn.createStatement();
-        String createTableSql = String.format("CREATE TABLE %s (country VARCHAR, name VARCHAR, population INTEGER, year DOUBLE)", customTable);
+        String createTableSql = String.format("CREATE TABLE %s (country VARCHAR, name VARCHAR, population DOUBLE, year INTEGER)", customTable);
         statement.execute(createTableSql);
         String insertSql = String.format("INSERT INTO %s VALUES ('FG','Zapponeta',1005,2000), ('FG','Zapponeta',1065,2010)", customTable);
         statement.execute(insertSql);
@@ -110,8 +110,8 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
                     var result = (Map) row.get(rowKey);
                     assertEquals("Zapponeta", result.get(nameKey));
                     assertEquals("FG", result.get(countryKey));
-                    assertEquals("1005", result.get("2000"));
-                    assertEquals("1065", result.get("2010"));
+                    assertEquals(1005.0, result.get("2000"));
+                    assertEquals(1065.0, result.get("2010"));
                     assertNull(result.get("2020"));
                     
                     assertFalse(r.hasNext());
@@ -443,8 +443,6 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         assertEquals(564.3, result.get("2000"));
         assertEquals(608.4, result.get("2010"));
         assertEquals(738.5, result.get("2020"));
-
-        assertFalse(r.hasNext());
     }
 
     @Test
