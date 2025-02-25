@@ -41,7 +41,8 @@ public class LoadS3MinioTest {
     public static void init() throws Throwable {
         // to make Minio work
         System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
-
+        System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
+        
         TestUtil.registerProcedure(db, 
                 ExportCSV.class, ExportGraphML.class, ExportJson.class, 
                 LoadCsv.class, LoadJson.class, Xml.class);
@@ -67,6 +68,9 @@ public class LoadS3MinioTest {
 
     @AfterClass
     public static void destroy() {
+        System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
+        System.clearProperty("com.amazonaws.sdk.disableCertChecking");
+        
         minioContainer.close();
     }
 
