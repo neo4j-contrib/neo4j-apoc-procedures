@@ -80,6 +80,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:background-operations/index.adoc[]
     ** xref::background-operations/apoc-load-directory-async.adoc[]
+    ** xref:background-operations/triggers.adoc[]
 
 * xref:database-introspection/index.adoc[]
     ** xref::database-introspection/config.adoc[]

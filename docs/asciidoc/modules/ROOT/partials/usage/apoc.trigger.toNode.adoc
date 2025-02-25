@@ -1,0 +1,46 @@
+This function is intended to be used within an `apoc.trigger.install` Cypher statement.
+
+If we want to create a 'before' or 'after' trigger query using `$deletedNodes`, and retrieve entity information such as labels and/or properties, we cannot use the classic Cypher functions labels() and properties().
+Instead, we have to leverage virtual nodes through the function `apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties)`.
+
+For example, to create a new `Report` node with a list of deleted node IDs and all the labels retrieved for each deleted node, we can execute:
+[source,cypher]
+----
+CALL apoc.trigger.install(
+    'neo4j', 'myTrigger',
+    "UNWIND $deletedNodes as deletedNode
+    WITH apoc.trigger.toNode(deletedNode, $removedLabels, $removedNodeProperties) AS deletedNode
+    CALL apoc.merge.node(
+          ['Report'],
+          {labels: apoc.node.labels(deletedNode)},
+          {created: datetime()},
+          {updated: datetime()}
+    ) YIELD node AS report
+    WITH report, deletedNode
+    SET report.deletedIds = coalesce(report.deletedIds, [])+[id(deletedNode)]" ,
+    {phase:'before'}
+);
+----
+
+Now, let's create and delete a `Movie` node:
+
+[source,cypher]
+----
+CREATE (:Movie {title: "The White Tiger"});
+MATCH (movie:Movie {title: "The White Tiger"}) DELETE movie;
+----
+
+Finally, let's check the `Report` node:
+
+[source,cypher]
+----
+MATCH (report:Report {labels: ['Movie']})
+RETURN report;
+----
+
+.Results
+[opts="header"]
+|===
+| report
+| (:Report {"created": "2024-12-12T08:33:27.188000000Z", "deletedIds": [12], "labels": ["Movie"]})
+|===
