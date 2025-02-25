@@ -75,7 +75,7 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
         String customTable = "table_append";
         
         Statement statement = conn.createStatement();
-        String createTableSql = String.format("CREATE TABLE %s (country VARCHAR, name VARCHAR, population INTEGER, year INTEGER)", customTable);
+        String createTableSql = String.format("CREATE TABLE %s (country VARCHAR, name VARCHAR, population INTEGER, year DOUBLE)", customTable);
         statement.execute(createTableSql);
         String insertSql = String.format("INSERT INTO %s VALUES ('FG','Zapponeta',1005,2000), ('FG','Zapponeta',1065,2010)", customTable);
         statement.execute(insertSql);
