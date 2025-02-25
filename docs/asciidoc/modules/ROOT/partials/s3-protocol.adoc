@@ -18,3 +18,30 @@ The S3 URL must be in the following format:
 (where the sessionToken is optional) or
 * `s3://endpoint:port/bucket/key`
 if the accessKey, secretKey, and the optional sessionToken are provided in the environment variables
+
+=== S3 protocol without SSL certificates checking
+
+To run S3 on providers that do not need SSL certificates, such as a minio container created in the following way:
+
+[source, bash]
+----
+docker run -p 9000:9000 -p 9001:9001 \
+  -e "MINIO_ROOT_USER=accessTestKey" \
+  -e "MINIO_ROOT_PASSWORD=secretTestKey" \
+  -e "MINIO_DEFAULT_BUCKETS=test" \
+  bitnami/minio:2025.1.20
+----
+
+we need to put in the `neo4j.conf` this setting:
+[source, config]
+----
+server.jvm.additional=-Dcom.amazonaws.sdk.disableCertChecking=true
+----
+
+Therefore, using this setting and the above minio container,
+the correct way to retrieve CSV file named `foo.csv` from the `test` bucket is:
+
+[source,cypher]
+----
+CALL apoc.load.csv('s3://127.0.0.1:9000/test/foo.csv?accessKey=accessTestKey&secretKey=secretTestKey')
+----
