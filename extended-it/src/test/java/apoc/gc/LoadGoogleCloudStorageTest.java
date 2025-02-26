@@ -4,6 +4,7 @@ import apoc.load.LoadCsv;
 import apoc.load.LoadHtml;
 import apoc.load.LoadJsonExtended;
 import apoc.load.Xml;
+import apoc.load.partial.LoadPartial;
 import apoc.load.xls.LoadXls;
 import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
@@ -26,11 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.load.LoadCsvTest.assertRow;
+import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV;
 import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testResult;
+import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -40,6 +41,7 @@ public class LoadGoogleCloudStorageTest {
 
     public static GoogleCloudStorageContainerExtension gcs = new GoogleCloudStorageContainerExtension()
             .withMountedResourceFile("test.csv", "/folder/test.csv")
+            .withMountedResourceFile("testload.zip", "/folder/testload.zip")
             .withMountedResourceFile("map.json", "/folder/map.json")
             .withMountedResourceFile("xml/books.xml", "/folder/books.xml")
             .withMountedResourceFile("load_test.xlsx", "/folder/load_test.xlsx")
@@ -53,7 +55,7 @@ public class LoadGoogleCloudStorageTest {
     @BeforeClass
     public static void setUp() throws Exception {
         gcs.start();
-        TestUtil.registerProcedure(db, LoadCsv.class, LoadJsonExtended.class, LoadHtml.class, LoadXls.class,  Xml.class);
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadJsonExtended.class, LoadHtml.class, LoadXls.class,  Xml.class, LoadPartial.class);
     }
 
     @AfterClass
@@ -112,6 +114,30 @@ public class LoadGoogleCloudStorageTest {
                     assertEquals(106, actual.size());
                     assertTrue(actual.stream().allMatch(i -> i.get("tagName").equals("a")));
                 });
+    }
+
+    @Test
+    public void testLoadPartial() {
+        String url = gcsUrl(gcs, "test.csv");
+
+        Object result = singleResultFirstColumn(db,
+                "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url)
+        );
+
+        assertEquals(PARTIAL_CSV, result);
+    }
+
+    @Test
+    public void testLoadPartialZip() {
+        String url = gcsUrl(gcs, "testload.zip");
+
+        Object result = singleResultFirstColumn(db,
+                "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url + "!csv/test.csv")
+        );
+
+        assertEquals(PARTIAL_CSV, result);
     }
 
     static void assertXlsRow(Result r, long lineNo, Object...data) {
