@@ -32,10 +32,12 @@ import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
@@ -415,4 +417,22 @@ public class ExtendedUtil
         );
     }
 
+    public static <T, V> Stream<List<V>> batchIterator(Iterator<T> iterator, int batchSize, Function<T, V> consumer) {
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE, Spliterator.ORDERED) {
+            @Override
+            public boolean tryAdvance(Consumer<? super List<V>> action) {
+                List<V> batch = new ArrayList<>(batchSize);
+                while (iterator.hasNext() && batch.size() < batchSize) {
+                    T next = iterator.next();
+                    V apply = consumer.apply(next);
+                    batch.add(apply);
+                }
+                if (batch.isEmpty()) {
+                    return false; // Stop the stream when no elements remain
+                }
+                action.accept(batch);
+                return true;
+            }
+        }, false);
+    }
 }
