@@ -1,7 +1,9 @@
 package apoc.util;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -63,5 +65,9 @@ public class ExtendedUtil {
         return CollectionUtils.isNotEmpty(labels)
                 ? ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":"))
                 : "";
+    }
+
+    public static List<String> splitSemicolonAndRemoveBlanks(String value) {
+        return Arrays.stream(value.split(";\n")).filter(i -> !i.isBlank()).collect(Collectors.toList());
     }
 }
