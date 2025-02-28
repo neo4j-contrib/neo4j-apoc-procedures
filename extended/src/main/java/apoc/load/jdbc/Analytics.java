@@ -34,7 +34,7 @@ public class Analytics {
     public static final String BATCH_SIZE_CONF_KEY = "batchSize";
     public static final String WRITE_MODE_CONF_KEY = "writeMode";
     
-    public static final int BATCH_SIZE_DEFAULT = 200000;
+    public static final int BATCH_SIZE_DEFAULT = 10000;
     public static final String TABLE_NAME_DEFAULT_CONF_KEY = "neo4j_tmp_table";
     
     public static final String EMPTY_SQL_QUERY_ERROR = "The SQL query is empty";

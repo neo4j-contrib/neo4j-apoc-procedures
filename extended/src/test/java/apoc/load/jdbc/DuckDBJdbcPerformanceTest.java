@@ -54,9 +54,6 @@ public class DuckDBJdbcPerformanceTest extends AbstractJdbcTest {
 
         IntStream.range(0, 200)
                 .forEach(__-> db.executeTransactionally("UNWIND range(0, 19999) as id WITH id CREATE (:City {country: 'country' + id, name: 'name' + id, year: id * 2, population: id})"));
-
-        Map<String, Object> stringObjectMap = db.executeTransactionally("match (n) return count(n)", Map.of(), Result::next);
-        System.out.println("stringObjectMap = " + stringObjectMap);
     }
 
     @After
