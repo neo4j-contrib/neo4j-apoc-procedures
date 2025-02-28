@@ -3,13 +3,16 @@ package apoc.couchbase;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import com.couchbase.client.core.env.SeedNode;
 import com.couchbase.client.core.io.CollectionIdentifier;
+import com.couchbase.client.core.service.ServiceType;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.diagnostics.WaitUntilReadyOptions;
 import com.couchbase.client.java.json.JsonArray;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.manager.bucket.BucketSettings;
 import com.couchbase.client.java.manager.collection.CollectionManager;
 import com.couchbase.client.java.manager.collection.CollectionSpec;
 import com.couchbase.client.java.query.QueryResult;
@@ -65,7 +68,9 @@ public class CouchbaseTestUtils {
 
     public static boolean fillDB(Cluster cluster) {
         Bucket couchbaseBucket = cluster.bucket(BUCKET_NAME);
-        couchbaseBucket.waitUntilReady(Duration.ofMinutes(1));
+        WaitUntilReadyOptions waitOptions = WaitUntilReadyOptions.waitUntilReadyOptions()
+                .serviceTypes(ServiceType.QUERY);
+        couchbaseBucket.waitUntilReady(Duration.ofMinutes(5), waitOptions);
         Collection collection = couchbaseBucket.defaultCollection();
         collection.insert("artist:vincent_van_gogh", VINCENT_VAN_GOGH);
         QueryResult queryResult = cluster.query(String.format(QUERY, BUCKET_NAME),
@@ -85,7 +90,7 @@ public class CouchbaseTestUtils {
     }
 
     public static String getUrl(CouchbaseContainer couchbaseContainer) {
-        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getContainerIpAddress(), couchbaseContainer.getMappedPort(8091));
+        return String.format("couchbase://%s:%s@%s:%s", USERNAME, PASSWORD, couchbaseContainer.getHost(), couchbaseContainer.getMappedPort(8091));
     }
     
     @SuppressWarnings("unchecked")
@@ -135,7 +140,7 @@ public class CouchbaseTestUtils {
 
     protected static void createCouchbaseContainer() {
         // 7.x support stably multi collections and scopes
-        couchbase = new CouchbaseContainer("couchbase/server:7.2.6")
+        couchbase = new CouchbaseContainer("couchbase/server:7.6.4")
                 .withStartupAttempts(3)
                 .withCredentials(USERNAME, PASSWORD)
                 .withBucket(new BucketDefinition(BUCKET_NAME));
