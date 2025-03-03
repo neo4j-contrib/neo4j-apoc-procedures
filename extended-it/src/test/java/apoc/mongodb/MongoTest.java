@@ -2,6 +2,8 @@ package apoc.mongodb;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -33,6 +35,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static apoc.mongodb.MongoDBColl.ERROR_MESSAGE;
@@ -72,7 +75,16 @@ public class MongoTest extends MongoTestBase {
         final String host = mongo.getHost();
         final Integer port = mongo.getMappedPort(MONGO_DEFAULT_PORT);
         final String format = String.format("mongodb://admin:pass@%s:%s", host, port);
-        try (MongoClient mongoClient = MongoClients.create(format)) {
+
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(format))
+                .applyToConnectionPoolSettings(builder -> builder
+                        .maxSize(10) // Reduce max pool size for testing purpose
+                        .maxConnectionIdleTime(10, TimeUnit.SECONDS) // Faster idle cleanup
+                )
+                .build();
+        
+        try (MongoClient mongoClient = MongoClients.create(settings)) {
             String uriPrefix = String.format("mongodb://admin:pass@%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
             PERSON_URI = uriPrefix + "/test.person?authSource=admin";
             TEST_URI = uriPrefix + "/test.test?authSource=admin";
