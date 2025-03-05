@@ -7,6 +7,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
@@ -16,7 +17,7 @@ import java.util.Objects;
  */
 public class LoadPartialAws {
     
-    public static InputStream getS3ObjectInputStream(String path, int offset, int limit) {
+    public static InputStream getS3ObjectInputStream(String path, int offset, int limit) throws IOException {
         S3Params s3Params = S3ParamsExtractor.extract(path);
         String region = Objects.nonNull(s3Params.getRegion()) ? s3Params.getRegion() : Regions.US_EAST_1.getName();
         S3Aws s3Aws = new S3Aws(s3Params, region);
@@ -30,6 +31,6 @@ public class LoadPartialAws {
         }
 
         S3Object object = s3Aws.getClient().getObject(request);
-        return object.getObjectContent();
+        return s3Aws.getS3AwsInputStream(s3Params).getInputStream();// object.getObjectContent();
     }
 }

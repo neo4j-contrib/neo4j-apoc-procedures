@@ -1,12 +1,8 @@
 package apoc.load.partial;
 
 import apoc.Extended;
-import apoc.result.ObjectResult;
 import apoc.result.StringResult;
 import apoc.util.*;
-import apoc.util.s3.S3Aws;
-import apoc.util.s3.S3Params;
-import apoc.util.s3.S3ParamsExtractor;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -19,9 +15,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import java.io.*;
@@ -29,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.partial.LoadPartialAws.getS3ObjectInputStream;
-import static apoc.util.CompressionConfig.COMPRESSION;
 
 
 @Extended
@@ -103,12 +96,14 @@ public class LoadPartial {
 
     private InputStream getInputStream(String path, int offset, int limit, boolean s3Protocol, LoadPartialConfig conf, Map<String, Object> headers) throws IOException, URISyntaxException, URLAccessValidationError {
 
+        InputStream inputStream;
         if (s3Protocol) {
             return getS3ObjectInputStream(path, offset, limit);
         }
 
         StreamConnection streamConnection = Util.getStreamConnection(path, headers, null, urlAccessChecker);
-        return streamConnection.getInputStream();
+        inputStream = streamConnection.getInputStream();
+        return inputStream;
     }
 
     private String readFromLocalFile(String filePath, int offset, int limit, LoadPartialConfig conf) throws IOException {

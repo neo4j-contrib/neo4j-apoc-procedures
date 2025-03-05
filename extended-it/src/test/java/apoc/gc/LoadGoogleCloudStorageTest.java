@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV;
+import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV_WITHOUT_LIMIT;
 import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.MapUtil.map;
@@ -138,6 +139,18 @@ public class LoadGoogleCloudStorageTest {
         );
 
         assertEquals(PARTIAL_CSV, result);
+    }
+
+    @Test
+    public void testLoadPartialWithoutLimit() {
+        String url = gcsUrl(gcs, "test.csv");
+
+        Object result = singleResultFirstColumn(db,
+                "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url)
+        );
+
+        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, result);
     }
 
     static void assertXlsRow(Result r, long lineNo, Object...data) {

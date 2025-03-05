@@ -18,6 +18,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.commonTestLoadCsv;
 import static apoc.load.LoadHtmlTest.testLoadHtmlWithGetLinksCommon;
 import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV;
+import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV_WITHOUT_LIMIT;
 import static apoc.load.xls.LoadXlsTest.testLoadXlsCommon;
 import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
 import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
@@ -80,6 +81,16 @@ public class LoadS3Test extends S3BaseTest {
         );
         
         assertEquals(PARTIAL_CSV, result);
+    }
+
+    @Test
+    public void testLoadPartialWithoutLimit() {
+        String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "test.csv");
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
+                map("url", url)
+        );
+
+        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, result);
     }
 
     @Test

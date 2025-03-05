@@ -18,13 +18,13 @@ import static apoc.ApocConfig.*;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LoadPartialTest {
 
     public static final String PARTIAL_CSV = "Rana,11\nSelina,";
+    public static final String PARTIAL_CSV_WITHOUT_LIMIT = PARTIAL_CSV + "18\n";
     private static final String COMPLEX_STRING = "Mätrix II 哈哈\uD83D\uDE04123";
     private static final String COMPLEX_STRING_PARTIAL = COMPLEX_STRING.substring(4, 15);
     public static final String EXPECTED_PARTIAL_JSON_ARCHIVE = """
@@ -68,9 +68,7 @@ public class LoadPartialTest {
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
                 map("url", path));
 
-        String expected = "Rana,11\n" +
-                "Selina,18\n";
-        assertEquals(expected, output);
+        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, output);
     }
 
     @Test
@@ -86,10 +84,8 @@ public class LoadPartialTest {
         String path = url.toString();
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
                 map("url", path));
-
-        String expected = "Rana,11\n" +
-                "Selina,18\n";
-        assertEquals(expected, output);
+        
+        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, output);
     }
     
     @Test
@@ -164,8 +160,7 @@ public class LoadPartialTest {
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)", 
                 map("url",url.toString()+"!csv/test.csv"));
 
-        assertEquals("Rana,11\n" +
-                "Selina,", output);
+        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, output);
     }
     
     @Test
