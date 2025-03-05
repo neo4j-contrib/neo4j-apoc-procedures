@@ -1,5 +1,6 @@
 package apoc.load.partial;
 
+import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
 import apoc.util.Utils;
 import org.junit.Before;
@@ -9,7 +10,9 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.*;
 import static apoc.util.ExtendedTestUtil.assertFails;
@@ -17,6 +20,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class LoadPartialTest {
 
@@ -33,7 +37,7 @@ public class LoadPartialTest {
 
     @Before
     public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadPartial.class, Utils.class);
+        TestUtil.registerProcedure(db, LoadPartial.class, LoadCsv.class, Utils.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
     }
     
@@ -68,20 +72,6 @@ public class LoadPartialTest {
                 "Selina,18\n";
         assertEquals(expected, output);
     }
-    
-    @Test
-    public void testLoadJson() {
-        URL urlFileName = getUrlFileName("multi.json");
-        String path = urlFileName.getPath();
-        // String url = "test.csv";
-        testCall(db, "CALL apoc.load.jsonPartial($url, 17)",
-                map("url", path),
-                r -> {
-                    Map<String, Object> expected = map("bar", asList(4L, 5L, 6L));
-                    assertEquals(expected, r.get("value"));
-                }
-        );
-    }
 
     @Test
     public void testLoadCsvByUrl() throws Exception {
@@ -103,15 +93,48 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadCsvLargeFile() throws Exception {
+    public void testCompareWithLoadCsvLargeFile() throws Exception {
+
         // 30MB file
         URL urlFileName = new URL("https://www.stats.govt.nz/assets/Uploads/Balance-of-payments/Balance-of-payments-and-international-investment-position-September-2024-quarter/Download-data/balance-of-payments-and-international-investment-position-september-2024-quarter.csv");
-        String path = urlFileName.toString();
-        int limit = 300;
-        String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 50, $limit)",
-                map("url", path, "limit", limit));
 
-        assertEquals(limit, output.length());
+        String path = urlFileName.toString();
+        
+        // about the same portion of code (i.e. after ~150 thousand lines)
+        long startPartial = System.currentTimeMillis();
+        int limit = 19000;
+        String outputPartial = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, $offset, $limit)",
+                map("url", path, "offset", 180 * 150_000, "limit", limit));
+        
+        long timePartial = System.currentTimeMillis() - startPartial;
+        assertEquals(limit, outputPartial.length());
+        
+        
+        long startLoadCsv = System.currentTimeMillis();
+        List<List<String>> resCsv = db.executeTransactionally("CALL apoc.load.csv($url, {results:['strings']}) YIELD strings RETURN strings SKIP 150000 LIMIT 100",
+                map("url", path),
+                r -> r.<List<String>>columnAs("strings").stream().toList()
+        );
+
+        long timeLoadCsv = System.currentTimeMillis() - startLoadCsv;
+        
+        // we make the joining later, since it requires additional time that is beyond the scope of the procedure
+        String outputLoadCsv = resCsv.stream()
+                .map(i -> String.join("", i))
+                .collect(Collectors.joining());
+
+        // difficult to get the exact portion, so we just check that the output of load.partial is greater
+        String messageLength = String.format("Current lengths are %s and %s: ", 
+                outputPartial.length(), outputLoadCsv.length());
+        assertTrue(messageLength, 
+                outputPartial.length() > outputLoadCsv.length());
+
+        // nevertheless the portion is greater, the time is less than half
+        String messageTime = String.format("Current times are %s and %s: ", 
+                timePartial, timeLoadCsv);
+        assertTrue(messageTime, 
+                timeLoadCsv > timePartial * 2);
+
     }
 
     @Test

@@ -7,9 +7,6 @@ import apoc.util.*;
 import apoc.util.s3.S3Aws;
 import apoc.util.s3.S3Params;
 import apoc.util.s3.S3ParamsExtractor;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -31,6 +28,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.load.partial.LoadPartialAws.getS3ObjectInputStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
 
@@ -42,32 +40,17 @@ public class LoadPartial {
     @Context
     public URLAccessChecker urlAccessChecker;
 
-    @Procedure("apoc.load.jsonPartial")
-    @Description("apoc.load.jsonPartial")
-    public Stream<ObjectResult> json(@Name("urlOrBinary") Object urlOrBinary,
-                                    @Name("offset") long offset,
-                                    @Name(value = "limit", defaultValue = "0") long limit,
-                                    @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        String value = getStringResultStream(urlOrBinary, offset, limit, config);
-
-        String jsonPath = (String) config.getOrDefault("jsonPath", "");
-        List<String> pathOptions = (List<String>) config.getOrDefault("pathOptions", List.of());
-        return Stream.of(
-                new ObjectResult( JsonUtil.parse(value, jsonPath, Object.class, pathOptions) )
-        );
-    }
-
     @Procedure("apoc.load.stringPartial")
     @Description("apoc.load.stringPartial")
     public Stream<StringResult> offset(@Name("urlOrBinary") Object urlOrBinary,
                                     @Name("offset") long offset,
                                    @Name(value = "limit", defaultValue = "0") long limit,
                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
-        String value = getStringResultStream(urlOrBinary, offset, limit, config);
+        String value = getStringResultStream(urlOrBinary, Math.toIntExact(offset), Math.toIntExact(limit), config);
         return Stream.of(new StringResult(value));
     }
 
-    private String getStringResultStream(Object urlOrBinary, long offset, long limit, Map<String, Object> config) throws Exception {
+    private String getStringResultStream(Object urlOrBinary, int offset, int limit, Map<String, Object> config) throws Exception {
         LoadPartialConfig conf = new LoadPartialConfig(config);
         if (urlOrBinary instanceof String filePath) {
             apocConfig().checkReadAllowed(filePath, urlAccessChecker);
@@ -82,13 +65,13 @@ public class LoadPartial {
 
         } 
         if (urlOrBinary instanceof byte[] bytes) {
-            return readFromByteArray(bytes, (int) offset, limit, conf);
+            return readFromByteArray(bytes, offset, limit, conf);
         }
         
         throw new RuntimeException("The first parameter must be a String URL or a byte[]");
     }
 
-    public String readFromFile(String path, Long offset, long limit, LoadPartialConfig conf) throws Exception {
+    public String readFromFile(String path, int offset, int limit, LoadPartialConfig conf) throws Exception {
         SupportedProtocols protocol = FileUtils.from(path);
         if (!protocol.equals(SupportedProtocols.file)) {
             return getPartialString(path, offset, limit, protocol, conf);
@@ -97,11 +80,11 @@ public class LoadPartial {
         return readFromLocalFile(path, offset, limit, conf);
     }
 
-    private String getPartialString(String path, Long offset, long limit, SupportedProtocols protocol, LoadPartialConfig conf) throws Exception {
+    private String getPartialString(String path, int offset, int limit, SupportedProtocols protocol, LoadPartialConfig conf) throws Exception {
         boolean s3Protocol = protocol.equals(SupportedProtocols.s3);
 
         Map<String, Object> headers = new HashMap<>( conf.getHeaders() );
-        String httpLimit = limit == 0L
+        String httpLimit = limit == 0
                 ? "-"
                 : "-" + (offset + limit - 1);
         headers.putIfAbsent("Range", "bytes=" + offset + httpLimit);
@@ -118,44 +101,44 @@ public class LoadPartial {
         }
     }
 
-    private InputStream getInputStream(String path, Long offset, long limit, boolean s3Protocol, LoadPartialConfig conf, Map<String, Object> headers) throws IOException, URISyntaxException, URLAccessValidationError {
-        InputStream inputStream;
-        StreamConnection streamConnection = Util.getStreamConnection(path, headers, null, urlAccessChecker);
+    private InputStream getInputStream(String path, int offset, int limit, boolean s3Protocol, LoadPartialConfig conf, Map<String, Object> headers) throws IOException, URISyntaxException, URLAccessValidationError {
 
         if (s3Protocol) {
-            S3Params s3Params = S3ParamsExtractor.extract(path);
-            String region = Objects.nonNull(s3Params.getRegion()) ? s3Params.getRegion() : Regions.US_EAST_1.getName();
-            S3Aws s3Aws = new S3Aws(s3Params, region);
-
-            GetObjectRequest request = new GetObjectRequest(s3Params.getBucket(), s3Params.getKey());
-            
-            if (limit == 0L) {
-                request.withRange(offset);
-            } else {
-                request.withRange(offset, offset + limit - 1);
-            }
-
-            S3Object object = s3Aws.getClient().getObject(request);
-            inputStream = object.getObjectContent();
+            return getS3ObjectInputStream(path, offset, limit);
         }
 
-        inputStream = streamConnection.getInputStream();
-        return inputStream;
+        StreamConnection streamConnection = Util.getStreamConnection(path, headers, null, urlAccessChecker);
+        return streamConnection.getInputStream();
     }
 
-    private String readFromLocalFile(String filePath, Long offset, long limit, LoadPartialConfig conf) throws IOException {
+    private String readFromLocalFile(String filePath, int offset, int limit, LoadPartialConfig conf) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(filePath, "r")) {
             raf.seek(offset);
+
+            StringBuilder result = new StringBuilder();
             
             byte[] buffer = new byte[conf.getBufferLimit()];
-            int bytesRead = limit == 0L
-                    ? raf.read(buffer)
-                    : raf.read(buffer, 0, Math.toIntExact(limit));
-            return (bytesRead > 0) ? new String(buffer, 0, bytesRead, StandardCharsets.UTF_8) : "";
+            int bytesRead;
+            int totalRead = 0;
+
+            while ((bytesRead = raf.read(buffer)) != -1) { // Read until EOF
+
+                if (limit != 0L && totalRead + bytesRead > limit) {
+                    bytesRead = limit - totalRead;
+                }
+                result.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8)); // Append to StringBuilder
+                totalRead += bytesRead;
+
+                if (limit != 0L && totalRead >= limit) {
+                    break;
+                }
+            }
+            
+            return result.toString();
         }
     }
 
-    public String readFromArchive(ArchiveType type, String path, String csvFileName, long offset, long limit, LoadPartialConfig conf) throws IOException, URISyntaxException, URLAccessValidationError {
+    public String readFromArchive(ArchiveType type, String path, String csvFileName, int offset, int limit, LoadPartialConfig conf) throws IOException, URISyntaxException, URLAccessValidationError {
 
         SupportedProtocols from = FileUtils.from(path);
         boolean s3Protocol = from.equals(SupportedProtocols.s3);
@@ -170,7 +153,7 @@ public class LoadPartial {
         }
     }
 
-    private static String getPartialString(String fileName, long offset, long limit, ArchiveInputStream is, LoadPartialConfig conf) throws IOException {
+    private String getPartialString(String fileName, int offset, int limit, ArchiveInputStream is, LoadPartialConfig conf) throws IOException {
         ArchiveEntry archiveEntry;
         while ((archiveEntry = is.getNextEntry()) != null) {
             if (!archiveEntry.isDirectory() && archiveEntry.getName().equals(fileName)) {
@@ -183,7 +166,7 @@ public class LoadPartial {
         throw new FileNotFoundException("File not found in archive: " + fileName);
     }
 
-    private static String readFromByteArray(byte[] data, int offset, long limit, LoadPartialConfig config) throws Exception {
+    private String readFromByteArray(byte[] data, int offset, int limit, LoadPartialConfig config) throws Exception {
         if (offset >= data.length) {
             return "";
         }
@@ -197,12 +180,26 @@ public class LoadPartial {
         }
     }
 
-    private static String getPartialString(long limit, InputStream inputStream, LoadPartialConfig config) throws IOException {
-        byte[] buffer = new byte[config.getBufferLimit()];
-        int bytesRead = limit == 0L
-                ? inputStream.read(buffer)
-                : inputStream.read(buffer, 0, (int) limit);
-        return (bytesRead > 0) ? new String(buffer, 0, bytesRead, StandardCharsets.UTF_8) : "";
+    private String getPartialString(int limit, InputStream inputStream, LoadPartialConfig config) throws IOException {
+        StringBuilder result = new StringBuilder();
+        int totalRead = 0;
+        
+        byte[] buffer = new byte[limit == 0 ? config.getBufferLimit() : limit];
+
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) { // Read until EOF
+            if (limit != 0L && totalRead + bytesRead > limit) {
+                bytesRead = limit - totalRead;
+            }
+            result.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8)); // Append to StringBuilder
+            totalRead += bytesRead;
+            
+            if (limit != 0L && totalRead >= limit) {
+                break;
+            }
+        }
+        
+        return result.toString();
     }
     
 }
