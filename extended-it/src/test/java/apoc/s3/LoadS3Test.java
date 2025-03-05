@@ -75,8 +75,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadPartial() {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "test.csv");
-        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
-                map("url", url) // 'file:load_test.xlsx');
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url)
         );
         
         assertEquals(PARTIAL_CSV, result);
@@ -85,8 +85,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadPartialZip() {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "testload.zip");
-        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
-                map("url", url + "!csv/test.csv") // 'file:load_test.xlsx');
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url + "!csv/test.csv")
         );
         
         assertEquals(PARTIAL_CSV, result);
@@ -96,8 +96,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadPartialTar() {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "testload.tar");
-        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
-                map("url", url + "!csv/test.csv") // 'file:load_test.xlsx');
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url + "!csv/test.csv")
         );
         
         assertEquals(PARTIAL_CSV, result);
@@ -107,8 +107,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadPartialTarGz() {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "testload.tar.gz");
-        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
-                map("url", url + "!csv/test.csv") // 'file:load_test.xlsx');
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url + "!csv/test.csv")
         );
         
         assertEquals(PARTIAL_CSV, result);
@@ -118,8 +118,8 @@ public class LoadS3Test extends S3BaseTest {
     @Test
     public void testLoadPartialTgz() {
         String url = putToS3AndGetUrl(s3Container, EXTENDED_RESOURCES_PATH + "testload.tgz");
-        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
-                map("url", url + "!csv/test.csv") // 'file:load_test.xlsx');
+        String result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url + "!csv/test.csv")
         );
         
         assertEquals(PARTIAL_CSV, result);

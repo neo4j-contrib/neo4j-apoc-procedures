@@ -55,14 +55,14 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadCsv() {
+    public void testLoadPartialString() {
         URL urlFileName = getUrlFileName("test.csv");
         String path = urlFileName.getPath();
         testPartialCsvCommon(path);
     }
     
     @Test
-    public void testLoadCsvWithoutLimit() {
+    public void testLoadPartialStringWithoutLimit() {
         URL urlFileName = getUrlFileName("test.csv");
         String path = urlFileName.getPath();
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
@@ -74,14 +74,14 @@ public class LoadPartialTest {
     }
 
     @Test
-    public void testLoadCsvByUrl() throws Exception {
+    public void testLoadPartialStringByUrl() throws Exception {
         URL url = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/refs/heads/dev/extended/src/test/resources/test.csv");
         String path = url.toString();
         testPartialCsvCommon(path);
     }
 
     @Test
-    public void testLoadCsvByUrlWithoutLimit() throws Exception {
+    public void testLoadPartialStringByUrlWithoutLimit() throws Exception {
         URL url = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/refs/heads/dev/extended/src/test/resources/test.csv");
         String path = url.toString();
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
@@ -138,7 +138,7 @@ public class LoadPartialTest {
     }
 
     @Test
-    public void testLoadCsvLargeFileZip() throws Exception {
+    public void testLoadPartialStringLargeFileZip() throws Exception {
         // 100MB zip file
         // 800MB csv file inside it
         URL urlFileName = new URL("https://www3.stats.govt.nz/2018census/Age-sex-by-ethnic-group-grouped-total-responses-census-usually-resident-population-counts-2006-2013-2018-Censuses-RC-TA-SA2-DHB.zip!Data8277.csv");
@@ -158,7 +158,7 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadCsvTarGzByUrl() throws Exception {
+    public void testLoadPartialStringTarGzByUrl() throws Exception {
         URL url = new URL("https://github.com/neo4j/apoc/blob/dev/core/src/test/resources/testload.tar.gz?raw=true");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)", 
@@ -169,7 +169,7 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadJsonTarGz() {
+    public void testLoadPartialStringTarGz() {
         URL url = getUrlFileName("testload.tar.gz");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
@@ -179,7 +179,7 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadJsonTarGzWithoutLimit() {
+    public void testLoadPartialStringTarGzWithoutLimit() {
         URL url = getUrlFileName("testload.tar.gz");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17)",
@@ -192,7 +192,7 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testLoadJsonTgz() {
+    public void testLoadPartialStringTgz() {
         URL url = getUrlFileName("testload.tgz");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
@@ -203,7 +203,7 @@ public class LoadPartialTest {
     
     
     @Test
-    public void testLoadJsonTar() {
+    public void testLoadPartialStringTar() {
         URL url = getUrlFileName("testload.tar");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
@@ -213,7 +213,7 @@ public class LoadPartialTest {
     }
 
     @Test
-    public void testLoadJsonZip() {
+    public void testLoadPartialStringZip() {
         URL url = getUrlFileName("testload.zip");
 
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
@@ -223,7 +223,7 @@ public class LoadPartialTest {
     }
     
     @Test
-    public void testCompressAndDecompressWithMultipleCompressionAlgosReturningStartString() {
+    public void testLoadPartialStringWithBinaryAndMultipleCompressionAlgo() {
 
         TestUtil.testCall(
                 db,

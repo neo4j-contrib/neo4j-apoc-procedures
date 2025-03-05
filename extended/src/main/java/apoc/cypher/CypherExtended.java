@@ -390,7 +390,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -477,7 +477,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);
