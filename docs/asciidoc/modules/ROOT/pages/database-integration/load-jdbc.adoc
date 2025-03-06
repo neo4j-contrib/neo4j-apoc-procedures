@@ -539,8 +539,10 @@ In addition to the configurations of the `apoc.load.jdbc` procedure, the `apoc.j
 [opts=header, cols="1m,2,1"]
 |===
 | name | description | default value
-| tableName | the temporary table name | neo4j_tmp_table
-| provider | the SQL provider, to handle data type based on it, possible values are "POSTGRES", "MYSQL" and "DUCKDB"  | "DUCKDB"
+| tableName | The temporary table name | neo4j_tmp_table
+| provider | The SQL provider, to handle data type based on it, possible values are "POSTGRES", "MYSQL" and "DEFAULT"  | "DEFAULT"
+| batchSize | The batch size with which to insert data into the SQL table | 10000
+| writeMode | 'CREATE' | If 'CREATE' it creates a new temporary table. If 'APPEND' reuse an existing table.
 |===
 
 
