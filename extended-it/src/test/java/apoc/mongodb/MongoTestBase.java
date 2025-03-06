@@ -53,7 +53,7 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
 public class MongoTestBase {
     enum MongoVersion {
         FOUR("mongo:4", "mongo"),
-        LATEST("mongo:7.0.4", "mongosh");
+        LATEST("mongo:7.0.17", "mongosh");
 
         public final String dockerImg;
         public final String shell;
