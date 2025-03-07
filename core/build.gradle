@@ -40,6 +40,13 @@ dependencies {
     implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0'
     implementation group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
 
+    constraints {
+        // Remove when json-path has updated transitive dependency
+        api('net.minidev:json-smart:2.5.2') {
+            because 'CVE-2024-57699'
+        }
+    }
+
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 

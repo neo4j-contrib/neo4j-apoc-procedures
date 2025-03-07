@@ -170,7 +170,7 @@ Apache-2.0
   jnr-ffi-2.1.7.jar
   joda-time-2.12.7.jar
   json-path-2.9.0.jar
-  json-smart-2.5.0.jar
+  json-smart-2.5.2.jar
   jsonschema2pojo-core-1.0.2.jar
   jsr305-3.0.2.jar
   kerb-admin-2.0.3.jar
