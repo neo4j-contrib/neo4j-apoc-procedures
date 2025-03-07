@@ -64,7 +64,7 @@ import org.neo4j.graphdb.Transaction;
 public class ExportXlsHandler {
     public static final String XLS_MISSING_DEPS_ERROR =
             "Cannot find the needed jar into the plugins folder in order to use . \n"
-                    + "Please see the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.export/apoc.export.xls.all/#_install_dependencies";
+                    + "Please see the documentation: https://neo4j.com/labs/apoc/4.4/overview/apoc.export/apoc.export.xls.all/#_install_dependencies";
 
     public static Stream<ProgressInfo> getProgressInfoStream(
             String fileName,
