@@ -290,3 +290,4 @@ apoc.vectordb.weaviate.upsert
 apoc.kafka.consume
 apoc.kafka.publish
 apoc.kafka.publish.sync
+apoc.create.virtual.fromNodeExtended
