@@ -1,0 +1,125 @@
+= apoc.create.virtual.fromNodeExtended
+:description: This section contains reference documentation for the apoc.create.virtual.fromNodeExtended function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.create.virtual.fromNodeExtended(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties
+
+== Signature
+
+[source]
+----
+apoc.create.virtual.fromNodeExtended(node :: NODE?, propertyNames :: LIST? OF STRING?, additionalProperties :: MAP, ?config :: MAP?) :: (NODE?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|node|NODE?|null
+|propertyNames|LIST? OF STRING?|null
+|additionalProperties|MAP?|{}
+|config|MAP?|{}
+|===
+
+[[config-apoc.create.virtual.fromNodeExtended]]
+== Configuration parameters
+
+The procedures support the following config parameters:
+
+.Config parameters
+[opts=header]
+|===
+| name | type | default | description
+| wrapNodeIds | boolean | false | By default, this function will change the id of the node to a negative number which is representative of Virtual Nodes. We can set it to true in order to retain the original id.
+|===
+
+[[usage-apoc.create.virtual.fromNodeExtended]]
+== Usage Examples
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (a:Account {type: 'checking', ownerName: 'Maria Perez', ownerId: '123456789', accountNumber: 101010101, routingNumber: 10101010, amount: 1000.00, bank: 'Best Bank'});
+CREATE (p:Person {name: 'Jane Doe', birthdate: date('1990-01-13'), favoriteColor: 'green', favoriteDessert: 'ice cream', favoriteMusic: 'classical', favoriteBand: 'The Beatles', favoriteVacation: 'beach', favoriteAnimal: 'horse', favoriteBeverage: 'coffee', favoriteFlower: 'lily'});
+----
+
+The apoc.create.virtual.fromNodeExtended procedure provides a way to only visualize or return data that is needed, hiding any unnecessary or sensitive pieces.
+
+The example below shows how we can use the procedure to return only the non-sensitive properties from the node above:
+
+// tag::tabs[]
+[.tabs]
+.apoc.create.virtual.fromNodeExtended
+[source,cypher]
+----
+MATCH (a:Account {accountNumber: 101010101})
+RETURN apoc.create.virtual.fromNodeExtended(a, ['type','bank']);
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| account
+| {"type":"checking","bank":"Best Bank"}
+|===
+
+The apoc.create.virtual.fromNodeExtended procedure can also be used to simplify nodes with many properties by only displaying ones that are important to the query.
+
+The example below shows an example of this use:
+
+.apoc.create.virtual.fromNodeExtended
+[source,cypher]
+----
+MATCH (p:Person {name: 'Jane Doe'})
+RETURN apoc.create.virtual.fromNodeExtended(p, ['favoriteColor','favoriteAnimal','favoriteMusic']);
+----
+
+.Results
+[opts="header"]
+|===
+|favorites
+|{"favoriteAnimal":"horse", "favoriteMusic":"classical", "favoriteColor":"green"}
+|===
+
+We can also set additional properties via the 3rd parameter.
+The example below shows an example of this use:
+
+.apoc.create.virtual.fromNodeExtended
+[source,cypher]
+----
+MATCH (p:Person {name: 'Jane Doe'})
+RETURN apoc.create.virtual.fromNodeExtended(p, ['favoriteColor','favoriteAnimal','favoriteMusic'], {foo: 'bar', alpha: 1});
+----
+
+.Results
+[opts="header"]
+|===
+|favorites
+|{"favoriteAnimal":"horse", "favoriteMusic":"classical", "favoriteColor":"green", "foo":"bar", "alpha":1}
+|===
+
+[[wrapping-nodes]]
+=== Wrapping nodes
+By default, this function will change the id of the node to a negative number which is representative of Virtual Nodes.
+In order to retain the original id, use the config item `{ wrapNodeIds: true }`.
+
+.apoc.create.virtual.fromNodeExtended
+[source,cypher]
+----
+CREATE (p:Person {name: 'Jane Doe'})
+WITH apoc.create.virtual.fromNodeExtended(p, ['name'], {}, { wrapNodeIds: true }) AS node
+RETURN id(node) AS id;
+----
+
+.Results
+[opts="header"]
+|===
+| id
+| 1
+|===
+
+
+xref::virtual-resource/index.adoc[More documentation of apoc.create.virtual.fromNodeExtended,role=more information]
