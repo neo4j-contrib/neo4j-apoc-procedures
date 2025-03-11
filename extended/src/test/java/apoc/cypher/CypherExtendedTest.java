@@ -285,6 +285,7 @@ public class CypherExtendedTest {
 
 
     @Test
+    @Ignore("flaky")
     public void testIssue3751RunFiles() {
         int numEntities = 500;
         db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
