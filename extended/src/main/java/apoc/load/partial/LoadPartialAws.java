@@ -30,7 +30,6 @@ public class LoadPartialAws {
             request.withRange(offset, offset + limit - 1);
         }
 
-        S3Object object = s3Aws.getClient().getObject(request);
-        return s3Aws.getS3AwsInputStream(s3Params).getInputStream();// object.getObjectContent();
+        return s3Aws.getS3AwsInputStream(s3Params).getInputStream();
     }
 }

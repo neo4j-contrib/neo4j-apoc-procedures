@@ -25,10 +25,93 @@ The procedure support the following config parameters:
 [opts=header]
 |===
 | name | type | default | description
-| recursive | boolean | true | find all files in current folder and subfolders
+| headers | Map<String, Object> | Empty map | Additional headers to be added or replaced to the default
+| archiveLimit | int | 1024*1024*10 (10MB) | Size limit to locate ZIP entries and buffers
+| bufferLimit | int | 1024*1024*10 (10MB) | Buffer read limit
+| compression | Enum[NONE, GZIP, BZIP2, DEFLATE, BLOCK_LZ4, FRAMED_SNAPPY] | NONE | Set the compression algorithm used, in case of a byte array reading.
 |===
 
 
 == Usage examples
 
-todo
+We can read a portion of a string from a local file URL, a remote URL (i.e. http(s)/gcp/S3/Azure/Hdfs), a local/remote file placed in an archive, or a byte array.
+It's useful compared to other load procedures since the access into the file is handled more efficiently, not an openStream and a read to location.
+
+That is:
+
+- in case of a local file under-the-hood an https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/RandomAccessFile.html[RandomAccessFile] will be created.
+- in case of http(s) URL we will put an additional HTTP header `Range: bytes=<offset>`, while in case of limit set it will be `Range: bytes=<offset>-<httpLimit>`, where httpLimit is equal to `offset + limit - 1`.
+- in case of S3 location, an https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/GetObjectRequest.html#range()[GetObjectRequest.range()] will be used.
+- in the other cases, we will execute an https://docs.oracle.com/javase/8/docs/api/java/io/InputStream.html#skip-long-[InputStream.skip()]
+
+
+
+If we have the following CSV file
+
+.test.csv
+----
+name,age,beverage
+Selma,9,Soda
+Rana,12,Tea;Milk
+Selina,19,Cola
+----
+
+We can execute:
+
+[source,cypher]
+----
+CALL apoc.load.stringPartial("path/to/localfile/test.csv", 17, 15)
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| Rana,11
+Selina,
+|===
+
+Or also, without limit set:
+
+[source,cypher]
+----
+CALL apoc.load.stringPartial("path/to/localfile/test.csv", 17)
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| Rana,11
+Selina,18
+
+|===
+
+We can read in the same way and with a similar result from a remote URL, for example:
+
+[source,cypher]
+----
+CALL apoc.load.stringPartial("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/refs/heads/dev/extended/src/test/resources/test.csv", 17)
+----
+
+We can also read from an archive file, using the syntax `<pathToArchive>!<fileToRead>`, for example:
+
+[source,cypher]
+----
+CALL apoc.load.stringPartial("https://www3.stats.govt.nz/2018census/Age-sex-by-ethnic-group-grouped-total-responses-census-usually-resident-population-counts-2006-2013-2018-Censuses-RC-TA-SA2-DHB.zip!Data8277.csv", 17)
+----
+
+Or also from a byte array, optionally setting the compression type (default 'NONE', that is not compressed), for example using the `apoc.util.compress` (placed in APOC Core):
+
+[source,cypher]
+----
+WITH apoc.util.compress('testFooBar', {compression: 'DEFLATE'}) AS compressed 
+CALL apoc.load.stringPartial(compressed, 5, 17, {compression: 'DEFLATE'}) YIELD value RETURN value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| testFooBar
+|===
