@@ -5,7 +5,6 @@ import apoc.util.s3.S3Params;
 import apoc.util.s3.S3ParamsExtractor;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 
 import java.io.IOException;
 import java.io.InputStream;
