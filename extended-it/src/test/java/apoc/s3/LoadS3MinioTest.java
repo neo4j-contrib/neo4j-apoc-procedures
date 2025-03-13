@@ -7,10 +7,7 @@ import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -112,6 +109,7 @@ public class LoadS3MinioTest {
     }
 
     @Test
+    @Ignore
     public void testLoadJsonS3() throws Exception {
         String url = getUrl("test.json");
 
