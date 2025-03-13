@@ -16,3 +16,4 @@ For more information on these procedures, see:
 * xref::import/gexf.adoc[]
 * xref::import/load-json.adoc[]
 * xref::import/arrow.adoc[]
+* xref::import/load-partial.adoc[]
