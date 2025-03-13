@@ -146,7 +146,7 @@ public class LoadGoogleCloudStorageTest {
         String url = gcsUrl(gcs, "test.csv");
 
         Object result = singleResultFirstColumn(db,
-                "CALL apoc.load.stringPartial($url, 17, 15)",
+                "CALL apoc.load.stringPartial($url, 17)",
                 map("url", url)
         );
 

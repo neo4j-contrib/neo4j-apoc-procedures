@@ -160,7 +160,7 @@ public class LoadPartialTest {
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)", 
                 map("url",url.toString()+"!csv/test.csv"));
 
-        assertEquals(PARTIAL_CSV_WITHOUT_LIMIT, output);
+        assertEquals(PARTIAL_CSV, output);
     }
     
     @Test
