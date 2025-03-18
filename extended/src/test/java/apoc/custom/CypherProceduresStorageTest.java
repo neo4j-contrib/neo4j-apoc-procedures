@@ -49,7 +49,6 @@ public class CypherProceduresStorageTest {
     public TemporaryFolder STORE_DIR = new TemporaryFolder();
 
     private GraphDatabaseService db;
-    private GraphDatabaseService dbOther;
     private DatabaseManagementService dbms;
 
     @Before

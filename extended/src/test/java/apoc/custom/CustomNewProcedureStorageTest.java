@@ -43,7 +43,6 @@ public class CustomNewProcedureStorageTest {
 
     private DatabaseManagementService dbms;
     private GraphDatabaseService db;
-    private GraphDatabaseService dbOther;
     private GraphDatabaseService sysDb;
 
     @Before
@@ -66,17 +65,8 @@ public class CustomNewProcedureStorageTest {
     }
 
     @Test
-    public void registerSimpleStatementInSpecificDb() throws Exception {
-        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer2() :: (answer::INT)','RETURN 42 as answer')");
-        testCallEventually(db, "CALL custom.answer2()", (row) -> assertEquals(42L, row.get("answer")));
-        testCallEventually(dbOther, "CALL custom.answer2()",
-                (row) -> assertEquals(42L, row.get("answer"))
-        );
-    }
-
-    @Test
     public void registerSimpleStatement() {
-        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer() :: (answer::LONG)','RETURN 42 as answer', 'otherdb')");
+        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer() :: (answer::LONG)','RETURN 42 as answer')");
         restartDb();
         testCallEventually(db, "call custom.answer()", (row) -> assertEquals(42L, row.get("answer")));
         testCallEventually(sysDb, "call apoc.custom.show()", row -> {
