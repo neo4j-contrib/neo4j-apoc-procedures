@@ -2,11 +2,50 @@ rootProject.name = 'apoc'
 
 include("extended")
 include ("extended-it")
-include ':core', ':common', ':processor', ':test-utils'
+//include ("extra-dependencies")
+
+// TODO - scrivere che così non va
+//includeBuild(':extra-dependencies')
+// TODO - scrivere che così non va
+//includeBuild ':extra-dependencies'
+
+include ':extra-dependencies'
+include ':extra-dependencies:nlp'
+include ':extra-dependencies:mongodb'
+include ':extra-dependencies:email'
+include ':extra-dependencies:couchbase'
+include ':extra-dependencies:xls'
+include ':extra-dependencies:redis'
+include ':extra-dependencies:selenium'
+include ':extra-dependencies:hadoop'
+include ':extra-dependencies:gcs'
+include ':extra-dependencies:aws'
+include ':extra-dependencies:kafka'
+
+include ':core', ':common', ':processor', ':test-utils'//, ':extra-dependencies'
 project(':core').projectDir = new File(rootDir, 'apoc-core/core')
 project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
 project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
+
+
+
+//include('nlp')
+//include('mongodb')
+//include('email')
+//include('couchbase')
+//include('xls')
+//include('redis')
+//include('selenium')
+//include('hadoop')
+//include('gcs')
+//include('aws')
+//include('kafka')
+
+
+
+// includeBuild('extra-dependencies')
+//project(':extra-dependencies').projectDir = new File(rootDir, 'extra-dependencies')
 
 startParameter.excludedTaskNames = [
         ':core:build',

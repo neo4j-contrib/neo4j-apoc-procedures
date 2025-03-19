@@ -8,6 +8,8 @@ allprojects {
     }
 }
 
+description = 'APOC :: Extra Dependencies'
+
 configure(subprojects) {
     apply plugin: 'java'
 }
@@ -79,15 +81,42 @@ subprojects {
     group = 'org.neo4j.contrib'
 }
 
+//tasks.register('copyJars', Copy) {
+//    from subprojects.collect { it.tasks.withType(Jar) }
+//    into "$buildDir/allJars"
+//}
+//
+//
+//tasks.register('buildDependencies') {
+//    subprojects.each { dependsOn("${it.name}:clean") }
+//    subprojects.each { dependsOn("${it.name}:build") }
+//    subprojects.each { dependsOn("${it.name}:shadowJar") }
+//    dependsOn(copyJars)
+//}
+
+
 task copyJars(type: Copy) {
     from subprojects.collect { it.tasks.withType(Jar) }
     into "$buildDir/allJars"
 }
 
-
 task buildDependencies {
-    subprojects.each { dependsOn("${it.name}:clean") }
+    subprojects.each { 
+        println('nameeee' + it.name)
+        dependsOn("${it.name}:clean") 
+    }
     subprojects.each { dependsOn("${it.name}:build") }
     subprojects.each { dependsOn("${it.name}:shadowJar") }
     dependsOn(copyJars)
 }
+
+// TODO - dire che così con project(":extra-dependencies") non funziona
+//task buildDependencies {
+//    project(":extra-dependencies").subprojects.each { 
+//        println('it.name' + it.name)
+//        dependsOn("${it.name}:clean") 
+//    }
+//    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:build") }
+//    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:shadowJar") }
+//    dependsOn(copyJars)
+//}

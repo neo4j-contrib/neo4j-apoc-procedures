@@ -20,6 +20,39 @@ allprojects {
     description = """neo4j-apoc-procedures"""
 }
 
+gradle.projectsEvaluated {
+    println 'init...3'
+    println project(":extra-dependencies").subprojects
+    
+    project(":extra-dependencies").subprojects.each { subproject ->
+        println("Dio cane: ${subproject.name}")
+    }
+}
+
+
+
+// TODO - DIRE CHE anche in questo modo dal gradle principale non va..
+
+//task buildDependencies2 {
+//    println 'init...2'
+//
+//    allprojects.each { subproject ->
+//        println("Processing project222 ${subproject.name} : ${subproject.subprojects}")
+//    }
+//
+//
+////    println project(":extra-dependencies").childProjects
+////    println project(":extra-dependencies").allprojects
+//    println project(":extra-dependencies").subprojects
+////    project(":extra-dependencies").allprojects.subprojects.each {
+////        println('it.name' + it.name)
+////        dependsOn("${it.name}:clean")
+////    }
+////    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:build") }
+////    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:shadowJar") }
+//}
+
+
 apply plugin: 'java-library'
 if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")
     apply from: 'teamcity-repository.gradle'
@@ -45,6 +78,8 @@ repositories {
     }
     mavenLocal()
 }
+
+println 'childProjects' + childProjects
 
 subprojects {
     apply plugin: 'java-library'
