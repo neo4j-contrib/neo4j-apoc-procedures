@@ -116,11 +116,12 @@ gradle.projectsEvaluated {
 
 tasks.register('copyApocJar', Copy) {
     println 'init1...'
-    dependsOn(':extra-dependencies:buildDependencies', ':extended:shadowJar')
+    dependsOn(':extra-dependencies:buildDependencies', ':extended:shadowJar', ':core:shadowJar')
     // dependsOn()
 
     // todo - dire che in questo modo non funziona con extra-dependencies
-    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar')
+    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
 }
 
 //tasks.register('copyApocJar2') {
@@ -150,9 +151,14 @@ test {
     dependsOn(copyApocJar)
     maxParallelForks = 1
     doFirst {
-        var apocJarPath = layout.buildDirectory.file("test/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
-        println("apoc-extended.test.jar.path=$apocJarPath")
-        systemProperty 'apoc-extended.test.jar.path', apocJarPath
+        // TODO - WRITE THAT WE NEED APOC CORE PATH AS WELL, FOR TEST WITH BOTH EXTENDED AND CORE JARS
+        var apocJarCorePath = layout.buildDirectory.file("test/jar-core/apoc-${version}-core.jar").get().asFile.absolutePath
+        println("apoc-core.test.jar.path=$apocJarCorePath")
+        systemProperty 'apoc-core.test.jar.path', apocJarCorePath
+        
+        var apocJarExtendedPath = layout.buildDirectory.file("test/jar-extended/apoc-${version}-extended.jar").get().asFile.absolutePath
+        println("apoc-extended.test.jar.path=$apocJarExtendedPath")
+        systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
 
         println 'UUUU' + project(':extra-dependencies').buildDir
         println 'UUUUKKK' + "${project(':extra-dependencies').buildDir}/allJars"
