@@ -25,7 +25,7 @@ gradle.projectsEvaluated {
     println project(":extra-dependencies").subprojects
     
     project(":extra-dependencies").subprojects.each { subproject ->
-        println("Dio cane: ${subproject.name}")
+        println("brambilla: ${subproject.name}")
     }
 }
 

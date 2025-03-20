@@ -79,7 +79,7 @@ gradle.projectsEvaluated {
         allprojects.each { subproject ->
             {
                 if (subproject.name == 'kafka') {
-                    println("porca madonna ${subproject.name}")
+                    println("ajeje ${subproject.name}")
                 }
                 println("Processing projectaa: ${subproject.name}")
             }
@@ -114,14 +114,34 @@ gradle.projectsEvaluated {
 //    dependsOn(copyJars)
 //}
 
-tasks.register('copyApocJar', Copy) {
-    println 'init1...'
-    dependsOn(':extra-dependencies:buildDependencies', ':extended:shadowJar', ':core:shadowJar')
+tasks.register('copyApocCoreJar', Copy) {
+    println 'copyApocCoreJar...'
+    dependsOn(':core:shadowJar')
+    // dependsOn()
+
+    // todo - dire che in questo modo non funziona con extra-dependencies
+    //from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
+}
+
+tasks.register('copyExtraJar', Copy) {
+    println 'copyExtraJar...'
+    dependsOn(':extra-dependencies:buildDependencies')//, ':extended:shadowJar', ':core:shadowJar')
+    // dependsOn()
+
+    // todo - dire che in questo modo non funziona con extra-dependencies
+    //from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
+    //from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
+}
+
+tasks.register('copyApocExtendedJar', Copy) {
+    println 'copyApocExtendedJar...'
+    dependsOn(':extended:shadowJar')
     // dependsOn()
 
     // todo - dire che in questo modo non funziona con extra-dependencies
     from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
-    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
+    //from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
 }
 
 //tasks.register('copyApocJar2') {
@@ -148,7 +168,9 @@ tasks.register('copyApocJar', Copy) {
 
 test {
     //dependsOn(copyApocExtraDepsJar)
-    dependsOn(copyApocJar)
+    dependsOn(copyApocCoreJar)
+    dependsOn(copyExtraJar)
+    dependsOn(copyApocExtendedJar)
     maxParallelForks = 1
     doFirst {
         // TODO - WRITE THAT WE NEED APOC CORE PATH AS WELL, FOR TEST WITH BOTH EXTENDED AND CORE JARS
