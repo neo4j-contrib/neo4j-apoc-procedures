@@ -47,6 +47,8 @@ project(':test-utils').projectDir = new File(rootDir, 'apoc-core/test-utils')
 // includeBuild('extra-dependencies')
 //project(':extra-dependencies').projectDir = new File(rootDir, 'extra-dependencies')
 
+// TODO - excludedTaskNames with ':core:shadowJar' conficts with extended-it one
+
 startParameter.excludedTaskNames = [
         ':core:build',
         ':common:build',
@@ -58,9 +60,23 @@ startParameter.excludedTaskNames = [
         ':test-utils:test',
         ':core:publish',
         ':common:publish',
-        ':test-utils:publish',
+        ':test-utils:publish'
         // the :core:shadowJar should be used only for integration tests with both core and extended jars
         // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
         // not when a `gradle shadow` or a `gradle build` is executed in this root project folder
-        ':core:shadowJar'
+        //':core:shadowJar'
 ]
+
+gradle.settingsEvaluated {
+    println 'startParameter.taskNames'
+    println startParameter.taskNames
+    if (!startParameter.taskNames.any { it.startsWith(":extended-it") }) {
+        startParameter.excludedTaskNames.add(':core:shadowJar')
+    }
+
+    println 'startParameter.excludedTaskNamesAAA'
+    println startParameter.excludedTaskNames
+}
+
+println 'startParameter.excludedTaskNames'
+println startParameter.excludedTaskNames

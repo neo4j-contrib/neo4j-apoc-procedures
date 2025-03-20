@@ -53,6 +53,22 @@ gradle.projectsEvaluated {
 //}
 
 
+gradle.taskGraph.whenReady { taskGraph -> {
+        println 'taskGraph1'
+        
+    for (final def test in taskGraph) {
+        println test
+    }
+        if (taskGraph.hasTask(':extended-it:core:shadowJar')) {
+            println 'qualcosa'
+            gradle.startParameter.excludedTaskNames.remove(':core:shadowJar')
+            gradle.startParameter.excludedTaskNames.remove(':submodule:core:shadowJar')
+        }
+    }
+}
+
+
+
 apply plugin: 'java-library'
 if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")
     apply from: 'teamcity-repository.gradle'

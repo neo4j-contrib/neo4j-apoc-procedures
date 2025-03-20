@@ -74,7 +74,6 @@ tasks.register('copyJars', Copy) {
 
 gradle.projectsEvaluated {
     task buildDependencies {
-        println 'init fanculo...'
 
         allprojects.each { subproject ->
             {
@@ -114,6 +113,11 @@ gradle.projectsEvaluated {
 //    dependsOn(copyJars)
 //}
 
+
+
+
+
+
 tasks.register('copyApocCoreJar', Copy) {
     println 'copyApocCoreJar...'
     dependsOn(':core:shadowJar')
@@ -121,7 +125,7 @@ tasks.register('copyApocCoreJar', Copy) {
 
     // todo - dire che in questo modo non funziona con extra-dependencies
     //from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
-    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
 }
 
 tasks.register('copyExtraJar', Copy) {
@@ -140,7 +144,7 @@ tasks.register('copyApocExtendedJar', Copy) {
     // dependsOn()
 
     // todo - dire che in questo modo non funziona con extra-dependencies
-    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
+    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
     //from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
 }
 
@@ -174,11 +178,11 @@ test {
     maxParallelForks = 1
     doFirst {
         // TODO - WRITE THAT WE NEED APOC CORE PATH AS WELL, FOR TEST WITH BOTH EXTENDED AND CORE JARS
-        var apocJarCorePath = layout.buildDirectory.file("test/jar-core/apoc-${version}-core.jar").get().asFile.absolutePath
+        var apocJarCorePath = layout.buildDirectory.file("test-core/jar/apoc-${version}-core.jar").get().asFile.absolutePath
         println("apoc-core.test.jar.path=$apocJarCorePath")
         systemProperty 'apoc-core.test.jar.path', apocJarCorePath
         
-        var apocJarExtendedPath = layout.buildDirectory.file("test/jar-extended/apoc-${version}-extended.jar").get().asFile.absolutePath
+        var apocJarExtendedPath = layout.buildDirectory.file("test-extended/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
         println("apoc-extended.test.jar.path=$apocJarExtendedPath")
         systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
 
