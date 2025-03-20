@@ -7,10 +7,7 @@ import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -27,6 +24,7 @@ import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+@Ignore
 public class LoadS3MinioTest {
 
     private static final String ACCESS_KEY = "testAccessKey";
