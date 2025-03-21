@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static apoc.util.ExtendedTestContainerUtil.extendedDir;
 import static apoc.util.TestContainerUtil.ApocPackage.CORE;
 import static apoc.util.TestContainerUtil.ApocPackage.EXTENDED;
 import static apoc.util.TestContainerUtil.createDB;
@@ -46,8 +47,8 @@ public class StartupExtendedTest {
 
     static {
         // retrieve every extended procedure and function via the extendedCypher5.txt file
-        final File extendedFileCypher5 = new File(TestContainerUtil.extendedDir, "src/main/resources/extendedCypher5.txt");
-        final File extendedFileCypher25 = new File(TestContainerUtil.extendedDir, "src/main/resources/extendedCypher25.txt");
+        final File extendedFileCypher5 = new File(extendedDir, "src/main/resources/extendedCypher5.txt");
+        final File extendedFileCypher25 = new File(extendedDir, "src/main/resources/extendedCypher25.txt");
         try {
             EXPECTED_EXTENDED_NAMES_CYPHER_5 = FileUtils.readLines(extendedFileCypher5, StandardCharsets.UTF_8);
             EXPECTED_EXTENDED_NAMES_CYPHER_25 = FileUtils.readLines(extendedFileCypher25, StandardCharsets.UTF_8);

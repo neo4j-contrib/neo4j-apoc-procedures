@@ -66,6 +66,37 @@ dependencies {
     }
 }
 
+tasks.register('copyApocCoreJar', Copy) {
+    dependsOn(':core:shadowJar')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
+}
+
+tasks.register('copyApocExtendedJar', Copy) {
+    dependsOn(':extended:shadowJar')
+    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
+}
+
+test {
+    // build core, extended and extra-dependencies JARs
+    dependsOn(copyApocCoreJar)
+    dependsOn(copyApocExtendedJar)
+    dependsOn(':extra-dependencies:buildDependencies')
+    maxParallelForks = 1
+    doFirst {
+        var apocJarCorePath = layout.buildDirectory.file("test-core/jar/apoc-${version}-core.jar").get().asFile.absolutePath
+        println("apoc-core.test.jar.path=$apocJarCorePath")
+        systemProperty 'apoc-core.test.jar.path', apocJarCorePath
+        
+        var apocJarExtendedPath = layout.buildDirectory.file("test-extended/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
+        println("apoc-extended.test.jar.path=$apocJarExtendedPath")
+        systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
+        
+        var apocExtendedJarPath = "${project(':extra-dependencies').buildDir}/allJars"
+        println("apoc-extra-dependencies.test.jar.path=$apocExtendedJarPath")
+        systemProperty 'apoc-extra-dependencies.test.jar.path', apocExtendedJarPath
+    }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21

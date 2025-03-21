@@ -1,6 +1,7 @@
 package apoc.util;
 
 import apoc.util.collection.Iterables;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -16,10 +17,7 @@ import org.neo4j.test.rule.DbmsRule;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -185,6 +183,17 @@ public class ExtendedTestUtil {
             return Files.readString(logFile.toPath());
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+    
+    public static void copyFilesToFolder(File directory, IOFileFilter instance, File targetFolder) {
+        Collection<File> files = org.apache.commons.io.FileUtils.listFiles(directory, instance, null);
+        for (File file : files) {
+            try {
+                org.apache.commons.io.FileUtils.copyFileToDirectory(file, targetFolder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
