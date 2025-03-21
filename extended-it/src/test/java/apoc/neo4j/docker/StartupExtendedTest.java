@@ -7,7 +7,6 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -70,7 +69,6 @@ public class StartupExtendedTest {
     }
 
     @Test
-    @Ignore
     public void checkExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended jar and all extra-dependencies jars every procedure/function is detected
         // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
