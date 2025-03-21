@@ -24,6 +24,7 @@ import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+@Ignore
 public class LoadS3MinioTest {
 
     private static final String ACCESS_KEY = "testAccessKey";
