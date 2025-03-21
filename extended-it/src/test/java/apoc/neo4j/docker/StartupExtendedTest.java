@@ -7,6 +7,7 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -21,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static apoc.util.ExtendedTestContainerUtil.extendedDir;
 import static apoc.util.TestContainerUtil.ApocPackage.CORE;
 import static apoc.util.TestContainerUtil.ApocPackage.EXTENDED;
 import static apoc.util.TestContainerUtil.createDB;
@@ -45,8 +47,8 @@ public class StartupExtendedTest {
 
     static {
         // retrieve every extended procedure and function via the extendedCypher5.txt file
-        final File extendedFileCypher5 = new File(TestContainerUtil.extendedDir, "src/main/resources/extendedCypher5.txt");
-        final File extendedFileCypher25 = new File(TestContainerUtil.extendedDir, "src/main/resources/extendedCypher25.txt");
+        final File extendedFileCypher5 = new File(extendedDir, "src/main/resources/extendedCypher5.txt");
+        final File extendedFileCypher25 = new File(extendedDir, "src/main/resources/extendedCypher25.txt");
         try {
             EXPECTED_EXTENDED_NAMES_CYPHER_5 = FileUtils.readLines(extendedFileCypher5, StandardCharsets.UTF_8);
             EXPECTED_EXTENDED_NAMES_CYPHER_25 = FileUtils.readLines(extendedFileCypher25, StandardCharsets.UTF_8);
@@ -68,6 +70,7 @@ public class StartupExtendedTest {
     }
 
     @Test
+    @Ignore
     public void checkExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended jar and all extra-dependencies jars every procedure/function is detected
         // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*

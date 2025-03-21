@@ -8,6 +8,8 @@ allprojects {
     }
 }
 
+description = 'APOC :: Extra Dependencies'
+
 configure(subprojects) {
     apply plugin: 'java'
 }
@@ -79,13 +81,12 @@ subprojects {
     group = 'org.neo4j.contrib'
 }
 
-task copyJars(type: Copy) {
+tasks.register('copyJars', Copy) {
     from subprojects.collect { it.tasks.withType(Jar) }
     into "$buildDir/allJars"
 }
 
-
-task buildDependencies {
+tasks.register('buildDependencies') {
     subprojects.each { dependsOn("${it.name}:clean") }
     subprojects.each { dependsOn("${it.name}:build") }
     subprojects.each { dependsOn("${it.name}:shadowJar") }

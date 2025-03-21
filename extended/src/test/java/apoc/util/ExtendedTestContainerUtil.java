@@ -1,14 +1,17 @@
 package apoc.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.io.filefilter.FileFileFilter;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -16,13 +19,17 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
+
+import static apoc.util.ExtendedTestUtil.copyFilesToFolder;
 import static apoc.util.ExtendedUtil.retryRunnable;
-import static apoc.util.TestContainerUtil.copyFilesToPlugin;
-import static apoc.util.TestContainerUtil.executeGradleTasks;
+import static apoc.util.TestContainerUtil.pluginsFolder;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 public class ExtendedTestContainerUtil
 {
+    public static File baseDir = Paths.get("..").toFile();
+    public static File extendedDir = new File(baseDir, "extended");
+    
     public static TestcontainersCausalCluster createEnterpriseCluster( List<TestContainerUtil.ApocPackage> apocPackages, int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
         return TestcontainersCausalCluster.create(apocPackages, numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig, envSettings);
     }
@@ -36,15 +43,27 @@ public class ExtendedTestContainerUtil
     }
 
     public static void addExtraDependencies() {
-        File extraDepsDir = new File(TestContainerUtil.baseDir, "extra-dependencies");
-        // build the extra-dependencies
-        executeGradleTasks(extraDepsDir, "buildDependencies");
-
-        // add all extra deps to the plugin docker folder
-        final File directory = new File(extraDepsDir, "build/allJars");
-        final IOFileFilter instance = new WildcardFileFilter("*.jar");
-        copyFilesToPlugin(directory, instance, TestContainerUtil.pluginsFolder);
+        String jarPathProp = "apoc-extra-dependencies.test.jar.path";
+        String property = System.getProperty(jarPathProp);
+        final var jarPath = Path.of(property);
+        final var destination = pluginsFolder.toPath();
+        try {
+            System.out.println("Copying %s (prop %s) => %s".formatted(jarPath, jarPathProp, destination));
+            Files.createDirectories(pluginsFolder.toPath());
+            File jarFolder = jarPath.toFile();
+            File destinationFolder = destination.toFile();
+            if (!jarFolder.exists()) {
+                throw new RuntimeException("Folder %s doesn't exist".formatted(jarFolder));
+            }
+            if (!destinationFolder.exists()) {
+                throw new RuntimeException("Folder %s doesn't exist".formatted(destination));
+            }
+            copyFilesToFolder(jarFolder, FileFileFilter.INSTANCE, destinationFolder);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to copy %s to %s".formatted(jarPath, destination), e);
+        }
     }
+
 
     /**
      * Open a `neo4j://` routing session for each cluster member against system db

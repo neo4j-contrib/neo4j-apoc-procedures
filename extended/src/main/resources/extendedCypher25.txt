@@ -94,6 +94,7 @@ apoc.graph.filterProperties
 apoc.import.arrow
 apoc.import.gexf
 apoc.import.parquet
+apoc.load.stringPartial
 apoc.load.arrow
 apoc.load.arrow.stream
 apoc.load.csv
@@ -290,3 +291,4 @@ apoc.vectordb.weaviate.upsert
 apoc.kafka.consume
 apoc.kafka.publish
 apoc.kafka.publish.sync
+apoc.create.virtual.fromNodeExtended
