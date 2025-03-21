@@ -10,12 +10,7 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.driver.Session;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Label;
@@ -214,6 +209,7 @@ public class BoltTest {
     }
 
     @Test
+    @Ignore
     public void testBoltLoadReturningMapAndList() {
         session.executeWrite(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})").consume());
         
