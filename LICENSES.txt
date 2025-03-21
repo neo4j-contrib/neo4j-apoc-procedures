@@ -122,15 +122,15 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.56.v20240826.jar
-  jetty-io-9.4.56.v20240826.jar
-  jetty-security-9.4.56.v20240826.jar
-  jetty-server-9.4.56.v20240826.jar
-  jetty-servlet-9.4.56.v20240826.jar
-  jetty-util-9.4.56.v20240826.jar
-  jetty-util-ajax-9.4.56.v20240826.jar
-  jetty-webapp-9.4.56.v20240826.jar
-  jetty-xml-9.4.56.v20240826.jar
+  jetty-http-9.4.57.v20241219.jar
+  jetty-io-9.4.57.v20241219.jar
+  jetty-security-9.4.57.v20241219.jar
+  jetty-server-9.4.57.v20241219.jar
+  jetty-servlet-9.4.57.v20241219.jar
+  jetty-util-9.4.57.v20241219.jar
+  jetty-util-ajax-9.4.57.v20241219.jar
+  jetty-webapp-9.4.57.v20241219.jar
+  jetty-xml-9.4.57.v20241219.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.770.jar
@@ -168,11 +168,11 @@ Apache-2.0
   mercator_2.12-0.2.1.jar
   metrics-core-3.2.4.jar
   netty-all-4.1.100.Final.jar
-  netty-buffer-4.1.118.Final.jar
-  netty-codec-4.1.118.Final.jar
+  netty-buffer-4.1.119.Final.jar
+  netty-codec-4.1.119.Final.jar
   netty-codec-dns-4.1.100.Final.jar
   netty-codec-haproxy-4.1.100.Final.jar
-  netty-codec-http-4.1.118.Final.jar
+  netty-codec-http-4.1.119.Final.jar
   netty-codec-http2-4.1.100.Final.jar
   netty-codec-memcache-4.1.100.Final.jar
   netty-codec-mqtt-4.1.100.Final.jar
@@ -181,24 +181,24 @@ Apache-2.0
   netty-codec-socks-4.1.100.Final.jar
   netty-codec-stomp-4.1.100.Final.jar
   netty-codec-xml-4.1.100.Final.jar
-  netty-common-4.1.118.Final.jar
-  netty-handler-4.1.118.Final.jar
+  netty-common-4.1.119.Final.jar
+  netty-handler-4.1.119.Final.jar
   netty-handler-proxy-4.1.100.Final.jar
   netty-handler-ssl-ocsp-4.1.100.Final.jar
-  netty-resolver-4.1.118.Final.jar
+  netty-resolver-4.1.119.Final.jar
   netty-resolver-dns-4.1.100.Final.jar
   netty-resolver-dns-classes-macos-4.1.100.Final.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-x86_64.jar
-  netty-transport-4.1.118.Final.jar
-  netty-transport-classes-epoll-4.1.118.Final.jar
+  netty-transport-4.1.119.Final.jar
+  netty-transport-classes-epoll-4.1.119.Final.jar
   netty-transport-classes-kqueue-4.1.100.Final.jar
-  netty-transport-native-epoll-4.1.118.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.118.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.118.Final.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.119.Final.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.118.Final.jar
+  netty-transport-native-unix-common-4.1.119.Final.jar
   netty-transport-rxtx-4.1.100.Final.jar
   netty-transport-sctp-4.1.100.Final.jar
   netty-transport-udt-4.1.100.Final.jar
@@ -209,7 +209,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.13.jar
+  reactor-core-3.6.14.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
