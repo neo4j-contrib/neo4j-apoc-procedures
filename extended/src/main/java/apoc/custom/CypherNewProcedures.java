@@ -13,6 +13,7 @@ import org.neo4j.procedure.*;
 import java.util.stream.Stream;
 
 import static apoc.custom.CypherProceduresHandler.PREFIX;
+import static apoc.custom.CypherProceduresUtil.checkEnabled;
 import static apoc.util.SystemDbUtil.checkInSystemDb;
 
 
@@ -32,6 +33,8 @@ public class CypherNewProcedures {
         SystemDbUtil.checkInSystemLeader(db);
 
         SystemDbUtil.checkTargetDatabase(tx, databaseName, "Custom procedures/functions");
+
+        checkEnabled();
     }
 
     // TODO - change with @SystemOnlyProcedure

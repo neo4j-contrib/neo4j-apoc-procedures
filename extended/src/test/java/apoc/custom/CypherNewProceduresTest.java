@@ -26,22 +26,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedSystemLabels.ApocCypherProcedures;
 import static apoc.custom.CypherProcedureTestUtil.assertProcedureFails;
 import static apoc.custom.CypherProcedureTestUtil.startDbWithCustomApocConfigs;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
+import static apoc.custom.CypherProceduresUtil.CUSTOM_PROCEDURES_ENABLED;
+import static apoc.custom.CypherProceduresUtil.PROCEDURES_NOT_ENABLED_ERROR;
 import static apoc.custom.Signatures.SIGNATURE_SYNTAX_ERROR;
+import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.ExtendedTestUtil.testRetryCallEventually;
 import static apoc.util.SystemDbTestUtil.TIMEOUT;
 import static apoc.util.SystemDbUtil.BAD_TARGET_ERROR;
 import static apoc.util.SystemDbUtil.NON_SYS_DB_ERROR;
 import static apoc.util.SystemDbUtil.PROCEDURE_NOT_ROUTED_ERROR;
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallCount;
-import static apoc.util.TestUtil.testCallCountEventually;
-import static apoc.util.TestUtil.testResult;
-import static apoc.util.TestUtil.waitDbsAvailable;
+import static apoc.util.TestUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -941,6 +941,26 @@ public class CypherNewProceduresTest {
 
         assertProcedureFails(sysDb, BAD_TARGET_ERROR,
                 "CALL apoc.custom.installFunction('my.fun() :: INTEGER','RETURN 42 as answer', 'system')");
+    }
+
+
+    @Test
+    public void testCustomDisabled() {
+        apocConfig().setProperty(CUSTOM_PROCEDURES_ENABLED, false);
+        
+        assertFails(sysDb, "CALL apoc.custom.installProcedure('answer2() :: (answer::INT)','RETURN 42 as answer')", Map.of(),
+                PROCEDURES_NOT_ENABLED_ERROR);
+        assertFails(sysDb, "CALL apoc.custom.installFunction('my.fun() :: INTEGER','RETURN 42 as answer')", Map.of(),
+                PROCEDURES_NOT_ENABLED_ERROR);
+        testCallEmpty(sysDb, "CALL apoc.custom.show()", Map.of());
+        
+        assertFails(db, "CALL apoc.custom.declareProcedure('answer22() :: (answer::INT)','RETURN 42 as answer')", Map.of(),
+                PROCEDURES_NOT_ENABLED_ERROR);
+        assertFails(db, "CALL apoc.custom.declareFunction('my.fun3() :: INTEGER','RETURN 42 as answer')", Map.of(),
+                PROCEDURES_NOT_ENABLED_ERROR);
+        testCallEmpty(db, "CALL apoc.custom.list()", Map.of());
+
+        apocConfig().setProperty(CUSTOM_PROCEDURES_ENABLED, true);
     }
 
     private void testCallEventually(String call, Consumer<Map<String, Object>> consumer) {
