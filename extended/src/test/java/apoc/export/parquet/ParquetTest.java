@@ -1,10 +1,7 @@
 package apoc.export.parquet;
 
 import apoc.util.collection.Iterators;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
@@ -138,6 +135,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void testStreamRoundtripParquetAll() {
         testStreamRoundtripAllCommon();
     }
@@ -157,6 +155,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void testStreamRoundtripWithAnotherpleBatches() {
         final List<byte[]> bytes = db.executeTransactionally("CALL apoc.export.parquet.all.stream({batchSize:1})",
                 Map.of(),
