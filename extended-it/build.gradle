@@ -28,7 +28,6 @@ dependencies {
     }
 
     implementation project(":extended")
-    implementation project(":extra-dependencies")
     
     testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
     testImplementation project(':extended').sourceSets.main.allJava
@@ -67,117 +66,22 @@ dependencies {
     }
 }
 
-tasks.register('copyJars', Copy) {
-    from subprojects.collect { it.tasks.withType(Jar) }
-    into "$buildDir/allJars"
-}
-
-gradle.projectsEvaluated {
-    task buildDependencies {
-
-        allprojects.each { subproject ->
-            {
-                if (subproject.name == 'kafka') {
-                    println("ajeje ${subproject.name}")
-                }
-                println("Processing projectaa: ${subproject.name}")
-            }
-        }
-
-
-        println project(":extra-dependencies").childProjects
-        println project(":extra-dependencies").allprojects
-        println project(":extra-dependencies").subprojects
-        project(":extra-dependencies").allprojects.subprojects.each {
-            println('it.name' + it.name)
-            dependsOn("${it.name}:clean")
-        }
-        project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:build") }
-        project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:shadowJar") }
-        dependsOn(copyJars)
-    }
-}
-
-//tasks.register('buildDependencies') {
-//    println 'init...'
-//    println project(":extra-dependencies").childProjects
-//    println project(":extra-dependencies").allprojects
-//    println project(":extra-dependencies").subprojects
-//    //println project(":extra-dependencies").getAllprojects
-//    project(":extra-dependencies").childProjects.each {
-//        println('it.name' + it.name)
-//        dependsOn("${it.name}:clean")
-//    }
-//    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:build") }
-//    project(":extra-dependencies").subprojects.each { dependsOn("${it.name}:shadowJar") }
-//    dependsOn(copyJars)
-//}
-
-
-
-
-
-
 tasks.register('copyApocCoreJar', Copy) {
-    println 'copyApocCoreJar...'
     dependsOn(':core:shadowJar')
-    // dependsOn()
-
-    // todo - dire che in questo modo non funziona con extra-dependencies
-    //from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
     from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
 }
 
-tasks.register('copyExtraJar', Copy) {
-    println 'copyExtraJar...'
-    dependsOn(':extra-dependencies:buildDependencies')//, ':extended:shadowJar', ':core:shadowJar')
-    // dependsOn()
-
-    // todo - dire che in questo modo non funziona con extra-dependencies
-    //from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-extended')
-    //from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
-}
-
 tasks.register('copyApocExtendedJar', Copy) {
-    println 'copyApocExtendedJar...'
     dependsOn(':extended:shadowJar')
-    // dependsOn()
-
-    // todo - dire che in questo modo non funziona con extra-dependencies
     from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
-    //from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test/jar-core')
 }
-
-//tasks.register('copyApocJar2') {
-//    dependsOn(buildDependencies)
-//}
-
-
-//tasks.register('copyApocExtraDepsJar', Copy) {
-//    //println 'IIII' + project(':extra-dependencies').tasks
-//    dependsOn(':extra-dependencies:buildDependencies')
-//    //println 'PD' + project(':extra-dependencies').tasks.buildDependencies
-//    from project(':extra-dependencies').tasks.buildDependencies.archiveFile into layout.buildDirectory.dir('test/jar-extra')
-//
-////    dependsOn(project(':extra-dependencies').tasks.buildDependencies)
-////    dependsOn(project(':extra-dependencies').tasks.buildDependencies)
-////    dependsOn(project(':extra-dependencies').task(':buildDependencies'))
-////    dependsOn(':extra-dependencies:buildDependencies')
-//    //println 'EEEE' + project(':extra-dependencies').tasks
-//    //dependsOn('extra-dependencies:build')
-//    //println 'AAAAA' + project('extra-dependencies').tasks
-//    //from project(':extra-dependencies').tasks.buildDependencies.archiveFile into layout.buildDirectory.dir('test/jar-extra')
-//}
-
 
 test {
-    //dependsOn(copyApocExtraDepsJar)
     dependsOn(copyApocCoreJar)
-    dependsOn(copyExtraJar)
     dependsOn(copyApocExtendedJar)
+    dependsOn(':extra-dependencies:buildDependencies')
     maxParallelForks = 1
     doFirst {
-        // TODO - WRITE THAT WE NEED APOC CORE PATH AS WELL, FOR TEST WITH BOTH EXTENDED AND CORE JARS
         var apocJarCorePath = layout.buildDirectory.file("test-core/jar/apoc-${version}-core.jar").get().asFile.absolutePath
         println("apoc-core.test.jar.path=$apocJarCorePath")
         systemProperty 'apoc-core.test.jar.path', apocJarCorePath
@@ -185,44 +89,12 @@ test {
         var apocJarExtendedPath = layout.buildDirectory.file("test-extended/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
         println("apoc-extended.test.jar.path=$apocJarExtendedPath")
         systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
-
-        println 'UUUU' + project(':extra-dependencies').buildDir
-        println 'UUUUKKK' + "${project(':extra-dependencies').buildDir}/allJars"
-        println 'UUUUKKKEEE' + new File(rootDir, "${project(':extra-dependencies').buildDir}/allJars")
-        println 'UUUUKKKEEEAAAA' + new File(rootDir, "${project(':extra-dependencies').buildDir}/allJars").absolutePath
-       
-        var apocExtendedJarPath = "${project(':extra-dependencies').buildDir}/allJars"
-
-        // todo - dire che in questo modo non funziona perche fa 2 volte absolute path
-//        var apocExtendedJarPath = new File(rootDir, "${project(':extra-dependencies').buildDir}/allJars").absolutePath
         
-        // todo - dire che in questo modo non funziona
-//        var apocExtendedJarPath = project(':extra-dependencies').buildDir.file("allJars").get().asFile.absolutePath
-////        var apocJarPath = layout.buildDirectory.file("test/$buildDir/allJars/apoc-aws-dependencies-${version}.jar").get().asFile.absolutePath
+        var apocExtendedJarPath = "${project(':extra-dependencies').buildDir}/allJars"
         println("apoc-extra-dependencies.test.jar.path=$apocExtendedJarPath")
         systemProperty 'apoc-extra-dependencies.test.jar.path', apocExtendedJarPath
     }
 }
-
-//gradle ':extra-dependencies:clean'
-
-// project(':extended').buildDependencies
-
-// gradle.includedBuild("extra-dependencies").task(":clean").get().execute()
-
-// gradle copyApocExtraDepsJar
-
-
-//test {
-//    dependsOn(copyApocExtraDepsJar)
-//    maxParallelForks = 1
-//    doFirst {
-//        var apocJarPath = layout.buildDirectory.file("test/jar-extra/apoc-aws-dependencies-${version}.jar").get().asFile.absolutePath
-//////        var apocJarPath = layout.buildDirectory.file("test/$buildDir/allJars/apoc-aws-dependencies-${version}.jar").get().asFile.absolutePath
-////        println("apoc-extra-dependencies.test.jar.path=$apocJarPath")
-////        systemProperty 'apoc-extra-dependencies.test.jar.path', apocJarPath
-//    }
-//}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
