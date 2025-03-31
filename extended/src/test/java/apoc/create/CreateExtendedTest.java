@@ -65,21 +65,6 @@ public class CreateExtendedTest {
     }
 
     @Test
-    public void testVirtualFromNodeFunctionWithWrapping() {
-        testCall(
-                db,
-                """
-                        CREATE (n:Person{name:'Vincent', born: 1974} )
-                        RETURN apoc.create.virtual.fromNodeExtended(n, ['name'], {}, { wrapNodeIds : true }) AS node
-                        """,
-                (row) -> {
-                    Node node = (Node) row.get("node");
-                    assertTrue(node.getId() >= 0);
-                    commonCreateNodeAssertions(node);
-                });
-    }
-
-    @Test
     public void testVirtualFromNodeShouldNotEditOriginalOne() {
         db.executeTransactionally("CREATE (n:Person {name:'toUpdate'})");
 

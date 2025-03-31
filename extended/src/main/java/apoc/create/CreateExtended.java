@@ -2,7 +2,6 @@ package apoc.create;
 
 import apoc.Extended;
 import apoc.result.VirtualNode;
-import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
