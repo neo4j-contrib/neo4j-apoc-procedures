@@ -2,7 +2,6 @@ package apoc.create;
 
 import apoc.Extended;
 import apoc.result.VirtualNode;
-import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -21,10 +20,8 @@ public class CreateExtended {
             @Name(value = "node", description = "The node to generate a virtual node from.") Node node,
             @Name(value = "propertyNames", description = "The properties to copy to the virtual node.") List<String> propertyNames,
             @Name(value = "additionalProperties", defaultValue = "{}", description = "Additional properties to add to the virtual node") Map<String, Object> additionalProperties,
-            @Name(value = "config", defaultValue = "{}", description = "{ wrapNodeIds = false :: BOOLEAN }")
-            Map<String, Object> config) {
-        boolean wrapNodeIds = Util.toBoolean(config.get("wrapNodeIds"));
-        VirtualNode virtualNode = new VirtualNode(node, propertyNames, wrapNodeIds);
+            @Name(value = "config", defaultValue = "{}", description = "{ wrapNodeIds = false :: BOOLEAN }") Map<String, Object> config) {
+        VirtualNode virtualNode = new VirtualNode(node, propertyNames);
         additionalProperties.forEach(virtualNode::setProperty);
         return virtualNode;
     }
