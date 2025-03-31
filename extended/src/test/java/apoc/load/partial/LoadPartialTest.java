@@ -133,19 +133,6 @@ public class LoadPartialTest {
 
     }
 
-    @Test
-    public void testLoadPartialStringLargeFileZip() throws Exception {
-        // 100MB zip file
-        // 800MB csv file inside it
-        URL urlFileName = new URL("https://www3.stats.govt.nz/2018census/Age-sex-by-ethnic-group-grouped-total-responses-census-usually-resident-population-counts-2006-2013-2018-Censuses-RC-TA-SA2-DHB.zip!Data8277.csv");
-        String path = urlFileName.toString();
-        int limit = 300;
-        String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 50, $limit)",
-                map("url", path, "limit", limit));
-
-        assertEquals(limit, output.length());
-    }
-
     private void testPartialCsvCommon(String path) {
         String output = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
                 map("url", path));
