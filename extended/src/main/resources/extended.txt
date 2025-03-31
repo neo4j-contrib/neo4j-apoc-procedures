@@ -280,3 +280,4 @@ apoc.vectordb.configure
 apoc.kafka.consume
 apoc.kafka.publish
 apoc.kafka.publish.sync
+apoc.create.virtual.fromNodeExtended
