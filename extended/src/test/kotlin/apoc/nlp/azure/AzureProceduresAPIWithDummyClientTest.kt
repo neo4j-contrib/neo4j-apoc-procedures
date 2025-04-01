@@ -16,7 +16,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
 
-@Ignore
 class AzureProceduresAPIWithDummyClientTest {
     companion object {
         val apiKey: String? = "dummyKey"
