@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.custom.CypherProceduresUtil.checkEnabled;
 import static org.neo4j.graphdb.QueryExecutionType.QueryType;
 import static apoc.custom.CypherProceduresHandler.*;
 import static apoc.util.ExtendedUtil.isQueryValid;
@@ -64,7 +65,7 @@ public class CypherProcedures {
                                  @Name(value = "mode", defaultValue = "read") String mode,
                                  @Name(value = "description", defaultValue = "") String description
     ) {
-        checkWriteAllowed(MSG_DEPRECATION);
+        checkEnabledAndWriteAllowed();
         Mode modeProcedure = CypherProceduresUtil.mode(mode);
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, modeProcedure);
         validateProcedure(statement, procedureSignature.inputSignature(), procedureSignature.outputSignature(), modeProcedure);
@@ -78,7 +79,7 @@ public class CypherProcedures {
     public void declareFunction(@Name("signature") String signature, @Name("statement") String statement,
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
                            @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
-        checkWriteAllowed(MSG_DEPRECATION);
+        checkEnabledAndWriteAllowed();
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
         final Signatures signatures = new Signatures(PREFIX);
         final SignatureParser.FunctionContext functionContext = signatures.parseFunction(signature);
@@ -110,7 +111,7 @@ public class CypherProcedures {
     @Procedure(value = "apoc.custom.removeProcedure", mode = Mode.WRITE, deprecatedBy = "apoc.custom.dropProcedure")
     @Description("apoc.custom.removeProcedure(name) - remove the targeted custom procedure")
     public void removeProcedure(@Name("name") String name) {
-        checkWriteAllowed(MSG_DEPRECATION);
+        checkEnabledAndWriteAllowed();
         cypherProceduresHandler.removeProcedure(name);
     }
 
@@ -119,8 +120,13 @@ public class CypherProcedures {
     @Procedure(value = "apoc.custom.removeFunction", mode = Mode.WRITE, deprecatedBy = "apoc.custom.dropFunction")
     @Description("apoc.custom.removeFunction(name, type) - remove the targeted custom function")
     public void removeFunction(@Name("name") String name) {
-        checkWriteAllowed(MSG_DEPRECATION);
+        checkEnabledAndWriteAllowed();
         cypherProceduresHandler.removeFunction(name);
+    }
+
+    private static void checkEnabledAndWriteAllowed() {
+        checkEnabled();
+        checkWriteAllowed(MSG_DEPRECATION);
     }
 
     private void validateFunction(String statement, List<FieldSignature> input) {

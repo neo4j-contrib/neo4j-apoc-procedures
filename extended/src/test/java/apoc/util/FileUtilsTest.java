@@ -12,6 +12,7 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
@@ -19,6 +20,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 import static apoc.util.ExtendedTestUtil.MockURLAccessChecker;
+import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
 
 public class FileUtilsTest {
 
@@ -51,10 +53,10 @@ public class FileUtilsTest {
 
     @Before
     public void setUp() throws Exception {
-        importFolder = db.databaseLayout().databaseDirectory().toFile().getAbsolutePath() + "/import/";
+        importFolder = new File("import").toPath().toString();
         TEST_FILE_RELATIVE = Paths.get(importFolder, "test.csv").toUri().toString();
         if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
-            apocConfig().setProperty("server.directories.import", importFolder);
+            apocConfig().setProperty(load_csv_file_url_root.name(), importFolder);
         }
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, Config.class);
