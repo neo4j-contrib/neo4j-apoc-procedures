@@ -158,7 +158,14 @@ public class JdbcUtil {
         return sqlOrKey.contains(" ") ? sqlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
     }
 
+    // Helper method to call the function being tested
     public static String obfuscateJdbcUrl(String query) {
-        return query.replaceAll("(jdbc:[^:]+://)([^\\s\\\"']+)", "$1*******");
+        // General case for most databases
+        query = query.replaceAll("(jdbc:[^:]+://)[^\\s\\\"']+", "$1*******");
+
+        // Special case for Oracle Thin Driver
+        query = query.replaceAll("(jdbc:oracle:thin:)[^\\s\\\"']+", "$1*******");
+
+        return query;
     }
 }
