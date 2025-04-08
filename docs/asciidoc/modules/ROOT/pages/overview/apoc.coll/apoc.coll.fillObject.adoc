@@ -1,5 +1,6 @@
 
 = apoc.coll.fillObject
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.coll/apoc.coll.fillObject/
 :description: This section contains reference documentation for the apoc.coll.fillObject function.
 
 label:function[] label:apoc-full[]

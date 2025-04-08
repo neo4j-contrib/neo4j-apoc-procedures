@@ -38,6 +38,7 @@ With hostOrKey=null, the default is 'http://localhost:6333'.
 
 
 === Examples
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/qdrant/
 
 .Get collection info (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/get_collection[this API])
 [source,cypher]

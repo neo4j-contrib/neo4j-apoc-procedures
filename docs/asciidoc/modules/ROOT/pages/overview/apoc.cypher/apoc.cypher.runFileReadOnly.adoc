@@ -7,6 +7,7 @@ label:procedure[] label:apoc-full[]
 apoc.cypher.runFileReadOnly(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each `READ` statement in the file, all semicolon separated - currently no schema operations
 
 == Signature
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.cypher/apoc.cypher.runFileReadOnly/
 
 [source]
 ----
