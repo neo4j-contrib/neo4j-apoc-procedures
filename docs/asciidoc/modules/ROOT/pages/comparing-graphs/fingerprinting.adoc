@@ -1,5 +1,6 @@
 [[fingerprinting]]
 = Fingerprinting
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/comparing-graphs/fingerprinting/
 :description: This section describes procedures that can be used to create a hash over nodes, relationships or the whole graph.
 
 

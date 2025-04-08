@@ -1,5 +1,6 @@
 [[virtual]]
 = Virtual Nodes & Relationships (Graph Projections)
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/virtual/
 :description: This chapter describes virtual node and relationship procedures in the APOC library.
 
 

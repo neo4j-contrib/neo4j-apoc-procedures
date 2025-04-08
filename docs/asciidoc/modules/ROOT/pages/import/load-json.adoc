@@ -1,5 +1,6 @@
 [[load-json]]
 = Load JSON
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/load-json/
 :description: This section describes procedures that can be used to import JSON data from web APIs or files.
 
 

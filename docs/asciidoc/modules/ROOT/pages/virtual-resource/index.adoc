@@ -1,5 +1,6 @@
 [[virtual-resource]]
 = Virtual Resource
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/virtual-resource/
 :description: This chapter describes how to handle external data sources as virtual resource without persisting them in the database
 
 [NOTE]

@@ -1,5 +1,6 @@
 [[expand-subgraph]]
 = Expand to subgraph
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/expand-subgraph/
 :description: This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
 
 

@@ -1,5 +1,6 @@
 [[general-considerations]]
 = General considerations
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/general-considerations/
 :description: This chapter describes a list of information to consider using the APOC library.
 
 To use the APOC library it's necessary to consider the following issues.

@@ -1,5 +1,6 @@
 [[neighbourhood-search]]
 = Neighbor Functions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/neighborhood/
 :description: This section describes procedures that can be used to find the nodes in the neighborhood of a specified node.
 
 
