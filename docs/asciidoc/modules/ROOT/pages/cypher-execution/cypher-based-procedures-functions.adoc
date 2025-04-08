@@ -1,5 +1,6 @@
 [[cypher-based-procedures-functions]]
 = Custom, Cypher Based Procedures and Functions
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/cypher-execution/cypher-based-procedures-functions/
 :description: This section describes how to register custom Cypher statements as procedures and functions
 
 
