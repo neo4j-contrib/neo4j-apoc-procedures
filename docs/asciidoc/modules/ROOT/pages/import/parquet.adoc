@@ -1,5 +1,6 @@
 [[load-import-parquet]]
 = Load / Import Apache Parquet
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/parquet/
 
 
 == Library Requirements

@@ -1,5 +1,6 @@
 [[gexf]]
 = Load GEXF (Graph Exchange XML Format)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/gexf/
 :description: This section describes procedures that can be used to import data from GEXF files.
 
 

@@ -22,6 +22,7 @@ apoc.kafka.log.compaction.strategy=delete
 
 [NOTE]
 ====
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/kafka/producer-configuration/
 **To use the Kafka transactions please set `kafka.transactional.id` and `kafka.acks` properly**.
 Checkout this {url-confluent-blog}/transactions-apache-kafka/[blog post] for further details about transactions in Apache Kafka
 ====

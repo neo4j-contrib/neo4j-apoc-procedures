@@ -1,5 +1,6 @@
 [[apoc-load-directory-async]]
 = Directory listeners
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/background-operations/apoc-load-directory-async/
 
 The apoc.load.directory.async procedures are used for managing triggers.
 Each trigger consists of a listener observing one or more folders which will trigger the execution of a custom cypher query.

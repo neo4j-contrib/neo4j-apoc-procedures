@@ -1,5 +1,6 @@
 [[apoc.load.jsonParams]]
 = Load JSON
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/load-json/
 :description: This section contains reference documentation for the apoc.load.jsonParams procedure.
 
 label:procedure[] label:apoc-core[]

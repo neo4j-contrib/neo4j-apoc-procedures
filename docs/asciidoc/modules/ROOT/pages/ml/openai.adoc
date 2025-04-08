@@ -1,5 +1,6 @@
 [[openai-api]]
 = OpenAI API Access
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/openai/
 :description: This section describes procedures that can be used to access the OpenAI API.
 
 [NOTE]

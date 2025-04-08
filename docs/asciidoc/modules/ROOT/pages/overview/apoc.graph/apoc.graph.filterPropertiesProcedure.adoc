@@ -11,6 +11,7 @@ Returns a set of virtual nodes and relationships without the properties defined 
 ----
 
 == Signature
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.graph/apoc.graph.filterPropertiesProcedure/
 
 [source]
 ----

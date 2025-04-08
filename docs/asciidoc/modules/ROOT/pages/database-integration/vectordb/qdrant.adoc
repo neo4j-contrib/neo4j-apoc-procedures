@@ -1,5 +1,6 @@
 
 = Qdrant
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/qdrant/
 
 Here is a list of all available Qdrant procedures,
 note that the list and the signature procedures are consistent with the others, like the ChromaDB ones:

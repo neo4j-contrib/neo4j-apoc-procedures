@@ -1,5 +1,6 @@
 [[aws-sagemaker]]
 = AWS SageMaker procedures
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/sagemaker/
 
 
 These procedures leverage the https://aws.amazon.com/sagemaker/[Amazon SageMaker API].

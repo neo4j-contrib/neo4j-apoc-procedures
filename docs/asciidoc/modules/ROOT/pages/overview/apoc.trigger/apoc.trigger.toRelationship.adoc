@@ -1,5 +1,6 @@
 
 = apoc.trigger.toRelationship
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.trigger/apoc.trigger.toRelationship/
 :description: This section contains reference documentation for the apoc.trigger.toRelationship function.
 
 label:function[] label:apoc-extended[]

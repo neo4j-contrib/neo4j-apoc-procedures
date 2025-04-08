@@ -1,5 +1,6 @@
 
 = apoc.custom.dropAll
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.custom/apoc.custom.dropAll/
 :description: This section contains reference documentation for the apoc.custom.dropAll procedure.
 
 label:procedure[] label:apoc-extended[]

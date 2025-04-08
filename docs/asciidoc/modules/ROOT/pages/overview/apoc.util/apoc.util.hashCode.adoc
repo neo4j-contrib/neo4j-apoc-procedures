@@ -1,5 +1,6 @@
 
 = apoc.util.hashCode
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.util/apoc.util.hashCode/
 :description: This section contains reference documentation for the apoc.util.hashCode function.
 
 label:function[] label:apoc-extended[]

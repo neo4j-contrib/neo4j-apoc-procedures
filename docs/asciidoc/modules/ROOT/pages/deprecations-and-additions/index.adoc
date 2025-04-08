@@ -1,5 +1,6 @@
 [[deprecations-and-additions]]
 = Deprecations and additions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/deprecations-and-additions/
 :description: This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.
 
 This chapter lists all the features that have been removed, deprecated, added or extended in the recent versions of APOC.

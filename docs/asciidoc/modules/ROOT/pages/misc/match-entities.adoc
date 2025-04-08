@@ -1,5 +1,6 @@
 [[match-entities]]
 = Match entities
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/misc/match-entities/
 :description: This section describes procedures and functions for matching entities.
 
 The library provides 2 procedure for matching entities:

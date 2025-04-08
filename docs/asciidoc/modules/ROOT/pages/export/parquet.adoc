@@ -1,5 +1,6 @@
 [[export-parquet]]
 = Export Apache Parquet
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/export/parquet/
 
 
 == Library Requirements

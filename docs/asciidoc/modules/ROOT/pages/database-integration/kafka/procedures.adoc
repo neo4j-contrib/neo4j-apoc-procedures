@@ -13,6 +13,7 @@ endif::env-docs[]
 The APOC Kafka procedures comes out with a list of procedures.
 
 == Configuration
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/kafka/procedures/
 
 You can enable/disable the procedures by changing this variable inside the `neo4j.conf`
 

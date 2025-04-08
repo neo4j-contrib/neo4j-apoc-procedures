@@ -1,5 +1,6 @@
 
 = Pinecone
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/pinecone/
 
 [NOTE]
 ====

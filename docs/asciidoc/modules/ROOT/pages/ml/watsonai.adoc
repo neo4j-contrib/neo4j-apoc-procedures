@@ -1,5 +1,6 @@
 [[Watson-api]]
 = Watson API Access
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/watsonai/
 :description: This section describes procedures that can be used to access the Watson API.
 
 NOTE: You need to acquire an https://cloud.ibm.com/apidocs/Watson-data-api#creating-an-iam-bearer-token[Watson bearer access token] to use these procedures.

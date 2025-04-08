@@ -1,5 +1,6 @@
 
 = Confluent Cloud
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/kafka/cloud/
 
 [[confluent_cloud]]
 Configuring a connection to a Confluent Cloud instance should follow
