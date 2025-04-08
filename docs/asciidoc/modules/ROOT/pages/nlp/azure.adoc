@@ -1,6 +1,5 @@
 [[nlp-azure]]
 = Microsoft Azure Cognitive Services
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/azure/
 :description: This chapter describes procedures that wrap Microsoft Azure Cognitive Services API.
 
 

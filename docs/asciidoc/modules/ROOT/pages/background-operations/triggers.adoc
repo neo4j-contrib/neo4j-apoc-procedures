@@ -1,6 +1,5 @@
 [[triggers]]
 = Triggers
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/background-operations/triggers/
 :description: This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
 
 

@@ -1,6 +1,5 @@
 [[export]]
 = Export
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/
 :description: This chapter describes procedures in the APOC library that can be used to export data from Neo4j.
 
 

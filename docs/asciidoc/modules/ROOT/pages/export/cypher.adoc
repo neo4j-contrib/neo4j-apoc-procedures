@@ -1,6 +1,5 @@
 [[export-cypher]]
 = Export to Cypher Script
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/cypher/
 :description: This section describes procedures that can be used to export data in Cypher format.
 
 

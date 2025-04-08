@@ -1,6 +1,5 @@
 [[load-csv]]
 = Load CSV
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/load-csv/
 :description: This section describes procedures that can be used to import data from CSV files.
 
 

@@ -1,6 +1,5 @@
 [[export-xls]]
 = Export to Excel
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/export/xls/
 :description: This section describes procedures that can be used to export data in Xls format.
 
 The export Xls procedures export data into a format that's supported by Microsoft Excel, OpenOffice Calc, Apple Numbers and similar.

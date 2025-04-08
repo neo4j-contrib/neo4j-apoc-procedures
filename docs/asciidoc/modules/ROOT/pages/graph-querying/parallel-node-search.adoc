@@ -1,6 +1,5 @@
 [[parallel-node-search]]
 = Parallel Node Search
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/parallel-node-search/
 :description: This section describes procedures that can be used to find nodes in parallel.
 
 

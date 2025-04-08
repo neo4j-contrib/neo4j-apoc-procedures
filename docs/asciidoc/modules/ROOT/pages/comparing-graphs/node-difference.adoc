@@ -1,6 +1,5 @@
 [[node-difference]]
 = Diff
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/comparing-graphs/node-difference/
 :description: This section describes a function that displays the difference between two nodes.
 
 

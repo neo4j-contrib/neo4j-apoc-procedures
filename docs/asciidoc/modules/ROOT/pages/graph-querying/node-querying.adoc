@@ -1,6 +1,5 @@
 [[node-functions]]
 = Node Querying
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/node-querying/
 :description: This section describes functions that can be used to query nodes.
 
 .Functions

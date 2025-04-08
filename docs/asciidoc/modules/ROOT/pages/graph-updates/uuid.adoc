@@ -1,6 +1,5 @@
 [[auto-uuid]]
 = UUIDs
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/graph-updates/uuid/
 :description: This section describes procedures that can be used to add UUID properties to nodes.
 
 

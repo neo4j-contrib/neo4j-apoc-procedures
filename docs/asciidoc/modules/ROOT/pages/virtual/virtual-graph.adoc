@@ -18,7 +18,6 @@ include::example$generated-documentation/apoc.graph.validateDocument.adoc[]
 |===
 
 == `apoc.graph.fromDocument`
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/virtual/virtual-graph/
 
 The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure.
 It takes two arguments:

@@ -1,6 +1,5 @@
 [[parallel-cypher-execution]]
 = Parallel Cypher Execution
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/cypher-execution/parallel/
 
 [abstract]
 --

@@ -1,6 +1,5 @@
 [[mathematical]]
 = Mathematical
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/
 :description: This chapter describes procedures and functions that can be used for mathematical operations.
 
 

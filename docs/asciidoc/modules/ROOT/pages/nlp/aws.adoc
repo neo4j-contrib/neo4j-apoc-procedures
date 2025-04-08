@@ -1,7 +1,6 @@
 
 [[nlp-aws]]
 = Amazon Web Services (AWS)
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/aws/
 :description: This chapter describes procedures that wrap Amazon Web Services Comprehend Natural Language API.
 
 

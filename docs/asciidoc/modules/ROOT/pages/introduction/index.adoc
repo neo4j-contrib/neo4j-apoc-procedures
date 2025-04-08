@@ -1,6 +1,5 @@
 [[introduction]]
 = Introduction
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/introduction/
 :description: This chapter provides an introduction to the APOC library, and instructions for installation and use.
 
 

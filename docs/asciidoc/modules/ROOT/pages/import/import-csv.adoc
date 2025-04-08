@@ -1,6 +1,5 @@
 [[import-csv]]
 = Import CSV
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/import-csv/
 :description: This section describes procedures that can be used to import data from CSV files that comply with the Neo4j import tool’s header format.
 
 

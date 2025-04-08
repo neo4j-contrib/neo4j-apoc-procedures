@@ -1,6 +1,5 @@
 [[bitwise-operations]]
 = Bitwise operations
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/bitwise-operations/
 :description: This section describes procedures that can be used for doing bitwise operations.
 
 

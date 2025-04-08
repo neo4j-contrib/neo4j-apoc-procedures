@@ -1,6 +1,5 @@
 [[cypher-multiple-statements]]
 = Run multiple Statements
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/cypher-execution/cypher-multiple-statements/
 :description: This section describes procedures that can be used to execute multiple Cypher statements.
 
 

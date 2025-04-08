@@ -1,6 +1,5 @@
 [[graph-grouping]]
 = Graph Grouping
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/virtual/graph-grouping/
 :description: This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
 
 

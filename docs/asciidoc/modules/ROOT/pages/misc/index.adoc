@@ -1,6 +1,5 @@
 [[misc]]
 = Miscellaneous
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/misc/
 :description: This chapter describes miscellaneous functions and procedures in the APOC library.
 
 

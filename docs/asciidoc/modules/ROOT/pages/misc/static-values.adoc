@@ -1,6 +1,5 @@
 [[static-values]]
 = Static Value Storage
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/misc/static-values/
 :description: This section describes procedures and functions for storing and retrieving static values.
 
 

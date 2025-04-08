@@ -1,6 +1,5 @@
 [[usage]]
 = Usage
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/usage/
 
 // tag::usage[]
 User defined *Functions* can be used in *any* expression or predicate, just like built-in functions.

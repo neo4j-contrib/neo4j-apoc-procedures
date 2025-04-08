@@ -1,6 +1,5 @@
 [[neo4j-config]]
 = Config
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-introspection/config/
 :description: This section describes procedures that can be used to list Neo4j configuration.
 
 

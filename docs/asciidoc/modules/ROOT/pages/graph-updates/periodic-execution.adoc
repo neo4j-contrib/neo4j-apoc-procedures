@@ -1,6 +1,5 @@
 [[periodic-execution]]
 = Periodic Execution
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-updates/periodic-execution/
 :description: This section describes procedures that can be used to batch transactions when executing large write operations.
 
 

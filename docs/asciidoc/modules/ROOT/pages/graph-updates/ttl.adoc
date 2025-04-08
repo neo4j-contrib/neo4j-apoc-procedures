@@ -1,6 +1,5 @@
 [[ttl]]
 = Time To Live (TTL) - Expire Nodes
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/graph-updates/ttl/
 :description: This section describes procedures that can be used to remove nodes from the database once a time or time limit has been reached.
 
 

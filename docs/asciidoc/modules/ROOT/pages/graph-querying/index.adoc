@@ -1,6 +1,5 @@
 [[path-finding]]
 = Advanced Graph Querying
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/
 :description: This chapter describes advanced graph querying procedures in the APOC library.
 
 

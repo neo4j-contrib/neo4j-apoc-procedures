@@ -1,6 +1,5 @@
 [[virtual-nodes-rels]]
 = Virtual Nodes/Rels
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/virtual/virtual-nodes-rels/
 :description: This section describes procedures that create virtual nodes and relationships.
 
 

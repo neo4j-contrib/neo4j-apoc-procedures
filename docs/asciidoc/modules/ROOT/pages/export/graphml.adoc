@@ -1,6 +1,5 @@
 [[graphml-export]]
 = Export to GraphML
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/graphml/
 :description: This section describes procedures that can be used to export data in GraphML format.
 
 

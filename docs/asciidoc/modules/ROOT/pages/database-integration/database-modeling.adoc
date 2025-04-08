@@ -1,6 +1,5 @@
 [[database-modeling]]
 = Database Modeling
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/database-modeling/
 :description: This section describes procedures that can be used to extract metadata from different data sources.
 
 

@@ -1,6 +1,5 @@
 [[couchbase]]
 = Couchbase
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/couchbase/
 :description: This section describes procedures that can be used to interact with Couchbase.
 
 

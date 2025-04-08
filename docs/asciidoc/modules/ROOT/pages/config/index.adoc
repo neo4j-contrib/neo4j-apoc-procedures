@@ -1,6 +1,5 @@
 [[config]]
 = Configuration Options
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/config/
 :description: This chapter gives an overview of all the configuration options used by the APOC library.
 
 

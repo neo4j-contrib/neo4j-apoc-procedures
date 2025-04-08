@@ -1,6 +1,5 @@
 [[comparing-graphs]]
 = Comparing Graphs
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/comparing-graphs/
 :description: This chapter describes procedures that can be used to compare graphs against each other.
 
 

@@ -1,6 +1,5 @@
 [[import]]
 = Import
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/
 :description: This chapter describes procedures in the APOC library that can be used to import data into Neo4j.
 
 

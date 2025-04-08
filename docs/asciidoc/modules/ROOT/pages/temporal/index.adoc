@@ -1,6 +1,5 @@
 [[temporal]]
 = Temporal (Date Time)
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/temporal/
 :description: This chapter describes procedures that can be used for formatting temporal types.
 
 

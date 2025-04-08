@@ -1,6 +1,5 @@
 [[math-functions]]
 = Math Functions
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/sigmoid-hyperbolic-operations/
 :description: This section describes functions for common math operations.
 
 == Handle sigmoid and hyperbolic operations

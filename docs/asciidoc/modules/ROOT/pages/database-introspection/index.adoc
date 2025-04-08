@@ -1,6 +1,5 @@
 [[database-introspection]]
 = Database Introspection
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-introspection/
 :description: This chapter describes procedures that can be used to introspect the database.
 
 

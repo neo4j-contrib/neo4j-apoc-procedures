@@ -1,6 +1,5 @@
 [[init-script]]
 = Cypher init script
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/operational/init-script/
 :description: This section describes a hook to run Cypher commands after database initialization.
 
 Apoc optionally allows you to run cypher commands after database initialization is finished.

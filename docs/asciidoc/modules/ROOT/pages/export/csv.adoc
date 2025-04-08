@@ -1,6 +1,5 @@
 [[export-csv]]
 = Export to CSV
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/csv/
 :description: This section describes procedures that can be used to export data in CSV format.
 
 

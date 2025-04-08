@@ -1,6 +1,5 @@
 [[nlp-gcp]]
 = Google Cloud Platform (GCP)
-:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/gcp/
 :description: This chapter describes procedures that wrap Google Cloud Platform's Natural Language API.
 
 

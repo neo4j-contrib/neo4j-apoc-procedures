@@ -1,6 +1,5 @@
 [[path-functions]]
 = Path Manipulation
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/path-querying/
 :description: This section describes functions that can be used to do path operations.
 
 

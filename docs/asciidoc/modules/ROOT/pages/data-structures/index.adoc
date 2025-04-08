@@ -1,6 +1,5 @@
 [[data-structures]]
 = Data Structures
-:page-custom-canonical: https://neo4j.com/docs/apoc/current/data-structures/
 :description: This chapter describes functions and procedures in the APOC library that can be used to manipulate data structures.
 
 
