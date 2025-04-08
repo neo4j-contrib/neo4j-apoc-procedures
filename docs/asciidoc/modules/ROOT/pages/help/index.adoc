@@ -1,5 +1,6 @@
 [[help]]
 = Built in Help
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/help/
 :description: This chapter describes the built in help in the APOC library.
 
 

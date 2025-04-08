@@ -1,5 +1,6 @@
 [[periodic-background]]
 = Background Jobs
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/background-operations/periodic-background/
 :description: This section describes procedures that can be used to run procedures in the background or asynchronously.
 
 

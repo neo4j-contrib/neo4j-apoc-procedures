@@ -1,5 +1,6 @@
 [[bolt-neo4j]]
 = Bolt
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/bolt-neo4j/
 :description: This section describes procedures that can be used to access other databases via the Bolt protocol.
 
 
