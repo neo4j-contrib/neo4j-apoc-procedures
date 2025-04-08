@@ -1,5 +1,6 @@
 [[expand-spanning-tree]]
 = Expand a spanning tree
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/expand-spanning-tree/
 :description: This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
 
 

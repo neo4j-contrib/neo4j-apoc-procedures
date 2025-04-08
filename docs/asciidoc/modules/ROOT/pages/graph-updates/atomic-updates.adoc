@@ -1,5 +1,6 @@
 [[atomic-updates]]
 = Atomic Property Updates
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-updates/atomic-updates/
 :description: This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
 
 
