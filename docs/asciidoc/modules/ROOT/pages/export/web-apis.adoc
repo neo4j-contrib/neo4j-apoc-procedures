@@ -1,5 +1,6 @@
 [[web-apis]]
 = Export data to S3
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/web-apis/
 :description: This section gives an overview on how exporting procedures can be used with S3.
 
 To export to S3, the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-aws-dependencies-{apoc-release}.jar[APOC AWS dependency jar] needs to be downloaded and copied into the plugins directory, _<NEO4J_HOME>/plugins_.

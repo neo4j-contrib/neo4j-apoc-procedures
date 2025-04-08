@@ -1,5 +1,6 @@
 
 = apoc.agg.rollup
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.agg/apoc.agg.rollup/
 :description: This section contains reference documentation for the apoc.agg.rollup function.
 
 label:function[] label:apoc-extended[]

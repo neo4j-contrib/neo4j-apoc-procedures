@@ -1,5 +1,6 @@
 [[number-conversions]]
 = Number Format Conversions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/number-conversions/
 :description: This section describes functions that can be used to format numeric values.
 
 

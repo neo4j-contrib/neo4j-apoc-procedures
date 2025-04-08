@@ -1,5 +1,6 @@
 [[data-creation]]
 = Creating Data
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-updates/data-creation/
 :description: This section describes functions that can be used to create data entities.
 
 

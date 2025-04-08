@@ -1,5 +1,6 @@
 [[redis]]
 = Redis
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/redis/
 :description: This section describes procedures that can be used to interact with MongoDB.
 
 Here is a list of all available Redis procedures:

@@ -1,5 +1,6 @@
 
 = Milvus
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/milvus/
 
 Here is a list of all available Milvus procedures:
 

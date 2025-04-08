@@ -1,5 +1,6 @@
 [[graphml-import]]
 = Import GraphML
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/import-graphml/
 :description: This chapter describes a procedure that can be using to load data from GraphML into Neo4j.
 
 

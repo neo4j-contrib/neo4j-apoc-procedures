@@ -1,5 +1,6 @@
 [[rel-functions]]
 = Relationship Querying
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/relationship-querying/
 :description: This section describes procedures that can be used to query relationships.
 
 

@@ -1,5 +1,6 @@
 [[genai-assistant]]
 = GenAI Assistant Procedures
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/genai/
 :description: This section describes procedures that can be used to access the GenAI Assistant.
 
 == Query with natural language
