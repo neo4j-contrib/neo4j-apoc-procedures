@@ -31,5 +31,6 @@ apoc.import.file.use_neo4j_config=false
 
 [WARNING]
 ====
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/includes/enableFileImport/
 Neo4j will now be able to read from anywhere on the file system, so be sure that this is your intention before setting this property.
 ====

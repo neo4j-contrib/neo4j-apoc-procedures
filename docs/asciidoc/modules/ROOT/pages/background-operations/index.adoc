@@ -1,5 +1,6 @@
 [[job-management]]
 = Background Operations
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/background-operations/
 :description: This chapter describes procedures that can be used to schedule execution of Cypher statements to run in the background.
 
 

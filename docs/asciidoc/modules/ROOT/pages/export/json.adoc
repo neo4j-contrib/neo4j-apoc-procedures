@@ -1,5 +1,6 @@
 [[export-json]]
 = Export to JSON
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/export/json/
 :description: This section describes procedures that can be used to export data in JSON format.
 
 

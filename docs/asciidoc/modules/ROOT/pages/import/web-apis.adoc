@@ -1,5 +1,6 @@
 [[web-apis]]
 = Loading Data from Web-APIs
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/web-apis/
 :description: This section gives an overview of procedures that can be used to load data from Web-APIs into Neo4j.
 
 
