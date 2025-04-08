@@ -11,6 +11,7 @@ Aggregation function which returns an object {node: [virtual nodes], relationshi
 ----
 
 == Signature
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.graph/apoc.graph.filterProperties/
 
 [source]
 ----

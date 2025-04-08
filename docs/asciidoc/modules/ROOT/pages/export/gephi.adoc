@@ -1,5 +1,6 @@
 [[gephi]]
 = Export to Gephi
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/export/gephi/
 :description: This section describes a procedure that can be used to export data into the Gephi visualization tool.
 
 

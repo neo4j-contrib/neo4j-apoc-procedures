@@ -1,5 +1,6 @@
 [[introduction]]
 = Introduction
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/introduction/
 :description: This chapter provides an introduction to the APOC Extended library, and instructions for installation and use.
 
 Neo4j 3.x introduced the concept of user-defined procedures and functions.

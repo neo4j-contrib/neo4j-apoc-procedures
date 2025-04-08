@@ -1,5 +1,6 @@
 [[load-html]]
 = Load HTML
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/html/
 :description: This section describes procedures that can be used to import data from HTML pages.
 
 

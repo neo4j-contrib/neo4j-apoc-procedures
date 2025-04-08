@@ -1,5 +1,6 @@
 
 = Custom (i.e. other vector databases)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/custom/
 
 We can also interface with other db vectors that do not (yet) have dedicated procedures.
 For example, with https://docs.pinecone.io/guides/getting-started/overview[Pinecone], as we will see later.
