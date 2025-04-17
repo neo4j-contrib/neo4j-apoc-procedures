@@ -1,17 +1,18 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
@@ -23,17 +24,30 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
 
-public class OpenAIIT {
+@RunWith(Parameterized.class)
+public class OpenAiIT {
 
     private String openaiKey;
-    
-    public static final String GPT_35_MODEL = "gpt-3.5-turbo";
+
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"gpt-4.1"},
+                {"gpt-4-turbo"},
+                {"gpt-3.5-turbo"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
-    public OpenAIIT() {
-    }
+    public OpenAiIT() {}
 
     @Before
     public void setUp() throws Exception {
@@ -44,43 +58,43 @@ public class OpenAIIT {
 
     @Test
     public void getEmbedding() {
-        testCall(db, EMBEDDING_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
+        testCall(db, EMBEDDING_QUERY, Util.map("apiKey",openaiKey, "conf", emptyMap()),
                 OpenAITestResultUtils::assertEmbeddings);
     }
 
     @Test
     public void getEmbedding3Small() {
-        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small");
-        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+        Map<String, Object> conf = Util.map(MODEL_CONF_KEY, "text-embedding-3-small");
+        testCall(db, EMBEDDING_QUERY, Util.map("apiKey", openaiKey, "conf", conf),
                 OpenAITestResultUtils::assertEmbeddings);
     }
 
     @Test
     public void getEmbedding3Large() {
-        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large");
-        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+        Map<String, Object> conf = Util.map(MODEL_CONF_KEY, "text-embedding-3-large");
+        testCall(db, EMBEDDING_QUERY, Util.map("apiKey", openaiKey, "conf", conf),
                 r -> assertEmbeddings(r, 3072));
     }
 
     @Test
     public void getEmbedding3SmallWithDimensionsRequestParameter() {
-        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small",
+        Map<String, Object> conf = Util.map(MODEL_CONF_KEY, "text-embedding-3-small",
                 "dimensions", 256);
-        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+        testCall(db, EMBEDDING_QUERY, Util.map("apiKey", openaiKey, "conf", conf),
                 r -> assertEmbeddings(r, 256));
     }
 
     @Test
     public void getEmbedding3LargeWithDimensionsRequestParameter() {
-        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large",
+        Map<String, Object> conf = Util.map(MODEL_CONF_KEY, "text-embedding-3-large",
                 "dimensions", 256);
-        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+        testCall(db, EMBEDDING_QUERY, Util.map("apiKey", openaiKey, "conf", conf),
                 r -> assertEmbeddings(r, 256));
     }
 
     @Test
     public void getEmbeddingNull() {
-        testResult(db, "CALL apoc.ml.openai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $conf)", Map.of("apiKey",openaiKey, "conf", emptyMap()),
+        testResult(db, "CALL apoc.ml.openai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $conf)", Util.map("apiKey",openaiKey, "conf", emptyMap()),
                 r -> {
                     Set<String> actual = Iterators.asSet(r.columnAs("text"));
 
@@ -94,13 +108,13 @@ public class OpenAIIT {
     @Test
     public void completion() {
         testCall(db, COMPLETION_QUERY,
-                Map.of("apiKey", openaiKey, "conf", emptyMap()),
+                Util.map("apiKey", openaiKey, "conf", emptyMap()),
                 (row) -> assertCompletion(row, "gpt-3.5-turbo-instruct"));
     }
 
     @Test
     public void chatCompletion() {
-        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
+        testCall(db, CHAT_COMPLETION_QUERY, Util.map("apiKey",openaiKey, "conf", emptyMap()),
                 (row) -> assertChatCompletion(row, GPT_4O_MODEL));
 
         /*
@@ -130,35 +144,35 @@ public class OpenAIIT {
 
     @Test
     public void chatCompletionGpt35Turbo() {
-        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL)),
-                (row) -> assertChatCompletion(row, GPT_35_MODEL));
+        testCall(db, CHAT_COMPLETION_QUERY, Util.map("apiKey",openaiKey, "conf", Util.map(MODEL_CONF_KEY, chatModel)),
+                (row) -> assertChatCompletion(row, chatModel));
     }
 
     @Test
     public void embeddingsNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap())
+                Util.map("apiKey", openaiKey, "conf", emptyMap())
         );
     }
 
     @Test
     public void chatNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap())
+                Util.map("apiKey", openaiKey, "conf", emptyMap())
         );
     }
 
     @Test
     public void chatReturnsEmptyIfFailOnErrorFalse() {
         TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+                Util.map("apiKey", openaiKey, "conf", Util.map(FAIL_ON_ERROR_CONF, false))
         );
     }
 
     @Test
     public void embeddingsReturnsEmptyIfFailOnErrorFalse() {
         TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+                Util.map("apiKey", openaiKey, "conf", Util.map(FAIL_ON_ERROR_CONF, false))
         );
     }
 
@@ -166,42 +180,42 @@ public class OpenAIIT {
     @Test
     public void chatWithEmptyFails() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap())
+                Util.map("apiKey", openaiKey, "conf", emptyMap())
         );
     }
     
     @Test
     public void embeddingsWithEmptyReturnsEmptyIfFailOnErrorFalse() {
         TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding([], $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+                Util.map("apiKey", openaiKey, "conf", Util.map(FAIL_ON_ERROR_CONF, false))
         );
     }
 
     @Test
     public void completionNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap())
+                Util.map("apiKey", openaiKey, "conf", emptyMap())
         );
     }
 
     @Test
     public void chatCompletionNull() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", emptyMap())
+                Util.map("apiKey", openaiKey, "conf", emptyMap())
         );
     }
 
     @Test
     public void chatCompletionNullGpt35Turbo() {
         assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL))
+                Util.map("apiKey", openaiKey, "conf", Util.map(MODEL_CONF_KEY, chatModel))
         );
     }
 
     @Test
     public void completionReturnsEmptyIfFailOnErrorFalse() {
         TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
-                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+                Util.map("apiKey", openaiKey, "conf", Util.map(FAIL_ON_ERROR_CONF, false))
         );
     }
 }

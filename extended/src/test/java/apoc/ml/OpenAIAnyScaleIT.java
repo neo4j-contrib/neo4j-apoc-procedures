@@ -1,13 +1,18 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,12 +22,33 @@ import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@RunWith(Parameterized.class)
 public class OpenAIAnyScaleIT {
 
     private String openaiKey;
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Parameterized.Parameters(name = "chatModel: {0}, completionModel: {1}, embeddingModel: {2}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"meta-llama/Llama-2-70b-chat-hf", "Meta-Llama/Llama-Guard-7b", "thenlper/gte-large"},
+                // tests with default model
+                {null, null, null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
+
+    @Parameterized.Parameter(1)
+    public String completionModel;
+
+    @Parameterized.Parameter(2)
+    public String embeddingModel;
+
 
 
     @Before
@@ -35,7 +61,7 @@ public class OpenAIAnyScaleIT {
     @Test
     public void getEmbedding() {
         testCall(db, EMBEDDING_QUERY,
-                getParams("thenlper/gte-large"),
+                getParams(embeddingModel),
                 row -> {
                     assertEquals(0L, row.get("index"));
                     assertEquals("Some Text", row.get("text"));
@@ -46,7 +72,7 @@ public class OpenAIAnyScaleIT {
 
     @Test
     public void completion() {
-        String modelId = "Meta-Llama/Llama-Guard-7b";
+        String modelId = completionModel;
         testCall(db, COMPLETION_QUERY,
                 getParams(modelId),
                 (row) -> {
@@ -64,7 +90,7 @@ public class OpenAIAnyScaleIT {
 
     @Test
     public void chatCompletion() {
-        String modelId = "meta-llama/Llama-2-70b-chat-hf";
+        String modelId = chatModel;
         testCall(db, CHAT_COMPLETION_QUERY, 
                 getParams(modelId),
                 (row) -> {
@@ -85,8 +111,8 @@ public class OpenAIAnyScaleIT {
     }
 
     private Map<String, Object> getParams(String model) {
-        return Map.of("apiKey", openaiKey,
-                "conf", Map.of(ENDPOINT_CONF_KEY, "https://api.endpoints.anyscale.com/v1",
+        return Util.map("apiKey", openaiKey,
+                "conf", Util.map(ENDPOINT_CONF_KEY, "https://api.endpoints.anyscale.com/v1",
                         MODEL_CONF_KEY, model
                 )
         );

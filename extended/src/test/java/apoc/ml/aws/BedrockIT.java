@@ -1,16 +1,21 @@
 package apoc.ml.aws;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +40,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeNotNull;
 
-
+@RunWith(Parameterized.class)
 public class BedrockIT {
 
     @ClassRule
@@ -62,12 +67,27 @@ public class BedrockIT {
         apocConfig().setProperty(APOC_AWS_KEY_ID, keyId);
         apocConfig().setProperty(APOC_AWS_SECRET_KEY, secretKey);
     }
+
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"amazon.titan-embed-text-v1"},
+                {"amazon.titan-embed-text-v2:0"},
+                {"us.amazon.nova-pro-v1:0"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
     
     @Test
     public void testCustomWithTitanEmbedding() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", TITAN_BODY,
-                        "conf", Map.of(MODEL, TITAN_EMBED_TEXT)
+                Util.map("body", TITAN_BODY,
+                        "conf", Util.map(MODEL, chatModel)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -83,8 +103,8 @@ public class BedrockIT {
         // check apocConfig correctly cleared, i.e. auth error
         try {
             testCall(db, BEDROCK_CUSTOM_PROC,
-                    Map.of("body", TITAN_BODY,
-                            "conf", Map.of(MODEL, TITAN_EMBED_TEXT)
+                    Util.map("body", TITAN_BODY,
+                            "conf", Util.map(MODEL, chatModel)
                     ),
                     r -> {
                         Map value = (Map) r.get("value");
@@ -98,8 +118,8 @@ public class BedrockIT {
         
         // check that with auth as a conf map it should work
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", TITAN_BODY,
-                        "conf", Map.of(MODEL, TITAN_EMBED_TEXT,
+                Util.map("body", TITAN_BODY,
+                        "conf", Util.map(MODEL, chatModel,
                                 KEY_ID, keyId,
                                 SECRET_KEY, secretKey)
                 ),
@@ -113,8 +133,8 @@ public class BedrockIT {
     @Test
     public void testCustomWithJurassicUltra() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", JURASSIC_BODY,
-                        "conf", Map.of(MODEL, JURASSIC_2_ULTRA)
+                Util.map("body", JURASSIC_BODY,
+                        "conf", Util.map(MODEL, JURASSIC_2_ULTRA)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -125,8 +145,8 @@ public class BedrockIT {
     @Test
     public void testCustomWithAnthropicClaude() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", ANTHROPIC_CLAUDE_CUSTOM_BODY,
-                        "conf", Map.of(MODEL, "anthropic.claude-v1")
+                Util.map("body", ANTHROPIC_CLAUDE_CUSTOM_BODY,
+                        "conf", Util.map(MODEL, "anthropic.claude-v1")
                 ),
         r -> {
             Map value = (Map) r.get("value");
@@ -138,8 +158,8 @@ public class BedrockIT {
     @Test
     public void testCustomWithJurassicMid() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", JURASSIC_BODY,
-                        "conf", Map.of(MODEL, "ai21.j2-mid-v1")
+                Util.map("body", JURASSIC_BODY,
+                        "conf", Util.map(MODEL, "ai21.j2-mid-v1")
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -150,8 +170,8 @@ public class BedrockIT {
     @Test
     public void testCustomWithStability() {
         testCall(db, BEDROCK_CUSTOM_PROC,
-                Map.of("body", STABILITY_AI_BODY,
-                        "conf", Map.of(MODEL, STABILITY_STABLE_DIFFUSION_XL)
+                Util.map("body", STABILITY_AI_BODY,
+                        "conf", Util.map(MODEL, STABILITY_STABLE_DIFFUSION_XL)
                 ),
                 r -> {
                     Map value = (Map) r.get("value");
@@ -164,12 +184,12 @@ public class BedrockIT {
 
     @Test
     public void testGetModelInvocationWithNullBody() {
-        Map<String, String> conf = Map.of(
+        Map<String, String> conf = Util.map(
                 "endpoint", "https://bedrock.us-east-1.amazonaws.com/logging/modelinvocations",
                 METHOD_KEY, "GET");
 
         testCall(db, "CALL apoc.ml.bedrock.custom(null, $conf)",
-                Map.of("conf", conf),
+                Util.map("conf", conf),
                 r -> {
                     Map value = (Map) r.get("value");
                     assertTrue(value.containsKey("loggingConfig"));
@@ -179,12 +199,12 @@ public class BedrockIT {
     @Test
     public void testWrongMethod() {
         try {
-            Map<String, String> conf = Map.of(
+            Map<String, String> conf = Util.map(
                     "endpoint", "https://bedrock.us-east-1.amazonaws.com/logging/modelinvocations",
                     METHOD_KEY, "POST");
 
             testCall(db, "CALL apoc.ml.bedrock.custom(null, $conf)",
-                    Map.of( "conf", conf),
+                    Util.map( "conf", conf),
                     r -> fail());
         } catch (Exception e) {
             String message = e.getMessage();
@@ -195,7 +215,7 @@ public class BedrockIT {
     @Test
     public void testStability() {
         testCall(db, "CALL apoc.ml.bedrock.image($body)",
-                Map.of("body", STABILITY_AI_BODY),
+                Util.map("body", STABILITY_AI_BODY),
                 r -> {
                     String base64Image = (String) r.get("base64Image");
                     assertTrue(Base64.isBase64(base64Image));
@@ -209,18 +229,18 @@ public class BedrockIT {
                             {role:"system", content:"Only answer with a single word"}
                             ,{role:"user", content:"What planet do humans live on?"}
                         ], $conf)""",
-                Map.of("conf", Map.of(OPEN_AI_COMPATIBLE, true)),
+                Util.map("conf", Util.map(OPEN_AI_COMPATIBLE, true)),
                 this::chatCompletionAssertions);
     }
 
     @Test
     public void testChatCompletionWithOpenAICompatibleFalse() {
         List<Map<String, String>> body = List.of(
-                Map.of("prompt", "\n\nHuman: Hello world\n\nAssistant:"),
-                Map.of("prompt", "\n\nHuman: Ciao mondo\n\nAssistant:")
+                Util.map("prompt", "\n\nHuman: Hello world\n\nAssistant:"),
+                Util.map("prompt", "\n\nHuman: Ciao mondo\n\nAssistant:")
         );
         testResult(db, "CALL apoc.ml.bedrock.chat($body)",
-                Map.of("body", body),
+                Util.map("body", body),
                 this::chatCompletionAssertions);
     }
 
@@ -253,7 +273,7 @@ public class BedrockIT {
     @Test
     public void testEmbedding() {
         testCall(db, "CALL apoc.ml.bedrock.embedding($body)",
-                Map.of("body", List.of(TITAN_CONTENT)),
+                Util.map("body", List.of(TITAN_CONTENT)),
                 BedrockIT::assertionsTitanEmbed);
     }
 
@@ -261,7 +281,7 @@ public class BedrockIT {
     public void testWrongRegion() {
         try {
             testCall(db, "CALL apoc.ml.bedrock.embedding($body, {region: 'notExistent'})",
-                    Map.of("body", List.of(TITAN_CONTENT)),
+                    Util.map("body", List.of(TITAN_CONTENT)),
                     r -> fail());
         } catch (Exception e) {
             String message = e.getMessage();
@@ -280,7 +300,7 @@ public class BedrockIT {
                 });
 
         testResult(db, "CALL apoc.ml.bedrock.list($conf)",
-                Map.of("conf", Map.of(PATH_GET, "custom-models")),
+                Util.map("conf", Util.map(PATH_GET, "custom-models")),
                 r -> {
                     r.forEachRemaining(row -> {
                         String modelArn = (String) row.get("modelArn");
