@@ -2,6 +2,7 @@ package apoc.ml.sagemaker;
 
 import apoc.ml.aws.SageMaker;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.AfterClass;
@@ -136,8 +137,8 @@ public class SageMakerTest {
     }
 
     private static Map<String, Object> getParams(String path) {
-        Map authHeader = Map.of(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
-        return Map.of("conf", Map.of(ENDPOINT_CONF_KEY, "http://localhost:%s/%s".formatted( PORT, path),
+        Map authHeader = Util.map(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
+        return Util.map("conf", Util.map(ENDPOINT_CONF_KEY, "http://localhost:%s/%s".formatted( PORT, path),
                         HEADERS_KEY, authHeader)
         );
     }

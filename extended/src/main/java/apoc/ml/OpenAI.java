@@ -73,7 +73,7 @@ public class OpenAI {
                 apocConfig.getString(APOC_ML_OPENAI_TYPE, OpenAIRequestHandler.Type.OPENAI.name())
         );
         OpenAIRequestHandler.Type type = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
-        
+
         var configForPayload = new HashMap<>(configuration);
         // we remove these keys from configPayload, since the json payload is calculated starting from the configPayload map
         Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY).forEach(configForPayload::remove);
@@ -90,7 +90,7 @@ public class OpenAI {
         apiType.addApiKey(headers, apiKey);
 
         String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(configForPayload);
-        
+
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
@@ -170,7 +170,7 @@ public class OpenAI {
                 (map, text) -> {
                     Long index = (Long) map.get("index");
                     return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
-                }, 
+                },
                 m -> new EmbeddingResult(-1, m, List.of())
         );
     }
@@ -181,7 +181,7 @@ public class OpenAI {
         if (texts == null) {
             throw new RuntimeException(ERROR_NULL_INPUT);
         }
-        
+
         Map<Boolean, List<String>> collect = texts.stream()
                 .collect(Collectors.groupingBy(Objects::nonNull));
 

@@ -1,23 +1,21 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.*;
@@ -30,22 +28,40 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class VertexAIIT {
+@RunWith(Parameterized.class)
+public class VertexAiIT {
 
     private String vertexAiKey;
     private String vertexAiProject;
     
     private final List<Map<String, Object>> streamContents = List.of(
-            Map.of("role", "user",
-                    "parts", List.of(Map.of("text", "translate book in italian"))
+            Util.map("role", "user",
+                    "parts", List.of(Util.map("text", "translate book in italian"))
             )
     );
+
+    @Parameterized.Parameters(name = "chatModel: {0}, embeddingModel: {1}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"gemini-1.5-flash-001", "textembedding-gecko"},
+                {"gemini-2.5-pro-exp-03-25", "gemini-embedding-exp-03-07"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
+
+    @Parameterized.Parameter(1)
+    public String embeddingModel;
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
     private Map<String, Object> parameters;
 
-    public VertexAIIT() {
+    public VertexAiIT() {
     }
 
     @Before
@@ -55,12 +71,14 @@ public class VertexAIIT {
         vertexAiProject = System.getenv("VERTEXAI_PROJECT");
         Assume.assumeNotNull("No VERTEXAI_PROJECT environment configured", vertexAiProject);
         TestUtil.registerProcedure(db, VertexAI.class);
-        parameters = Map.of("apiKey", vertexAiKey, "project", vertexAiProject);
+        parameters = Util.map("apiKey", vertexAiKey, "project", vertexAiProject);
     }
 
     @Test
     public void getEmbedding() {
-        testCall(db, "CALL apoc.ml.vertexai.embedding(['Some Text'], $apiKey, $project)", parameters,(row) -> {
+        var embParam = new HashMap<>(parameters);
+        embParam.put(MODEL_CONF_KEY, embeddingModel);
+        testCall(db, "CALL apoc.ml.vertexai.embedding(['Some Text'], $apiKey, $project)", embParam,(row) -> {
             System.out.println("row = " + row);
             assertEquals(0L, row.get("index"));
             assertEquals("Some Text", row.get("text"));
@@ -72,8 +90,10 @@ public class VertexAIIT {
 
     @Test
     public void getEmbeddingNull() {
+        var embParam = new HashMap<>(parameters);
+        embParam.put(MODEL_CONF_KEY, embeddingModel);
         testResult(db, "CALL apoc.ml.vertexai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $project)",
-                parameters,
+                embParam,
                 r -> {
                     Set<String> actual = Iterators.asSet(r.columnAs("text"));
 
@@ -126,7 +146,7 @@ public class VertexAIIT {
 
     @Test
     public void customWithCompleteStringGeminiFlash() {
-        customWithCompleteStringCustomModel("gemini-1.5-flash-001");
+        customWithCompleteStringCustomModel(chatModel);
     }
 
     @Test
@@ -148,16 +168,16 @@ public class VertexAIIT {
         String base64Image = Base64.getEncoder().encodeToString(fileContent);
 
         List<Map<String, ?>> parts = List.of(
-                Map.of("text", "What is this?"),
-                Map.of("inlineData", Map.of(
+                Util.map("text", "What is this?"),
+                Util.map("inlineData", Util.map(
                         "mimeType", "image/png", "data", base64Image))
         );
         List<Map<String, ?>> contents = List.of(
-                Map.of("role", "user", "parts", parts)
+                Util.map("role", "user", "parts", parts)
         );
         Map<String, Object> params = new HashMap<>(parameters);
         params.put("contents", contents);
-        params.put("conf", Map.of(MODEL_CONF_KEY, "gemini-pro-vision"));
+        params.put("conf", Util.map(MODEL_CONF_KEY, "gemini-pro-vision"));
 
         testCall(db, """
                         CALL apoc.ml.vertexai.custom({contents: $contents},
@@ -181,7 +201,7 @@ public class VertexAIIT {
     @Test
     public void customWithCodeBison() {
         Map<String, Object> params = new HashMap<>(parameters);
-        params.put("conf", Map.of(MODEL_CONF_KEY, "codechat-bison", RESOURCE_CONF_KEY, PREDICT_RESOURCE));
+        params.put("conf", Util.map(MODEL_CONF_KEY, "codechat-bison", RESOURCE_CONF_KEY, PREDICT_RESOURCE));
         
         testCall(db, """
                CALL apoc.ml.vertexai.custom({instances:
@@ -195,7 +215,7 @@ public class VertexAIIT {
     @Test
     public void customWithChatCompletion() {
         Map<String, Object> params = new HashMap<>(parameters);
-        params.put("conf", Map.of(MODEL_CONF_KEY, "chat-bison", RESOURCE_CONF_KEY, PREDICT_RESOURCE));
+        params.put("conf", Util.map(MODEL_CONF_KEY, "chat-bison", RESOURCE_CONF_KEY, PREDICT_RESOURCE));
         
         testCall(db, """
             CALL apoc.ml.vertexai.custom({instances:
@@ -208,7 +228,7 @@ public class VertexAIIT {
 
     @Test
     public void customWithWrongHeader() {
-        Map<String, String> headers = Map.of("Content-Type", "invalid",
+        Map<String, String> headers = Util.map("Content-Type", "invalid",
                 "Authorization", "invalid");
         
         try {
@@ -217,7 +237,7 @@ public class VertexAIIT {
                             {
                              contents: $contents
                             }, $apiKey, $project, {headers: $headers})
-                """, Map.of("apiKey", vertexAiKey, 
+                """, Util.map("apiKey", vertexAiKey, 
                 "project", vertexAiProject, 
                 "headers", headers,
         "contents", streamContents), (row) -> fail("Should fail due to 401 response"));
@@ -235,30 +255,36 @@ public class VertexAIIT {
 
     @Test
     public void embeddingsNull() {
+        var embParam = new HashMap<>(parameters);
+        embParam.put(MODEL_CONF_KEY, embeddingModel);
         assertNullInputFails(db, "CALL apoc.ml.vertexai.embedding(null, $apiKey, $project)",
-                parameters
+                embParam
         );
     }
     
     @Test
     public void completionNull() {
+        var embParam = new HashMap<>(parameters);
+        embParam.put(MODEL_CONF_KEY, chatModel);
         assertNullInputFails(db, "CALL apoc.ml.vertexai.completion(null, $apiKey, $project)",
-                parameters
+                embParam
         );
     }
 
     @Test
     public void chatCompletionNull() {
+        var embParam = new HashMap<>(parameters);
+        embParam.put(MODEL_CONF_KEY, chatModel);
         assertNullInputFails(db, "CALL apoc.ml.vertexai.chat(null, $apiKey, $project)",
-                parameters
+                embParam
         );
     }
 
     private void customWithCompleteStringCustomModel(String model) {
         HashMap<String, Object> params = new HashMap<>(parameters);
         params.put("contents", List.of(
-                Map.of("role", "user",
-                        "parts", List.of(Map.of("text", "translate the word 'book' in italian"))
+                Util.map("role", "user",
+                        "parts", List.of(Util.map("text", "translate the word 'book' in italian"))
                 )
         ));
 

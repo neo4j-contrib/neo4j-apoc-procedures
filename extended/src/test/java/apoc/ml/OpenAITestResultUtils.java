@@ -34,7 +34,7 @@ public class OpenAITestResultUtils {
     public static void assertEmbeddings(Map<String, Object> row) {
         assertEmbeddings(row, 1536);
     }
-    
+
     public static void assertEmbeddings(Map<String, Object> row, int embeddingSize) {
         assertEquals(0L, row.get("index"));
         assertEquals("Some Text", row.get("text"));

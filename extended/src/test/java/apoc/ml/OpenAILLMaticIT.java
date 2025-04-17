@@ -123,7 +123,7 @@ public class OpenAILLMaticIT {
 
     private Map<String, Object> getParams(String model) {
         return Util.map(APIKEY_CONF_KEY, "ignored",
-                "conf", Map.of(
+                "conf", Util.map(
                         ENDPOINT_CONF_KEY, localAIUrl,
                         MODEL_CONF_KEY, model
                 )
