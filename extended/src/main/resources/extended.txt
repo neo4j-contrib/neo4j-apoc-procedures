@@ -83,6 +83,7 @@ apoc.graph.filterProperties
 apoc.graph.filterProperties
 apoc.import.arrow
 apoc.import.parquet
+apoc.load.stringPartial
 apoc.load.csv
 apoc.load.gexf
 apoc.import.gexf
