@@ -18,7 +18,7 @@ import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OpenAITest {
+public abstract class OpenAITest {
 
     private String openaiKey;
 
@@ -28,6 +28,8 @@ public class OpenAITest {
     public OpenAITest() {
     }
 
+    abstract String getDefaultModel();
+    
     @Before
     public void setUp() throws Exception {
         // openaiKey = System.getenv("OPENAI_KEY");

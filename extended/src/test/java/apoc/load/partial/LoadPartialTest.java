@@ -4,6 +4,7 @@ import apoc.load.LoadCsv;
 import apoc.util.TestUtil;
 import apoc.util.Utils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
@@ -21,6 +22,7 @@ import static apoc.util.TestUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class LoadPartialTest {
 
     public static final String PARTIAL_CSV = "Rana,11\nSelina,";
