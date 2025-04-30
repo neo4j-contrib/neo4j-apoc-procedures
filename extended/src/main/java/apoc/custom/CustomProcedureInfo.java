@@ -1,7 +1,6 @@
 package apoc.custom;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.procs.*;
 
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public class CustomProcedureInfo {
                 signature.mode().toString().toLowerCase(),
                 statement,
                 convertInputSignature(signature.inputSignature()),
-                Iterables.asList(Iterables.map(f -> Arrays.asList(f.name(), prettyPrintType(f.neo4jType())), signature.outputSignature())),
+                convertOutputSignature(signature.outputSignature()),
                 null);
     }
 
@@ -73,16 +72,22 @@ public class CustomProcedureInfo {
                 prettyPrintType(signature.outputType()),
                 forceSingle);
     }
+    
+    public static List<List<String>> convertOutputSignature(List<FieldSignature> signatures) {
+        return signatures.stream()
+                .map(f -> Arrays.asList(f.name(), prettyPrintType(f.neo4jType())))
+                .toList();
+    }
 
     public static List<List<String>> convertInputSignature(List<FieldSignature> signatures) {
-        return Iterables.asList(Iterables.map(f -> {
+        return signatures.stream().map(f -> {
             List<String> list = new ArrayList<>(3);
             list.add(f.name());
             list.add(prettyPrintType(f.neo4jType()));
             final Optional<DefaultParameterValue> defaultParameterValue = f.defaultValue();
             defaultParameterValue.map(DefaultParameterValue::value).ifPresent(v -> list.add(v.toString()));
             return list;
-        }, signatures));
+        }).toList();
     }
 
     public static String prettyPrintType(Neo4jTypes.AnyType type) {
