@@ -13,7 +13,6 @@ import org.hamcrest.Matchers.hasItem
 import org.hamcrest.collection.IsMapContaining
 import org.junit.BeforeClass
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
@@ -22,7 +21,6 @@ import org.neo4j.graphdb.Result
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
-@Ignore
 class AWSProceduresAPIWithDummyClientTest {
     companion object {
         val apiKey: String? = "dummyKey"
