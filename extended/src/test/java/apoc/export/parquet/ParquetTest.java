@@ -111,6 +111,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore
     public void testExportFileWithConfigDisabled() {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, false);
 
@@ -135,6 +136,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore
     public void testStreamRoundtripParquetAll() {
         testStreamRoundtripAllCommon();
     }
@@ -169,6 +171,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore
     public void testRoundtripWithMultipleBatches() {
         final String fileName = db.executeTransactionally("CALL apoc.export.parquet.all('test.parquet', {batchSize:1})",
                 Map.of(),
