@@ -209,7 +209,6 @@ public class BoltTest {
     }
 
     @Test
-    @Ignore
     public void testBoltLoadReturningMapAndList() {
         session.executeWrite(tx -> tx.run("CREATE (rootA:BoltStart {foobar: 'foobar'})-[:VIEWED {id: 2}]->(:Other {id: 1})").consume());
         
