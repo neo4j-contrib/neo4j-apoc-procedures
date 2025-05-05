@@ -6,7 +6,6 @@ import apoc.util.TestContainerUtil;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
@@ -70,7 +69,6 @@ public class SystemDbEnterpriseTest {
     }
 
     @Test
-    @Ignore
     public void systemDbGraphProcedureShouldObfuscateSensitiveData() {
 
         // user creation
