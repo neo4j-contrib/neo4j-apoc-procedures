@@ -292,3 +292,4 @@ apoc.kafka.consume
 apoc.kafka.publish
 apoc.kafka.publish.sync
 apoc.create.virtual.fromNodeExtended
+apoc.temporal.overlap
