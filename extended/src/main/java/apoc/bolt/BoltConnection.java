@@ -159,7 +159,7 @@ public class BoltConnection {
         if (config.isVirtual()) {
             List<Label> labels = new ArrayList<>();
             node.labels().forEach(l -> labels.add(Label.label(l)));
-            VirtualNode virtualNode = new VirtualNode(node.id(), labels.toArray(new Label[0]), node.asMap());
+            VirtualNode virtualNode = new VirtualNode(node.id(), node.elementId(), labels.toArray(new Label[0]), node.asMap());
             nodesCache.put(node.id(), virtualNode);
             return virtualNode;
         } else
@@ -172,7 +172,7 @@ public class BoltConnection {
         if (config.isVirtual()) {
             VirtualNode start = (VirtualNode) nodesCache.getOrDefault(relationship.startNodeId(), new VirtualNode(relationship.startNodeId()));
             VirtualNode end = (VirtualNode) nodesCache.getOrDefault(relationship.endNodeId(), new VirtualNode(relationship.endNodeId()));
-            VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
+            VirtualRelationship virtualRelationship = new VirtualRelationship(relationship.id(), relationship.elementId(), start, end, RelationshipType.withName(relationship.type()), relationship.asMap());
             return virtualRelationship;
         } else
             return Util.map("entityType", internalValue.type().name(), "type", relationship.type(), "id", relationship.id(), "start", relationship.startNodeId(), "end", relationship.endNodeId(), "properties", relationship.asMap());

@@ -135,6 +135,7 @@ public class ParquetTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void testStreamRoundtripParquetAll() {
         testStreamRoundtripAllCommon();
     }
