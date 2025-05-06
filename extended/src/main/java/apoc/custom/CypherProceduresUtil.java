@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.custom.CypherProceduresHandler.PREFIX;
 import static apoc.custom.Signatures.NUMBER_TYPE;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
@@ -29,7 +30,10 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.NTString;
 
 public class CypherProceduresUtil {
     public static final String MAP_RESULT_TYPE = "MAPRESULT";
-
+    public static final String CUSTOM_PROCEDURES_ENABLED = "apoc.custom.procedures.enabled";
+    public static final String PROCEDURES_NOT_ENABLED_ERROR = "Custom procedures and functions have not been enabled." +
+            " Set 'apoc.custom.procedures.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
+    
     public static QualifiedName qualifiedName(@Name("name") String name) {
         String[] names = name.split("\\.");
         List<String> namespaceList = new ArrayList<>(names.length);
@@ -158,5 +162,15 @@ public class CypherProceduresUtil {
             case "GEO", "GEOMETRY" -> NTGeometry;
             default -> NTString;
         };
+    }
+    
+    public static boolean isEnabled() {
+        return apocConfig().getConfig().getBoolean(CUSTOM_PROCEDURES_ENABLED, true);
+    }
+
+    public static void checkEnabled() {
+        if (!isEnabled()) {
+            throw new RuntimeException(PROCEDURES_NOT_ENABLED_ERROR);
+        }
     }
 }

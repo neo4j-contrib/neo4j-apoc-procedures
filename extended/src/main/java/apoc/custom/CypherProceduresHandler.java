@@ -96,13 +96,17 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     @Override
     public void available() {
+        // we restore procs and function even with apoc.custom.procedures.enabled=false 
+        // to not create inconsistency between system nodes and apoc.custom.list
         restoreProceduresAndFunctions();
-        long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
-        restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
-            if (getLastUpdate() > lastUpdate) {
-                restoreProceduresAndFunctions();
-            }
-        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
+        if (isEnabled()) {
+            long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
+            restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
+                if (getLastUpdate() > lastUpdate) {
+                    restoreProceduresAndFunctions();
+                }
+            }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
