@@ -1,5 +1,5 @@
 
-== ChromaDB
+= ChromaDB
 
 Here is a list of all available ChromaDB procedures,
 note that the list and the signature procedures are consistent with the others, like the Qdrant ones:
@@ -36,7 +36,7 @@ note that the list and the signature procedures are consistent with the others, 
 where the 1st parameter can be a key defined by the apoc config `apoc.chroma.<key>.host=myHost`.
 With hostOrKey=null, the default is 'http://localhost:8000'.
 
-=== Examples
+== Examples
 
 .Create a collection (it leverages https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections[this API])
 [source,cypher]

@@ -1,5 +1,5 @@
 
-== Custom (i.e. other vector databases)
+= Custom (i.e. other vector databases)
 
 We can also interface with other db vectors that do not (yet) have dedicated procedures.
 For example, with https://docs.pinecone.io/guides/getting-started/overview[Pinecone], as we will see later.
@@ -15,7 +15,7 @@ returning a result like the others `apoc.vectordb.*.get` ones
 |===
 
 
-=== Examples
+== Examples
 
 
 The `apoc.vectordb.custom.get` can be used with every API that return something like this

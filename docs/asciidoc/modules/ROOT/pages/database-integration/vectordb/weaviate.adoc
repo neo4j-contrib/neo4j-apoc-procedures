@@ -37,7 +37,7 @@ note that the list and the signature procedures are consistent with the others, 
 where the 1st parameter can be a key defined by the apoc config `apoc.weaviate.<key>.host=myHost`.
 With hostOrKey=null, the default is 'http://localhost:8080/v1'.
 
-=== Examples
+== Examples
 
 .Create a collection (it leverages https://weaviate.io/developers/weaviate/api/rest#tag/schema/post/schema[this API])
 [source,cypher]
