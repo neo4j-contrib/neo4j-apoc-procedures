@@ -18,18 +18,19 @@ import java.time.Duration;
 import java.util.Map;
 
 import static apoc.ApocConfig.*;
+import static apoc.util.ExtendedTestUtil.testResultEventually;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-@Ignore
 public class LoadS3MinioTest {
 
     private static final String ACCESS_KEY = "testAccessKey";
     private static final String SECRET_KEY = "testSecretKey";
     private static final String BUCKET_NAME = "test";
+    public static final long TIMEOUT = 20L;
     private static GenericContainer<?> minioContainer;
 
     @ClassRule
@@ -95,7 +96,7 @@ public class LoadS3MinioTest {
                 r -> assertEquals(url, r.get("file"))
         );
 
-        testResult(db, "CALL apoc.load.csv($url)",
+        testResultEventually(db, "CALL apoc.load.csv($url)",
                 map("url", url),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("map");
@@ -106,7 +107,7 @@ public class LoadS3MinioTest {
                     row = values.next();
                     assertEquals("KNOWS", row.get("_type"));
                     assertFalse(values.hasNext());
-                });
+                }, TIMEOUT);
     }
 
     @Test
@@ -118,8 +119,8 @@ public class LoadS3MinioTest {
                 map("url", url),
                 r -> assertEquals(url, r.get("file"))
         );
-        
-        testResult(db, "CALL apoc.load.json($url,'')",
+
+        testResultEventually(db, "CALL apoc.load.json($url,'')",
                 map("url", url),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
@@ -130,7 +131,7 @@ public class LoadS3MinioTest {
                     row = values.next();
                     assertEquals("relationship", row.get("type"));
                     assertFalse(values.hasNext());
-                });
+                }, TIMEOUT);
     }
 
     @Test
@@ -142,14 +143,14 @@ public class LoadS3MinioTest {
                 r -> assertEquals(url, r.get("file"))
         );
 
-        testResult(db, "CALL apoc.load.xml($url,'')",
+        testResultEventually(db, "CALL apoc.load.xml($url,'')",
                 map("url", url),
                 r -> {
                     ResourceIterator<Map> values = r.columnAs("value");
                     Map row = values.next();
                     assertEquals("graphml", row.get("_type"));
                     assertFalse(values.hasNext());
-                });
+                }, TIMEOUT);
     }
 
 
