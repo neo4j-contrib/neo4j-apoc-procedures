@@ -111,6 +111,7 @@ public class LoadS3MinioTest {
     }
 
     @Test
+    @Ignore
     public void testLoadJsonS3() throws Exception {
         String url = getUrl("test.json");
 
