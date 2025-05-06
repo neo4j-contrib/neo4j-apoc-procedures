@@ -81,7 +81,7 @@ public class ExportExtendedSecurityTest {
     }
 
     @RunWith(Parameterized.class)
-    public static class Openai {
+    public static class TestIllegalFSAccess {
         private final String apocProcedure;
 
         public TestIllegalFSAccess(String exportMethod, String exportMethodType, String exportMethodArguments) {
