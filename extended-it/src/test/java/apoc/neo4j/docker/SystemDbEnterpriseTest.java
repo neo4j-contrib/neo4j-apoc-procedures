@@ -3,7 +3,6 @@ package apoc.neo4j.docker;
 import apoc.util.ExtendedITUtil;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
-import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -11,7 +10,6 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,19 +33,15 @@ public class SystemDbEnterpriseTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         final String randomKeyAlias = UUID.randomUUID().toString();
-        
-        // certificate file creation
-        final String[] args = new String[] { "keytool", 
-                "-genseckey", "-keyalg", "aes", "-keysize", "256", "-storetype", "pkcs12", 
-                "-keystore", KEYSTORE_FILE.getCanonicalPath(), 
-                "-alias", randomKeyAlias, 
-                "-storepass", PASSWORD};
 
-        Process proc = new ProcessBuilder(args).start();
-        proc.waitFor();
-        
-        // We build the project, the artifact will be placed into ./build/libs
+        // command to create the certificate file
+        // see here: https://neo4j.com/docs/operations-manual/2025.04/database-administration/aliases/remote-database-alias-configuration/#remote-alias-config-DBMS_admin-A
         final String pathPwdValue = "/var/lib/neo4j/import/" + KEYSTORE_FILE.getName();
+        final String[] args = new String[] { "keytool",
+                "-genseckey", "-keyalg", "aes", "-keysize", "256", "-storetype", "pkcs12",
+                "-keystore", pathPwdValue,
+                "-alias", randomKeyAlias,
+                "-storepass", PASSWORD};
         
         // we add config useful to create a remote db alias 
         neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true)
@@ -56,14 +50,13 @@ public class SystemDbEnterpriseTest {
                 .withNeo4jConfig("dbms.security.key.name", randomKeyAlias);
 
         neo4jContainer.start();
+        neo4jContainer.execInContainer(args);
         session = neo4jContainer.getSession();
 
     }
     
     @AfterClass
-    public static void afterClass() throws IOException {
-        FileUtils.forceDelete(KEYSTORE_FILE);
-        
+    public static void afterClass() {
         session.close();
         neo4jContainer.close();
     }
