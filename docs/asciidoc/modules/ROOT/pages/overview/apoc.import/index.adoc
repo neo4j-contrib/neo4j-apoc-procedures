@@ -1,0 +1,12 @@
+= apoc.import
+:description: This section contains reference documentation for the apoc.import procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.import/apoc.import.arrow.adoc[apoc.import.arrow icon:book[]]
+
+apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
+|label:procedure[]
+|===
+

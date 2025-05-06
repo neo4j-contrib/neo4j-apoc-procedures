@@ -1,17 +1,17 @@
-=== Using APOC with the Neo4j Docker image
+=== Using APOC Extended with the Neo4j Docker image
 
 // tag::docker[]
 
 APOC Extended can be used with the https://hub.docker.com/_/neo4j/[Neo4j Docker image] via the `NEO4J_PLUGINS=apoc-extended` environment variable.
 
-If we use this environment variable, the APOC plugin will be downloaded and configured at runtime.
+If we use this environment variable, the APOC Extended plugin will be downloaded and configured at runtime.
 
 [NOTE]
 ====
 This feature is intended to facilitate using APOC in development environments, but it is not recommended for use in production environments.
 ====
 
-.The following runs Neo4j {neo4j-version} in a Docker container with the latest version of the APOC Library
+.The following runs Neo4j {neo4j-version} in a Docker container with the latest version of the APOC Extended Library
 [source,bash,subs=attributes]
 ----
 docker run \
@@ -24,6 +24,12 @@ docker run \
     -e NEO4J_PLUGINS=\[\"apoc-extended\"\] \
     neo4j:{neo4j-version}
 ----
+
+[NOTE]
+====
+This installs only the APOC Extended library, to download both APOC Extended and APOC Core specify: `-e NEO4J_PLUGINS=\[\"apoc\", \"apoc-extended\"\]`.
+See https://neo4j.com/docs/apoc/{branch}[here] for the APOC Core documentation.
+====
 
 We should see the following two lines in the output after running this command:
 

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.dropFunction.adoc[apoc.custom.dropFunction icon:book[]] +
+
+`apoc.custom.dropFunction()` - Eventually drops the targeted custom function
+¦label:procedure[]
+¦label:apoc-extended[]

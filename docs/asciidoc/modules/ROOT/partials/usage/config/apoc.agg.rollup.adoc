@@ -1,0 +1,9 @@
+The procedure support the following properties in the APOC configuration file (`apoc.conf`):
+
+.Config parameters
+[opts=header, cols="1,1,1,3"]
+|===
+| name | type | default | description
+| cube | boolean |  false| to emulate the https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32311[CUBE] clause, 
+    instead of the https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32084[ROLLUP] one.
+|===

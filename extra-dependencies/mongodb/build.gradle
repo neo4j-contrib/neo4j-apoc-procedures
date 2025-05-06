@@ -3,8 +3,8 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 archivesBaseName = 'apoc-mongodb-dependencies'
@@ -17,7 +17,7 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1', commonExclusions
+    implementation 'org.mongodb:mongodb-driver-sync:4.11.1', commonExclusions
 }
 
 

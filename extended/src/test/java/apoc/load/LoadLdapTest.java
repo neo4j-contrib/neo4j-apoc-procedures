@@ -1,11 +1,10 @@
 package apoc.load;
 
 
-import apoc.util.FileUtils;
 import apoc.util.TestUtil;
-import com.novell.ldap.LDAPEntry;
-import com.novell.ldap.LDAPSearchResults;
 import com.unboundid.ldap.sdk.LDAPConnection;
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -18,13 +17,11 @@ import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 import org.zapodot.junit.ldap.EmbeddedLdapRule;
 import org.zapodot.junit.ldap.EmbeddedLdapRuleBuilder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedTestUtil.getLogFileContent;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -96,15 +93,6 @@ public class LoadLdapTest {
         assertTrue(getLogFileContent().contains(logWarn));
     }
 
-    private static String getLogFileContent() {
-        try {
-            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
-            return Files.readString(logFile.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void testWithStringConfigCommon(String key) {
         // set a config `key=localhost:port dns pwd`
         String ldapValue = "%s %s %s".formatted(
@@ -152,10 +140,12 @@ public class LoadLdapTest {
     public void testLoadLDAPConfig() throws Exception {
         LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(LoadLdap.getConnectionMap(connParams, null));
         
-        LDAPSearchResults results = mgr.doSearch(searchParams);
-        LDAPEntry le = results.next();
+        SearchResult results = mgr.doSearch(searchParams);
+        List<SearchResultEntry> searchEntries = results.getSearchEntries();
+        assertEquals(1, searchEntries.size());
+        SearchResultEntry le = searchEntries.get(0);
         assertEquals("uid=training,dc=example,dc=com", le.getDN());
-        assertEquals("training", le.getAttribute("uid").getStringValue());
+        assertEquals("training", le.getAttribute("uid").getValue());
 
     }
 

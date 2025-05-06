@@ -1,0 +1,110 @@
+[[vectordb]]
+= Vector Databases
+:description: This section describes procedures that can be used to interact with Vector Databases.
+
+APOC provides these set of procedures, which leverages the Rest APIs, to interact with Vector Databases:
+
+- `apoc.vectordb.qdrant.*` (to interact with https://qdrant.tech/documentation/overview/[Qdrant])
+- `apoc.vectordb.chroma.*` (to interact with https://docs.trychroma.com/getting-started[Chroma])
+- `apoc.vectordb.weaviate.*` (to interact with https://weaviate.io/developers/weaviate[Weaviate])
+- `apoc.vectordb.custom.*` (to interact with other vector databases).
+- `apoc.vectordb.configure` (to store host, credentials and mapping into the system database)
+
+All the procedures, except the `apoc.vectordb.configure` one, can have, as a final parameter,
+a configuration map with these optional parameters:
+
+.config parameters
+
+|===
+| key | description
+| headers | additional HTTP headers
+| method | HTTP method
+| endpoint | endpoint key, 
+    can be used to override the default endpoint created via the 1st parameter of the procedures,
+    to handle potential endpoint changes.
+| body | body HTTP request
+| jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] parsing of the response. The default is `null`.
+|===
+
+
+Besides the above config, the `apoc.vectordb.<type>.get` and the `apoc.vectordb.<type>.query` procedures can have these additional parameters:
+
+.embeddingConfig parameters
+
+|===
+| key | description
+| mapping | to fetch the associated entities and optionally create them. See examples below.
+| allResults | if true, returns the vector, metadata and text (if present), otherwise returns null values for those columns.
+| vectorKey, metadataKey, scoreKey, textKey | used with the `apoc.vectordb.custom.get` procedure.
+    To let the procedure know which key in the restAPI (if present) corresponds to the one that should be populated as respectively the vector/metadata/score/text result.
+    Defaults are "vector", "metadata", "score", "text".
+    See examples below.
+|===
+
+
+= Ad-hoc procedures
+
+See the following pages for more details on specific vector db procedures
+
+- xref:./qdrant.adoc[Qdrant]
+- xref:./chroma.adoc[ChromaDB]
+- xref:./weaviate.adoc[Weaviate]
+- xref:./pinecone.adoc[Pinecone]
+- xref:./milvus.adoc[Milvus]
+
+
+= Store Vector db info (i.e. `apoc.vectordb.configure`)
+
+We can save some info in the System Database to be reused later, that is the host, login credentials, and mapping,
+to be used in `*.get` and `.*query` procedures, except for the `apoc.vectordb.custom.get` one.
+
+Therefore, to store the vector info, we can execute the `CALL apoc.vectordb.configure(vectorName, keyConfig, databaseName, $configMap)`,
+where `vectorName` can be "QDRANT", "CHROMA", "PINECONE", "MILVUS" or "WEAVIATE", 
+that indicates info to be reused respectively by `apoc.vectordb.qdrant.\*`,`apoc.vectordb.chroma.*` and `apoc.vectordb.weaviate.*`.
+
+Then `keyConfig` is the configuration name, `databaseName` is the database where the config will be set,
+
+and finally the `configMap`, that can have:
+
+- `host` is the host base name
+- `credentialsValue` is the API key
+- `mapping` is a map that can be used by the `apoc.vectordb.\*.getAndUpdate` and `apoc.vectordb.*.queryAndUpdate` procedures
+
+NOTE:: this procedure is only executable by a user with admin permissions and against the system database
+
+For example:
+[source,cypher]
+----
+// -- within the system database or using the Cypher clause `USE SYSTEM ..` as a prefix
+CALL apoc.vectordb.configure('QDRANT', 'qdrant-config-test', 'neo4j', 
+  {
+    mapping: { embeddingKey: "vect", nodeLabel: "Test", entityKey: "myId", metadataKey: "foo" }, 
+    host: 'custom-host-name', 
+    credentials: '<apiKey>'
+}
+)
+----
+
+and then we can execute e.g. the following procedure (within the `neo4j` database):
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query('qdrant-config-test', 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5)
+---- 
+
+instead of:
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, 
+{ mapping: {
+    embeddingKey: "vect", 
+    nodeLabel: "Test", 
+    entityKey: "myId", 
+    metadataKey: "foo" 
+  },
+  headers: {Authorization: 'Bearer <apiKey>'},
+  endpoint: 'custom-host-name'
+})
+---- 
+

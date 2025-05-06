@@ -7,7 +7,7 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.Pools;
 import apoc.SystemPropertyKeys;
 import apoc.util.Util;
-import org.apache.commons.collections4.IterableUtils;
+import apoc.util.collection.Iterables;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -112,20 +112,24 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         }
     }
 
-    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty) {
-        checkAndRestoreUuidProperty(nodeProperties, label, uuidProperty, null);
+    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty, TransactionData txData) {
+        checkAndRestoreUuidProperty(nodeProperties, label, uuidProperty, txData, null);
     }
 
-    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty, Predicate<PropertyEntry<Node>> predicate) {
+    private void checkAndRestoreUuidProperty(Iterable<PropertyEntry<Node>> nodeProperties, String label, String uuidProperty, TransactionData txData, Predicate<PropertyEntry<Node>> predicate) {
         if (nodeProperties.iterator().hasNext()) {
             nodeProperties.forEach(nodePropertyEntry -> {
+                Node entity = nodePropertyEntry.entity();
+                if (txData.isDeleted(entity)) {
+                    return;
+                }
                 if (predicate == null) {
-                    if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
+                    if (entity.hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty)) {
+                        entity.setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 } else {
-                    if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty) && predicate.test(nodePropertyEntry)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
+                    if (entity.hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty) && predicate.test(nodePropertyEntry)) {
+                        entity.setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 }
             });
@@ -143,7 +147,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
             final String propertyName = config.getUuidProperty();
             List<Node> nodes = config.isAddToSetLabels()
                     ? StreamSupport.stream(txData.assignedLabels().spliterator(), false).map(LabelEntry::node).collect(Collectors.toList())
-                    : IterableUtils.toList(txData.createdNodes());
+                    : Iterables.asList(txData.createdNodes());
             try {
                 nodes.forEach(node -> {
                     if (node.hasLabel(Label.label(label)) && !node.hasProperty(propertyName)) {
@@ -151,9 +155,9 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
                         node.setProperty(propertyName, uuid);
                     }
                 });
-                checkAndRestoreUuidProperty(assignedNodeProperties, label, propertyName,
+                checkAndRestoreUuidProperty(assignedNodeProperties, label, propertyName, txData,
                         (nodePropertyEntry) -> nodePropertyEntry.value() == null || nodePropertyEntry.value().equals(""));
-                checkAndRestoreUuidProperty(removedNodeProperties, label, propertyName);
+                checkAndRestoreUuidProperty(removedNodeProperties, label, propertyName, txData);
             } catch (Exception e) {
                 log.warn("Error executing uuid " + label + " in phase before", e);
             }

@@ -1,0 +1,32 @@
+
+= apoc.agg
+:description: This section contains reference documentation for the apoc.agg procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+
+Returns index of the `element` that match the given `value`
+|label:function[]
+
+|xref::overview/apoc.agg/apoc.agg.row.adoc[apoc.agg.row icon:book[]]
+
+Returns index of the `element` that match the given `predicate`
+|label:procedure[]
+
+
+|xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
+
+apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
+|label:function[]
+
+
+|xref::overview/apoc.agg/apoc.agg.rollup.adoc[apoc.agg.rollup icon:book[]]
+
+apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys])
+
+Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ... `
+|label:function[]
+|===
+

@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
+    id "org.jetbrains.kotlin.jvm" version "1.9.20" apply false
 }
 
 downloadLicenses {
@@ -14,13 +15,13 @@ downloadLicenses {
 
 allprojects {
     group = 'org.neo4j.procedure'
-    version = '5.16.0'
+    version = '2025.05.0'
     archivesBaseName = 'apoc'
     description = """neo4j-apoc-procedures"""
 }
 
 apply plugin: 'java-library'
-if (System.env.CI != null)
+if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "")
     apply from: 'teamcity-repository.gradle'
 
 repositories {
@@ -28,7 +29,17 @@ repositories {
     /*maven {  // this contains the neo4j 4.0.0-beta jars
     url "https://neo4j.bintray.com/community/"
 }*/
-    mavenCentral()
+    if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+        maven {
+            url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+            credentials {
+                username System.getenv('CODEARTIFACT_USERNAME')
+                password System.getenv('CODEARTIFACT_TOKEN')
+            }
+        }
+    } else {
+        mavenCentral()
+    }
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -43,7 +54,17 @@ subprojects {
         /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
     }*/
-        mavenCentral()
+        if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
+            maven {
+                url System.getenv('CODEARTIFACT_DOWNLOAD_URL')
+                credentials {
+                    username System.getenv('CODEARTIFACT_USERNAME')
+                    password System.getenv('CODEARTIFACT_TOKEN')
+                }
+            }
+        } else {
+            mavenCentral()
+        }
         maven {
             url "https://repo.gradle.org/gradle/libs-releases"
         }
@@ -52,13 +73,13 @@ subprojects {
 
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     task mySourcesJar(type: Jar) {
         from sourceSets.main.allJava
-        classifier = 'sources'
+        archiveClassifier = 'sources'
     }
 
     task myJavadocJar(type: Jar) {
@@ -71,14 +92,14 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country' : 'US',
-                'neo4jDockerImage' : System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-enterprise-debian' : 'neo4j:5.16.0-enterprise',
-                'neo4jCommunityDockerImage': System.getProperty("NEO4JVERSION") ? 'neo4j:' + System.getProperty("NEO4JVERSION") + '-debian' : 'neo4j:5.16.0',
+                'neo4jDockerImage': project.hasProperty("neo4jDockerEeOverride") ? project.getProperty("neo4jDockerEeOverride") : 'neo4j:2025.05.0-enterprise',
+                'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerCeOverride") ? project.getProperty("neo4jDockerCeOverride") : 'neo4j:2025.05.0',
                 'coreDir': 'apoc-core/core',
                 'testDockerBundle': false
 
         maxHeapSize = "5G"
         forkEvery = 50
-        maxParallelForks = 1
+        maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
         minHeapSize = "128m"
 
         // This would apply only to TeamCity
@@ -131,8 +152,9 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "5.16.0"
+    neo4jVersion = "2025.05.0"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.18.3'
+    testContainersVersion = '1.20.2'
+    apacheArrowVersion = '15.0.0'
 }

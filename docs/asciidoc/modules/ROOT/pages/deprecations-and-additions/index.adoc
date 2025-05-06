@@ -13,6 +13,59 @@ This chapter lists all the features that have been removed, deprecated, added or
 |===
 | Feature
 | Details
+
+a|
+label:procedure[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.declareFunction
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.installFunction
+----
+
+a|
+label:procedure[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.declareProcedure
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.installProcedure
+----
+
+a|
+label:procedure[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.removeFunction
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.dropFunction
+----
+
+a|
+label:procedure[]
+[source, cypher, role="noheader"]
+----
+apoc.custom.removeProcedure
+----
+a|
+Replaced by:
+[source, cypher, role="noheader"]
+----
+apoc.custom.dropProcedure
+----
+
 a|
 label:function[]
 label:deprecated[]

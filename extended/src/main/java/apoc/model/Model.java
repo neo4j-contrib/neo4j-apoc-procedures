@@ -9,8 +9,8 @@ import org.neo4j.procedure.*;
 import schemacrawler.schema.*;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
-import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
-import schemacrawler.utility.SchemaCrawlerUtility;
+import schemacrawler.tools.utility.SchemaCrawlerUtility;
+import us.fatehi.utility.datasource.DatabaseConnectionSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,12 +59,10 @@ public class Model {
     public Stream<DatabaseModel> jdbc(@Name("jdbc") String urlOrKey, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws Exception {
         String url = getUrlOrKey(urlOrKey);
 
-        SchemaCrawlerOptionsBuilder optionsBuilder = SchemaCrawlerOptionsBuilder.builder()
-                .withSchemaInfoLevel(SchemaInfoLevelBuilder.standard());
-        SchemaCrawlerOptions options = optionsBuilder.toOptions();
+        SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions();
 
-        Catalog catalog = SchemaCrawlerUtility.getCatalog(getConnection(url, new LoadJdbcConfig(config)),
-                options);
+        DatabaseConnectionSource connectionSource = (DatabaseConnectionSource) getConnection( url, new LoadJdbcConfig(config), DatabaseConnectionSource.class );
+        Catalog catalog = SchemaCrawlerUtility.getCatalog(connectionSource, options);
 
         DatabaseModel databaseModel = new DatabaseModel();
 

@@ -2,7 +2,6 @@ package apoc.load.util;
 
 import apoc.load.Mapping;
 import apoc.util.CompressionConfig;
-import apoc.util.Util;
 
 import java.util.*;
 
@@ -13,13 +12,12 @@ import static java.util.Collections.emptyList;
 public class LoadCsvConfig extends CompressionConfig {
 
     public static final char DEFAULT_ARRAY_SEP = ';';
-    public static final char DEFAULT_SEP = ',';
+    public static final String DEFAULT_SEP = ",";
     public static final char DEFAULT_QUOTE_CHAR = '"';
     // this is the same value as ICSVParser.DEFAULT_ESCAPE_CHARACTER
     public static final char DEFAULT_ESCAPE_CHAR = '\\';
 
-    private final boolean ignoreErrors;
-    private char separator;
+    private String separator;
     private char arraySep;
     private char quoteChar;
     private char escapeChar;
@@ -42,8 +40,7 @@ public class LoadCsvConfig extends CompressionConfig {
         if (config == null) {
             config = Collections.emptyMap();
         }
-        ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
-        separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
+        separator = parseStringFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
         escapeChar = parseCharFromConfig(config,"escapeChar", DEFAULT_ESCAPE_CHAR);
@@ -66,6 +63,18 @@ public class LoadCsvConfig extends CompressionConfig {
         mappings = createMapping(mapping, arraySep, ignore);
     }
 
+    private static String parseStringFromConfig(Map<String, Object> config, String key, String defaultValue) {
+        String separator = (String) config.getOrDefault(key, defaultValue);
+        if ("TAB".equals(separator)) {
+            return "\t";
+        }
+        if ("NONE".equals(separator)) {
+            return "\0";
+        }
+        return separator;
+    }
+
+
     private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
         if (mapping.isEmpty()) return Collections.emptyMap();
         HashMap<String, Mapping> result = new HashMap<>(mapping.size());
@@ -76,7 +85,7 @@ public class LoadCsvConfig extends CompressionConfig {
         return result;
     }
 
-    public char getSeparator() {
+    public String getSeparator() {
         return separator;
     }
 
@@ -118,10 +127,6 @@ public class LoadCsvConfig extends CompressionConfig {
 
     public char getEscapeChar() {
         return escapeChar;
-    }
-
-    public boolean getIgnoreErrors() {
-        return ignoreErrors;
     }
 
     public boolean isIgnoreQuotations() {

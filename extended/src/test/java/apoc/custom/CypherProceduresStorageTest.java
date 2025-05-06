@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static apoc.custom.CypherProcedureTestUtil.QUERY_CREATE;
 import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 import static apoc.util.DbmsTestUtil.startDbWithApocConfigs;
 import static apoc.util.MapUtil.map;
@@ -104,7 +105,6 @@ public class CypherProceduresStorageTest {
         // wait a time greater then the `apoc.custom.procedures.refresh` value
         // and check overload works correctly
 
-        System.out.println("before refresh");
         Thread.sleep(greaterThanRefreshTime);
         checkFunctionOverloaded();
 

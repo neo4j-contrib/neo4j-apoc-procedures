@@ -1,0 +1,103 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow'
+    id 'maven-publish'
+    id 'antlr'
+    id "org.jetbrains.kotlin.jvm" version "1.9.20"
+    id "com.diffplug.spotless" version "6.7.2"
+}
+
+description = 'APOC :: Apoc Extended Integration Tests Module'
+
+test {
+    maxParallelForks = 1
+}
+
+dependencies {
+    apt project(':processor')
+    apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective   // mandatory to run @ServiceProvider based META-INF code generation
+
+    def withoutJacksons = {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }    
+    def withoutServers = {
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.eclipse.jetty.aggregate'
+        exclude group: 'org.apache.hive', module: 'hive-service'
+    }
+
+    implementation project(":extended")
+    
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
+    testImplementation project(':extended').sourceSets.main.allJava
+
+    testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
+    testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+
+    testImplementation project(':core')
+    testImplementation project(':test-utils')
+    testImplementation project(':common')
+    testImplementation project(':extended')
+    testImplementation project(':core').sourceSets.test.output
+    compileOnly project(':extended').sourceSets.main.allJava
+    testImplementation project(':extended').sourceSets.test.output
+    testImplementation files(project(':extended').sourceSets.test.output)
+    
+    testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.425'
+    testImplementation group: 'org.xmlunit', name: 'xmlunit-core', version: '2.9.1'
+    testImplementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
+    testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.1.1.RELEASE'
+    testImplementation group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.11.1', {
+        exclude group: 'io.netty'
+    }
+    testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
+    
+    testImplementation group: 'org.testcontainers', name: 'qdrant', version: '1.20.2'
+    testImplementation group: 'org.testcontainers', name: 'chromadb', version: '1.20.2'
+    testImplementation group: 'org.testcontainers', name: 'weaviate', version: '1.20.2'
+    testImplementation group: 'org.testcontainers', name: 'milvus', version: '1.20.2'
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation 'com.azure:azure-storage-blob:12.22.0'
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
+}
+
+tasks.register('copyApocCoreJar', Copy) {
+    dependsOn(':core:shadowJar')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
+}
+
+tasks.register('copyApocExtendedJar', Copy) {
+    dependsOn(':extended:shadowJar')
+    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
+}
+
+test {
+    // build core, extended and extra-dependencies JARs
+    dependsOn(copyApocCoreJar)
+    dependsOn(copyApocExtendedJar)
+    dependsOn(':extra-dependencies:buildDependencies')
+    maxParallelForks = 1
+    doFirst {
+        var apocJarCorePath = layout.buildDirectory.file("test-core/jar/apoc-${version}-core.jar").get().asFile.absolutePath
+        println("apoc-core.test.jar.path=$apocJarCorePath")
+        systemProperty 'apoc-core.test.jar.path', apocJarCorePath
+        
+        var apocJarExtendedPath = layout.buildDirectory.file("test-extended/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
+        println("apoc-extended.test.jar.path=$apocJarExtendedPath")
+        systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
+        
+        var apocExtendedJarPath = "${project(':extra-dependencies').buildDir}/allJars"
+        println("apoc-extra-dependencies.test.jar.path=$apocExtendedJarPath")
+        systemProperty 'apoc-extra-dependencies.test.jar.path', apocExtendedJarPath
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}

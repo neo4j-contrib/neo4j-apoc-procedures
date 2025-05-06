@@ -7,9 +7,9 @@ import java.time.Duration;
 
 public class MySQLContainerExtension extends MySQLContainer<MySQLContainerExtension> {
 
-    public MySQLContainerExtension() {
-        super("mysql:5.7");
-        this.withInitScript("init_mysql.sql");
+    public MySQLContainerExtension(String imageName) {
+        super(imageName);
+        this.withInitScript("init_mysql_for_load_jdbc.sql");
         this.withUrlParam("user", "test");
         this.withUrlParam("password", "test");
         this.withUrlParam("useSSL", "false");

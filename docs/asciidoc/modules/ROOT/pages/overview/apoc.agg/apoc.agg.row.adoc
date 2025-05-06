@@ -1,0 +1,52 @@
+= apoc.agg.row
+:description: This section contains reference documentation for the apoc.agg.row function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.agg.row(element, predicate) - Returns index of the `element` that match the given `predicate`
+
+== Signature
+
+[source]
+----
+apoc.agg.row(value :: ANY, predicate :: STRING) :: LONG
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|value|ANY|null
+|predicate|STRING|null
+|===
+
+== Usage Examples
+
+In the predicate string parameter, we have to use the parameter `$curr` to check the current element.
+
+Given the following dataset:
+[source,cypher]
+----
+UNWIND [{date: datetime('1999'), other: 5}
+    {date: datetime('2000'), other: 10},
+    {date: datetime('2000'), other: 15} ] AS prop
+CREATE (n:Date) SET n = prop;
+----
+
+we can execute: 
+
+[source,cypher]
+----
+MATCH (n:Date)
+RETURN apoc.agg.row(n, '$curr.date <> datetime("1999") AND $curr.other > 11 ') AS row
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| row
+| 2
+|===
+
+

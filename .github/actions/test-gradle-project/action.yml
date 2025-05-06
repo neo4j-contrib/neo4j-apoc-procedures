@@ -1,0 +1,25 @@
+name: "Test gradle project"
+description: "Test gradle project"
+
+inputs:
+  project-name:
+    description: "Name of gradle project to test"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/actions/setup-gradle-cache
+    - name: Run compile tests
+      shell: bash
+      run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_EE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE :${{inputs.project-name}}:compileJava :${{inputs.project-name}}:compileTestJava
+    - name: Run tests
+      shell: bash
+      run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION -Pneo4jDockerEeOverride=$NEO4J_DOCKER_EE_OVERRIDE -Pneo4jDockerCeOverride=$NEO4J_DOCKER_CE_OVERRIDE :${{inputs.project-name}}:check --parallel
+    - name: Archive test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{inputs.project-name}}-test-results
+        path: |
+          ${{inputs.project-name}}/build/reports/tests/test/

@@ -1,0 +1,175 @@
+We can convert any value, including list/map of nodes/rels/paths
+
+.Convert map to YAML
+[source,cypher]
+----
+RETURN apoc.convert.toYaml({a:42,b:"foo"}) AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,yaml]
+----
+---
+a: 42
+b: "foo"
+c:
+- 1
+- 2
+- 3
+----
+|===
+
+
+.Convert map to YAML, with custom feature
+[source,cypher]
+----
+RETURN apoc.convert.toYaml({a:42,b:"foo"},
+    {enable: ['MINIMIZE_QUOTES'], disable: ['WRITE_DOC_START_MARKER']}
+) AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,yaml]
+----
+a: 42
+b: "foo"
+----
+|===
+
+.Convert node to YAML
+[source,cypher]
+----
+RETURN apoc.convert.toYaml({a:42,b:"foo"},
+    {enable: ['MINIMIZE_QUOTES'], disable: ['WRITE_DOC_START_MARKER']}
+) AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,yaml]
+----
+---
+id: "<elementID>"
+type: "node"
+labels:
+- "Test"
+properties:
+  foo: 7
+----
+|===
+
+
+.Convert map of nodes to YAML
+[source,cypher]
+----
+CREATE (a:Test {foo: 7}), (b:Test {bar: 9}) 
+RETURN apoc.convert.toYaml({one: a, two: b}) AS value, elementId(a) AS idA, elementId(b) AS idB
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,yaml]
+----
+---
+one:
+  id: "<elementID>"
+  type: "node"
+  labels:
+  - "Test"
+  properties:
+    foo: 7
+two:
+  id: "<elementID>"
+  type: "node"
+  labels:
+  - "Test"
+  properties:
+    bar: 9
+----
+|===
+
+
+.Convert path to YAML
+[source,cypher]
+----
+CREATE p=(a:Test {foo: 7})-[r1:TEST]->(b:Baz {a:'b'})<-[r2:TEST_2 {aa:'bb'}]-(c:Bar {one:'www', two:2, three: localdatetime('2020-01-01')})
+RETURN apoc.convert.toYaml(p) AS value, elementId(a) AS idTest, elementId(b) AS idBaz, elementId(c) AS idBar, elementId(r1) AS idTEST, elementId(r2) AS idTEST_2
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,yaml]
+----
+---
+- id: "<elementID>"
+  type: "node"
+  properties:
+    foo: 7
+  labels:
+  - "Test"
+- start:
+    id: "<elementID>"
+    type: "node"
+    properties:
+      foo: 7
+    labels:
+    - "Test"
+  end:
+    id: "<elementID>"
+    type: "node"
+    properties:
+      a: "b"
+    labels:
+    - "Baz"
+  id: "<elementID>"
+  label: "TEST"
+  type: "relationship"
+- id: "%2$s"
+  type: "node"
+  properties:
+    a: "b"
+  labels:
+  - "Baz"
+- start:
+    id: "<elementID>"
+    type: "node"
+    properties:
+      one: "www"
+      three: "2020-01-01T00:00"
+      two: 2
+    labels:
+    - "Bar"
+  end:
+    id: "<elementID>"
+    type: "node"
+    properties:
+      a: "b"
+    labels:
+    - "Baz"
+  id: "<elementID>"
+  label: "TEST_2"
+  type: "relationship"
+  properties:
+    aa: "bb"
+- id: "%3$s"
+  type: "node"
+# ...
+----
+|===

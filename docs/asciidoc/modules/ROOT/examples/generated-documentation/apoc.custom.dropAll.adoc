@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.dropAll.adoc[apoc.custom.dropAll icon:book[]] +
+
+`apoc.custom.dropAll()` - Eventually drops all previously added custom procedures/functions and returns info
+¦label:procedure[]
+¦label:apoc-extended[]

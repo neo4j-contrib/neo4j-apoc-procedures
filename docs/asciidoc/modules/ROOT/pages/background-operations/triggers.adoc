@@ -1,0 +1,19 @@
+[[triggers]]
+= Trigger Extended procedures
+
+APOC Core provides a set of procedures for running Cypher queries that are called when data in Neo4j is changed (created, updated, deleted).
+
+https://neo4j.com/docs/apoc/current/background-operations/triggers/[See here for more info].
+
+In addition, APOC Extended provides some helper procedures to more easily manipulate Cypher queries and solve some transaction use cases that cannot be solved otherwise.
+
+== Helper Functions
+
+[separator=¦,opts=header,cols="5,1m,1m"]
+|===
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.trigger.nodesByLabel.adoc[]
+include::example$generated-documentation/apoc.trigger.propertiesByKey.adoc[]
+include::example$generated-documentation/apoc.trigger.toNode.adoc[]
+include::example$generated-documentation/apoc.trigger.toRelationship.adoc[]
+|===

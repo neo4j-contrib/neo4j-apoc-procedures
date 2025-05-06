@@ -1,8 +1,19 @@
 rootProject.name = 'apoc'
 
 include("extended")
-
-include ':core', ':common', ':processor', ':test-utils'
+include ("extended-it")
+include ':core', ':common', ':processor', ':test-utils', ':extra-dependencies'
+include ':extra-dependencies:nlp'
+include ':extra-dependencies:mongodb'
+include ':extra-dependencies:email'
+include ':extra-dependencies:couchbase'
+include ':extra-dependencies:xls'
+include ':extra-dependencies:redis'
+include ':extra-dependencies:selenium'
+include ':extra-dependencies:hadoop'
+include ':extra-dependencies:gcs'
+include ':extra-dependencies:aws'
+include ':extra-dependencies:kafka'
 project(':core').projectDir = new File(rootDir, 'apoc-core/core')
 project(':common').projectDir = new File(rootDir, 'apoc-core/common')
 project(':processor').projectDir = new File(rootDir, 'apoc-core/processor')
@@ -19,9 +30,14 @@ startParameter.excludedTaskNames = [
         ':test-utils:test',
         ':core:publish',
         ':common:publish',
-        ':test-utils:publish',
-        // the :core:shadowJar should be used only for integration tests with both core and extended jars
-        // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
-        // not when a `gradle shadow` or a `gradle build` is executed in this root project folder
-        ':core:shadowJar'
+        ':test-utils:publish'
 ]
+
+// the :core:shadowJar should be used only for integration tests with both core and extended jars
+// e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
+// not when a `gradle shadow` or a `gradle build` is executed in this root project folder
+gradle.settingsEvaluated {
+    if (!startParameter.taskNames.any { it.startsWith(":extended-it") }) {
+        startParameter.excludedTaskNames.add(':core:shadowJar')
+    }
+}

@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.installFunction.adoc[apoc.custom.installFunction icon:book[]] +
+
+`apoc.custom.installFunction()` - Eventually registers a custom cypher function
+¦label:procedure[]
+¦label:apoc-extended[]

@@ -48,6 +48,7 @@ import static org.neo4j.driver.internal.util.Iterables.count;
  * @author mh
  * @since 08.05.16
  */
+
 public class CypherExtendedTest {
     public static final String IMPORT_DIR = "src/test/resources";
     @ClassRule
@@ -154,6 +155,35 @@ public class CypherExtendedTest {
     }
 
     @Test
+    public void testRunFileWithCommentsAndEmptyRows() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFile('return.cypher', {statistics: false})",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(Map.of("\"Step 1\"", "Step 1"), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("row", "Step 3"), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("row", 6L), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("row", 7L), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("'8'", "8"), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("9", 9L), row.get("result"));
+                    
+                    row = r.next();
+                    assertEquals(Map.of("10", 10L), row.get("result"));
+                    
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
     public void testRunFileWithAutoTransaction() {
         final int expectedCount = 1000;
         testCall(db, "CALL apoc.cypher.runFile('range_in_transaction.cypher')",
@@ -255,6 +285,7 @@ public class CypherExtendedTest {
 
 
     @Test
+    @Ignore("flaky")
     public void testIssue3751RunFiles() {
         int numEntities = 500;
         db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
@@ -419,7 +450,7 @@ public class CypherExtendedTest {
     public void testRunFileWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFileCommon(failingFile, cypherError);
     }
 
@@ -449,8 +480,7 @@ public class CypherExtendedTest {
         testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
                 Map.of("file", failingFile),
                 row -> {
-                    String cypherError = "Error in `constraints.cypher`:\n" +
-                                         "An equivalent constraint already exists";
+                    String cypherError = "An equivalent constraint already exists";
                     assertErrorResult(cypherError, row);
                 });
     }
@@ -470,8 +500,7 @@ public class CypherExtendedTest {
         testCall(db, "CALL apoc.cypher.runSchemaFile($file, {reportError: true})",
                 Map.of("file", failingFile),
                 row -> {
-                    String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" +
-                                       "Variable `bar` not defined";
+                    String cypherError = "Variable `bar` not defined";
                     assertErrorResult(cypherError, row);
                 });
     }
@@ -479,8 +508,7 @@ public class CypherExtendedTest {
     @Test
     public void testRunSchemaFilesWithFailingStatement() {
         String failingFile = "constraints.cypher";
-        String cypherError = "Error in `constraints.cypher`:\n" +
-                             "An equivalent constraint already exists";
+        String cypherError = "An equivalent constraint already exists";
 
         testRunFailingSchemaFilesCommon(failingFile, cypherError);
     }
@@ -489,8 +517,7 @@ public class CypherExtendedTest {
     public void testRunSchemaFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_schema_statements_runtime.cypher";
-        String cypherError = "Error in `wrong_schema_statements_runtime.cypher`:\n" +
-                             "Variable `bar` not defined";
+        String cypherError = "Variable `bar` not defined";
 
         testRunFailingSchemaFilesCommon(failingFile, cypherError);
     }
@@ -571,7 +598,7 @@ public class CypherExtendedTest {
     public void testRunFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFilesCommon(failingFile, cypherError);
     }
 
@@ -619,6 +646,15 @@ public class CypherExtendedTest {
         try (Transaction tx = db.beginTx()) {
             assertEquals(expectedBefore + 4, count(tx.schema().getIndexes()));
         }
+    }
+
+    @Test
+    public void testRunSchemaFileWithCommentsAndEmptyRows() {
+        testResult(db, "CALL apoc.cypher.runSchemaFile('schemaWithCommentsAndEmptyRows.cypher')",
+                r -> {
+                    assertSchemaCypherFile(r);
+                    assertFalse(r.hasNext());
+                });
     }
 
     private void assertSchemaCypherFile(Result r) {

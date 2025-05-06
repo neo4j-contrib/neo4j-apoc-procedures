@@ -1,0 +1,5 @@
+¦xref::overview/apoc.custom/apoc.custom.dropProcedure.adoc[apoc.custom.dropProcedure icon:book[]] +
+
+`apoc.custom.dropProcedure()` - Eventually drops the targeted custom procedure
+¦label:procedure[]
+¦label:apoc-extended[]

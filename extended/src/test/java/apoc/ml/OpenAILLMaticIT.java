@@ -17,8 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ml.OpenAI.APIKEY_CONF_KEY;
-import static apoc.ml.OpenAI.ENDPOINT_CONF_KEY;
-import static apoc.ml.OpenAI.MODEL_CONF_KEY;
+import static apoc.ml.MLUtil.*;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

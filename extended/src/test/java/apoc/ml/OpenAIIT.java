@@ -1,6 +1,7 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.collection.Iterators;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -8,15 +9,25 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import static apoc.ml.MLTestUtil.assertNullInputFails;
+import static apoc.ml.MLUtil.MODEL_CONF_KEY;
+import static apoc.ml.OpenAI.GPT_4O_MODEL;
+import static apoc.ml.OpenAI.FAIL_ON_ERROR_CONF;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyMap;
+import static org.junit.Assert.assertEquals;
 
 public class OpenAIIT {
 
     private String openaiKey;
+    
+    public static final String GPT_35_MODEL = "gpt-3.5-turbo";
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
@@ -38,6 +49,49 @@ public class OpenAIIT {
     }
 
     @Test
+    public void getEmbedding3Small() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small");
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                OpenAITestResultUtils::assertEmbeddings);
+    }
+
+    @Test
+    public void getEmbedding3Large() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large");
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 3072));
+    }
+
+    @Test
+    public void getEmbedding3SmallWithDimensionsRequestParameter() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-small",
+                "dimensions", 256);
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 256));
+    }
+
+    @Test
+    public void getEmbedding3LargeWithDimensionsRequestParameter() {
+        Map<String, Object> conf = Map.of(MODEL_CONF_KEY, "text-embedding-3-large",
+                "dimensions", 256);
+        testCall(db, EMBEDDING_QUERY, Map.of("apiKey", openaiKey, "conf", conf),
+                r -> assertEmbeddings(r, 256));
+    }
+
+    @Test
+    public void getEmbeddingNull() {
+        testResult(db, "CALL apoc.ml.openai.embedding([null, 'Some Text', null, 'Other Text'], $apiKey, $conf)", Map.of("apiKey",openaiKey, "conf", emptyMap()),
+                r -> {
+                    Set<String> actual = Iterators.asSet(r.columnAs("text"));
+
+                    Set<String> expected = new HashSet<>() {{
+                        add(null); add(null); add("Some Text"); add("Other Text");
+                    }};
+                    assertEquals(expected, actual);
+                });
+    }
+
+    @Test
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 Map.of("apiKey", openaiKey, "conf", emptyMap()),
@@ -47,7 +101,7 @@ public class OpenAIIT {
     @Test
     public void chatCompletion() {
         testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", emptyMap()),
-                (row) -> assertChatCompletion(row, "gpt-3.5-turbo"));
+                (row) -> assertChatCompletion(row, GPT_4O_MODEL));
 
         /*
         {
@@ -72,5 +126,82 @@ public class OpenAIIT {
   ]
 }
          */
+    }
+
+    @Test
+    public void chatCompletionGpt35Turbo() {
+        testCall(db, CHAT_COMPLETION_QUERY, Map.of("apiKey",openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL)),
+                (row) -> assertChatCompletion(row, GPT_35_MODEL));
+    }
+
+    @Test
+    public void embeddingsNull() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatNull() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+    @Test
+    public void embeddingsReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+
+    @Test
+    public void chatWithEmptyFails() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat([], $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+    
+    @Test
+    public void embeddingsWithEmptyReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.embedding([], $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
+    }
+
+    @Test
+    public void completionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatCompletionNull() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", emptyMap())
+        );
+    }
+
+    @Test
+    public void chatCompletionNullGpt35Turbo() {
+        assertNullInputFails(db, "CALL apoc.ml.openai.chat(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(MODEL_CONF_KEY, GPT_35_MODEL))
+        );
+    }
+
+    @Test
+    public void completionReturnsEmptyIfFailOnErrorFalse() {
+        TestUtil.testCallEmpty(db, "CALL apoc.ml.openai.completion(null, $apiKey, $conf)",
+                Map.of("apiKey", openaiKey, "conf", Map.of(FAIL_ON_ERROR_CONF, false))
+        );
     }
 }

@@ -145,7 +145,40 @@ With a result like this:
 
 == Generate Embeddings API
 
-Watson does not have built-in embedding APIs, 
-so if we want to use embeddings, we have to use one of the other Apoc ML integrations,
-such as xref::ml/openai.adoc[apoc.ml.openai.embeddings] or xref::ml/vertexai.adoc[apoc.ml.vertexai.embeddings], 
-or https://huggingface.co/docs/hub/sentence-transformers[HuggingFace embeddings as sentence transformers].
+This procedure `apoc.ml.watson.embedding` can take a list of text strings, and will return one row per string, with the embedding data as a 512 element vector.
+
+
+Additional configuration is passed to the API, the default model used is `ibm/slate-30m-english-rtrvr`.
+See https://www.ibm.com/products/watsonx-ai/foundation-models[here] to check the list of the current models.
+
+.Generate Embeddings Call
+[source,cypher]
+----
+CALL apoc.ml.watson.embedding(['Some Text'], $accessToken, $project, {}) yield index, text, embedding;
+----
+
+.Generate Embeddings Response
+[%autowidth, opts=header]
+|===
+|index | text | embedding
+|0 | "Some Text" | [-0.0065358975, -7.9563365E-4, .... -0.010693862, -0.005087272]
+|===
+
+.Parameters
+[%autowidth, opts=header]
+|===
+|name | description
+| texts | List of text strings
+| accessToken | Watson access token
+| configuration | optional config map, equivalent to other procedures
+|===
+
+
+.Results
+[%autowidth, opts=header]
+|===
+|name | description
+| index | index entry in original list
+| text  | line of text from original list
+| embedding | floating point embedding vector for ada-002 model
+|===

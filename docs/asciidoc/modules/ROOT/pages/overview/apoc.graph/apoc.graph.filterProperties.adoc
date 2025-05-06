@@ -1,0 +1,63 @@
+= apoc.graph.filterProperties
+:description: This section contains reference documentation for the apoc.graph.filterProperties function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+----
+apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove)
+
+Aggregation function which returns an object {node: [virtual nodes], relationships: [virtual relationships]} without the properties defined in nodePropertiesToRemove and relPropertiesToRemove
+----
+
+== Signature
+
+[source]
+----
+apoc.graph.filterProperties(value :: ANY?, nodePropertiesToRemove :: MAP?, relPropertiesToRemove :: MAP?) :: ANY?
+----
+
+The `nodePropertiesToRemove` and `relPropertiesToRemove` parameter are maps
+with key the label/relationship type and value the list of properties to remove from the virtual entities.
+The key can also be `_all`, for both of them, which means that the properties of each label/rel-type are filtered.
+
+
+== Usage Examples
+
+
+Given the following dataset:
+[source,cypher]
+----
+CREATE (:Person {name: "foo", plotEmbedding: "11"})-[:REL {idRel: 1, posterEmbedding: "33"}]->(:Movie {name: "bar", plotEmbedding: "22"}),
+                 (:Person {name: "baz", plotEmbedding: "33"})-[:REL {idRel: 1, posterEmbedding: "66"}]->(:Movie {name: "ajeje", plotEmbedding: "44"})
+----
+
+we can execute:
+
+[source,cypher]
+----
+MATCH path=(:Person)-[:REL]->(:Movie)
+WITH apoc.graph.filterProperties(path, {Movie: ['posterEmbedding'], Person: ['posterEmbedding', 'plotEmbedding', 'plot', 'bio']}) as graph
+RETURN graph.nodes AS nodes, graph.relationships AS relationships
+----
+
+.Results
+[opts="header",cols="2"]
+|===
+| nodes       | relationships                                                                                                                                                                                                                                                                                                                                               
+| [(:Person {name: "1"}), (:Movie {name: "bar"}), (:Movie {title: "1",tmdbId: "ajeje"}), (:Person {name: "baz"}), (:Person {name: "uno"}), (:Movie {name: "ajeje"}), (:Movie {title: "1",tmdbId: "due"}), (:Movie {title: "1",tmdbId: "ajeje"}), (:Person {name: "1"}), (:Movie {title: "1",tmdbId: "ajeje"}), (:Person {name: "foo"}), (:Person {name: "1"})] | [[:REL], [:REL {idRel: 1}], [:REL {idRel: 1}], [:REL], [:REL], [:REL]]│
+|===
+
+or:
+
+[source,cypher]
+----
+MATCH path=(:Person)-[:REL]->(:Movie)
+WITH apoc.graph.filterProperties(path, {_all: ['plotEmbedding', 'posterEmbedding', 'plot', 'bio']}) as graph
+RETURN graph.nodes AS nodes, graph.relationships AS relationships
+----
+
+with the same result as above.
+
+
+

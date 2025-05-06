@@ -3,6 +3,7 @@ package apoc.gephi;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.RegexBody;
+import org.mockserver.socket.PortFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,9 +27,13 @@ import static org.mockserver.model.RegexBody.regex;
  */
 public class GephiMock {
     private final ClientAndServer server;
+    private final int PORT;
+    public final String HOST;
 
     public GephiMock() {
-        this.server = ClientAndServer.startClientAndServer(8080);
+        PORT = PortFactory.findFreePort();
+        HOST = "http://localhost:" + PORT;
+        this.server = ClientAndServer.startClientAndServer(PORT);
     }
 
     public void clearAllExpectations() {
@@ -40,7 +45,7 @@ public class GephiMock {
     }
 
     public void mockSuccess(String workspace, GephiEntity... entities) {
-        new MockServerClient("localhost", 8080)
+        new MockServerClient("localhost", PORT)
                 .when(request()
                         .withMethod("POST")
                         .withPath("/" + workspace)

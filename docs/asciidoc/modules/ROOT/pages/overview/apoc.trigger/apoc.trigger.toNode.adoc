@@ -1,0 +1,28 @@
+
+= apoc.trigger.toNode
+:description: This section contains reference documentation for the apoc.trigger.toNode function.
+
+label:function[] label:apoc-extended[]
+
+== Signature
+
+[source]
+----
+apoc.trigger.toNode(node :: NODE, removedLabels :: MAP, removedNodeProperties :: MAP) :: RELATIONSHIPH
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|node|NODE|null
+|removedLabels|MAP|null
+|removedNodeProperties|MAP|null
+|===
+
+[[usage-apoc.trigger.nodesByLabel]]
+== Usage Examples
+include::partial$usage/apoc.trigger.toNode.adoc[]
+
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.toNode,role=more information]
+

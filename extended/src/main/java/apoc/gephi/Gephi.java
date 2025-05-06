@@ -2,7 +2,7 @@ package apoc.gephi;
 
 import apoc.Extended;
 import apoc.graph.GraphsUtils;
-import apoc.result.ProgressInfo;
+import apoc.result.ExportProgressInfo;
 import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
 import apoc.util.UrlResolver;
@@ -52,7 +52,7 @@ public class Gephi {
     // TODO configure property-filters or transfer all properties
     @Procedure
     @Description("apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams passed in data to Gephi")
-    public Stream<ProgressInfo> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data,@Name(value = "weightproperty",defaultValue = "null") String weightproperty,@Name(value = "exportproperties",defaultValue = "[]") List<String> exportproperties) {
+    public Stream<ExportProgressInfo> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data, @Name(value = "weightproperty",defaultValue = "null") String weightproperty, @Name(value = "exportproperties",defaultValue = "[]") List<String> exportproperties) {
         if (workspace == null) workspace = "workspace0";
         String url = getGephiUrl(keyOrUrl)+"/"+Util.encodeUrlComponent(workspace)+"?operation=updateGraph";
         long start = System.currentTimeMillis();
@@ -63,7 +63,7 @@ public class Gephi {
         if (GraphsUtils.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
             JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload, "", true, null, null, urlAccessChecker).count();
-            return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
+            return Stream.of(new ExportProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
     }

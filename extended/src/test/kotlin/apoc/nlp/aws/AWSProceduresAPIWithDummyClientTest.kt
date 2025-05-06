@@ -21,7 +21,6 @@ import org.neo4j.graphdb.Result
 import org.neo4j.test.rule.ImpermanentDbmsRule
 import java.util.stream.Collectors
 
-
 class AWSProceduresAPIWithDummyClientTest {
     companion object {
         val apiKey: String? = "dummyKey"

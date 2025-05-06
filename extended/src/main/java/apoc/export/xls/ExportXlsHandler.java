@@ -3,8 +3,9 @@ package apoc.export.xls;
 import apoc.ApocConfig;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ProgressReporter;
+import apoc.result.ExportProgressInfo;
 import apoc.result.ProgressInfo;
-import org.apache.commons.collections4.ListUtils;
+import apoc.util.ExtendedListUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -49,7 +50,7 @@ public class ExportXlsHandler {
                                                         "Please see the documentation: https://neo4j.com/labs/apoc/5/overview/apoc.export/apoc.export.xls.all/#_install_dependencies";
 
 
-    public static Stream<ProgressInfo> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ApocConfig apocConfig, GraphDatabaseService db) throws IOException {
+    public static Stream<ExportProgressInfo> getProgressInfoStream(String fileName, String source, Object data, Map<String, Object> configMap, ApocConfig apocConfig, GraphDatabaseService db) throws IOException {
         ExportConfig c = new ExportConfig(configMap);
         apocConfig.checkWriteAllowed(c, fileName);
         try (Transaction tx = db.beginTx();
@@ -57,8 +58,8 @@ public class ExportXlsHandler {
              SXSSFWorkbook wb = new SXSSFWorkbook(-1)) {
 
             XlsExportConfig config = new XlsExportConfig(configMap);
-            ProgressInfo progressInfo = new ProgressInfo(fileName, source, "xls");
-            progressInfo.batchSize = config.getBatchSize();
+            ProgressInfo progressInfo = new ExportProgressInfo(fileName, source, "xls");
+            progressInfo.setBatches(config.getBatchSize());
             ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
             Map<Class, CellStyle> styles = buildCellStyles(config, wb);
@@ -77,7 +78,7 @@ public class ExportXlsHandler {
             wb.dispose();
             reporter.done();
             tx.commit();
-            return reporter.stream();
+            return Stream.of((ExportProgressInfo) reporter.getTotal());
         }
     }
 
@@ -143,7 +144,7 @@ public class ExportXlsHandler {
             List<String> keys = triple.getRight();
             Row row = sheet.getRow(0);
             int cellNum = 0;
-            for (String key: ListUtils.union(magicKeys,keys)) {
+            for (String key: ExtendedListUtils.union(magicKeys,keys)) {
                 sheet.autoSizeColumn(cellNum);
                 Cell cell = row.createCell(cellNum++);
                 cell.setCellValue(key);

@@ -1,0 +1,3 @@
+:ID|name:STRING|speaks:STRING[]
+1|John|en,fr
+2|Jane|en,de

@@ -8,6 +8,8 @@ allprojects {
     }
 }
 
+description = 'APOC :: Extra Dependencies'
+
 configure(subprojects) {
     apply plugin: 'java'
 }
@@ -45,6 +47,7 @@ ext {
         exclude group: 'org.slf4j', module: 'slf4j-api'
 
         // jackson
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
 
@@ -66,22 +69,24 @@ ext {
         exclude group: 'io.netty', module: 'netty-transport-native-kqueue'
         exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
         exclude group: 'io.netty', module: 'netty-tcnative-classes'
+
+        // javax
+        exclude group: 'javax.servlet', module: 'javax.servlet-api'
     }
 }
 
 
 subprojects {
-    version = '5.16.0'
+    version = '2025.05.0'
     group = 'org.neo4j.contrib'
 }
 
-task copyJars(type: Copy) {
+tasks.register('copyJars', Copy) {
     from subprojects.collect { it.tasks.withType(Jar) }
     into "$buildDir/allJars"
 }
 
-
-task buildDependencies {
+tasks.register('buildDependencies') {
     subprojects.each { dependsOn("${it.name}:clean") }
     subprojects.each { dependsOn("${it.name}:build") }
     subprojects.each { dependsOn("${it.name}:shadowJar") }

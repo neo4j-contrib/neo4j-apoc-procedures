@@ -1,0 +1,56 @@
+[[virtual-nodes-and-relationships]]
+= Virtual Nodes and Relationships
+
+Virtual Nodes and Relationships do not exist in the graph, they are only returned by a query, and can be used to represent a graph projection.
+
+They can be used to **visually project data**, for example aggregating relationships into one, or collapsing intermediate nodes into virtual relationships.
+We could project a citation graph into a virtual author-author or paper-paper graph with aggregated relationships between them, or even turn Twitter data into a user-user mention graph.
+
+We can **combine** real and virtual entities, for example by creating a virtual relationship between two real nodes or creating a virtual relationship from a virtual node to a real node.
+
+
+== Create virtual entities
+
+This section includes:
+
+* xref::overview/apoc.create/apoc.create.virtual.fromNodeExtended.adoc[apoc.create.virtual.fromNodeExtended]
+
+
+== Returns virtual entities without some defined properties
+
+This section includes:
+
+* xref::overview/apoc.graph/apoc.graph.filterPropertiesProcedure.adoc[apoc.graph.filterProperties (procedure)]
+* xref::overview/apoc.graph/apoc.graph.filterProperties.adoc[apoc.graph.filterProperties (aggregation function)]
+
+We can filter some properties of nodes and relationships present in a subgraph using the `apoc.graph.filterProperties` procedure, 
+or the analogous aggregation function. 
+
+For example, if we want to exclude embedding properties created with the
+
+[source,cypher]
+----
+CALL apoc.ml.openai.embedding(["Test"], "<apiKey>", {}) yield embedding
+with embedding
+match (start:Start {id: 1}), (end:End {id: 2})
+WITH start, end, embedding
+CALL db.create.setNodeVectorProperty(start, "embeddingStart", embedding)
+CALL db.create.setNodeVectorProperty(end, "embeddingEnd", embedding)
+RETURN start, end
+----
+
+we would return virtual entities without those properties.
+
+If we return the nodes to Neo4j Browser or Neo4j Bloom we would have the following situations,
+where we can se the log embedding properties :
+
+image::/browserBeforeFilter.png[scaledwidth="100%"]
+
+image::/bloomBeforeFilter.png[scaledwidth="100%"]
+
+
+But if we filter the embedding properties, then the situation would be as follows, easier to read:
+
+image::/browserAfterFilter.png[scaledwidth="100%"]
+
+image::/bloomAfterFilter.png[scaledwidth="100%"]

@@ -1121,31 +1121,31 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-url-Key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-or-key,$config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">elastic search statistics</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a GET operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a SEARCH operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-key,path,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw GET operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-key,path,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw POST operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a POST operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a PUT operation</p></td>
 </tr>
 </tbody>
@@ -3154,31 +3154,31 @@ return nodes, relationships, time</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-url-Key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-or-key,$config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">elastic search statistics</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a GET operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a SEARCH operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-key,path,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw GET operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-key,path,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw POST operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null,$config) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a POST operation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">perform a PUT operation</p></td>
 </tr>
 </tbody>
@@ -3210,7 +3210,7 @@ return nodes, relationships, time</code></pre>
 <h4 id="_general_structure_and_parameters"><a class="link" href="#_general_structure_and_parameters">General Structure and Parameters</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.post(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
 
 // GET/PUT/POST url/index/type/id?query -d payload</code></pre>
 </div>

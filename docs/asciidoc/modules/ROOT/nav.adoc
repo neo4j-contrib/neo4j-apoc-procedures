@@ -26,9 +26,16 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::import/load-csv.adoc[]
     ** xref::import/xls.adoc[]
     ** xref::import/html.adoc[]
+    ** xref::import/parquet.adoc[]
+    ** xref::import/gexf.adoc[]
+    ** xref::import/arrow.adoc[]
+    ** xref::import/load-json.adoc[]
+    ** xref::import/load-partial.adoc[]
 
 * xref:export/index.adoc[]
     ** xref::export/xls.adoc[]
+    ** xref::export/arrow.adoc[]
+
 
 * xref:database-integration/index.adoc[]
     ** xref::database-integration/load-jdbc.adoc[]
@@ -39,6 +46,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::database-integration/bolt-neo4j.adoc[]
     ** xref::database-integration/load-ldap.adoc[]
     ** xref::database-integration/redis.adoc[]
+    ** xref::database-integration/vectordb/index.adoc[]
+    ** xref::database-integration/kafka/index.adoc[]
 
 * xref:graph-updates/index.adoc[]
     ** xref::graph-updates/uuid.adoc[]
@@ -52,6 +61,8 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::cypher-execution/cypher-based-procedures-functions.adoc[]
     ** xref::cypher-execution/parallel.adoc[]
 
+* xref:virtual-nodes-and-relationships/index.adoc[]
+
 * xref:virtual-resource/index.adoc[]
 
 * xref:nlp/index.adoc[]
@@ -63,9 +74,14 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref:ml/vertexai.adoc[]
     ** xref:ml/openai.adoc[]
     ** xref:ml/bedrock.adoc[]
+    ** xref:ml/watsonai.adoc[]
+    ** xref:ml/mixedbread.adoc[]
+    ** xref:ml/genai.adoc[]
+    ** xref:ml/rag.adoc[]
 
 * xref:background-operations/index.adoc[]
     ** xref::background-operations/apoc-load-directory-async.adoc[]
+    ** xref::background-operations/triggers.adoc[]
 
 * xref:database-introspection/index.adoc[]
     ** xref::database-introspection/config.adoc[]
@@ -79,6 +95,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:misc/index.adoc[]
     ** xref::misc/static-values.adoc[]
+    ** xref::misc/match-entities.adoc[]
 
 * xref::transaction/index.adoc[]
 

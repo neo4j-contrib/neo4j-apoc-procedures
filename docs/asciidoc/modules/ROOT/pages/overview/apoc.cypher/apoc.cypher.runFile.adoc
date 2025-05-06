@@ -14,7 +14,7 @@ apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - 
 
 [source]
 ----
-apoc.cypher.runFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?)
+apoc.cypher.runFile(file :: STRING?, config = {} :: MAP?) :: (row :: INTEGER?, result :: MAP?, fileName :: STRING?)
 ----
 
 == Input parameters
