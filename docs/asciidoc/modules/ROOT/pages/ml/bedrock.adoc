@@ -1,5 +1,6 @@
 [[aws-bedrock]]
 = AWS Bedrock procedures
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/bedrock/
 
 
 These procedures leverage the https://aws.amazon.com/bedrock/[Amazon Bedrock API].

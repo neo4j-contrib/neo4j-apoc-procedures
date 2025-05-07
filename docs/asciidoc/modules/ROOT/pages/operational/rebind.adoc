@@ -5,6 +5,7 @@ APOC provides a list of functions to rebind nodes and relationships:
 * `apoc.any.rebind(map/list/paths/...)`
 
 == Why use these functions
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/operational/rebind/
 
 Unlike versions up to 3.5, 
 in Neo4j 4+ the entities hold a reference to their originating transaction.

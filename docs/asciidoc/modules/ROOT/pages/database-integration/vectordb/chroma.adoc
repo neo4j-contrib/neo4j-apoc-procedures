@@ -1,5 +1,6 @@
 
 = ChromaDB
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/chroma/
 
 Here is a list of all available ChromaDB procedures,
 note that the list and the signature procedures are consistent with the others, like the Qdrant ones:

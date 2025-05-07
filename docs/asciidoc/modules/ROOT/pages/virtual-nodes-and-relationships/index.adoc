@@ -1,5 +1,6 @@
 [[virtual-nodes-and-relationships]]
 = Virtual Nodes and Relationships
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/virtual-nodes-and-relationships/
 
 
 

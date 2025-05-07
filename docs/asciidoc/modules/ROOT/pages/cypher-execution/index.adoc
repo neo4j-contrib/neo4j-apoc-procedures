@@ -1,5 +1,6 @@
 [[cypher-execution]]
 = Cypher Execution
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/cypher-execution/
 :description: This chapter describes Cypher Execution procedures in the APOC Extended library.
 
 

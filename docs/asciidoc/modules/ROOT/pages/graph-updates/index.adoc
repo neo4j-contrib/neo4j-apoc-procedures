@@ -1,5 +1,6 @@
 [[graph-updates]]
 = Graph Updates
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-updates/
 :description: This chapter describes procedures that can be used to perform graph updates.
 
 

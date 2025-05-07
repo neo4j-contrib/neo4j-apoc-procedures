@@ -1,5 +1,6 @@
 [[load-jdbc]]
 = Load JDBC (RDBMS)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/load-jdbc/
 :description: This section describes procedures that can be used to import data from databases that have JDBC support.
 
 If you want to use DuckDB you should download and import the driver from https://repo1.maven.org/maven2/org/duckdb/duckdb_jdbc/1.1.3/duckdb_jdbc-1.1.3.jar[Maven Repository]
