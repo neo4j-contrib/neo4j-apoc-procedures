@@ -128,8 +128,7 @@ public class OpenAiAnthropicIT {
     @Test
     public void completionWithAnthropic() {
         Map<String, Object> conf = Util.map(
-                API_TYPE_CONF_KEY, ANTHROPIC.name(),
-                MODEL_CONF_KEY, completionModel
+                API_TYPE_CONF_KEY, ANTHROPIC.name()
         );
         testCall(db, COMPLETION_QUERY_EXTENDED_PROMPT,
                 Util.map("conf", conf, "apiKey", anthropicApiKey),
@@ -139,6 +138,22 @@ public class OpenAiAnthropicIT {
                     assertTrue(completion.toLowerCase().contains("blue"),
                             "Actual generatedText is " + completion);
                 });
+    }
+
+    @Test
+    public void completionWithAnthropicUnknownModel() {
+        String modelId = "unknown";
+        Map<String, Object> conf = Util.map(
+                API_TYPE_CONF_KEY, ANTHROPIC.name(),
+                MODEL_CONF_KEY, completionModel
+        );
+
+        assertFails(
+                db,
+                CHAT_COMPLETION_QUERY_WITHOUT_SYSTEM,
+                Util.map("conf", conf, "apiKey", anthropicApiKey),
+                "Caused by: java.io.FileNotFoundException: https://api.anthropic.com/v1/messages"
+        );
     }
 
     @Test
