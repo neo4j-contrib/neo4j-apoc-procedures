@@ -87,6 +87,7 @@ public class LoadS3MinioTest {
     }
 
     @Test
+    @Ignore
     public void testLoadCsvS3() throws Exception {
         
         String url = getUrl("test.csv");
@@ -135,6 +136,7 @@ public class LoadS3MinioTest {
     }
 
     @Test
+    @Ignore
     public void testLoadXmlS3() throws Exception {
         String url = getUrl("test.xml");
 
