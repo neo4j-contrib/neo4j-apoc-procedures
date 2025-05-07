@@ -1,13 +1,18 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import static apoc.ml.MLUtil.*;
@@ -19,6 +24,7 @@ import static apoc.util.TestUtil.testCall;
 /**
  * Tests with Groq API: https://console.groq.com/docs/quickstart 
  */
+@RunWith(Parameterized.class)
 public class OpenAIGroqAPIsIT {
 
     private String groqApiKey;
@@ -26,6 +32,18 @@ public class OpenAIGroqAPIsIT {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"llama3-70b-8192"},
+                {"gemma2-9b-it"},
+                {"llama-3.3-70b-versatile"}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
 
     @Before
     public void setUp() throws Exception {
@@ -36,24 +54,15 @@ public class OpenAIGroqAPIsIT {
 
     @Test
     public void chatCompletionWithLlama2() {
-        String model = "llama2-70b-4096";
         testCall(db, CHAT_COMPLETION_QUERY,
-                getParams(model),
-                (row) -> assertChatCompletion(row, model));
+                getParams(chatModel),
+                (row) -> assertChatCompletion(row, chatModel));
     }
 
-    @Test
-    public void chatCompletionWithMixtral() {
-        String model = "mixtral-8x7b-32768";
-        testCall(db, CHAT_COMPLETION_QUERY,
-                getParams(model),
-                (row) -> assertChatCompletion(row, model));
-    }
-    
     private Map<String, Object> getParams(String model) {
-        Map<String, String> conf = Map.of(ENDPOINT_CONF_KEY, "https://api.groq.com/openai/v1",
+        Map<String, String> conf = Util.map(ENDPOINT_CONF_KEY, "https://api.groq.com/openai/v1",
                 MODEL_CONF_KEY, model);
-        
-        return Map.of("apiKey", groqApiKey, "conf", conf);
+
+        return Util.map("apiKey", groqApiKey, "conf", conf);
     }
 }
