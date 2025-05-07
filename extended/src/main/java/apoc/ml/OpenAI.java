@@ -227,8 +227,7 @@ public class OpenAI {
         if (checkNullInput(messages, failOnError)) return Stream.empty();
         messages = messages.stream().filter(ExtendedMapUtils::isNotEmpty).toList();
         if (checkEmptyInput(messages, failOnError)) return Stream.empty();
-        configuration.putIfAbsent("model", GPT_4O_MODEL);
-        return executeRequest(apiKey, configuration, "chat/completions", (String) configuration.get("model"), "messages", messages, "$", apocConfig, urlAccessChecker)
+        return executeRequest(apiKey, configuration, "chat/completions", GPT_4O_MODEL, "messages", messages, "$", apocConfig, urlAccessChecker)
                 .map(v -> (Map<String,Object>)v).map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create
     /*
