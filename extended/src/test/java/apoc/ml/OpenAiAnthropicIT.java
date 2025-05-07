@@ -41,7 +41,9 @@ public class OpenAiAnthropicIT {
     @Parameterized.Parameters(name = "chatModel: {0}, completionModel: {1}")
     public static Collection<String[]> data() {
         return Arrays.asList(new String[][] {
+                // tests with model evaluated
                 {"claude-3-5-sonnet-20240620", "claude-2"},
+                // tests with default model
                 {null, null}
         });
     }
