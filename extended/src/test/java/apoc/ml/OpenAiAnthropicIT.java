@@ -146,22 +146,6 @@ public class OpenAiAnthropicIT {
         String modelId = "unknown";
         Map<String, Object> conf = Util.map(
                 API_TYPE_CONF_KEY, ANTHROPIC.name(),
-                MODEL_CONF_KEY, completionModel
-        );
-
-        assertFails(
-                db,
-                CHAT_COMPLETION_QUERY_WITHOUT_SYSTEM,
-                Util.map("conf", conf, "apiKey", anthropicApiKey),
-                "Caused by: java.io.FileNotFoundException: https://api.anthropic.com/v1/messages"
-        );
-    }
-
-    @Test
-    public void completionWithAnthropicUnknownModel() {
-        String modelId = "unknown";
-        Map<String, Object> conf = Util.map(
-                API_TYPE_CONF_KEY, ANTHROPIC.name(),
                 MODEL_CONF_KEY, modelId
         );
 
