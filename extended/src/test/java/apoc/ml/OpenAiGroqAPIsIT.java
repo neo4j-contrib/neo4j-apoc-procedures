@@ -58,7 +58,7 @@ public class OpenAiGroqAPIsIT {
                 getParams(chatModel),
                 (row) -> assertChatCompletion(row, chatModel));
     }
-    
+
     private Map<String, Object> getParams(String model) {
         Map<String, String> conf = Util.map(ENDPOINT_CONF_KEY, "https://api.groq.com/openai/v1",
                 MODEL_CONF_KEY, model);
