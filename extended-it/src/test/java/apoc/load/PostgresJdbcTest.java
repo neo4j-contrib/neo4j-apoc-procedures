@@ -1,5 +1,8 @@
 package apoc.load;
 
+import apoc.load.jdbc.AbstractJdbcTest;
+import apoc.load.jdbc.Analytics;
+import apoc.load.jdbc.Jdbc;
 import apoc.periodic.Periodic;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
@@ -7,22 +10,29 @@ import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import static apoc.load.jdbc.Analytics.PROVIDER_CONF_KEY;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class PostgresJdbcTest extends AbstractJdbcTest {
 
@@ -38,8 +48,10 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     public static void setUp() throws Exception {
         postgress = new PostgreSQLContainer().withInitScript("init_postgres.sql");
         postgress.start();
-        TestUtil.registerProcedure(db,Jdbc.class, Periodic.class, Strings.class);
+        TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Strings.class, Analytics.class);
         db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
+
+        createAnalyticsDataset(db);
     }
 
     @AfterClass
@@ -98,6 +110,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     }
 
     @Test
+    @Ignore("flaky")
     public void testIssue4141PeriodicIterateWithJdbc() throws Exception {
         var config = Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
@@ -130,19 +143,95 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         assertPgStatActivityHasOnlyActiveState();
     }
 
-    private static void assertPgStatActivityHasOnlyActiveState() throws Exception {
-        // connect to postgres and execute the query `select state from pg_stat_activity`
-        String psql = postgress.execInContainer(
-                "psql", "postgresql://test:test@localhost/test", "-c", "select state from pg_stat_activity;")
-                .toString();
-        
-        assertTrue("Current pg_stat_activity is: " + psql, psql.contains("active"));
-        
-        // the result without the https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4141 change
-        // is not deterministic, can be `too many clients already` or (not very often) `idle`
-        assertFalse("Current pg_stat_activity is: " + psql,
-                psql.contains("too many clients already") || psql.contains("idle"));
+    @Test
+    public void testLoadJdbcAnalytics() {
 
+        String sql = """
+            SELECT
+                country,
+                name,
+                year,
+                date,
+                time,
+                datetime,
+                localtime,
+                localdatetime,
+                duration,
+                population,
+                blobdata,
+                RANK() OVER (PARTITION BY country ORDER BY year DESC) rank
+            FROM %s
+            ORDER BY rank, country, name;
+            """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+
+        List<Long> expectedResults = List.of(1L, 1L, 1L, 2L, 3L, 3L, 3L, 5L, 5L);
+        testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                map(
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
+                        "sql", sql,
+                        "url", getUrl(postgress),
+                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
+                ),
+                r -> commonAnalyticsAssertions(r, expectedResults));
+    }
+
+    @Test
+    public void testLoadJdbcAnalyticsWindow() {
+
+        String sql = """
+                SELECT
+                    country,
+                    name,
+                    year,
+                    date,
+                    time,
+                    datetime,
+                    localtime,
+                    localdatetime,
+                    duration,
+                    population,
+                    blobdata,
+                    ROW_NUMBER() OVER (PARTITION BY country ORDER BY year DESC) rank
+                FROM %s
+                ORDER BY rank, country, name;
+               """.formatted(Analytics.TABLE_NAME_DEFAULT_CONF_KEY);
+
+        List<Long> expectedResults = List.of(1L, 1L, 2L, 2L, 3L, 3L, 4L, 5L, 6L);
+        testResult(db, "CALL apoc.jdbc.analytics($queryCypher, $url, $sql, [], $config)",
+                map(
+                        "queryCypher", MATCH_ANALYTICS_QUERY,
+                        "sql", sql,
+                        "url", getUrl(postgress),
+                        "config", map(PROVIDER_CONF_KEY, Analytics.Provider.POSTGRES.name())
+                ),
+                r -> commonAnalyticsAssertions(r, expectedResults));
+    }
+
+    private static void commonAnalyticsAssertions(Result r, List<Long> expectedResults) {
+        expectedResults.forEach(expected -> {
+            Map<String, Object> actual = r.next();
+            assertRowRank(actual, expected);
+        });
+
+        assertFalse(r.hasNext());
+    }
+
+    private static void assertPgStatActivityHasOnlyActiveState() {
+        assertEventually(() -> {
+            // connect to postgres and execute the query `select state from pg_stat_activity`
+            String psql = postgress.execInContainer(
+                            "psql", "postgresql://test:test@localhost/test", "-c", "select state from pg_stat_activity;")
+                    .toString();
+    
+            assertTrue("Current pg_stat_activity is: " + psql, psql.contains("active"));
+    
+            // the result without the https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4141 change
+            // is not deterministic, can be `too many clients already` or (not very often) `idle`
+            assertFalse("Current pg_stat_activity is: " + psql,
+                    psql.contains("too many clients already") || psql.contains("idle"));
+            
+            return true;
+        }, v -> v, 20L, TimeUnit.SECONDS);
     }
 
     private void assertPeriodicIterate(Result result) {

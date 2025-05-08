@@ -3,7 +3,14 @@
 :description: This section describes how to register custom Cypher statements as procedures and functions
 
 
+By default, the custom Cypher statements are enabled.
+We can disable it by setting the following property in `apoc.conf`:
 
+.apoc.conf
+[source,properties]
+----
+apoc.custom.procedures.enabled=false
+----
 
 include::partial$systemdbonly.note.adoc[]
 

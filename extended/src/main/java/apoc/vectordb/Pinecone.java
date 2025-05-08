@@ -43,12 +43,12 @@ public class Pinecone {
     public URLAccessChecker urlAccessChecker;
 
     @Procedure("apoc.vectordb.pinecone.info")
-    @Description("apoc.vectordb.pinecone.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist")
+    @Description("apoc.vectordb.pinecone.info(hostOrKey, index, $configuration) - Get information about the specified existing index or throws an error if it does not exist")
     public Stream<MapResult> getInfo(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
+                                              @Name("index") String index,
                                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        String url = "%s/collections/%s";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        String url = "%s/indexes/%s";
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
 
         methodAndPayloadNull(config);
 
@@ -59,18 +59,18 @@ public class Pinecone {
     }
 
     @Procedure("apoc.vectordb.pinecone.createCollection")
-    @Description("apoc.vectordb.pinecone.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
+    @Description("apoc.vectordb.pinecone.createCollection(hostOrKey, index, similarity, size, $configuration) - Creates a index, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`")
     public Stream<MapResult> createCollection(@Name("hostOrKey") String hostOrKey,
-                                              @Name("collection") String collection,
+                                              @Name("index") String index,
                                               @Name("similarity") String similarity,
                                               @Name("size") Long size,
                                               @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         String url = "%s/indexes";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
         Map<String, Object> additionalBodies = Map.of(
-                "name", collection,
+                "name", index,
                 "dimension", size,
                 "metric", similarity
         );
@@ -81,14 +81,14 @@ public class Pinecone {
     }
 
     @Procedure("apoc.vectordb.pinecone.deleteCollection")
-    @Description("apoc.vectordb.pinecone.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter")
+    @Description("apoc.vectordb.pinecone.deleteCollection(hostOrKey, index, $configuration) - Deletes a index with the name specified in the 2nd parameter")
     public Stream<MapResult> deleteCollection(
             @Name("hostOrKey") String hostOrKey,
-            @Name("collection") String collection,
+            @Name("index") String index,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         String url = "%s/indexes/%s";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         config.putIfAbsent(METHOD_KEY, "DELETE");
 
         RestAPIConfig restAPIConfig = new RestAPIConfig(config);
@@ -98,16 +98,16 @@ public class Pinecone {
     }
 
     @Procedure("apoc.vectordb.pinecone.upsert")
-    @Description("apoc.vectordb.pinecone.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
+    @Description("apoc.vectordb.pinecone.upsert(hostOrKey, index, vectors, $configuration) - Upserts, in the index with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]")
     public Stream<MapResult> upsert(
             @Name("hostOrKey") String hostOrKey,
-            @Name("collection") String collection,
+            @Name("index") String index,
             @Name("vectors") List<Map<String, Object>> vectors,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         String url = "%s/vectors/upsert";
 
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
         vectors = vectors.stream()
@@ -126,15 +126,15 @@ public class Pinecone {
     }
 
     @Procedure("apoc.vectordb.pinecone.delete")
-    @Description("apoc.vectordb.pinecone.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`")
+    @Description("apoc.vectordb.pinecone.delete(hostOrKey, index, ids, $configuration) - Delete the vectors with the specified `ids`")
     public Stream<MapResult> delete(
             @Name("hostOrKey") String hostOrKey,
-            @Name("collection") String collection,
+            @Name("index") String index,
             @Name("vectors") List<Object> ids,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
 
         String url = "%s/vectors/delete";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         config.putIfAbsent(METHOD_KEY, "POST");
 
         Map<String, Object> additionalBodies = Map.of("ids", ids);
@@ -145,29 +145,29 @@ public class Pinecone {
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.get")
-    @Description("apoc.vectordb.pinecone.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
+    @Description("apoc.vectordb.pinecone.get(hostOrKey, index, ids, $configuration) - Get the vectors with the specified `ids`")
     public Stream<VectorDbUtil.EmbeddingResult> get(@Name("hostOrKey") String hostOrKey,
-                                                      @Name("collection") String collection,
+                                                      @Name("index") String index,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         setReadOnlyMappingMode(configuration);
-        return getCommon(hostOrKey, collection, ids, configuration);
+        return getCommon(hostOrKey, index, ids, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.getAndUpdate", mode = Mode.WRITE)
-    @Description("apoc.vectordb.pinecone.getAndUpdate(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`")
+    @Description("apoc.vectordb.pinecone.getAndUpdate(hostOrKey, index, ids, $configuration) - Get the vectors with the specified `ids`")
     public Stream<VectorDbUtil.EmbeddingResult> getAndUpdate(@Name("hostOrKey") String hostOrKey,
-                                                      @Name("collection") String collection,
+                                                      @Name("index") String index,
                                                       @Name("ids") List<Object> ids,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return getCommon(hostOrKey, collection, ids, configuration);
+        return getCommon(hostOrKey, index, ids, configuration);
     }
 
-    private Stream<VectorDbUtil.EmbeddingResult> getCommon(String hostOrKey, String collection, List<Object> ids, Map<String, Object> configuration) throws Exception {
+    private Stream<VectorDbUtil.EmbeddingResult> getCommon(String hostOrKey, String index, List<Object> ids, Map<String, Object> configuration) throws Exception {
         String url = "%s/vectors/fetch";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
         
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, collection);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromGet(config, procedureCallContext, ids, index);
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
@@ -178,33 +178,33 @@ public class Pinecone {
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.query")
-    @Description("apoc.vectordb.pinecone.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    @Description("apoc.vectordb.pinecone.query(hostOrKey, index, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the index with the name specified in the 2nd parameter")
     public Stream<VectorDbUtil.EmbeddingResult> query(@Name("hostOrKey") String hostOrKey,
-                                                      @Name("collection") String collection,
+                                                      @Name("index") String index,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         setReadOnlyMappingMode(configuration);
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
+        return queryCommon(hostOrKey, index, vector, filter, limit, configuration);
     }
 
     @Procedure(value = "apoc.vectordb.pinecone.queryAndUpdate", mode = Mode.WRITE)
-    @Description("apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the collection with the name specified in the 2nd parameter")
+    @Description("apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, index, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results,  in the index with the name specified in the 2nd parameter")
     public Stream<VectorDbUtil.EmbeddingResult> queryAndUpdate(@Name("hostOrKey") String hostOrKey,
-                                                      @Name("collection") String collection,
+                                                      @Name("index") String index,
                                                       @Name(value = "vector", defaultValue = "[]") List<Double> vector,
                                                       @Name(value = "filter", defaultValue = "{}") Map<String, Object> filter,
                                                       @Name(value = "limit", defaultValue = "10") long limit,
                                                       @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return queryCommon(hostOrKey, collection, vector, filter, limit, configuration);
+        return queryCommon(hostOrKey, index, vector, filter, limit, configuration);
     }
 
-    private Stream<VectorDbUtil.EmbeddingResult> queryCommon(String hostOrKey, String collection, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration) throws Exception {
+    private Stream<VectorDbUtil.EmbeddingResult> queryCommon(String hostOrKey, String index, List<Double> vector, Map<String, Object> filter, long limit, Map<String, Object> configuration) throws Exception {
         String url = "%s/query";
-        Map<String, Object> config = getVectorDbInfo(hostOrKey, collection, configuration, url);
+        Map<String, Object> config = getVectorDbInfo(hostOrKey, index, configuration, url);
 
-        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, collection);
+        VectorEmbeddingConfig conf = DB_HANDLER.getEmbedding().fromQuery(config, procedureCallContext, vector, filter, limit, index);
         
         return getEmbeddingResultStream(conf, procedureCallContext, urlAccessChecker, tx,
                 v -> {
@@ -215,7 +215,7 @@ public class Pinecone {
     }
 
     private Map<String, Object> getVectorDbInfo(
-            String hostOrKey, String collection, Map<String, Object> configuration, String templateUrl) {
-        return getCommonVectorDbInfo(hostOrKey, collection, configuration, templateUrl, DB_HANDLER);
+            String hostOrKey, String index, Map<String, Object> configuration, String templateUrl) {
+        return getCommonVectorDbInfo(hostOrKey, index, configuration, templateUrl, DB_HANDLER);
     }
 }

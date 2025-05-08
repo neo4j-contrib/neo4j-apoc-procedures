@@ -6,14 +6,15 @@ create constraint for (p:Person)
 require p.id is unique;
 ----
 
-This function is used inside an apoc.trigger.add Cypher statement.
+This function is intended to be used inside an apoc.trigger.install Cypher statement.
 
 We can use it to conditionally run Cypher statements when labels are added or removed or when properties are added or removed.
 For example, we add an `id` property to all `Person` nodes that is the lower case value of the `name` property of that node, by defining the following trigger:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add(
+CALL apoc.trigger.install(
+  'neo4j',
   'lowercase',
   'UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n
    SET n.id = toLower(n.name)',

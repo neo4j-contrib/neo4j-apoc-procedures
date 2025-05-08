@@ -3,7 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow'
     id 'maven-publish'
     id 'antlr'
-    id "org.jetbrains.kotlin.jvm" version "1.8.0"
+    id "org.jetbrains.kotlin.jvm" version "1.9.20"
     id "com.diffplug.spotless" version "6.7.2"
 }
 
@@ -28,6 +28,8 @@ dependencies {
     }
 
     implementation project(":extended")
+    
+    testImplementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.26.1'
     testImplementation project(':extended').sourceSets.main.allJava
 
     testImplementation group: 'us.fatehi', name: 'schemacrawler-mysql', version: '16.20.8'
@@ -55,14 +57,47 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'chromadb', version: '1.20.2'
     testImplementation group: 'org.testcontainers', name: 'weaviate', version: '1.20.2'
     testImplementation group: 'org.testcontainers', name: 'milvus', version: '1.20.2'
-
+    testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
+    testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
+    testImplementation 'com.azure:azure-storage-blob:12.22.0'
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
 }
 
+tasks.register('copyApocCoreJar', Copy) {
+    dependsOn(':core:shadowJar')
+    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
+}
+
+tasks.register('copyApocExtendedJar', Copy) {
+    dependsOn(':extended:shadowJar')
+    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
+}
+
+test {
+    // build core, extended and extra-dependencies JARs
+    dependsOn(copyApocCoreJar)
+    dependsOn(copyApocExtendedJar)
+    dependsOn(':extra-dependencies:buildDependencies')
+    maxParallelForks = 1
+    doFirst {
+        var apocJarCorePath = layout.buildDirectory.file("test-core/jar/apoc-${version}-core.jar").get().asFile.absolutePath
+        println("apoc-core.test.jar.path=$apocJarCorePath")
+        systemProperty 'apoc-core.test.jar.path', apocJarCorePath
+        
+        var apocJarExtendedPath = layout.buildDirectory.file("test-extended/jar/apoc-${version}-extended.jar").get().asFile.absolutePath
+        println("apoc-extended.test.jar.path=$apocJarExtendedPath")
+        systemProperty 'apoc-extended.test.jar.path', apocJarExtendedPath
+        
+        var apocExtendedJarPath = "${project(':extra-dependencies').buildDir}/allJars"
+        println("apoc-extra-dependencies.test.jar.path=$apocExtendedJarPath")
+        systemProperty 'apoc-extra-dependencies.test.jar.path', apocExtendedJarPath
+    }
+}
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }

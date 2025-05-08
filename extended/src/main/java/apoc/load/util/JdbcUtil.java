@@ -10,26 +10,102 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.LoginContext;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JdbcUtil {
 
-    private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
+    public static final Map<Class<?>, String> DUCK_TYPE_MAP = new HashMap<>();
+    public static final Map<Class<?>, String> POSTGRES_TYPE_MAP = new HashMap<>();
+    public static final Map<Class<?>, String> MYSQL_TYPE_MAP = new HashMap<>();
+    public static final String VARCHAR_TYPE = "VARCHAR(1000)";
+    
+    static {
+        // DuckDB mappings
+        DUCK_TYPE_MAP.put(String.class, "VARCHAR");
+        DUCK_TYPE_MAP.put(Integer.class, "INTEGER");
+        DUCK_TYPE_MAP.put(int.class, "INTEGER");
+        DUCK_TYPE_MAP.put(Long.class, "BIGINT");
+        DUCK_TYPE_MAP.put(long.class, "BIGINT");
+        DUCK_TYPE_MAP.put(Double.class, "DOUBLE");
+        DUCK_TYPE_MAP.put(double.class, "DOUBLE");
+        DUCK_TYPE_MAP.put(Float.class, "FLOAT");
+        DUCK_TYPE_MAP.put(float.class, "FLOAT");
+        DUCK_TYPE_MAP.put(Boolean.class, "BOOLEAN");
+        DUCK_TYPE_MAP.put(boolean.class, "BOOLEAN");
+        DUCK_TYPE_MAP.put(BigDecimal.class, "DECIMAL");
+        DUCK_TYPE_MAP.put(Date.class, "DATE");
+        DUCK_TYPE_MAP.put(Time.class, "TIME");
+        DUCK_TYPE_MAP.put(Timestamp.class, "TIMESTAMP");
+        DUCK_TYPE_MAP.put(LocalDate.class, "DATE");
+        DUCK_TYPE_MAP.put(LocalTime.class, "TIME");
+        DUCK_TYPE_MAP.put(OffsetTime.class, "TIME");
+        DUCK_TYPE_MAP.put(Instant.class, "DATETIME");
+        DUCK_TYPE_MAP.put(LocalDateTime.class, "TIMESTAMP");
+        DUCK_TYPE_MAP.put(ZonedDateTime.class, "DATETIME");
+        DUCK_TYPE_MAP.put(OffsetDateTime.class, "DATETIME");
+        DUCK_TYPE_MAP.put(Duration.class, "INTERVAL");
+        DUCK_TYPE_MAP.put(byte[].class, "BLOB");
+
+        // PostgreSQL mappings
+        POSTGRES_TYPE_MAP.putAll(DUCK_TYPE_MAP);
+        POSTGRES_TYPE_MAP.put(Double.class, "FLOAT");
+        POSTGRES_TYPE_MAP.put(double.class, "FLOAT");
+        POSTGRES_TYPE_MAP.put(LocalDateTime.class, "DATE");
+        POSTGRES_TYPE_MAP.put(ZonedDateTime.class, "DATE");
+        POSTGRES_TYPE_MAP.put(OffsetDateTime.class, "DATE");
+        POSTGRES_TYPE_MAP.put(String.class, VARCHAR_TYPE);
+        POSTGRES_TYPE_MAP.put(byte[].class, "bytea");
+
+        // MySQL mappings
+        MYSQL_TYPE_MAP.putAll(DUCK_TYPE_MAP);
+        MYSQL_TYPE_MAP.put(String.class, VARCHAR_TYPE);
+        MYSQL_TYPE_MAP.put(LocalDateTime.class, "DATETIME");
+        MYSQL_TYPE_MAP.put(Duration.class, VARCHAR_TYPE);
+    }
+
+    public static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
     private static final String LOAD_TYPE = "jdbc";
 
     private JdbcUtil() {}
 
+    public static String toSqlCompatibleDateTime(ZonedDateTime zonedDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
+
+        return localDateTime.format(formatter);
+    }
+
+    public static String toSqlCompatibleTimeFormat(OffsetTime zonedDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalTime localTime = zonedDateTime.toLocalTime();
+
+        return localTime.format(formatter);
+    }
 
     public static Object getConnection(String jdbcUrl, LoadJdbcConfig config, Class<?> classType) throws Exception {
         if(config.hasCredentials()) {
             return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword(), classType);
         } else {
-            URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
-            String userInfo = uri.getUserInfo();
+            String userInfo = null;
+            try {
+                URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+                userInfo = uri.getUserInfo();
+            } catch (Exception e) {
+                // with DuckDB we can pass a jdbc url like "jdbc:duckdb:"
+                // this will fail executing new URI(..) due to `java.net.URISyntaxException: Expected scheme-specific part at index 7: duckdb:`
+            }
             if (userInfo != null) {
                 String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
                 String[] user = userInfo.split(":");
@@ -80,5 +156,16 @@ public class JdbcUtil {
 
     public static String getSqlOrKey(String sqlOrKey) {
         return sqlOrKey.contains(" ") ? sqlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, sqlOrKey, "sql").orElse("SELECT * FROM " + sqlOrKey);
+    }
+
+    // Helper method to call the function being tested
+    public static String obfuscateJdbcUrl(String query) {
+        // General case for most databases
+        query = query.replaceAll("(jdbc:[^:]+://)[^\\s\\\"']+", "$1*******");
+
+        // Special case for Oracle Thin Driver
+        query = query.replaceAll("(jdbc:oracle:thin:)[^\\s\\\"']+", "$1*******");
+
+        return query;
     }
 }

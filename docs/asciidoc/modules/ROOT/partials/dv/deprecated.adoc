@@ -1,0 +1,19 @@
+[WARNING]
+====
+Please note that this procedure is deprecated.
+
+Use the following ones instead, which allow for better support in a cluster:
+
+[opts="header"]
+|===
+| deprecated procedure | new procedure
+| `apoc.dv.catalog.add(<name>, $config)` | `apoc.dv.catalog.install('<name>', '<dbName>', $config)`
+| `apoc.dv.catalog.remove('<name>')` | `apoc.dv.catalog.drop('<name>', '<dbName>')`
+| `apoc.dv.catalog.list()` | `apoc.dv.catalog.show('<dbName>')`
+|===
+
+where `<dbName>` is the database where we want to execute the procedure
+
+xref::virtual-resource/index.adoc[See here for more info].
+
+====

@@ -5,10 +5,10 @@ import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.ml.RestAPIConfig;
 import apoc.result.ObjectResult;
+import apoc.util.ExtendedMapUtils;
 import apoc.util.JsonUtil;
 import apoc.util.SystemDbUtil;
 import apoc.util.Util;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -38,7 +38,9 @@ import static apoc.util.ExtendedUtil.listOfNumbersToFloatArray;
 import static apoc.util.ExtendedUtil.setProperties;
 import static apoc.util.JsonUtil.OBJECT_MAPPER;
 import static apoc.util.SystemDbUtil.withSystemDb;
-import static apoc.vectordb.VectorDbUtil.*;
+import static apoc.vectordb.VectorDbUtil.EmbeddingResult;
+import static apoc.vectordb.VectorDbUtil.appendVersionUrlIfNeeded;
+import static apoc.vectordb.VectorDbUtil.getEndpoint;
 import static apoc.vectordb.VectorEmbeddingConfig.ALL_RESULTS_KEY;
 import static apoc.vectordb.VectorEmbeddingConfig.MAPPING_KEY;
 
@@ -134,7 +136,7 @@ public class VectorDb {
         if (mapping.getEntityKey() == null) {
             return null;
         }
-        if (MapUtils.isEmpty(metadata)) {
+        if (ExtendedMapUtils.isEmpty(metadata)) {
             throw new RuntimeException("To use mapping config, the metadata should not be empty. Make sure you execute `YIELD metadata` on the procedure");
         }
         Map<String, Object> metaProps = new HashMap<>(metadata);
@@ -259,7 +261,7 @@ public class VectorDb {
             Node node = Util.mergeNode(transaction, label, null, Pair.of(SystemPropertyKeys.name.name(), configKey));
 
             Map mapping = (Map) config.get("mapping");
-            String host = (String) config.get("host");
+            String host = appendVersionUrlIfNeeded(type, (String) config.get("host"));
             Object credentials = config.get("credentials");
 
             if (host != null) {

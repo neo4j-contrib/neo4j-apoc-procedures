@@ -28,9 +28,14 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::import/html.adoc[]
     ** xref::import/parquet.adoc[]
     ** xref::import/gexf.adoc[]
+    ** xref::import/arrow.adoc[]
+    ** xref::import/load-json.adoc[]
+    ** xref::import/load-partial.adoc[]
 
 * xref:export/index.adoc[]
     ** xref::export/xls.adoc[]
+    ** xref::export/arrow.adoc[]
+
 
 * xref:database-integration/index.adoc[]
     ** xref::database-integration/load-jdbc.adoc[]
@@ -42,6 +47,7 @@ include::partial$generated-documentation/nav.adoc[]
     ** xref::database-integration/load-ldap.adoc[]
     ** xref::database-integration/redis.adoc[]
     ** xref::database-integration/vectordb/index.adoc[]
+    ** xref::database-integration/kafka/index.adoc[]
 
 * xref:graph-updates/index.adoc[]
     ** xref::graph-updates/uuid.adoc[]
@@ -75,6 +81,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:background-operations/index.adoc[]
     ** xref::background-operations/apoc-load-directory-async.adoc[]
+    ** xref::background-operations/triggers.adoc[]
 
 * xref:database-introspection/index.adoc[]
     ** xref::database-introspection/config.adoc[]
@@ -88,6 +95,7 @@ include::partial$generated-documentation/nav.adoc[]
 
 * xref:misc/index.adoc[]
     ** xref::misc/static-values.adoc[]
+    ** xref::misc/match-entities.adoc[]
 
 * xref::transaction/index.adoc[]
 

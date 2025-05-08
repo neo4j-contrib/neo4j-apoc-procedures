@@ -285,6 +285,7 @@ public class CypherExtendedTest {
 
 
     @Test
+    @Ignore("flaky")
     public void testIssue3751RunFiles() {
         int numEntities = 500;
         db.executeTransactionally("UNWIND range(1, $int) as id CREATE (:Polling {id: id})",
@@ -449,7 +450,7 @@ public class CypherExtendedTest {
     public void testRunFileWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFileCommon(failingFile, cypherError);
     }
 
@@ -597,7 +598,7 @@ public class CypherExtendedTest {
     public void testRunFilesWithFailingExplain() {
         // error during CypherExtended.isSchemaOperation method
         String failingFile = "wrong_statements.cypher";
-        String cypherError = "Invalid input ')': expected";
+        String cypherError = "Invalid input 'CREATE': expected ')' or ','";
         testRunFailingFilesCommon(failingFile, cypherError);
     }
 

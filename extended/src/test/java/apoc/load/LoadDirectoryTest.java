@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.util.DbmsUtil;
+import apoc.util.DbmsTestUtil;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import junit.framework.TestCase;
@@ -20,7 +20,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -51,6 +50,7 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class LoadDirectoryTest {
@@ -87,12 +87,11 @@ public class LoadDirectoryTest {
         importFolder = new File(temporaryFolder.getRoot() + File.separator + IMPORT_DIR);
         importPath = encodePath(FILE_PROTOCOL + importFolder.getPath());
 
-        DbmsUtil.setApocConfigs(temporaryFolder.getRoot(),
+        databaseManagementService = DbmsTestUtil.getDbBuilderWithApocConfigs(temporaryFolder,
                 Map.of(APOC_CONFIG_JOBS_POOL_NUM_THREADS, "10",
-                        APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM,  "true"));
+                        APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM,  "true"))
+                .setConfig(load_csv_file_url_root, importFolder.toPath()).build();
 
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
-                .build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
 
         TestUtil.registerProcedure(db, PROCS_TO_REGISTER);
@@ -585,8 +584,7 @@ public class LoadDirectoryTest {
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Foo.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Bar.csv"));
                     assertTrue(rows.contains(rootTempFolder + File.separator + "Baz.xls"));
-                    assertTrue(rows.contains(rootTempFolder + File.separator + "apoc.conf"));
-                    assertEquals(4, rows.size());
+                    assertEquals(3, rows.size());
                 }
         );
     }
@@ -669,14 +667,12 @@ public class LoadDirectoryTest {
         );
     }
 
-    private void restartDb() {
+    private void restartDb() throws IOException {
         databaseManagementService.shutdown();
-
-        DbmsUtil.setApocConfigs(temporaryFolder.getRoot(),
-                Map.of(APOC_CONFIG_JOBS_POOL_NUM_THREADS, "40"));
-
-        databaseManagementService = new TestDatabaseManagementServiceBuilder(importFolder.toPath())
-                .build();
+        
+        databaseManagementService = DbmsTestUtil.getDbBuilderWithApocConfigs(temporaryFolder,
+                        Map.of(APOC_CONFIG_JOBS_POOL_NUM_THREADS, "40"))
+                .setConfig(load_csv_file_url_root, importFolder.toPath()).build();
 
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));

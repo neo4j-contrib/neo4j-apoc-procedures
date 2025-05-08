@@ -19,11 +19,14 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
+
 
 @Extended
 public class DataVirtualizationCatalog {
 
+    public static final String DIRECTION_CONF_KEY = "direction";
     @Context
     public Transaction tx;
 
@@ -36,33 +39,41 @@ public class DataVirtualizationCatalog {
     @Context
     public ApocConfig apocConfig;
 
-    @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.add", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.install")
     @Description("Add a virtualized resource configuration")
     public Stream<VirtualizedResource.VirtualizedResourceDTO> add(
             @Name("name") String name,
             @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        return Stream.of(new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).add(VirtualizedResource.from(name, config)))
+        return Stream.of(new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
+                        .add(VirtualizedResource.from(name, config)))
                 .map(VirtualizedResource::toDTO);
     }
 
-    @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.remove", mode = Mode.WRITE, deprecatedBy = "apoc.dv.catalog.drop")
     @Description("Remove a virtualized resource config by name")
-    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(@Name("name") String name) {
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> remove(
+            @Name("name") String name
+    ) {
         return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log)
                 .remove(name)
                 .map(VirtualizedResource::toDTO);
     }
 
-    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ)
+    @Deprecated
+    @Procedure(name = "apoc.dv.catalog.list", mode = Mode.READ, deprecatedBy = "apoc.dv.catalog.show")
     @Description("List all virtualized resource configuration")
-    public Stream<VirtualizedResource.VirtualizedResourceDTO> list() {
+    public Stream<VirtualizedResource.VirtualizedResourceDTO> list(
+    ) {
         return new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).list()
                 .map(VirtualizedResource::toDTO);
     }
 
     @Procedure(name = "apoc.dv.query", mode = Mode.READ)
     @Description("Query a virtualized resource by name and return virtual nodes")
-    public Stream<NodeResult> query(@Name("name") String name,
+    public Stream<NodeResult> query(
+            @Name("name") String name,
                                     @Name(value = "params", defaultValue = "{}") Object params,
                                     @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), log).get(name);
@@ -75,23 +86,38 @@ public class DataVirtualizationCatalog {
 
     @Procedure(name = "apoc.dv.queryAndLink", mode = Mode.READ)
     @Description("Query a virtualized resource by name and return virtual nodes linked using virtual rels to the node passed as first param")
-    public Stream<PathResult> queryAndLink(@Name("node") Node node,
-                                           @Name("relName") String relName,
-                                           @Name("name") String name,
-                                           @Name(value = "params", defaultValue = "{}") Object params,
-                                           @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
+    public Stream<PathResult> queryAndLink(
+            @Name("node") Node node,
+            @Name("relName") String relName,
+            @Name("name") String name,
+            @Name(value = "params", defaultValue = "{}") Object params,
+            @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         VirtualizedResource vr = new DataVirtualizationCatalogHandler(db, apocConfig.getSystemDb(), null).get(name);
         final RelationshipType relationshipType = RelationshipType.withName(relName);
         final Pair<String, Map<String, Object>> procedureCallWithParams = vr.getProcedureCallWithParams(params, config);
+
+        String direction = (String) config.getOrDefault(DIRECTION_CONF_KEY, Direction.OUT.name());
+
         return tx.execute(procedureCallWithParams.getLeft(), procedureCallWithParams.getRight())
                 .stream()
                 .map(m -> (Node) m.get(("node")))
-                .map(n -> new VirtualRelationship(node, n, relationshipType))
+                .map(n -> getVirtualRelationship(node, n, direction, relationshipType))
                 .map(r -> {
                     VirtualPath virtualPath =  new VirtualPath(r.getStartNode());
                     virtualPath.addRel(r);
                     return virtualPath;
                 })
                 .map(PathResult::new);
+    }
+
+    private VirtualRelationship getVirtualRelationship(Node node, Node n, String direction, RelationshipType relationshipType) {
+        if ( Objects.equals(direction.toUpperCase(), Direction.OUT.name()) ) {
+            return new VirtualRelationship(node, n, relationshipType);
+        }
+        return new VirtualRelationship(n, node, relationshipType);
+    }
+
+    enum Direction {
+        IN, OUT;
     }
 }

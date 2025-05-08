@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.load.partial.LoadPartial;
 import apoc.util.HdfsTestUtils;
 import apoc.util.TestUtil;
 import org.apache.commons.io.IOUtils;
@@ -8,10 +9,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
+import org.junit.rules.TemporaryFolder;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -22,21 +26,27 @@ import java.net.URL;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.LoadCsvTest.assertRow;
+import static apoc.load.partial.LoadPartialTest.PARTIAL_CSV;
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.singleResultFirstColumn;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
+@Ignore("It fails due to `java.lang.NoClassDefFoundError: org/eclipse/jetty/servlet`")
 public class LoadHdfsTest {
 
+    @ClassRule
+    public static TemporaryFolder hdfsDir = new TemporaryFolder();
+    
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
 
     private MiniDFSCluster miniDFSCluster;
 
     @Before public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, LoadCsv.class);
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadPartial.class);
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
-        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster();
+        miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster(hdfsDir.getRoot());
 		FileSystem fs = miniDFSCluster.getFileSystem();
 		String fileName = "test.csv";
 		Path file = new Path(fileName);
@@ -68,4 +78,16 @@ public class LoadHdfsTest {
                     assertEquals(false, r.hasNext());
                 });
     }
+
+    @Test public void testLoadPartialFromHDFS() throws Exception {
+        String url = String.format("%s/user/%s/%s",
+                miniDFSCluster.getURI().toString(),
+                System.getProperty("user.name"), "test.csv");
+        Object result = singleResultFirstColumn(db, "CALL apoc.load.stringPartial($url, 17, 15)",
+                map("url", url)
+        );
+
+        assertEquals(PARTIAL_CSV, result);
+    }
+    
 }

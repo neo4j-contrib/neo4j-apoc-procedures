@@ -1,6 +1,7 @@
 package apoc.util;
 
 import apoc.util.collection.Iterables;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -11,11 +12,12 @@ import org.neo4j.graphdb.ResultTransformer;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.assertion.Assert;
+import org.neo4j.test.rule.DbmsRule;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class ExtendedTestUtil {
+    public static String RESOURCES_PATH = "src/test/resources/";
 
     /**
      * Mock URLAccessChecker instance with checkURL(URL url) {return url}
@@ -121,9 +124,13 @@ public class ExtendedTestUtil {
      * but with multiple results
      */
     public static void testResultEventually(GraphDatabaseService db, String call, Consumer<Result> resultConsumer, long timeout) {
+        testResultEventually(db, call, Map.of(), resultConsumer, timeout);
+    }
+    
+    public static void testResultEventually(GraphDatabaseService db, String call, Map<String,Object> params, Consumer<Result> resultConsumer, long timeout) {
         assertEventually(() -> {
             try {
-                return db.executeTransactionally(call, Map.of(), r -> {
+                return db.executeTransactionally(call, params, r -> {
                     resultConsumer.accept(r);
                     return true;
                 });
@@ -139,6 +146,54 @@ public class ExtendedTestUtil {
         } catch (Exception e) {
             String actualErrMsg = e.getMessage();
             assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains(expectedErrMsg));
+        }
+    }
+
+    public static Object readValue(String json) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T readValue(byte[] json, Class<T> clazz) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object readValue(byte[] json) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(json, Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void clearDb(DbmsRule db) {
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+    }
+
+    public static String getLogFileContent() {
+        try {
+            File logFile = new File(FileUtils.getLogDirectory(), "debug.log");
+            return Files.readString(logFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public static void copyFilesToFolder(File directory, IOFileFilter instance, File targetFolder) {
+        Collection<File> files = org.apache.commons.io.FileUtils.listFiles(directory, instance, null);
+        for (File file : files) {
+            try {
+                org.apache.commons.io.FileUtils.copyFileToDirectory(file, targetFolder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

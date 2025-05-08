@@ -18,6 +18,7 @@
  */
 package apoc.load;
 
+import apoc.Extended;
 import apoc.result.LoadDataMapResult;
 import apoc.util.CompressionAlgo;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 import static apoc.load.LoadJsonUtils.loadJsonStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
+@Extended
 public class LoadJsonExtended {
 
     @Context
@@ -46,8 +48,7 @@ public class LoadJsonExtended {
     public URLAccessChecker urlAccessChecker;
 
     @SuppressWarnings("unchecked")
-    @Procedure(name = "apoc.load.jsonParams", deprecatedBy = "This procedure is being moved to APOC Extended.")
-    @Deprecated
+    @Procedure(name = "apoc.load.jsonParams")
     @QueryLanguageScope(scope = {QueryLanguage.CYPHER_25})
     @Description(
             "Loads parameters from a JSON URL (e.g. web-API) as a stream of values if the given JSON file is a `LIST<ANY>`.\n"

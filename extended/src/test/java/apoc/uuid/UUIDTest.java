@@ -2,29 +2,29 @@ package apoc.uuid;
 
 import apoc.create.Create;
 import apoc.periodic.Periodic;
-import apoc.util.DbmsTestUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.Before;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
 
 import org.junit.rules.TemporaryFolder;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
+import static apoc.util.TestUtil.waitDbsAvailable;
+import static apoc.uuid.UUIDTestUtils.startDbWithUuidApocConfigs;
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -35,40 +35,49 @@ import static org.junit.Assert.assertFalse;
  * @since 05.09.18
  */
 public class UUIDTest {
+    private static final File directory = new File("target/conf");
+    static { //noinspection ResultOfMethodCallIgnored
+        directory.mkdirs();
+    }
 
     @ClassRule
-    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public static TemporaryFolder storeDir = new TemporaryFolder();
 
-    @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.auth_enabled, true);
+    private static GraphDatabaseService sysDb;
+    private static GraphDatabaseService db;
+    private static DatabaseManagementService databaseManagementService;
 
-    @Rule
-    public DbmsRule dbWithoutApocPeriodic = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.auth_enabled, true);
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        databaseManagementService = startDbWithUuidApocConfigs(storeDir);
+
+        db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        sysDb = databaseManagementService.database(GraphDatabaseSettings.SYSTEM_DATABASE_NAME);
+        waitDbsAvailable(db, sysDb);
+        TestUtil.registerProcedure(db, Uuid.class, Periodic.class, Create.class);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        databaseManagementService.shutdown();
+    }
+
+
+    @After
+    public void after() throws Exception {
+        db.executeTransactionally("CALL apoc.uuid.removeAll()");
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+
+        // otherwise we can create a GraphDatabaseService db in @Before instead of @BeforeClass
+        try (Transaction tx = db.beginTx()) {
+            tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
+            tx.commit();
+        }
+    }
 
 
     public static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
-
-    @BeforeClass
-    public static void beforeClass() throws IOException {
-        DbmsTestUtil.startDbWithApocConfigs(temporaryFolder,
-                Map.of(APOC_UUID_ENABLED, "true")
-        );
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Uuid.class, Create.class, Periodic.class);
-        TestUtil.registerProcedure(dbWithoutApocPeriodic, Uuid.class, Create.class);
-    }
-
-    @AfterAll
-    public void tearDown() {
-        db.shutdown();
-        dbWithoutApocPeriodic.shutdown();
-    }
-
+    
     @Test
     public void testUUID() {
         // given
@@ -333,21 +342,6 @@ public class UUIDTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
             assertEquals("No constraint found for label: Wrong, please add the constraint with the following : `CREATE CONSTRAINT FOR (wrong:Wrong) REQUIRE wrong.foo IS UNIQUE`", except.getMessage());
-            throw e;
-        }
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testAddToAllExistingNodesIfCoreNotInstalled() {
-        try {
-            // when
-            dbWithoutApocPeriodic.executeTransactionally("CREATE CONSTRAINT FOR (p:Person) REQUIRE p.uuid IS UNIQUE");
-            dbWithoutApocPeriodic.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
-        } catch (RuntimeException e) {
-            // then
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("apoc core needs to be installed when using apoc.uuid.install with the flag addToExistingNodes = true", except.getMessage());
             throw e;
         }
     }

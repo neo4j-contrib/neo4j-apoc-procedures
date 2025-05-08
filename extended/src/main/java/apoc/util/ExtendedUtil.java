@@ -30,17 +30,14 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
@@ -134,7 +131,7 @@ public class ExtendedUtil
         return getNeo4jValue(object);
     }
 
-    private static Object getNeo4jValue(Object object) {
+    public static Object getNeo4jValue(Object object) {
         try {
             // we test if is a valid Neo4j type
             Values.of(object);
@@ -188,7 +185,6 @@ public class ExtendedUtil
             case "node", "relationship":
                 return JsonUtil.parse(value, null, Map.class);
             case "no_value":
-            case "NO_VALUE":
                 return null;
             case "listboolean":
                 value = StringUtils.removeStart(value, "[");
@@ -353,5 +349,90 @@ public class ExtendedUtil
         }
         return floats;
     }
+
+    public static String joinStringLabels(Collection<String> labels){
+        return CollectionUtils.isNotEmpty(labels) ?
+                ":" + labels.stream().map(Util::quote).collect(Collectors.joining(":")) :
+                "";
+    }
+
+    public static List<String> splitSemicolonAndRemoveBlanks(String value) {
+        return Arrays.stream(value.split(";\n"))
+                .filter(i -> !i.isBlank())
+                .toList();
+    }
             
+
+    public static <T> T withBackOffRetries(
+            Supplier<T> func,
+            boolean retry,
+            int backoffRetry,
+            boolean exponential,
+            Consumer<Exception> exceptionHandler
+    ) {
+        T result;
+        backoffRetry = backoffRetry < 1 
+                ? 5
+                : backoffRetry;
+        int countDown = backoffRetry;
+        exceptionHandler = Objects.requireNonNullElse(exceptionHandler, exe -> {});
+        while (true) {
+            try {
+                result = func.get();
+                break;
+            } catch (Exception e) {
+                if(!retry || countDown < 1) throw e;
+                exceptionHandler.accept(e);
+                countDown--;
+                long delay = getDelay(backoffRetry, countDown, exponential);
+                backoffSleep(delay);
+            }
+        }
+        return result;
+    }
+
+    private static void backoffSleep(long millis){
+        sleep(millis, "Operation interrupted during backoff");
+    }
+
+    public static void sleep(long millis, String interruptedMessage) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(interruptedMessage, ie);
+        }
+    }
+
+    private static long getDelay(int backoffRetry, int countDown, boolean exponential) {
+        int backOffTime = backoffRetry - countDown;
+        long sleepMultiplier = exponential ?
+                (long) Math.pow(2, backOffTime) : // Exponential retry progression
+                backOffTime; // Linear retry progression
+        return Math.min(
+                Duration.ofSeconds(1)
+                        .multipliedBy(sleepMultiplier)
+                        .toMillis(),
+                Duration.ofSeconds(30).toMillis() // Max 30s
+        );
+    }
+
+    public static <T, V> Stream<List<V>> batchIterator(Iterator<T> iterator, int batchSize, Function<T, V> consumer) {
+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE, Spliterator.ORDERED) {
+            @Override
+            public boolean tryAdvance(Consumer<? super List<V>> action) {
+                List<V> batch = new ArrayList<>(batchSize);
+                while (iterator.hasNext() && batch.size() < batchSize) {
+                    T next = iterator.next();
+                    V apply = consumer.apply(next);
+                    batch.add(apply);
+                }
+                if (batch.isEmpty()) {
+                    return false; // Stop the stream when no elements remain
+                }
+                action.accept(batch);
+                return true;
+            }
+        }, false);
+    }
 }

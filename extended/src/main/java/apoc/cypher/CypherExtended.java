@@ -18,6 +18,7 @@ import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;
+import org.neo4j.internal.kernel.api.procs.ProcedureCallContext;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -83,6 +84,9 @@ public class CypherExtended {
 
     @Context
     public URLAccessChecker urlAccessChecker;
+
+    @Context
+    public ProcedureCallContext procedureCallContext;
 
     @Procedure(name = "apoc.cypher.runFile", mode = WRITE)
     @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
@@ -193,25 +197,41 @@ public class CypherExtended {
             }
 
             if (!schemaOperation) {
+                // Periodic operations cannot be schema operations, so no need to check that here (will fail as invalid query)
                 if (isPeriodicOperation(stmt)) {
-                    Util.inThread(pools , () -> {
+                    Util.inThread(pools, () -> {
                         try {
-                            return db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
+                            return db.executeTransactionally(
+                                    stmt, params, result -> consumeResult(result, queue, addStatistics, tx, fileName));
                         } catch (Exception e) {
                             collectError(queue, reportError, e, fileName);
                             return null;
                         }
                     });
-                }
-                else {
-                    Util.inTx(db, pools, threadTx -> {
-                        try (Result result = threadTx.execute(stmt, params)) {
-                            return consumeResult(result, queue, addStatistics, tx, fileName);
-                        } catch (Exception e) {
-                            collectError(queue, reportError, e, fileName);
-                            return null;
+                } else {
+                    AtomicBoolean isSchemaError = new AtomicBoolean(false);
+                    try {
+                        Util.inTx(db, pools, threadTx -> {
+                            try (Result result = threadTx.execute(stmt, params)) {
+                                return consumeResult(result, queue, addStatistics, tx, fileName);
+                            } catch (Exception e) {
+                                // APOC historically skips schema operations
+                                if (!(e.getMessage().contains("Schema operations on database")
+                                        && e.getMessage().contains("are not allowed"))) {
+                                    collectError(queue, reportError, e, fileName);
+                                    return null;
+                                }
+                                isSchemaError.set(true);
+                                return null;
+                            }
+                        });
+                    } catch (Exception e) {
+                        // An error thrown by a schema operation
+                        if (isSchemaError.get()) {
+                            continue;
                         }
-                    });
+                        throw e;
+                    }
                 }
             }
         }
@@ -370,7 +390,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (key == null || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet());
         Object value = params.get(key);
@@ -399,7 +419,8 @@ public class CypherExtended {
         */
     }
 
-    @Procedure
+    @Deprecated
+    @Procedure(deprecatedBy = "Cypher subqueries like: `CYPHER runtime=parallel CALL {...} ... ` or `CALL {...} IN CONCURRENT TRANSACTIONS ... `")
     @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
@@ -409,7 +430,8 @@ public class CypherExtended {
                 .map(MapResult::new);
     }
 
-    @Procedure
+    @Deprecated
+    @Procedure(deprecatedBy = "Cypher subqueries like: `CYPHER runtime=parallel CALL {...} ... ` or `CALL {...} IN CONCURRENT TRANSACTIONS ... `")
     @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions,@Name(value = "timeout",defaultValue = "10") long timeout) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
@@ -455,7 +477,7 @@ public class CypherExtended {
     @Procedure
     @Description("apoc.cypher.parallel2(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel batches through a list defined in `paramMap` with a key `keyList`")
     public Stream<CypherStatementMapResult> parallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        if (params == null) return runCypherQuery(tx, fragment, params);
+        if (params == null) return runCypherQuery(tx, fragment, params, procedureCallContext);
         if (StringUtils.isEmpty(key) || !params.containsKey(key))
             throw new RuntimeException("Can't parallelize on key " + key + " available keys " + params.keySet() + ". Note that parallelizeOn parameter must be not empty");
         Object value = params.get(key);

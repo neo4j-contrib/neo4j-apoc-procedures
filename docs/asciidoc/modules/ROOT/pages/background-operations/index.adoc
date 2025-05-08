@@ -6,3 +6,4 @@
 It's possible to define listeners on one or more folders which trigger the executing of custom cypher queries if changes are observed:
 
 * xref::background-operations/apoc-load-directory-async.adoc[]
+* xref:background-operations/triggers.adoc[]

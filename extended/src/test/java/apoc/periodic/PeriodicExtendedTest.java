@@ -1,9 +1,9 @@
 package apoc.periodic;
 
 import apoc.create.Create;
-import apoc.load.Jdbc;
+import apoc.load.jdbc.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
-import apoc.nodes.NodesExtended;
+import apoc.entities.EntitiesExtended;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,7 +28,7 @@ public class PeriodicExtendedTest {
 
     @Before
     public void initDb() {
-        TestUtil.registerProcedure(db, Periodic.class, NodesExtended.class, GCPProcedures.class, Create.class, PeriodicExtended.class, Jdbc.class);
+        TestUtil.registerProcedure(db, Periodic.class, EntitiesExtended.class, GCPProcedures.class, Create.class, PeriodicExtended.class, Jdbc.class);
     }
 
     @Test

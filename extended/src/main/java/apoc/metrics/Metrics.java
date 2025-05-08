@@ -5,11 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
-import apoc.util.CompressionAlgo;
-import apoc.util.ExtendedFileUtils;
-import apoc.util.FileUtils;
-import apoc.util.SupportedProtocols;
-import apoc.util.Util;
+import apoc.util.*;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -118,7 +114,7 @@ public class Metrics {
         }
     }
 
-    @Procedure(mode=Mode.DBMS)
+    @Procedure
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMeasuredMetric> list() {
         File metricsDir = ExtendedFileUtils.getMetricsDirectory();
@@ -204,7 +200,7 @@ public class Metrics {
         }
     }
 
-    @Procedure(mode=Mode.DBMS)
+    @Procedure
     @Description("apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. " +
             "directorySetting may be any valid neo4j directory setting name, such as 'server.directories.data'.  If null is provided " +
             "as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, " +
@@ -239,7 +235,7 @@ public class Metrics {
                 .map(StorageMetric::fromStoragePair);
     }
 
-    @Procedure(mode=Mode.DBMS)
+    @Procedure
     @Description("apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed matching the options available for apoc.load.csv.")
     /**
      * This method is a specialization of apoc.load.csv, it just happens that the directory and file path
