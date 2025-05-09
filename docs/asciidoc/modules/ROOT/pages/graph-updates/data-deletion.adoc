@@ -1,5 +1,6 @@
 [[deleting-data]]
 = Deleting Data
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-updates/data-deletion/
 :description: This section describes procedures that can be used to delete graph data
 
 

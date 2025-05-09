@@ -1,5 +1,6 @@
 [[nodes-collapse]]
 = Collapse Nodes
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/virtual/nodes-collapse/
 :description: This section describes a procedure that can be used to collapse a list of nodes into a virtual node.
 
 

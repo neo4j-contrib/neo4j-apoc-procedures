@@ -2,6 +2,7 @@
 
 [#introduction]
 == Introduction
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/build-knowledge-graph-nlp-ontologies/
 
 In this tutorial we're going to build a Software Knowledge Graph based on:
 
