@@ -21,6 +21,7 @@ include::example$generated-documentation/apoc.trigger.stop.adoc[]
 include::example$generated-documentation/apoc.trigger.start.adoc[]
 include::example$generated-documentation/apoc.trigger.show.adoc[]
 include::example$generated-documentation/apoc.trigger.list.adoc[]
+
 |===
 
 
@@ -53,12 +54,13 @@ Otherwise, it has the value `-1`.
 You can use these helper functions to extract nodes or relationships by label/relationship-type or updated property key.
 
 .Helper Functions
-[cols="5m,5"]
+[separator=¦,opts=header,cols="5,1m,1m"]
 |===
-| apoc.trigger.nodesByLabel($assignedLabels/$assignedNodeProperties,'Label') | function to filter entries by label, to be used within a trigger statement with `$assignedLabels` and `$removedLabels`
-| apoc.trigger.propertiesByKey($assignedNodeProperties,'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with $assignedNode/RelationshipProperties and $removedNode/RelationshipProperties. Returns [{old,[new],key,node,relationship}]
-| apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase
-| apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
+¦Qualified Name¦Type¦Release
+include::example$generated-documentation/apoc.trigger.nodesByLabel.adoc[]
+include::example$generated-documentation/apoc.trigger.propertiesByKey.adoc[]
+include::example$generated-documentation/apoc.trigger.toNode.adoc[]
+include::example$generated-documentation/apoc.trigger.toRelationship.adoc[]
 |===
 
 The 3rd parameter of the `apoc.trigger.install()` is a map `{phase: PHASE}`, where `PHASE` is a string which can have one of the following values:

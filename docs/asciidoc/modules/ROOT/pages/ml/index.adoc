@@ -8,3 +8,6 @@ These procedures generate embeddings, analyze text, complete text, complete chat
 This section includes:
 
 * xref::ml/openai.adoc[]
+* xref::ml/mixedbread.adoc[]
+* xref::ml/genai.adoc[]
+* xref::ml/rag.adoc[]

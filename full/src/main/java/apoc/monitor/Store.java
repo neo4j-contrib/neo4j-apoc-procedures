@@ -44,7 +44,7 @@ public class Store {
 
         Database database = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Database.class);
         // This will work only on Record format databases. Has to be updated when any additional format is available
-        RecordDatabaseLayout databaseLayout = RecordDatabaseLayout.cast(database.getDatabaseLayout());
+        RecordDatabaseLayout databaseLayout = RecordDatabaseLayout.convert(database.getDatabaseLayout());
         return Stream.of(new StoreInfoResult(
                 getDirectorySize(databaseLayout.getTransactionLogsDirectory().toFile()),
                 databaseLayout.propertyStringStore().toFile().length(),

@@ -23,6 +23,13 @@ include::example$generated-documentation/apoc.es.delete.adoc[]
 |===
 // end::elasticsearch[]
 
+[NOTE]
+====
+It is currently not possible to query Elastic 8 via certificate,
+but only disabling ssl with the configuration `"xpack.security.http.ssl.enabled=false"`, using the basic authentication via the header config (see `config parameter` below)
+or (not recommended) disabling security via `xpack.security.enabled=false`
+====
+
 
 == Example
 
@@ -67,7 +74,7 @@ Here an example:
 [source,cypher]
 ----
 // It's important to create an index to improve performance
-CREATE INDEX ON :Document(id)
+CREATE INDEX FOR (n:Document) ON (n.id)
 // First query: get first chunk of data + the scroll_id for pagination
 CALL apoc.es.query('localhost','test-index','test-type','name:Neo4j&size=1&scroll=5m',null) yield value with value._scroll_id as scrollId, value.hits.hits as hits
 // Do something with hits
@@ -101,15 +108,70 @@ call apoc.es.post(host-or-key,index-or-null,type-or-null,id-or-null,query-or-nul
 
 === host-or-key parameter
 
-The parameter can be a direct host or url, or an entry to be lookup up in apoc.conf
+The parameter can be:
 
 * host
 * host:port
+* username:password@host:port
 * http://host:port
-* lookup via key to apoc.es.<key>.url
-* lookup via key apoc.es.<key>.host
+* http://username:password@host:port
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats('http://username:password@host:port')
+----
+
+Moreover, it can be an entry to be lookup up in `apoc.conf`:
+
 * lookup apoc.es.url
 * lookup apoc.es.host
+
+This takes precedence over the direct string host or url as the first parameter, as above.
+
+For example, with a `apoc.conf` like this:
+```
+apoc.es.url=http://username:password@host:port
+```
+
+or like this :
+```
+apoc.es.host=username:password@host:port
+```
+
+we can connect to elastic by putting null as the first parameter.
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats(null)
+----
+
+Furthermore, it can be an entry to be lookup up in `apoc.conf`,
+where `<key>` have be placed in the first parameter:
+
+* lookup via key to apoc.es.<key>.url
+* lookup via key apoc.es.<key>.host
+
+
+For example, with a `apoc.conf` like this:
+```
+apoc.es.custom.url=http://username:password@host:port
+```
+
+or like this:
+```
+apoc.es.custom.host=username:password@host:port
+```
+
+we can connect to elastic by putting null as the first parameter.
+
+For example, by using the `apoc.es.stats`, we can execute:
+[source, cypher]
+----
+CALL apoc.es.stats('custom')
+----
+
 
 === index parameter
 
@@ -140,8 +202,10 @@ Config can be an optional *map*, which can have the following entries:
 |===
 | name | type | default | description
 | headers | `Map` | {`content-type`: "application/json", `method`, "<httpMethod>"} | Contains a header map to add (or replace) the default one.
-    The `method: <httpMethod>` is needed by APOC to figure out under the hood, which http request method to pass. 
-    That is, by default, it is `PUT` with the `apoc.es.put`, POST with the `apoc.es.post` and `apoc.es.postRaw`, and GET in other cases.
+The `method: <httpMethod>` is needed by APOC to figure out under the hood, which http request method to pass.
+That is, by default, it is `PUT` with the `apoc.es.put`, POST with the `apoc.es.post` and `apoc.es.postRaw`, and GET in other cases.
+| version | `String` | `DEFAULT` | Can be `DEFAULT` and `EIGHT`, in order to change the RestAPI endpoint based on Elastic version.
+See `Endpoint` table below.
 |===
 
 
@@ -151,7 +215,7 @@ For example, by using the `apoc.es.stats`, we can execute:
 CALL apoc.es.stats('custom', { headers: {Authorization: "Basic <Base64Token>"} })
 ----
 
-to use a https://www.elastic.co/guide/en/elasticsearch/reference/current/http-clients.html[Basic authentication] 
+to use a https://www.elastic.co/guide/en/elasticsearch/reference/current/http-clients.html[Basic authentication]
 and create the following HTTP header:
 ```
 Authorization: Basic <Base64Token>
@@ -160,6 +224,184 @@ Content-Type: application/json
 ```
 
 
+Some APIs in Elastic 8 can be called by the procedures without needing configuration `{version: 'EIGHT'}`,
+for example the `apoc.es.stats`,
+but for several APIs, it is necessary to set it, to handle the endpoint properly,
+for example the `apoc.es.query`.
+
+.Endpoint
+[opts=header]
+|===
+| procedure(s) | with version: `DEFAULT` | with version: `EIGHT`
+| `apoc.es.stats(host)` |  <host>/_stats | same as `DEFAULT`
+| `apoc.es.query(host, index, type, query, payload, $conf)` |  <host>/<index param>/<type param>/_stats?<query param> | <host>/<index param>/_stats?<query param>
+| `apoc.es.getRaw/apoc.es.postRaw(host, path, payload, $conf)` | `<host>/<path param>` | same as `DEFAULT`
+| the others `apoc.es.<name>(host, index, type, id, query, payload, $conf)` procedures |  `<host>/<index param>/<type param>/<id param>_stats?<query param>`
+By default, the `<index param>` and `<id param>` will be populated as `_all`, while the `<id param>`, if not present, will be removed from the endpoint
+|  `<host>/<index param>/<type param>/<id param>_stats?<query param>`. Note that you only need to enter one of three values between `<index param>`,`<id param>` and `<type param>`, the others will eventually be excluded from the endpoint.
+
+The type param is usually an underscore string indicating the type of the API, e.g. `_doc` or `_update` (while previously indicated https://www.elastic.co/guide/en/elasticsearch/reference/6.1/removal-of-types.html[the mapping types]).
+This is to allow you to call, for example, https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html[this API]
+|===
+
+
+For example, by using the `apoc.es.query`, we can execute a Search API:
+[source, cypher]
+----
+CALL apoc.es.query(<$host>, <$index>, <$type>, 'q=name:Neo4j', null, { version: 'EIGHT' })
+----
+
+Updates a document in Elastic 8 via https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update.html#docs-update[Update API]:
+
+[source, cypher]
+----
+CALL apoc.es.put($host,'<indexName>','_doc','<idName>','refresh=true',{name: 'foo'}, {version: 'EIGHT'})
+----
+
+Call a https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-index[Create Index API] in elastic 8:
+
+[source, cypher]
+----
+CALL apoc.es.put($host,'<indexName>', null, null, null, null, { version: 'EIGHT' })
+----
+
+
 === Results
+
+Results are stream of map in value.
+
+== Reciprocal Rank Fusion (RRF)
+
+RRF can be performed from Neo4j using ES. For further details, read the https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html[official documentation].
+Note that this API is supported since version 8.14.x of Elastic.
+
+Here an example using Neo4j with ES.
+
+=== Step 1 - Mapping creation
+
+[source, cypher]
+----
+CALL apoc.es.put($host, 'example-index', null, null, null,
+{
+              "mappings": {
+                "properties": {
+                  "text": {
+                    "type": "text"
+                  },
+                  "vector": {
+                    "type": "dense_vector",
+                    "dims": 1,
+                    "index": true,
+                    "similarity": "l2_norm"
+                  },
+                  "integer": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }, $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 2 - Put documents
+
+[source, cypher]
+----
+CALL apoc.es.put($host, 'example-index/_doc/1', null, null, null,
+{
+    "text" : "rrf",
+    "vector" : [5],
+    "integer": 1
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/2', null, null, null,
+{
+    "text" : "rrf rrf",
+    "vector" : [4],
+    "integer": 2
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/3', null, null, null,
+{
+    "text" : "rrf rrf rrf",
+    "vector" : [3],
+    "integer": 1
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/4', null, null, null,
+{
+    "text" : "rrf rrf rrf rrf",
+    "integer": 2
+}, $config)
+
+CALL apoc.es.put($host, 'example-index/_doc/5', null, null, null,
+{
+    "vector" : [0],
+    "integer": 1
+}, $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 3 - Refresh index
+
+[source, cypher]
+----
+CALL apoc.es.post($host, 'example-index/_refresh', null, null, '', $config)
+----
+
+==== Results
+
+Results are stream of map in value.
+
+=== Step 4 - Perform search using rrf retriever
+
+[source, cypher]
+----
+CALL apoc.es.getRaw($host,'example-index/_search',
+{
+    "retriever": {
+        "rrf": {
+            "retrievers": [
+                {
+                    "standard": {
+                        "query": {
+                            "term": {
+                                "text": "rrf"
+                            }
+                        }
+                    }
+                },
+                {
+                    "knn": {
+                        "field": "vector",
+                        "query_vector": [3],
+                        "k": 5,
+                        "num_candidates": 5
+                    }
+                }
+            ],
+            "window_size": 5,
+            "rank_constant": 1
+        }
+    },
+    "size": 3,
+    "aggs": {
+        "int_count": {
+            "terms": {
+                "field": "integer"
+            }
+        }
+    }
+}
+,$config) yield value
+----
+
+==== Results
 
 Results are stream of map in value.

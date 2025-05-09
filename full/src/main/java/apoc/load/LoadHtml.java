@@ -107,7 +107,7 @@ public class LoadHtml {
         } catch (UnsupportedCharsetException e) {
             throw new RuntimeException("Unsupported charset: " + config.getCharset());
         } catch (IllegalArgumentException | ClassCastException e) {
-            throw new RuntimeException("Invalid config: " + config);
+            throw new RuntimeException("Invalid config: " + e.getMessage());
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found from: " + url);
         } catch (Exception e) {

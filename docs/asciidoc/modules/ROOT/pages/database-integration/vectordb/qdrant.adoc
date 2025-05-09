@@ -1,0 +1,267 @@
+== Qdrant
+
+Here is a list of all available Qdrant procedures,
+note that the list and the signature procedures are consistent with the others, like the ChromaDB ones:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.qdrant.info(hostOrKey, collection, $config) | Get information about the specified existing collection or throws a FileNotFoundException if it does not exist
+| apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $config) |
+    Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>`.
+| apoc.vectordb.qdrant.deleteCollection(hostOrKey, collection, $config) | 
+    Deletes a collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>`.
+| apoc.vectordb.qdrant.upsert(hostOrKey, collection, vectors, $config) | 
+    Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}].
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points`.
+| apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $config) | 
+    Deletes the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points/delete`.
+| apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $config) | 
+    Gets the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points`.
+| apoc.vectordb.qdrant.getAndUpdate(hostOrKey, collection, ids, $config) | 
+    Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points`.
+| apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points/search`.
+| apoc.vectordb.qdrant.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $config) | 
+    Retrieve closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/collections/<collection param>/points/search`.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.qdrant.<key>.host=myHost`.
+With hostOrKey=null, the default is 'http://localhost:6333'.
+
+
+=== Examples
+
+.Get collection info (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/get_collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.info(hostOrKey, 'test_collection', {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| value
+| {"result": {"optimizer_status": "ok", "points_count": 2, "vectors_count": 2, "segments_count": 8, "indexed_vectors_count": 0,
+    "config": {"params": {"on_disk_payload": true, "vectors": {"size": 4, "distance": "Cosine"}, "shard_number": 1, "replication_factor": 1, "write_consistency_factor": 1},
+        "optimizer_config": {"max_optimization_threads": 1, "indexing_threshold": 20000, "deleted_threshold": 0.2, "flush_interval_sec": 5, "memmap_threshold": null, "default_segment_number": 0, "max_segment_size": null, "vacuum_min_vector_number": 1000}, "quantization_config": null,
+        "hnsw_config": {"max_indexing_threads": 0, "full_scan_threshold": 10000, "ef_construct": 100, "m": 16, "on_disk": false},
+        "wal_config": {"wal_segments_ahead": 0, "wal_capacity_mb": 32}
+        },
+        "status": green,
+        "payload_schema": {}
+    },
+    "time": 1.2725E-4, "status": ok
+}
+|===
+
+.Create a collection (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/create_collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.createCollection($hostOrKey, 'test_collection', 'Cosine', 4, {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| true | 0.094182458 | "ok"
+|===
+
+.Delete a collection (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/collections/operation/delete_collection[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.deleteCollection($hostOrKey, 'test_collection', {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| true | 0.094182458 | "ok"
+|===
+
+.Upsert vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/upsert_points[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.upsert($hostOrKey, 'test_collection',
+    [
+        {id: 1, vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+        {id: 2, vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+    ],
+    {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| {"result": { "operation_id": 0, "status": "acknowledged" } } | 0.094182458 | "ok"
+|===
+
+.Get vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/get_points[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.get($hostOrKey, 'test_collection', [1,2], {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| ...
+|===
+
+.Get vectors with `{allResults: true}`
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.get($hostOrKey, 'test_collection', [1,2], {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+.Query vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/search_points[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($hostOrKey, 
+    'test_collection', 
+    [0.2, 0.1, 0.9, 0.7], 
+    { must: 
+        [ { key: "city", match: { value: "London" } } ]
+    }, 
+    5, 
+    {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+
+[[mapping]]
+
+
+We can define a mapping, to fetch the associated nodes and relationships and optionally create them, by leveraging the vector metadata.
+
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
+which will be returned in the `entity` column result.
+
+
+Or else, we can create a node if not exists, via `create: true`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            create: true,
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
+        }
+    })
+----
+
+which creates and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.query($hostOrKey, 'test_collection',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
+which will be returned in the `entity` column result.
+
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the apoc.vectordb.qdrant.query and the `apoc.vectordb.qdrant.get` procedures.
+
+For example, by executing a `CALL apoc.vectordb.qdrant.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
+so that we do not return the other values that we do not need.
+====
+
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
+
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.getAndUpdate($host, $collection, [<id1>, <id2>], $conf) YIELD node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
+
+which returns a string that answers the `$question` by leveraging the embeddings of the db vector.
+
+.Delete vectors (it leverages https://qdrant.github.io/qdrant/redoc/index.html#tag/points/operation/delete_vectors[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.qdrant.delete($hostOrKey, 'test_collection', [1,2], {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| result | time | status
+| {"result": { "operation_id": 2, "status": "acknowledged" } } | 0.094182458 | "ok"
+|===

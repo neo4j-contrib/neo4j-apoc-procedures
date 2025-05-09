@@ -18,10 +18,15 @@ jar {
     }
 }
 
+def commonExclusions = {
+    exclude group: 'org.slf4j'
+    exclude group: 'org.apache.commons', module: 'commons-compress'
+    exclude group: 'org.apache.commons', module: 'commons-lang3'
+    exclude group: 'com.google.guava', module: 'guava'
+}
+
 dependencies {
-    // currently we cannot update to the latest version due to guava minimum version required (31.0.1-jre)
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59', {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
-    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '4.4.3'
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.11.0' , commonExclusions
+    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.1', commonExclusions
+
 }

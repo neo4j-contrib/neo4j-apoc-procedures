@@ -61,7 +61,7 @@ public class CsvPropertyConverter {
         return true;
     }
 
-    static Object[] getPrototypeFor(String type) {
+    public static Object[] getPrototypeFor(String type) {
         switch (type) {
             case "INT":
             case "LONG":

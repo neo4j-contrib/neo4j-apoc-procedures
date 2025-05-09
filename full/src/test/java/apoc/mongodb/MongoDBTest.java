@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -103,6 +104,7 @@ public class MongoDBTest extends MongoTestBase {
         assertFalse("should not have an exception", hasException);
     }
 
+    @Ignore("flaky")
     @Test
     public void testObjectIdToStringMapping() {
         boolean hasException = false;

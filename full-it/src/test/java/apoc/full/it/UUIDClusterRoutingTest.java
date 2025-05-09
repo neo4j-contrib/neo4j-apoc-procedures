@@ -48,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.internal.helpers.collection.Iterators;
 
 @Ignore
