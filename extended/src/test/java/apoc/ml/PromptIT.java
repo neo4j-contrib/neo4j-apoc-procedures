@@ -14,20 +14,18 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
-import static apoc.ml.OpenAI.GPT_4O_MODEL;
-import static apoc.ml.OpenAIIT.GPT_35_MODEL;
-import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
+import static apoc.ml.OpenAI.GPT_4O_MODEL;
+import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.Prompt.UNKNOWN_ANSWER;
 import static apoc.ml.RagConfig.*;
 import static apoc.util.ExtendedUtil.splitSemicolonAndRemoveBlanks;
@@ -40,18 +38,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@RunWith(Parameterized.class)
 public class PromptIT {
 
-    private static final String OPENAI_KEY = System.getenv("OPENAI_KEY");
-    private static final List<String> RAG_ATTRIBUTES = List.of("name", "country", "medal", "title", "year");
-    private static final String CREATE_EMBEDDINGS_FOR_RAG = """
+    protected static final String OPENAI_KEY = System.getenv("OPENAI_KEY");
+    protected static final List<String> RAG_ATTRIBUTES = List.of("name", "country", "medal", "title", "year");
+    protected static final String CREATE_EMBEDDINGS_FOR_RAG = """
                 MATCH path=(a:Athlete)-[medal:HAS_MEDAL]->(d:Discipline)
                 WITH 'Athlete name: ' + a.name + '\\ncountry: ' + a.country + '\\nmedal: ' + medal.medal + '\\nyear: ' + d.year AS text
                 WITH collect(text) AS texts
                 CALL apoc.ml.openai.embedding(texts, $apiKey)
                 yield embedding, text
                 """;
-    private static final String QUERY_RAG = """
+    protected static final String QUERY_RAG = """
                 MATCH path=(:Athlete)-[:HAS_MEDAL]->(Discipline)
                 WITH collect(path) AS paths
                 CALL apoc.ml.rag(paths, $attributes, $question, $conf) YIELD value
@@ -60,6 +59,20 @@ public class PromptIT {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"gpt-3.5-turbo"},
+                {"gpt-4.1"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
 
     @BeforeClass
     public static void check() {
@@ -108,7 +121,7 @@ public class PromptIT {
         testResult(db, """
                 CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "What movies has Tom Hanks acted in?",
                         "retries", 3L,
                         "apiKey", OPENAI_KEY
@@ -128,12 +141,13 @@ public class PromptIT {
     @Test
     public void testQueryGpt35Turbo() {
         testResult(db, """
-                CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})
+                CALL apoc.ml.query($query, {model: $model, retries: $retries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "What movies has Tom Hanks acted in?",
                         "retries", 2L,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 r -> testQueryAssertions(r, 12)
         );
@@ -158,12 +172,13 @@ public class PromptIT {
     @Test
     public void testQueryGpt35TurboUsingRetryWithError() {
         testResult(db, """
-                CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey, retryWithError: true})
+                CALL apoc.ml.query($query, {model: $model, retries: $retries, apiKey: $apiKey, retryWithError: true})
                 """,
-                Map.of(
+                Util.map(
                         "query", UUID.randomUUID().toString(),
                         "retries", 10L,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
                     // check that it returns a Cypher result, also empty, without errors
@@ -177,7 +192,7 @@ public class PromptIT {
         testResult(db, """
                 CALL apoc.ml.query($query, {retries: $retries, apiKey: $apiKey, retryWithError: true})
                 """,
-                Map.of(
+                Util.map(
                         "query", UUID.randomUUID().toString(),
                         "retries", 10L,
                         "apiKey", OPENAI_KEY
@@ -194,7 +209,7 @@ public class PromptIT {
         testResult(db, """
                 CALL apoc.ml.schema({apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "apiKey", OPENAI_KEY
                 ),
                 (r) -> {
@@ -209,7 +224,7 @@ public class PromptIT {
         testResult(db, """
                 CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "Who are the actors which also directed a movie?",
                         "numOfQueries", numOfQueries,
                         "apiKey", OPENAI_KEY
@@ -263,20 +278,20 @@ public class PromptIT {
     private void testCypherWithSchemaCommon(String question, Integer size) {
         long numOfQueries = 4L;
         String schema = TestUtil.singleResultFirstColumn(db, "CALL apoc.ml.schema({apiKey: $apiKey})",
-                Map.of("apiKey", OPENAI_KEY));
+                Util.map("apiKey", OPENAI_KEY));
 
         String humanDescriptionSchema = "The human description of the schema is the following:" +
                                         "```\n%s\n```"
                                                 .formatted(schema);
 
         List<Map> additionalPrompts = List.of(
-                Map.of("role", "system", "content", humanDescriptionSchema)
+                Util.map("role", "system", "content", humanDescriptionSchema)
         );
         
         testResult(db, """
                 CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", question,
                         "numOfQueries", numOfQueries,
                         "apiKey", OPENAI_KEY
@@ -285,7 +300,7 @@ public class PromptIT {
         );
         
         testResult(db, "CALL apoc.ml.cypher($query, {count: $numOfQueries, apiKey: $apiKey, additionalPrompts: $additionalPrompts})",
-                Map.of(
+                Util.map(
                         "query", question,
                         "numOfQueries", numOfQueries,
                         "apiKey", OPENAI_KEY,
@@ -297,7 +312,7 @@ public class PromptIT {
         testResult(db, """
                 CALL apoc.ml.query($query, {apiKey: $apiKey, retries: $retries, retryWithError: true}) YIELD query
                 """,
-                Map.of(
+                Util.map(
                         "query", question,
                         "retries", 10L,
                         "apiKey", OPENAI_KEY
@@ -306,7 +321,7 @@ public class PromptIT {
         );
 
         testResult(db, "CALL apoc.ml.query($query, {apiKey: $apiKey, additionalPrompts: $additionalPrompts, retries: $retries, retryWithError: true}) YIELD query ",
-                Map.of(
+                Util.map(
                         "query", question,
                         "retries", 10L,
                         "apiKey", OPENAI_KEY,
@@ -320,12 +335,13 @@ public class PromptIT {
     public void testCypherGpt35Turbo() {
         long numOfQueries = 4L;
         testResult(db, """
-                CALL apoc.ml.cypher($query, {model: 'gpt-3.5-turbo', count: $numOfQueries, apiKey: $apiKey})
+                CALL apoc.ml.cypher($query, {model: $model, count: $numOfQueries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "Who are the actors which also directed a movie?",
                         "numOfQueries", numOfQueries,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().toList();
@@ -342,12 +358,13 @@ public class PromptIT {
     @Test
     public void testFromCypherGpt35Turbo() {
         testCall(db, """
-                CALL apoc.ml.fromCypher($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})
+                CALL apoc.ml.fromCypher($query, {model: $model, retries: $retries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m",
                         "retries", 2L,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
                     String value = ( (String) r.get("value") ).toLowerCase();
@@ -364,7 +381,7 @@ public class PromptIT {
         testCall(db, """
                 CALL apoc.ml.fromCypher($query, {retries: $retries, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "query", "MATCH (p:Person {name: \"Tom Hanks\"})-[:ACTED_IN]->(m:Movie) RETURN m",
                         "retries", 2L,
                         "apiKey", OPENAI_KEY
@@ -384,11 +401,12 @@ public class PromptIT {
         List<String> queries = List.of("MATCH p=(n:Movie)--() RETURN p", "MATCH (n:Person) RETURN n", "MATCH (n:Movie) RETURN n", "MATCH p=(n)-[r]->() RETURN r");
 
         testCall(db, """
-                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                CALL apoc.ml.fromQueries($queries, {model: $model, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
 
@@ -405,7 +423,7 @@ public class PromptIT {
         testCall(db, """
                 CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "queries", queries,
                         "apiKey", OPENAI_KEY
                 ),
@@ -422,11 +440,12 @@ public class PromptIT {
         List<String> queries = List.of("MATCH (n:Movie) RETURN n");
 
         testCall(db, """
-                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                CALL apoc.ml.fromQueries($queries, {model: $model, apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
@@ -442,7 +461,7 @@ public class PromptIT {
         testCall(db, """
                 CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})
                 """,
-                Map.of(
+                Util.map(
                         "queries", queries,
                         "apiKey", OPENAI_KEY
                 ),
@@ -458,11 +477,12 @@ public class PromptIT {
         List<String> queries = List.of("MATCH (n:Movie) RETURN a");
         try {
             testCall(db, """
-                CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+                CALL apoc.ml.fromQueries($queries, {model: $model, apiKey: $apiKey})
                 """,
-                    Map.of(
+                    Util.map(
                             "queries", queries,
-                            "apiKey", OPENAI_KEY
+                            "apiKey", OPENAI_KEY,
+                            "model", chatModel
                     ),
                     (r) -> fail());
         } catch (Exception e) {
@@ -478,7 +498,7 @@ public class PromptIT {
             testCall(db, """
                 CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})
                 """,
-                    Map.of(
+                    Util.map(
                             "queries", queries,
                             "apiKey", OPENAI_KEY
                     ),
@@ -494,11 +514,12 @@ public class PromptIT {
         List<String> queries = List.of("MATCH (n:Movie) RETURN 1");
 
         testCall(db, """
-            CALL apoc.ml.fromQueries($queries, {model: 'gpt-3.5-turbo', apiKey: $apiKey})
+            CALL apoc.ml.fromQueries($queries, {model: $model, apiKey: $apiKey})
             """,
-                Map.of(
+                Util.map(
                         "queries", queries,
-                        "apiKey", OPENAI_KEY
+                        "apiKey", OPENAI_KEY,
+                        "model", chatModel
                 ),
                 (r) -> {
                     String value = ((String) r.get("value")).toLowerCase();
@@ -513,7 +534,7 @@ public class PromptIT {
         testCall(db, """
             CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})
             """,
-                Map.of(
+                Util.map(
                         "queries", queries,
                         "apiKey", OPENAI_KEY
                 ),
@@ -521,16 +542,6 @@ public class PromptIT {
                     String value = ((String) r.get("value")).toLowerCase();
                     Assertions.assertThat(value).containsAnyOf("does not contain", "empty", "undefined", "doesn't have");
                 });
-    }
-
-    @Test
-    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedure() {
-        ragWithRelevantAttributesCommon(Map.of());
-    }
-
-    @Test
-    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedureGpt35Turbo() {
-        ragWithRelevantAttributesCommon(Map.of(MODEL_CONF_KEY, GPT_35_MODEL));
     }
 
     @Test
@@ -681,13 +692,23 @@ public class PromptIT {
                 });
     }
 
-    private static void assertNot2022Winners(String value) {
+    protected static void assertNot2022Winners(String value) {
         assertThat(value).doesNotContain("Stefania Constantini", "Amos Mosaner", "Italy");
     }
 
-    private static void assert2022Winners(String value) {
+    protected static void assert2022Winners(String value) {
         assertThat(value).contains("Stefania Constantini", "Amos Mosaner");
         assertThat(value).containsAnyOf("Italy", "Italian");
+    }
+
+    @Test
+    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedure() {
+        ragWithRelevantAttributesCommon(Util.map());
+    }
+
+    @Test
+    public void ragWithRelevantAttributesComparedToIrrelevantOneAndChatProcedureGpt35Turbo() {
+        ragWithRelevantAttributesCommon(Util.map(MODEL_CONF_KEY, chatModel));
     }
 
     private void ragWithRelevantAttributesCommon(Map<String, Object> config) {
@@ -708,7 +729,7 @@ public class PromptIT {
 
                     String msg = "Current value is: " + value;
                     assertTrue(msg, value.contains("gold medal"));
-                    if (config.getOrDefault(MODEL_CONF_KEY, GPT_4O_MODEL).equals(GPT_35_MODEL)) {
+                    if (config.getOrDefault(MODEL_CONF_KEY, GPT_4O_MODEL).equals(chatModel)) {
                         assertNot2022Winners(value);
                     } else {
                         // with gpt-40 the info are updated, so the 2022 winners are known withuout RAG

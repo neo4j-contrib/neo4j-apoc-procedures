@@ -1,6 +1,7 @@
 package apoc.ml.aws;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -123,7 +124,7 @@ public class BedrockTest {
     @Test
     public void testGetModel() {
         testResult(db, "call apoc.ml.bedrock.list($conf)", 
-                getParams(Map.of(), LIST_MODELS_JSON),
+                getParams(Util.map(), LIST_MODELS_JSON),
                 r -> {
                     List<Map<String, Object>> rows = Iterators.asList(r);
                     assertEquals(2, rows.size());
@@ -135,9 +136,9 @@ public class BedrockTest {
     }
 
     private static Map<String, Object> getParams(Map<String, Object> body, String path) {
-        Map authHeader = Map.of(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
-        return Map.of("body", body,
-                "conf", Map.of(ENDPOINT_CONF_KEY, "http://localhost:" + PORT + path,
+        Map authHeader = Util.map(AUTH_HEADER.getKey(), AUTH_HEADER.getValue());
+        return Util.map("body", body,
+                "conf", Util.map(ENDPOINT_CONF_KEY, "http://localhost:" + PORT + path,
                         HEADERS_KEY, authHeader)
         );
     }

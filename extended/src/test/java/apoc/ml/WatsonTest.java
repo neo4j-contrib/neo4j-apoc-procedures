@@ -2,6 +2,7 @@ package apoc.ml;
 
 import apoc.ml.watson.Watson;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -81,7 +82,7 @@ public class WatsonTest {
     @Test
     public void completion() {
         testCall(db, "CALL apoc.ml.watson.completion('What color is the sky? Answer in one word: ', $accessToken)",
-                Map.of("accessToken", accessToken),
+                Util.map("accessToken", accessToken),
                 WatsonTest::commonAssertions);
     }
     
@@ -92,7 +93,7 @@ public class WatsonTest {
                         {role:"system", content:"Only answer with a single word"},
                         {role:"user", content:"What planet do humans live on?"}
                     ],  $apiKey)""",
-                Map.of("apiKey",accessToken),
+                Util.map("apiKey",accessToken),
                 WatsonTest::commonAssertions);
     }
 

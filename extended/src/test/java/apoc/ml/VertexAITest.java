@@ -2,6 +2,7 @@ package apoc.ml;
 
 import apoc.ExtendedApocConfig;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -90,7 +91,7 @@ public class VertexAITest {
     @Test
     public void getEmbedding() {
         testCall(db, "CALL apoc.ml.vertexai.embedding(['Some Text'], $accessToken, $project)", 
-                Map.of("accessToken", AUTH_HEADER, "project", EMBEDDINGS),
+                Util.map("accessToken", AUTH_HEADER, "project", EMBEDDINGS),
                 (row) -> {
             assertEquals(0L, row.get("index"));
             assertEquals("Some Text", row.get("text"));
@@ -101,7 +102,7 @@ public class VertexAITest {
     @Test
     public void completion() {
         testCall(db, "CALL apoc.ml.vertexai.completion('What color is the sky? Answer: ', $accessToken, $project)",
-                Map.of("accessToken", AUTH_HEADER, "project", COMPLETION),
+                Util.map("accessToken", AUTH_HEADER, "project", COMPLETION),
                 (row) -> {
                     var result = (Map<String,Object>)row.get("value");
                     var safetyAttributes = (Map) result.get("safetyAttributes");
@@ -117,7 +118,7 @@ public class VertexAITest {
     @Test
     public void chatCompletion() {
         testCall(db, "CALL apoc.ml.vertexai.chat([{role:'one', content:'bar'}, {role:'two', content:'foo'}], $accessToken, $project)",
-                Map.of("accessToken", AUTH_HEADER, "project", CHAT_COMPLETION),
+                Util.map("accessToken", AUTH_HEADER, "project", CHAT_COMPLETION),
                 (row) -> {
                     var result = (Map<String,Object>)row.get("value");
 
