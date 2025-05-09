@@ -1,0 +1,104 @@
+[[export-arrow]]
+= Export to Apache Arrow
+:description: This section describes procedures that can be used to export data in Apache Arrow format.
+
+These procedures export data into a format that's used by many Apache and non-Apache tools.
+
+
+[[export-arrow-available-procedures]]
+== Available Procedures
+
+The table below describes the available procedures:
+
+[separator=¦,opts=header,cols="5,1m"]
+|===
+¦Qualified Name¦Type
+¦xref::overview/apoc.export/apoc.export.arrow.all.adoc[apoc.export.arrow.all icon:book[]] +
+`apoc.export.arrow.all(file STRING, config MAP<STRING, ANY>)` - exports the full database as an arrow file.
+¦label:procedure[]
+
+¦xref::overview/apoc.export/apoc.export.arrow.graph.adoc[apoc.export.arrow.graph.adoc icon:book[]] +
+`apoc.export.arrow.graph(file STRING, graph ANY, config MAP<STRING, ANY>)` - exports the given graph as an arrow file.
+¦label:procedure[]
+
+¦xref::overview/apoc.export/apoc.export.arrow.query.adoc[apoc.export.arrow.query.adoc icon:book[]] +
+`apoc.export.arrow.stream.all(config MAP<STRING, ANY>)` - exports the full database as an arrow byte array.
+¦label:procedure[]
+
+¦xref::overview/apoc.export/apoc.export.arrow.stream.all.adoc[apoc.export.arrow.stream.all icon:book[]] +
+`apoc.export.arrow.all(file STRING, config MAP<STRING, ANY>)` - exports the full database as an arrow file.
+¦label:procedure[]
+
+¦xref::overview/apoc.export/apoc.export.arrow.stream.graph.adoc[apoc.export.arrow.stream.graph.adoc icon:book[]] +
+`apoc.export.arrow.stream.graph(graph ANY, config MAP<STRING, ANY>)` - exports the given graph as an arrow byte array.
+¦label:procedure[]
+
+¦xref::overview/apoc.export/apoc.export.arrow.stream.query.adoc[apoc.export.arrow.stream.query.adoc icon:book[]] +
+`apoc.export.arrow.stream.query(query ANY, config MAP<STRING, ANY>)` - exports the given Cypher query as an arrow byte array.
+¦label:procedure[]
+|===
+
+
+[[export-arrow-file-export]]
+== Exporting to a file
+
+include::partial$enableFileExport.adoc[]
+
+
+[[export-arrow-examples]]
+== Examples
+
+
+[[export-cypher-query-arrow]]
+=== Export results of Cypher query to Apache Arrow file
+
+[source,cypher]
+----
+CALL apoc.export.arrow.query('query_test.arrow', 
+    "RETURN 1 AS intData, 'a' AS stringData,
+        true AS boolData,
+        [1, 2, 3] AS intArray,
+        [1.1, 2.2, 3.3] AS doubleArray,
+        [true, false, true] AS boolArray,
+        [1, '2', true, null] AS mixedArray,
+        {foo: 'bar'} AS mapData,
+        localdatetime('2015-05-18T19:32:24') as dateData,
+        [[0]] AS arrayArray,
+        1.1 AS doubleData"
+) YIELD file
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data
+| "query_test.arrow" | "statement: cols(11)" | "arrow" | 0     | 0             | 11         | 468  | 11   | 2000      | 1       | true | <null>
+|===
+
+
+
+[[export-cypher-query-arrow-stream]]
+=== Export results of Cypher query to Apache Arrow binary output
+
+[source,cypher]
+----
+CALL apoc.export.arrow.stream.query('query_test.arrow', 
+    "RETURN 1 AS intData, 'a' AS stringData,
+        true AS boolData,
+        [1, 2, 3] AS intArray,
+        [1.1, 2.2, 3.3] AS doubleArray,
+        [true, false, true] AS boolArray,
+        [1, '2', true, null] AS mixedArray,
+        {foo: 'bar'} AS mapData,
+        localdatetime('2015-05-18T19:32:24') as dateData,
+        [[0]] AS arrayArray,
+        1.1 AS doubleData"
+) YIELD value
+----
+
+.Results
+[opts="header"]
+|===
+| value
+| <binary Apache Arrow output>
+|===

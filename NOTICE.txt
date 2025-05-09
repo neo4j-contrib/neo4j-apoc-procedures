@@ -38,7 +38,7 @@ Apache-2.0
   HikariCP-4.0.3.jar
   RoaringBitmap-0.7.17.jar
   WMI4Java-1.6.3.jar
-  accessors-smart-2.5.0.jar
+  accessors-smart-2.5.2.jar
   annotations-17.0.0.jar
   apiguardian-api-1.1.0.jar
   arrow-format-16.1.0.jar
@@ -67,8 +67,7 @@ Apache-2.0
   commons-configuration2-2.8.0.jar
   commons-csv-1.9.0.jar
   commons-daemon-1.0.13.jar
-  commons-io-2.15.1.jar
-  commons-io-2.9.0.jar
+  commons-io-2.17.0.jar
   commons-lang-2.6.jar
   commons-lang3-3.14.0.jar
   commons-logging-1.2.jar
@@ -79,9 +78,9 @@ Apache-2.0
   curator-client-5.2.0.jar
   curator-framework-5.2.0.jar
   curator-recipes-5.2.0.jar
-  docker-java-api-3.2.13.jar
-  docker-java-transport-3.2.13.jar
-  docker-java-transport-zerodep-3.2.13.jar
+  docker-java-api-3.3.6.jar
+  docker-java-transport-3.3.6.jar
+  docker-java-transport-zerodep-3.3.6.jar
   ehcache-3.3.1.jar
   error_prone_annotations-2.18.0.jar
   failureaccess-1.0.1.jar
@@ -134,6 +133,7 @@ Apache-2.0
   jackson-databind-2.17.2.jar
   jackson-dataformat-cbor-2.17.2.jar
   jackson-dataformat-csv-2.17.2.jar
+  jackson-dataformat-yaml-2.17.0.jar
   jackson-datatype-jsr310-2.17.0.jar
   jackson-datatype-jsr310-2.17.2.jar
   jackson-jaxrs-base-2.15.2.jar
@@ -152,24 +152,25 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.53.v20231009.jar
-  jetty-io-9.4.53.v20231009.jar
-  jetty-security-9.4.53.v20231009.jar
-  jetty-server-9.4.53.v20231009.jar
-  jetty-servlet-9.4.53.v20231009.jar
-  jetty-util-9.4.53.v20231009.jar
-  jetty-util-ajax-9.4.53.v20231009.jar
-  jetty-webapp-9.4.53.v20231009.jar
-  jetty-xml-9.4.53.v20231009.jar
+  jetty-http-9.4.57.v20241219.jar
+  jetty-io-9.4.57.v20241219.jar
+  jetty-security-9.4.57.v20241219.jar
+  jetty-server-9.4.57.v20241219.jar
+  jetty-servlet-9.4.57.v20241219.jar
+  jetty-util-9.4.57.v20241219.jar
+  jetty-util-ajax-9.4.57.v20241219.jar
+  jetty-webapp-9.4.57.v20241219.jar
+  jetty-xml-9.4.57.v20241219.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.770.jar
+  jna-5.13.0.jar
   jna-5.9.0.jar
   jnr-constants-0.9.9.jar
   jnr-ffi-2.1.7.jar
   joda-time-2.12.7.jar
   json-path-2.9.0.jar
-  json-smart-2.5.0.jar
+  json-smart-2.5.2.jar
   jsonschema2pojo-core-1.0.2.jar
   jsr305-3.0.2.jar
   kerb-admin-2.0.3.jar
@@ -197,11 +198,11 @@ Apache-2.0
   mercator_2.12-0.2.1.jar
   metrics-core-3.2.4.jar
   netty-all-4.1.100.Final.jar
-  netty-buffer-4.1.111.Final.jar
-  netty-codec-4.1.111.Final.jar
+  netty-buffer-4.1.119.Final.jar
+  netty-codec-4.1.119.Final.jar
   netty-codec-dns-4.1.100.Final.jar
   netty-codec-haproxy-4.1.100.Final.jar
-  netty-codec-http-4.1.111.Final.jar
+  netty-codec-http-4.1.119.Final.jar
   netty-codec-http2-4.1.100.Final.jar
   netty-codec-memcache-4.1.100.Final.jar
   netty-codec-mqtt-4.1.100.Final.jar
@@ -210,24 +211,24 @@ Apache-2.0
   netty-codec-socks-4.1.100.Final.jar
   netty-codec-stomp-4.1.100.Final.jar
   netty-codec-xml-4.1.100.Final.jar
-  netty-common-4.1.111.Final.jar
-  netty-handler-4.1.111.Final.jar
+  netty-common-4.1.119.Final.jar
+  netty-handler-4.1.119.Final.jar
   netty-handler-proxy-4.1.100.Final.jar
   netty-handler-ssl-ocsp-4.1.100.Final.jar
-  netty-resolver-4.1.111.Final.jar
+  netty-resolver-4.1.119.Final.jar
   netty-resolver-dns-4.1.100.Final.jar
   netty-resolver-dns-classes-macos-4.1.100.Final.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-x86_64.jar
-  netty-transport-4.1.111.Final.jar
-  netty-transport-classes-epoll-4.1.111.Final.jar
+  netty-transport-4.1.119.Final.jar
+  netty-transport-classes-epoll-4.1.119.Final.jar
   netty-transport-classes-kqueue-4.1.100.Final.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.111.Final.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.119.Final.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.111.Final.jar
+  netty-transport-native-unix-common-4.1.119.Final.jar
   netty-transport-rxtx-4.1.100.Final.jar
   netty-transport-sctp-4.1.100.Final.jar
   netty-transport-udt-4.1.100.Final.jar
@@ -238,7 +239,7 @@ Apache-2.0
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.7.jar
+  reactor-core-3.6.14.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
@@ -251,6 +252,7 @@ Apache-2.0
   shiro-crypto-hash-1.13.0.jar
   shiro-event-1.13.0.jar
   shiro-lang-1.13.0.jar
+  snakeyaml-2.2.jar
   snappy-java-1.1.10.4.jar
   token-provider-2.0.3.jar
   websocket-api-9.4.53.v20231009.jar
@@ -290,7 +292,7 @@ BSD-3-Clause
   antlr4-4.7.2.jar
   antlr4-runtime-4.7.2.jar
   asm-9.2.jar
-  asm-9.3.jar
+  asm-9.7.1.jar
   asm-analysis-9.2.jar
   asm-commons-5.0.3.jar
   asm-tree-9.2.jar
@@ -340,15 +342,15 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License - Version 1.0
   javax-websocket-client-impl-9.4.53.v20231009.jar
   javax-websocket-server-impl-9.4.53.v20231009.jar
-  jetty-http-9.4.53.v20231009.jar
-  jetty-io-9.4.53.v20231009.jar
-  jetty-security-9.4.53.v20231009.jar
-  jetty-server-9.4.53.v20231009.jar
-  jetty-servlet-9.4.53.v20231009.jar
-  jetty-util-9.4.53.v20231009.jar
-  jetty-util-ajax-9.4.53.v20231009.jar
-  jetty-webapp-9.4.53.v20231009.jar
-  jetty-xml-9.4.53.v20231009.jar
+  jetty-http-9.4.57.v20241219.jar
+  jetty-io-9.4.57.v20241219.jar
+  jetty-security-9.4.57.v20241219.jar
+  jetty-server-9.4.57.v20241219.jar
+  jetty-servlet-9.4.57.v20241219.jar
+  jetty-util-9.4.57.v20241219.jar
+  jetty-util-ajax-9.4.57.v20241219.jar
+  jetty-webapp-9.4.57.v20241219.jar
+  jetty-xml-9.4.57.v20241219.jar
   websocket-api-9.4.53.v20231009.jar
   websocket-client-9.4.53.v20231009.jar
   websocket-common-9.4.53.v20231009.jar
@@ -435,6 +437,7 @@ LGPL 2.1
   javassist-3.25.0-GA.jar
 
 LGPL-2.1-or-later
+  jna-5.13.0.jar
   jna-5.9.0.jar
 
 MIT
@@ -446,6 +449,7 @@ MIT
   bcutil-jdk18on-1.78.jar
   cassandra-1.17.6.jar
   checker-qual-3.42.0.jar
+  chromadb-1.19.7.jar
   couchbase-1.17.6.jar
   database-commons-1.17.6.jar
   duct-tape-1.0.8.jar
@@ -458,17 +462,20 @@ MIT
   jnr-x86asm-1.0.2.jar
   jsoup-1.15.3.jar
   localstack-1.17.6.jar
+  milvus-1.19.7.jar
   mockito-core-3.12.4.jar
   mssql-jdbc-6.2.1.jre7.jar
   mysql-1.17.6.jar
   neo4j-1.17.6.jar
   postgresql-1.17.6.jar
+  qdrant-1.19.7.jar
   reactive-streams-1.0.4.jar
   slf4j-api-1.7.36.jar
   slf4j-api-2.0.11.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar
-  testcontainers-1.17.6.jar
+  testcontainers-1.19.7.jar
+  weaviate-1.19.7.jar
 
 MPL 1.1
   javassist-3.25.0-GA.jar

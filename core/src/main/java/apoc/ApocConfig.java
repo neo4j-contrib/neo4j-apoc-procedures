@@ -87,6 +87,9 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_UUID_ENABLED_DB = "apoc.uuid.enabled.%s";
     public static final String APOC_UUID_FORMAT = "apoc.uuid.format";
     public static final String APOC_OPENAI_KEY = "apoc.openai.key";
+    public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
+    public static final String APOC_ML_OPENAI_TYPE = "apoc.ml.openai.type";
+    public static final String APOC_ML_OPENAI_AZURE_VERSION = "apoc.ml.azure.api.version";
 
     public enum UuidFormatType {
         hex,

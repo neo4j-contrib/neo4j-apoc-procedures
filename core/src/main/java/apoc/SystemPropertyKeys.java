@@ -46,5 +46,9 @@ public enum SystemPropertyKeys {
     label,
     addToSetLabel,
     addToExistingNodes,
-    propertyName;
+    propertyName,
+
+    // vector db
+    host,
+    credentials
 }

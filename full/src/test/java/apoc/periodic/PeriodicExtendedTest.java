@@ -28,11 +28,10 @@ import static org.junit.Assert.fail;
 import static org.neo4j.test.assertion.Assert.assertEventually;
 
 import apoc.create.Create;
+import apoc.entities.EntitiesExtended;
 import apoc.load.Jdbc;
 import apoc.nlp.gcp.GCPProcedures;
-import apoc.nodes.NodesExtended;
 import apoc.util.TestUtil;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +55,7 @@ public class PeriodicExtendedTest {
         TestUtil.registerProcedure(
                 db,
                 Periodic.class,
-                NodesExtended.class,
+                EntitiesExtended.class,
                 GCPProcedures.class,
                 Create.class,
                 PeriodicExtended.class,
@@ -220,27 +219,6 @@ public class PeriodicExtendedTest {
                     Map<String, Object> operationsErrors = map("/ by zero", 10L);
                     assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
                 });
-    }
-
-    @Test
-    public void testIterateJDBC() {
-        TestUtil.ignoreException(
-                () -> {
-                    testResult(
-                            db,
-                            "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})",
-                            result -> {
-                                Map<String, Object> row = Iterators.single(result);
-                                assertEquals(3L, row.get("batches"));
-                                assertEquals(29L, row.get("total"));
-                            });
-
-                    testCall(
-                            db,
-                            "MATCH (p:Customer) return count(p) as count",
-                            row -> assertEquals(29L, row.get("count")));
-                },
-                SQLException.class);
     }
 
     @Test

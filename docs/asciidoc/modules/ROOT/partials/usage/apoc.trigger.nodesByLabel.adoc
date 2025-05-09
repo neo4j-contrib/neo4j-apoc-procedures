@@ -6,14 +6,15 @@ create constraint on (p:Person)
 assert p.id is unique;
 ----
 
-This function is used inside a xref::overview/apoc.trigger/apoc.trigger.add.adoc[] Cypher statement.
+This function is used inside a xref::overview/apoc.trigger/apoc.trigger.install.adoc[] Cypher statement.
 
 We can use it to conditionally run Cypher statements when labels are added or removed or when properties are added or removed.
 For example, we add an `id` property to all `Person` nodes that is the lower case value of the `name` property of that node, by defining the following trigger:
 
 [source,cypher]
 ----
-CALL apoc.trigger.add(
+CALL apoc.trigger.install(
+  'neo4j',
   'lowercase',
   'UNWIND apoc.trigger.nodesByLabel($assignedLabels,"Person") AS n
    SET n.id = toLower(n.name)',

@@ -18,6 +18,8 @@
  */
 package apoc.export.graphml;
 
+import static apoc.util.ConvertUtil.toValidValue;
+
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
@@ -218,13 +220,39 @@ public class XmlGraphMLReader {
     public static final QName TYPE = QName.valueOf("attr.type");
     public static final QName LIST = QName.valueOf("attr.list");
     public static final QName KEY = QName.valueOf("key");
+    public static final QName VALUE = QName.valueOf("value");
+    public static final QName DATA_TYPE = QName.valueOf("type");
+    public static final QName KIND = QName.valueOf("kind");
 
     public XmlGraphMLReader(GraphDatabaseService db, Transaction tx) {
         this.db = db;
         this.tx = tx;
     }
 
+    public enum ReaderType {
+        GRAPHML("data", KEY, LABEL, LABELS),
+        GEXF("attvalue", FOR, KIND, LABEL);
+
+        public String data;
+        public QName key;
+        public QName label;
+        public QName labels;
+
+        ReaderType(String data, QName key, QName label, QName labels) {
+            this.data = data;
+            this.key = key;
+            this.label = label;
+            this.labels = labels;
+        }
+    }
+
     public long parseXML(Reader input, TerminationGuard terminationGuard) throws XMLStreamException {
+        return parseXML(input, terminationGuard, ReaderType.GRAPHML);
+    }
+
+    public long parseXML(Reader input, TerminationGuard terminationGuard, ReaderType readerType)
+            throws XMLStreamException {
+        Map<String, Object> dataMap = new HashMap<>();
         Map<String, Long> cache = new HashMap<>(1024 * 32);
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
@@ -238,7 +266,6 @@ public class XmlGraphMLReader {
         int count = 0;
         BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter);
         try {
-
             while (reader.hasNext()) {
                 terminationGuard.check();
                 XMLEvent event;
@@ -257,11 +284,15 @@ public class XmlGraphMLReader {
                     continue;
                 }
                 if (event.isStartElement()) {
-
                     StartElement element = event.asStartElement();
                     String name = element.getName().getLocalPart();
-
-                    if (name.equals("graphml") || name.equals("graph")) continue;
+                    boolean isNameGexf = readerType.equals(ReaderType.GEXF) && name.equals("gexf");
+                    if (name.equals("graphml") || name.equals("graph") || isNameGexf) continue;
+                    if (readerType.equals(ReaderType.GEXF) && name.equals("attribute")) {
+                        String id = getAttribute(element, ID);
+                        String type = getAttribute(element, DATA_TYPE);
+                        dataMap.put(id, type);
+                    }
                     if (name.equals("key")) {
                         String id = getAttribute(element, ID);
                         Key key = new Key(
@@ -284,19 +315,24 @@ public class XmlGraphMLReader {
                         else relKeys.put(id, key);
                         continue;
                     }
-                    if (name.equals("data")) {
+                    if (name.equals(readerType.data)) {
                         if (last == null) continue;
-                        String id = getAttribute(element, KEY);
+                        String id = getAttribute(element, readerType.key);
                         boolean isNode = last instanceof Node;
                         Key key = isNode ? nodeKeys.get(id) : relKeys.get(id);
                         if (key == null) key = Key.defaultKey(id, isNode);
                         final Map.Entry<XMLEvent, Object> eventEntry = getDataEventEntry(reader, key);
                         final XMLEvent next = eventEntry.getKey();
-                        final Object value = eventEntry.getValue();
+                        Object value = readerType.equals(ReaderType.GRAPHML)
+                                ? eventEntry.getValue()
+                                : getAttribute(element, VALUE);
                         if (value != null) {
                             if (this.labels && isNode && id.equals("labels")) {
                                 addLabels((Node) last, value.toString());
                             } else if (!this.labels || isNode || !id.equals("label")) {
+                                value = readerType.equals(ReaderType.GRAPHML)
+                                        ? value
+                                        : toValidValue(value, key.name, dataMap);
                                 last.setProperty(key.name, value);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
@@ -311,7 +347,7 @@ public class XmlGraphMLReader {
                         String id = getAttribute(element, ID);
                         Node node = tx.getTransaction().createNode();
                         if (this.labels) {
-                            String labels = getAttribute(element, LABELS);
+                            String labels = getAttribute(element, readerType.labels);
                             addLabels(node, labels);
                         }
                         if (storeNodeIds) node.setProperty("id", id);
@@ -324,7 +360,7 @@ public class XmlGraphMLReader {
                     }
                     if (name.equals("edge")) {
                         tx.increment();
-                        String label = getAttribute(element, LABEL);
+                        String label = getAttribute(element, readerType.label);
                         Node from = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.SOURCE);
                         Node to = getByNodeId(cache, tx.getTransaction(), element, XmlNodeExport.NodeType.TARGET);
 

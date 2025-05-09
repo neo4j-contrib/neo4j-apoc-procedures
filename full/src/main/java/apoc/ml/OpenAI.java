@@ -1,19 +1,34 @@
 package apoc.ml;
 
+import static apoc.ApocConfig.APOC_ML_OPENAI_TYPE;
 import static apoc.ApocConfig.APOC_OPENAI_KEY;
+import static apoc.ml.MLUtil.APIKEY_CONF_KEY;
+import static apoc.ml.MLUtil.API_TYPE_CONF_KEY;
+import static apoc.ml.MLUtil.API_VERSION_CONF_KEY;
+import static apoc.ml.MLUtil.ENDPOINT_CONF_KEY;
+import static apoc.ml.MLUtil.ERROR_NULL_INPUT;
+import static apoc.ml.MLUtil.MODEL_CONF_KEY;
 
 import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
+import apoc.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -21,10 +36,14 @@ import org.neo4j.procedure.Procedure;
 
 @Extended
 public class OpenAI {
+    public static final String JSON_PATH_CONF_KEY = "jsonPath";
+    public static final String FAIL_ON_ERROR_CONF = "failOnError";
+    public static final String ENABLE_BACK_OFF_RETRIES_CONF_KEY = "enableBackOffRetries";
+    public static final String ENABLE_EXPONENTIAL_BACK_OFF_CONF_KEY = "exponentialBackoff";
+    public static final String BACK_OFF_RETRIES_CONF_KEY = "backOffRetries";
+
     @Context
     public ApocConfig apocConfig;
-
-    public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
 
     public static class EmbeddingResult {
         public final long index;
@@ -48,19 +67,49 @@ public class OpenAI {
             String jsonPath,
             ApocConfig apocConfig)
             throws JsonProcessingException, MalformedURLException {
-        apiKey = apocConfig.getString(APOC_OPENAI_KEY, apiKey);
+        apiKey = (String) configuration.getOrDefault(APIKEY_CONF_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
+        boolean enableBackOffRetries = Util.toBoolean(configuration.get(ENABLE_BACK_OFF_RETRIES_CONF_KEY));
+        Integer backOffRetries = Util.toInteger(configuration.getOrDefault(BACK_OFF_RETRIES_CONF_KEY, 5));
+        boolean exponentialBackoff = Util.toBoolean(configuration.get(ENABLE_EXPONENTIAL_BACK_OFF_CONF_KEY));
         if (apiKey == null || apiKey.isBlank()) throw new IllegalArgumentException("API Key must not be empty");
-        String endpoint = System.getProperty(APOC_ML_OPENAI_URL, "https://api.openai.com/v1/");
-        Map<String, Object> headers = Map.of("Content-Type", "application/json", "Authorization", "Bearer " + apiKey);
+        String apiTypeString = (String) configuration.getOrDefault(
+                API_TYPE_CONF_KEY, apocConfig.getString(APOC_ML_OPENAI_TYPE, OpenAIRequestHandler.Type.OPENAI.name()));
+        OpenAIRequestHandler.Type type = OpenAIRequestHandler.Type.valueOf(apiTypeString.toUpperCase(Locale.ENGLISH));
 
         var config = new HashMap<>(configuration);
-        config.putIfAbsent("model", model);
-        config.put(key, inputs);
+        // we remove these keys from config, since the json payload is calculated starting from the config map
+        Stream.of(ENDPOINT_CONF_KEY, API_TYPE_CONF_KEY, API_VERSION_CONF_KEY, APIKEY_CONF_KEY)
+                .forEach(config::remove);
+        switch (type) {
+            case MIXEDBREAD_CUSTOM:
+                // no payload manipulation, taken from the configuration as-is
+                break;
+            default:
+                config.putIfAbsent(MODEL_CONF_KEY, model);
+                config.put(key, inputs);
+        }
+        OpenAIRequestHandler apiType = type.get();
 
-        String payload = new ObjectMapper().writeValueAsString(config);
+        final Map<String, Object> headers = new HashMap<>();
+        String sJsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
+        headers.put("Content-Type", "application/json");
 
-        var url = new URL(new URL(endpoint), path).toString();
-        return JsonUtil.loadJson(url, headers, payload, jsonPath, true, List.of());
+        apiType.addApiKey(headers, apiKey);
+
+        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(config);
+
+        // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
+        // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
+        // therefore is better to join the not-empty path pieces
+        var url = apiType.getFullUrl(path, configuration, apocConfig);
+        return ExtendedUtil.withBackOffRetries(
+                () -> JsonUtil.loadJson(url, headers, payload, sJsonPath, true, List.of()),
+                enableBackOffRetries,
+                backOffRetries,
+                exponentialBackoff,
+                exception -> {
+                    if (!exception.getMessage().contains("429")) throw new RuntimeException(exception);
+                });
     }
 
     @Procedure("apoc.ml.openai.embedding")
@@ -83,13 +132,32 @@ public class OpenAI {
           "model": "text-embedding-ada-002",
           "usage": { "prompt_tokens": 8, "total_tokens": 8 } }
         */
+        boolean failOnError = isFailOnError(configuration);
+        if (checkNullInput(texts, failOnError)) return Stream.empty();
+        texts = texts.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
+        if (checkEmptyInput(texts, failOnError)) return Stream.empty();
+        return getEmbeddingResult(texts, apiKey, configuration, apocConfig, (map, text) -> {
+            Long index = (Long) map.get("index");
+            return new EmbeddingResult(index, text, (List<Double>) map.get("embedding"));
+        });
+    }
+
+    public static <T> Stream<T> getEmbeddingResult(
+            List<String> texts,
+            String apiKey,
+            Map<String, Object> configuration,
+            ApocConfig apocConfig,
+            BiFunction<Map, String, T> embeddingMapping)
+            throws JsonProcessingException, MalformedURLException {
         Stream<Object> resultStream = executeRequest(
                 apiKey, configuration, "embeddings", "text-embedding-ada-002", "input", texts, "$.data", apocConfig);
+
         return resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(m -> {
                     Long index = (Long) m.get("index");
-                    return new EmbeddingResult(index, texts.get(index.intValue()), (List<Double>) m.get("embedding"));
+                    String text = texts.get(index.intValue());
+                    return embeddingMapping.apply(m, text);
                 });
     }
 
@@ -108,6 +176,8 @@ public class OpenAI {
           "usage": { "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12 }
         }
         */
+        boolean failOnError = isFailOnError(configuration);
+        if (checkBlankInput(prompt, failOnError)) return Stream.empty();
         return executeRequest(
                         apiKey,
                         configuration,
@@ -128,15 +198,12 @@ public class OpenAI {
             @Name("api_key") String apiKey,
             @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration)
             throws Exception {
-        return executeRequest(
-                        apiKey,
-                        configuration,
-                        "chat/completions",
-                        "gpt-3.5-turbo",
-                        "messages",
-                        messages,
-                        "$",
-                        apocConfig)
+        boolean failOnError = isFailOnError(configuration);
+        if (checkNullInput(messages, failOnError)) return Stream.empty();
+        messages = messages.stream().filter(MapUtils::isNotEmpty).collect(Collectors.toList());
+        if (checkEmptyInput(messages, failOnError)) return Stream.empty();
+        String model = (String) configuration.putIfAbsent("model", "gpt-4o");
+        return executeRequest(apiKey, configuration, "chat/completions", model, "messages", messages, "$", apocConfig)
                 .map(v -> (Map<String, Object>) v)
                 .map(MapResult::new);
         // https://platform.openai.com/docs/api-reference/chat/create
@@ -148,5 +215,29 @@ public class OpenAI {
             'content': 'The 2020 World Series was played in Arlington, Texas at the Globe Life Field, which was the new home stadium for the Texas Rangers.'}
           } ] }
         */
+    }
+
+    private static boolean isFailOnError(Map<String, Object> configuration) {
+        return Util.toBoolean(configuration.getOrDefault(FAIL_ON_ERROR_CONF, true));
+    }
+
+    static boolean checkNullInput(Object input, boolean failOnError) {
+        return checkInput(failOnError, () -> Objects.isNull(input));
+    }
+
+    static boolean checkEmptyInput(Collection<?> input, boolean failOnError) {
+        return checkInput(failOnError, input::isEmpty);
+    }
+
+    static boolean checkBlankInput(String input, boolean failOnError) {
+        return checkInput(failOnError, () -> StringUtils.isBlank(input));
+    }
+
+    private static boolean checkInput(boolean failOnError, Supplier<Boolean> checkFunction) {
+        if (checkFunction.get()) {
+            if (failOnError) throw new RuntimeException(ERROR_NULL_INPUT);
+            return true;
+        }
+        return false;
     }
 }

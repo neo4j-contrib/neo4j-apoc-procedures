@@ -1,0 +1,16 @@
+CREATE (mixed2022:Discipline {title:"Mixed doubles curling", year: 2022})
+WITH mixed2022
+CREATE (:Athlete {name: 'Stefania Constantini', country: 'Italy', irrelevant: 'asdasd'})-[:HAS_MEDAL {medal: 'Gold', irrelevant2: 'asdasd'}]->(mixed2022)
+CREATE (:Athlete {name: 'Amos Mosaner', country: 'Italy', irrelevant: 'qweqwe'})-[:HAS_MEDAL {medal: 'Gold', irrelevant2: 'rwerew'}]->(mixed2022)
+CREATE (:Athlete {name: 'Kristin Skaslien', country: 'Norway', irrelevant: 'dfgdfg'})-[:HAS_MEDAL {medal: 'Silver', irrelevant2: 'gdfg'}]->(mixed2022)
+CREATE (:Athlete {name: 'Magnus Nedregotten', country: 'Norway', irrelevant: 'xcvxcv'})-[:HAS_MEDAL {medal: 'Silver', irrelevant2: 'asdasd'}]->(mixed2022)
+CREATE (:Athlete {name: 'Almida de Val', country: 'Sweden', irrelevant: 'rtyrty'})-[:HAS_MEDAL {medal: 'Bronze', irrelevant2: 'bfbfb'}]->(mixed2022)
+CREATE (:Athlete {name: 'Oskar Eriksson', country: 'Sweden', irrelevant: 'qwresdc'})-[:HAS_MEDAL {medal: 'Bronze', irrelevant2: 'juju'}]->(mixed2022)
+CREATE (mixed2018:Discipline {title:"Mixed doubles's curling", year: 2018})
+WITH mixed2018
+CREATE (:Athlete {name: 'Lawes', country: 'USA', irrelevant: 'asdasd'})-[:HAS_MEDAL {medal: 'Gold', irrelevant2: 'asdasd'}]->(mixed2018)
+CREATE (:Athlete {name: 'Morris', country: 'USA', irrelevant: 'qweqwe'})-[:HAS_MEDAL {medal: 'Gold', irrelevant2: 'rwerew'}]->(mixed2018)
+CREATE (:Athlete {name: 'mock name 3', country: 'mock country 2', irrelevant: 'dfgdfg'})-[:HAS_MEDAL {medal: 'Silver', irrelevant2: 'gdfg'}]->(mixed2018)
+CREATE (:Athlete {name: 'mock name 4', country: 'mock country 2', irrelevant: 'xcvxcv'})-[:HAS_MEDAL {medal: 'Silver', irrelevant2: 'asdasd'}]->(mixed2018)
+CREATE (:Athlete {name: 'mock name 5', country: 'mock country 3', irrelevant: 'rtyrty'})-[:HAS_MEDAL {medal: 'Bronze', irrelevant2: 'bfbfb'}]->(mixed2018)
+CREATE (:Athlete {name: 'mock name 6', country: 'mock country 3', irrelevant: 'qwresdc'})-[:HAS_MEDAL {medal: 'Bronze', irrelevant2: 'juju'}]->(mixed2018)
