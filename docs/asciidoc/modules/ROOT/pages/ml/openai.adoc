@@ -305,7 +305,7 @@ Furthermore, we can use the https://console.groq.com/docs/quickstart[Groq API], 
 ----
 CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of low latency LLMs"}], 
     '<apiKey>',
-    {endpoint: 'https://api.groq.com/openai/v1', model: 'mixtral-8x7b-32768'})
+    {endpoint: 'https://api.groq.com/openai/v1', model: 'llama3-70b-8192'})
 ----
 
 === Anthropic API (OpenAI-compatible)
