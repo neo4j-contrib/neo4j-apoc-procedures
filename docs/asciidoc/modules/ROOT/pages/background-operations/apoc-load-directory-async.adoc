@@ -13,4 +13,5 @@ include::example$generated-documentation/apoc.load.directory.async.list.adoc[]
 
 
 == Usage Examples
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/background-operations/apoc-load-directory-async/
 include::partial$usage/apoc.load.directory.async.adoc[]

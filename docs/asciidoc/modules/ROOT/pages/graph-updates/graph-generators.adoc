@@ -1,5 +1,6 @@
 [[graph-generators]]
 = Generating Graphs
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/graph-updates/graph-generators/
 :description: This section describes procedures that can be used to generate example graphs.
 
 
