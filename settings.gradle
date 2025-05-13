@@ -30,7 +30,8 @@ startParameter.excludedTaskNames = [
         ':test-utils:test',
         ':core:publish',
         ':common:publish',
-        ':test-utils:publish'
+        ':test-utils:publish',
+        ':core:compileTestJava'
 ]
 
 // the :core:shadowJar should be used only for integration tests with both core and extended jars
