@@ -95,7 +95,8 @@ subprojects {
                 'neo4jDockerImage': project.hasProperty("neo4jDockerEeOverride") ? project.getProperty("neo4jDockerEeOverride") : 'neo4j:2025.05.0-enterprise',
                 'neo4jCommunityDockerImage': project.hasProperty("neo4jDockerCeOverride") ? project.getProperty("neo4jDockerCeOverride") : 'neo4j:2025.05.0',
                 'coreDir': 'apoc-core/core',
-                'testDockerBundle': false
+                'testDockerBundle': false,
+                'org.neo4j.io.pagecache.tracing.cursor.DefaultPageCursorTracer.CHECK_REPORTED_COUNTERS': 'true' // Extra assertions in kernel
 
         maxHeapSize = "5G"
         forkEvery = 50
