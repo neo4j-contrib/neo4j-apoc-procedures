@@ -144,18 +144,6 @@ dependencies {
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
     testImplementation project(':test-utils')
     testImplementation project(':core')
-    //testImplementation project(path: ':core')
-    
-    
-//    testImplementation project(path: ':core', configuration: 'default')
-
-//    testImplementation(project(':core')) {
-//        exclude group: 'com.neo4j', module: 'enterprise-it-test-support'
-//    }
-
-//    testImplementation project(':core'), {
-//        exclude group: 'com.neo4j'//, module: 'enterprise-it-test-support-2025.04.0'
-//    }
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
         exclude group: 'org.apache.commons', module: 'commons-collections4'
     }
@@ -195,14 +183,6 @@ dependencies {
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
-
-        // exclude group: 'com.neo4j', module: 'enterprise-it-test-support'
-//
-//        resolutionStrategy.eachDependency { details ->
-//            if (details.requested.group == 'com.neo4j' && details.requested.name == 'enterprise-it-test-support') {
-//                details.useTarget "com.neo4j:enterprise-it-test-support:$neo4jVersionEffective" // dummy
-//            }
-//        }
     }
 }
 
