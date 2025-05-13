@@ -30,14 +30,16 @@ startParameter.excludedTaskNames = [
         ':test-utils:test',
         ':core:publish',
         ':common:publish',
-        ':test-utils:publish'
+        ':test-utils:publish',
+        ':core:compileTestJava'
 ]
 
 // the :core:shadowJar should be used only for integration tests with both core and extended jars
 // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
 // not when a `gradle shadow` or a `gradle build` is executed in this root project folder
 gradle.settingsEvaluated {
-    if (!startParameter.taskNames.any { it.startsWith(":extended-it") }) {
+    if (startParameter.taskNames.any { it == "shadow" || it == "build" }) {
+        println 'exclude :core:shadowJar for tasks: ' + startParameter.taskNames
         startParameter.excludedTaskNames.add(':core:shadowJar')
     }
 }
