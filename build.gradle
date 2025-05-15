@@ -29,7 +29,7 @@ def collectNeo4jReleases() {
 
     // We sort considering that X.Y.Z-SOMETHING should be considered lower than X.Y.Z --> it's not a lexicographical ordering
     return releases
-            .findAll { it >= "3.0" }
+            .findAll {it.tokenize(".").first().toInteger() >= 3 }
             .sort{ o1, o2 -> orderVersion(o1) <=> orderVersion(o2) }
             .reverse()
 }
@@ -116,7 +116,6 @@ task versions <<  {
     def versions = []
     for (neo4jRelease in neo4jReleases) {
         def prefix = neo4jRelease.substring(0,Math.min(4,neo4jRelease.length()))
-        if (prefix < "3.0") continue;
 
         def apocVersion = findApocVersion(neo4jToApoc, neo4jRelease, prefix)
         if (apocVersion != null) {
