@@ -13,6 +13,7 @@ import org.neo4j.driver.Session;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -136,8 +137,9 @@ public class StartupExtendedTest {
     }
 
     private static List<String> getNames(Session session, String query, Map<String, Object> params) {
-        return session.run(query, params)
+        List<String> names = session.run(query, params)
                 .list(i -> i.get("name").asString());
+        return new ArrayList<>(names);
     }
 
     private static List<String> getNames(Session session, String query) {
