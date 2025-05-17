@@ -2,6 +2,7 @@
 
 [#intro-to-entity-extraction]
 == Intro to Entity Extraction
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/entity-extraction/
 
 Entity Extraction takes unstructured text and returns a list of named entities contained within that text.
 

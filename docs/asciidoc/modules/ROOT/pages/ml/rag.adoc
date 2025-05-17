@@ -1,5 +1,6 @@
 [[rag]]
 = RAG - Retrieval Augmented Generation Procedures
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/rag/
 :description: This section describes procedures that can be used to access the RAG - Retrieval Augmented Generation.
 
 == Query with Retrieval-augmented generation (RAG) technique
