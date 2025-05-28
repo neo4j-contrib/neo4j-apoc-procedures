@@ -1,5 +1,6 @@
 [[operational]]
 = Operational
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/operational/
 :description: This chapter describes operational procedures in the APOC Extended library.
 
 

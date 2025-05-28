@@ -1,5 +1,6 @@
 [[monitoring]]
 = Monitoring
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-introspection/monitoring/
 :description: This section describes procedures that can be used to monitor the database.
 
 

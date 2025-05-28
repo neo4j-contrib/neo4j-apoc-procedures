@@ -1,5 +1,6 @@
 [[transaction]]
 = List of procedures with its own transaction
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/transaction/
 :description: This chapter describes the list of procedures that start their own transaction in the APOC Extended library.
 
 The list of procedures that start their own transaction:

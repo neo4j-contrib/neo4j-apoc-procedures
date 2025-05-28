@@ -8,6 +8,7 @@ label:procedure[]
 
 [NOTE]
 ====
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/overview/apoc.export/apoc.export.arrow.stream.query/
 It is considered unsafe to run this procedure using multiple threads.
 It is therefore not supported by the parallel runtime (introduced in Neo4j 5.13).
 For more information, see the link:{neo4j-docs-base-uri}/cypher-manual/{page-version}/planning-and-tuning/runtimes/concepts#runtimes-parallel-runtime[Cypher Manual -> Parallel runtime].
