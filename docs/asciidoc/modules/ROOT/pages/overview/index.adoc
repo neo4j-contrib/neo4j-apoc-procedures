@@ -1,5 +1,6 @@
 [[overview]]
 = Procedures & Functions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/overview/
 :description: This chapter provides a reference of all the procedures and functions in the APOC library.
 
 

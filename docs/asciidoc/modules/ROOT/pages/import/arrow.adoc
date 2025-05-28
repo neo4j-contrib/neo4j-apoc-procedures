@@ -1,5 +1,6 @@
 [[load-arrow]]
 = Load and Import Arrow
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/arrow/
 :description: This section describes procedures that can be used to import Apache Arrow data from web APIs or files.
 
 

@@ -1,5 +1,6 @@
 [[running-cypher]]
 = Running Cypher fragments
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/cypher-execution/running-cypher/
 :description: This section describes procedures for running Cypher fragments.
 
 

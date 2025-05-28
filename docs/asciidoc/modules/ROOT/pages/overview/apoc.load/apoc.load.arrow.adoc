@@ -7,6 +7,7 @@ label:procedure[]
 `apoc.load.arrow(file STRING, config MAP<STRING, ANY>)` - imports values from the provided Arrow file.
 
 == Signature
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/overview/apoc.load/apoc.load.arrow/
 
 [source]
 ----
