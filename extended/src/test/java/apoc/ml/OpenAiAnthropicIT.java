@@ -42,7 +42,9 @@ public class OpenAiAnthropicIT {
     public static Collection<String[]> data() {
         return Arrays.asList(new String[][] {
                 // tests with model evaluated
+                {"claude-3-7-sonnet-20250219", "claude-2.1"},
                 {"claude-3-5-sonnet-20240620", "claude-2"},
+                {"claude-3-haiku-20240307", "claude-2"},
                 // tests with default model
                 {null, null}
         });
