@@ -1,74 +1,29 @@
 package apoc.diff;
 
-import apoc.create.Create;
-import apoc.util.TestUtil;
-import apoc.util.collection.Iterators;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import apoc.bolt.Bolt;
+import apoc.create.Create;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
+import apoc.util.collection.Iterators;
+import org.junit.*;
+import org.neo4j.driver.*;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.time.OffsetTime;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
-import static apoc.diff.DiffExtended.COUNT_BY_LABEL;
-import static apoc.diff.DiffExtended.COUNT_BY_TYPE;
-import static apoc.diff.DiffExtended.DESTINATION_ENTITY_NOT_FOUND;
-import static apoc.diff.DiffExtended.DIFFERENT_LABELS;
-import static apoc.diff.DiffExtended.DIFFERENT_PROPS;
-import static apoc.diff.DiffExtended.NODE;
-import static apoc.diff.DiffExtended.RELATIONSHIP;
-import static apoc.diff.DiffExtended.TOTAL_COUNT;
+import static apoc.diff.DiffExtended.*;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.Util.map;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 public class DiffExtendedTest {
