@@ -1,6 +1,5 @@
 package apoc.bolt;
 
-import apoc.meta.Meta;
 import apoc.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -176,7 +175,7 @@ public class BoltConnection {
             nodesCache.put(node.id(), virtualNode);
             return virtualNode;
         } else
-            return Util.map("entityType", Meta.Types.NODE.name(), "labels", node.labels(), "id", node.id(), "properties", node.asMap());
+            return Util.map("entityType", "NODE", "labels", node.labels(), "id", node.id(), "properties", node.asMap());
     }
 
     private Object toRelationship(Transaction tx, Object value, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
@@ -209,7 +208,7 @@ public class BoltConnection {
             }
             return new VirtualRelationship(rel.id(), start, end, RelationshipType.withName(rel.type()), rel.asMap());
         } else
-            return Util.map("entityType", Meta.Types.RELATIONSHIP.name(), "type", rel.type(), "id", rel.id(), "start", rel.startNodeId(), "end", rel.endNodeId(), "properties", rel.asMap());
+            return Util.map("entityType", "RELATIONSHIP", "type", rel.type(), "id", rel.id(), "start", rel.startNodeId(), "end", rel.endNodeId(), "properties", rel.asMap());
     }
 
     private Object toPath(Transaction tx, Object value, Map<Long, org.neo4j.graphdb.Node> nodesCache) {
