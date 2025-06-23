@@ -5,6 +5,7 @@ import apoc.Extended;
 import apoc.util.Util;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -15,10 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import apoc.Description;
-import apoc.Extended;
 import apoc.export.util.FormatUtils;
-import apoc.export.util.MapSubGraph;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
@@ -54,7 +52,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedUtil.withDb;
 import static apoc.util.Util.map;
 
 
@@ -63,6 +61,9 @@ public class DiffExtended {
 
     @Context
     public Transaction tx;
+
+    @Context
+    public GraphDatabaseAPI databaseAPI;
 
     public static final String NODE = "Node";
     public static final String RELATIONSHIP = "Relationship";
@@ -172,7 +173,7 @@ public class DiffExtended {
                                     sourceDestConfig.getParams());
                             return toSubGraph(graph, config, null);
                         case DATABASE:
-                            return apocConfig().withDb(targetValue, transaction -> {
+                            return withDb(databaseAPI, targetValue, transaction -> {
                                 final Result result = transaction.execute(inputString, sourceDestConfig.getParams());
 
                                 final Map<String, List<Object>> baseMapFromOtherDb = createMapAndSchema(result, true,

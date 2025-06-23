@@ -5,12 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.exceptions.Neo4jException;
-import org.neo4j.graphdb.Entity;
-import org.neo4j.graphdb.ExecutionPlanDescription;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionType;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Mode;
 import org.neo4j.values.storable.DateTimeValue;
 import org.neo4j.values.storable.DateValue;
@@ -434,5 +432,19 @@ public class ExtendedUtil
                 return true;
             }
         }, false);
+    }
+
+    public static <T> T withDb(GraphDatabaseAPI databaseAPI, String dbName, Function<Transaction, T> action) {
+        try (Transaction tx = getDb(databaseAPI, dbName).beginTx()) {
+            T result = action.apply(tx);
+            tx.commit();
+            return result;
+        }
+    }
+
+    public static GraphDatabaseService getDb(GraphDatabaseAPI databaseAPI, String dbName) {
+        return databaseAPI.getDependencyResolver()
+                .resolveDependency(DatabaseManagementService.class)
+                .database(dbName);
     }
 }

@@ -1,4 +1,4 @@
-package apoc.export.util;
+package apoc.diff;
 
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
