@@ -172,11 +172,6 @@ public class MapSubGraph implements SubGraph {
     }
 
     @Override
-    public boolean contains(Relationship relationship) {
-        return rels.contains(relationship);
-    }
-
-    @Override
     public Iterable<IndexDefinition> getIndexes() {
         return indexes;
     }
