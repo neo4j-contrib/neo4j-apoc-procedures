@@ -73,10 +73,15 @@ public class DiffExtended {
     public static final String COUNT_BY_LABEL = "Count by Label";
     public static final String COUNT_BY_TYPE = "Count by Type";
     public static final String TOTAL_COUNT = "Total count";
+// TODO - MAYBE THIS IS WRONG??
+// TODO - MAYBE THIS IS WRONG??
+// TODO - MAYBE THIS IS WRONG?? . changed by adding 'RANGE'
+// TODO - MAYBE THIS IS WRONG??
+    private static final String BOLT_SCHEMA_QUERY =
+            "SHOW INDEXES YIELD labelsOrTypes, properties, state, type " +
+                    "WHERE state = 'ONLINE' AND (type = 'UNIQUE' OR type = 'RANGE' OR type = 'TEXT')" +
+                    "RETURN collect({labels: labelsOrTypes, properties: properties, type: type}) AS schema";
 
-    private static final String BOLT_SCHEMA_QUERY = "CALL db.indexes() YIELD labelsOrTypes, properties, state, uniqueness\n" +
-            "WHERE state = 'ONLINE' AND uniqueness = 'UNIQUE'\n" +
-            "RETURN collect({labels: labelsOrTypes, properties: properties, type: uniqueness}) AS schema\n";
 
     @Procedure("apoc.diff.graphs")
     @Description("CALL apoc.diff.graphs(<source>, <dest>, <config>) YIELD difference, entityType, id, sourceLabel, destLabel, source, dest - compares two graphs and returns the results")
@@ -104,9 +109,10 @@ public class DiffExtended {
                 .filter(Objects::nonNull);
         final Stream<SourceDestResult> nodeStream = compareNodes(sourceGraph, destGraph, diffConfig);
         final Stream<SourceDestResult> relStream = compareRels(sourceGraph, destGraph);
-        return Stream.of(generalStream, nodeStream, relStream)
+        Stream<SourceDestResult> sourceDestResultStream = Stream.of(generalStream, nodeStream, relStream)
                 .reduce(Stream::concat)
                 .orElse(Stream.empty());
+        return sourceDestResultStream;
     }
 
     public static class SourceDestResult {
