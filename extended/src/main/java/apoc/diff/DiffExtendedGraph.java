@@ -39,8 +39,6 @@ public class DiffExtendedGraph {
     @Context
     public GraphDatabaseAPI databaseAPI;
 
-
-
     public static final String NODE = "Node";
     public static final String RELATIONSHIP = "Relationship";
     public static final String DESTINATION_ENTITY_NOT_FOUND = "Destination Entity not found";
