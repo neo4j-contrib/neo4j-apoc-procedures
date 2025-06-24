@@ -12,8 +12,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.time.OffsetTime;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
