@@ -339,7 +339,7 @@ public class CypherExtended {
         return stmt.matches("(?is).*using\\s+periodic.*") || stmt.matches("(?is).*in\\s+transactions.*");
     }
 
-    private Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
+    public static Map<String, Object> toMap(QueryStatistics stats, long time, long rows) {
         return map(
                 "rows",rows,
                 "time",time,
