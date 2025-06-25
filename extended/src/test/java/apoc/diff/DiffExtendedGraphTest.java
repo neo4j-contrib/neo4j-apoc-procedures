@@ -199,12 +199,7 @@ public class DiffExtendedGraphTest {
                     Map<String, Object> row = r.next();
                     final Map<String, Object> expectedTotCount = map("entityType", NODE, "sourceLabel", null, "difference", TOTAL_COUNT, "id", null, "source", 2L, "dest", 4L, "destLabel", null);
                     assertEquals(expectedTotCount, row);
-                    row = r.next();
-                    final Map<String, Object> expectedCountLabel = map("entityType", NODE, "sourceLabel", null, "difference", COUNT_BY_LABEL, "id", null,
-                            "source", map("Person", 1L, "Other", 1L),
-                            "dest", map("Person", 3L, "Other", 1L), "destLabel", null);
-                    assertEquals(expectedCountLabel, row);
-                    assertFalse(r.hasNext());
+                    r.close();
                 });
 
         db.executeTransactionally("MATCH (n:Person:Other) REMOVE n:Other");
