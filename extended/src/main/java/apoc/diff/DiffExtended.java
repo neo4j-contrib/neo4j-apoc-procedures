@@ -28,7 +28,7 @@ public class DiffExtended {
         rightRel = Util.rebind(tx, rightRel);
         Map<String, Object> allLeftProperties = leftRel.getAllProperties();
         Map<String, Object> allRightProperties = rightRel.getAllProperties();
-
+        
         Map<String, Object> result = new HashMap<>();
         result.put("leftOnly", getPropertiesOnlyLeft(allLeftProperties, allRightProperties));
         result.put("rightOnly", getPropertiesOnlyLeft(allRightProperties, allLeftProperties));

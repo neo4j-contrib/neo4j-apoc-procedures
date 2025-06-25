@@ -1,10 +1,8 @@
 package apoc.diff;
 
+import apoc.util.collection.Iterables;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.*;
 
 import java.util.Collection;
@@ -162,13 +160,13 @@ public class MapSubGraph implements SubGraph {
     }
 
     @Override
-    public Iterable<Node> getNodes() {
-        return nodes;
+    public ResourceIterable<Node> getNodes() {
+        return Iterables.asResourceIterable(nodes);
     }
 
     @Override
-    public Iterable<Relationship> getRelationships() {
-        return rels;
+    public ResourceIterable<Relationship> getRelationships() {
+        return Iterables.asResourceIterable(rels);
     }
 
     @Override

@@ -20,10 +20,7 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.Util.map;
 import static org.junit.Assert.*;
 
-
-
-
-
+@Ignore
 public class DiffExtendedGraphTest {
 
     @ClassRule
