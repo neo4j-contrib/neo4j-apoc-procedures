@@ -7,6 +7,7 @@ label:function[] label:apoc-full[]
 Returns a Map detailing the property differences between the two given relationships
 
 == Signature
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.diff/apoc.diff.relationships/
 
 [source]
 ----

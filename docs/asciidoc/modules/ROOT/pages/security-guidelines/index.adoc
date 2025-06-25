@@ -3,7 +3,7 @@
 
 [[security-guideFlines]]
 = Security Guidelines
-
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/security-guidelines/
 :description: This page provides an overview of the security matters which concern our users.
 
 The goal of this page is to offer guidance on how to use APOC securely. An insecure usage of APOC can result in many

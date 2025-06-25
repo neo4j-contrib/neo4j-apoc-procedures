@@ -1,5 +1,6 @@
 [[path-expander]]
 = Path Expander Overview
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/graph-querying/path-expander/
 :description: This section describes procedures that can be used to do variable length path traversals.
 
 

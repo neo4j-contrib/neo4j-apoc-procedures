@@ -1,5 +1,6 @@
 [[datetime-conversions]]
 = Date and Time Conversions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/temporal/datetime-conversions/
 :description: This section describes functions for working with dates and times.
 
 
