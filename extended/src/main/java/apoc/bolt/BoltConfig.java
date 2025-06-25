@@ -1,5 +1,6 @@
 package apoc.bolt;
 
+import apoc.util.Util;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.SessionConfig;
@@ -20,6 +21,7 @@ public class BoltConfig {
     private final Map<String, Object> localParams;
     private final Map<String, Object> remoteParams;
     private final String databaseName;
+    private final boolean withRelationshipNodeProperties;
 
     public BoltConfig(Map<String, Object> config) {
         if (config == null) config = Collections.emptyMap();
@@ -31,6 +33,7 @@ public class BoltConfig {
         this.driverConfig = toDriverConfig((Map<String, Object>) config.getOrDefault("driverConfig", Collections.emptyMap()));
         this.localParams = (Map<String, Object>) config.getOrDefault("localParams", Collections.emptyMap());
         this.remoteParams = (Map<String, Object>) config.getOrDefault("remoteParams", Collections.emptyMap());
+        this.withRelationshipNodeProperties = Util.toBoolean(config.get("withRelationshipNodeProperties"));
     }
 
     private Config toDriverConfig(Map<String, Object> driverConfMap) {
@@ -116,5 +119,9 @@ public class BoltConfig {
 
     public Map<String, Object> getRemoteParams() {
         return remoteParams;
+    }
+
+    public boolean isWithRelationshipNodeProperties() {
+        return withRelationshipNodeProperties;
     }
 }
