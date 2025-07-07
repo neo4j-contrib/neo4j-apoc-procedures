@@ -25,7 +25,7 @@ import static apoc.util.TestUtil.testCall;
  * Tests with Groq API: https://console.groq.com/docs/quickstart 
  */
 @RunWith(Parameterized.class)
-public class OpenAIGroqAPIsIT {
+public class OpenAiGroqAPIsIT {
 
     private String groqApiKey;
 
@@ -62,7 +62,7 @@ public class OpenAIGroqAPIsIT {
     private Map<String, Object> getParams(String model) {
         Map<String, String> conf = Util.map(ENDPOINT_CONF_KEY, "https://api.groq.com/openai/v1",
                 MODEL_CONF_KEY, model);
-
+        
         return Util.map("apiKey", groqApiKey, "conf", conf);
     }
 }
