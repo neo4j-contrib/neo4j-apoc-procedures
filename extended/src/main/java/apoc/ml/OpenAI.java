@@ -35,7 +35,7 @@ public class OpenAI {
     public static final String APIKEY_CONF_KEY = "apiKey";
     public static final String JSON_PATH_CONF_KEY = "jsonPath";
     public static final String PATH_CONF_KEY = "path";
-    public static final String GPT_4O_MODEL = "gpt-4o";
+    public static final String GPT_4O_MODEL = "gpt-4.1";
     public static final String FAIL_ON_ERROR_CONF = "failOnError";
     public static final String ENABLE_BACK_OFF_RETRIES_CONF_KEY = "enableBackOffRetries";
     public static final String ENABLE_EXPONENTIAL_BACK_OFF_CONF_KEY = "exponentialBackoff";
@@ -133,7 +133,7 @@ public class OpenAI {
                 } else {
                     configuration.putIfAbsent(PATH_CONF_KEY, "messages");
                     configForPayload.putIfAbsent(MAX_TOKENS, 1000);
-                    configForPayload.putIfAbsent(MODEL_CONF_KEY, "claude-3-5-sonnet-20240620");
+                    configForPayload.putIfAbsent(MODEL_CONF_KEY, "claude-3-7-sonnet-latest");
                 }
 
                 configForPayload.remove(ANTHROPIC_VERSION);
