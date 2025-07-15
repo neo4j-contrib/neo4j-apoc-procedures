@@ -4,6 +4,7 @@ import apoc.convert.ConvertUtils;
 import apoc.graph.Graphs;
 import apoc.load.LoadParquet;
 import apoc.meta.Meta;
+import apoc.meta.MetaRestricted;
 import apoc.util.TestUtil;
 import apoc.util.collection.Iterators;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -40,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 public class ParquetTestUtil {
 
     public static void beforeClassCommon(GraphDatabaseService db) {
-        TestUtil.registerProcedure(db, ExportParquet.class, ImportParquet.class, LoadParquet.class, Graphs.class, Meta.class);
+        TestUtil.registerProcedure(db, ExportParquet.class, ImportParquet.class, LoadParquet.class, Graphs.class, Meta.class, MetaRestricted.class);
     }
 
     public static void beforeCommon(GraphDatabaseService db) {
