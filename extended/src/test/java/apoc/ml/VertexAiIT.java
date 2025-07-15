@@ -47,7 +47,7 @@ public class VertexAiIT {
                 {"gemini-1.5-flash-001", "textembedding-gecko"},
                 {"gemini-2.5-pro-exp-03-25", "gemini-embedding-exp-03-07"},
                 // tests with default model
-                {null}
+                {null, null}
         });
     }
 
