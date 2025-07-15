@@ -24,7 +24,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.util.*;
 
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
-import static apoc.ml.OpenAI.GPT_4O_MODEL;
+import static apoc.ml.OpenAI.GPT_DEFAULT_CHAT_MODEL;
 import static apoc.ml.Prompt.API_KEY_CONF;
 import static apoc.ml.Prompt.UNKNOWN_ANSWER;
 import static apoc.ml.RagConfig.*;
@@ -729,7 +729,7 @@ public class PromptIT {
 
                     String msg = "Current value is: " + value;
                     assertTrue(msg, value.contains("gold medal"));
-                    if (config.getOrDefault(MODEL_CONF_KEY, GPT_4O_MODEL).equals(chatModel)) {
+                    if (config.getOrDefault(MODEL_CONF_KEY, GPT_DEFAULT_CHAT_MODEL).equals(chatModel)) {
                         assertNot2022Winners(value);
                     } else {
                         // with gpt-40 the info are updated, so the 2022 winners are known withuout RAG

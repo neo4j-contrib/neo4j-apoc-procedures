@@ -104,7 +104,7 @@ public class OpenAiAzureIT {
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 getParams(OPENAI_CHAT_URL),
-                (row) -> assertCompletion(row, chatModel));
+                (row) -> assertCompletion(row));
     }
 
     @Test

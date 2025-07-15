@@ -16,7 +16,7 @@ import java.util.*;
 
 import static apoc.ml.MLTestUtil.assertNullInputFails;
 import static apoc.ml.MLUtil.MODEL_CONF_KEY;
-import static apoc.ml.OpenAI.GPT_4O_MODEL;
+import static apoc.ml.OpenAI.GPT_DEFAULT_CHAT_MODEL;
 import static apoc.ml.OpenAI.FAIL_ON_ERROR_CONF;
 import static apoc.ml.OpenAITestResultUtils.*;
 import static apoc.util.TestUtil.testCall;
@@ -99,7 +99,7 @@ public class OpenAiIT {
                     Set<String> actual = Iterators.asSet(r.columnAs("text"));
 
                     Set<String> expected = new HashSet<>() {{
-                        add(null); add(null); add("Some Text"); add("Other Text");
+                        add("Some Text"); add("Other Text");
                     }};
                     assertEquals(expected, actual);
                 });
@@ -109,13 +109,13 @@ public class OpenAiIT {
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 Util.map("apiKey", openaiKey, "conf", emptyMap()),
-                (row) -> assertCompletion(row, "gpt-3.5-turbo-instruct"));
+                (row) -> assertCompletion(row));
     }
 
     @Test
     public void chatCompletion() {
         testCall(db, CHAT_COMPLETION_QUERY, Util.map("apiKey",openaiKey, "conf", emptyMap()),
-                (row) -> assertChatCompletion(row, GPT_4O_MODEL));
+                (row) -> assertChatCompletion(row, GPT_DEFAULT_CHAT_MODEL));
 
         /*
         {

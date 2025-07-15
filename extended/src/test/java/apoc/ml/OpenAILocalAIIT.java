@@ -136,7 +136,7 @@ public class OpenAILocalAIIT {
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 getParams("ggml-gpt4all-j"),
-                (row) -> assertCompletion(row, "ggml-gpt4all-j"));
+                (row) -> assertCompletion(row));
     }
 
     @Test
