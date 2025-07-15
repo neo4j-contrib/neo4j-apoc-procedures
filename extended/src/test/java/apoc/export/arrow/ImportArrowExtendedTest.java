@@ -1,6 +1,7 @@
 package apoc.export.arrow;
 
 import apoc.meta.Meta;
+import apoc.meta.MetaRestricted;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,7 +41,7 @@ public class ImportArrowExtendedTest {
 
     @BeforeClass
     public static void beforeClass() {
-        TestUtil.registerProcedure(db, ExportArrowExtended.class, ImportArrow.class, Meta.class);
+        TestUtil.registerProcedure(db, ExportArrowExtended.class, ImportArrow.class, Meta.class, MetaRestricted.class);
     }
 
     @Before
