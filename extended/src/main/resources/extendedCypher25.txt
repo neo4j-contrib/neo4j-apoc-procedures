@@ -47,6 +47,7 @@ apoc.cypher.runSchemaFile
 apoc.cypher.runSchemaFiles
 apoc.data.email
 apoc.diff.relationships
+apoc.diff.graphs
 apoc.dv.catalog.add
 apoc.dv.catalog.list
 apoc.dv.catalog.remove
