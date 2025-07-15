@@ -70,7 +70,6 @@ public class StartupExtendedTest {
     }
 
     @Test
-    @Ignore
     public void checkExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended jar and all extra-dependencies jars every procedure/function is detected
         // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
