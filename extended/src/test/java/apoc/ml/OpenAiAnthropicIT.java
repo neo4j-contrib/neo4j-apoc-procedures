@@ -42,7 +42,9 @@ public class OpenAiAnthropicIT {
     public static Collection<String[]> data() {
         return Arrays.asList(new String[][] {
                 // tests with model evaluated
+                {"claude-3-7-sonnet-20250219", "claude-2.1"},
                 {"claude-3-5-sonnet-20240620", "claude-2"},
+                {"claude-3-haiku-20240307", "claude-2"},
                 // tests with default model
                 {null, null}
         });
@@ -126,7 +128,8 @@ public class OpenAiAnthropicIT {
     @Test
     public void completionWithAnthropic() {
         Map<String, Object> conf = Util.map(
-                API_TYPE_CONF_KEY, ANTHROPIC.name()
+                API_TYPE_CONF_KEY, ANTHROPIC.name(),
+                MODEL_CONF_KEY, completionModel
         );
         testCall(db, COMPLETION_QUERY_EXTENDED_PROMPT,
                 Util.map("conf", conf, "apiKey", anthropicApiKey),

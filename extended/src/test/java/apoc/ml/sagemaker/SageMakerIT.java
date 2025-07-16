@@ -2,6 +2,7 @@ package apoc.ml.sagemaker;
 
 import apoc.ml.aws.SageMaker;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -38,12 +39,12 @@ public class SageMakerIT {
 
     public static final String SAGEMAKER_CUSTOM_PROC = "CALL apoc.ml.sagemaker.custom($body, $conf)";
     
-    private static final Map<String, Object> CONFIG = Map.of(ENDPOINT_NAME_KEY, ENDPOINT_GPT_2,
-            HEADERS_KEY, Map.of("Content-Type", "application/x-text"),
+    private static final Map<String, Object> CONFIG = Util.map(ENDPOINT_NAME_KEY, ENDPOINT_GPT_2,
+            HEADERS_KEY, Util.map("Content-Type", "application/x-text"),
             REGION_CONF_KEY, "eu-central-1"
     );
     
-    private static final Map<String, Object> PARAMS =  Map.of("body", BODY,
+    private static final Map<String, Object> PARAMS =  Util.map("body", BODY,
             "conf", CONFIG);
     
     @ClassRule
@@ -95,8 +96,8 @@ public class SageMakerIT {
             try {
                 String text = "Test endpoint";
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.chat($messages, $conf)",
-                        Map.of("messages", List.of(Map.of("role", "admin", "content", text)), "conf",
-                                Map.of(ENDPOINT_NAME_KEY, "Endpoint-Distilbart-xsum-1-1-1",
+                        Util.map("messages", List.of(Util.map("role", "admin", "content", text)), "conf",
+                                Util.map(ENDPOINT_NAME_KEY, "Endpoint-Distilbart-xsum-1-1-1",
                                         REGION_CONF_KEY, "us-east-1"
                                 )), r -> {
                             Map value = Iterators.single(r.columnAs("value"));
@@ -113,7 +114,7 @@ public class SageMakerIT {
         assertEventually(() -> {
             try {
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.completion($prompt, $conf)", 
-                        Map.of("prompt", BODY, "conf", CONFIG), 
+                        Util.map("prompt", BODY, "conf", CONFIG), 
                         r -> {
                     Map value = Iterators.single(r.columnAs("value"));
                     String generatedText = (String) value.get("generated_text");
@@ -136,7 +137,7 @@ public class SageMakerIT {
         assertEventually(() -> {
             try {
                 return db.executeTransactionally("CALL apoc.ml.sagemaker.embedding($texts, $conf)", 
-                        Map.of("texts", text, "conf", Map.of(REGION_CONF_KEY, "eu-central-1") ), r -> {
+                        Util.map("texts", text, "conf", Util.map(REGION_CONF_KEY, "eu-central-1") ), r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(text1, row.get("text"));
                     assertEquals(0L, row.get("index"));
@@ -166,7 +167,7 @@ public class SageMakerIT {
     @Test
     public void completionNull() {
         testCall(db, "CALL apoc.ml.sagemaker.completion(null, $conf)",
-                Map.of("conf", emptyMap()),
+                Util.map("conf", emptyMap()),
                 (row) -> assertNull(row.get("value"))
         );
     }
@@ -175,7 +176,7 @@ public class SageMakerIT {
     public void chatCompletionNull() {
         testCall(db,
                 "CALL apoc.ml.sagemaker.chat(null, $conf)",
-                Map.of("conf", emptyMap()),
+                Util.map("conf", emptyMap()),
                 (row) -> assertNull(row.get("value"))
         );
     }

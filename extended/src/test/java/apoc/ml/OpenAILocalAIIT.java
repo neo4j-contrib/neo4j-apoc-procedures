@@ -136,7 +136,7 @@ public class OpenAILocalAIIT {
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 getParams("ggml-gpt4all-j"),
-                (row) -> assertCompletion(row, "ggml-gpt4all-j"));
+                (row) -> assertCompletion(row));
     }
 
     @Test
@@ -148,7 +148,7 @@ public class OpenAILocalAIIT {
 
     private Map<String, Object> getParams(String model) {
         return Util.map("apiKey", "x",
-                "conf", Map.of(ENDPOINT_CONF_KEY, localAIUrl,
+                "conf", Util.map(ENDPOINT_CONF_KEY, localAIUrl,
                         MODEL_CONF_KEY, model)
         );
     }

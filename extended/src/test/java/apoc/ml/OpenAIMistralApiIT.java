@@ -1,13 +1,18 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import static apoc.ml.MLUtil.*;
@@ -20,12 +25,27 @@ import static apoc.util.TestUtil.testCall;
 /**
  * Tests with Mistral API: https://docs.mistral.ai/platform/endpoints/ 
  */
+@RunWith(Parameterized.class)
 public class OpenAIMistralApiIT {
 
     private String mistralApiKey;
 
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"mistral-embed"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
 
     @Before
     public void setUp() throws Exception {
@@ -61,9 +81,8 @@ public class OpenAIMistralApiIT {
 
     @Test
     public void chatCompletionWithMistralEmbed() {
-        String model = "mistral-embed";
         testCall(db, EMBEDDING_QUERY,
-                getParams(model),
+                getParams(chatModel),
                 r -> assertEmbeddings(r, 1024));
     }
 
@@ -74,9 +93,9 @@ public class OpenAIMistralApiIT {
     }
 
     private Map<String, Object> getParams(String model) {
-        Map<String, String> conf = Map.of(ENDPOINT_CONF_KEY, "https://api.mistral.ai/v1",
+        Map<String, String> conf = Util.map(ENDPOINT_CONF_KEY, "https://api.mistral.ai/v1",
                 MODEL_CONF_KEY, model);
 
-        return Map.of("apiKey", mistralApiKey, "conf", conf);
+        return Util.map("apiKey", mistralApiKey, "conf", conf);
     }
 }
