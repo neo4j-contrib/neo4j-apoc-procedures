@@ -1,5 +1,6 @@
 [[load-xls]]
 = Loading Excel (XLS)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/import/xls/
 :description: This section describes procedures that can be used to import data from Excel files.
 
 == Library Requirements

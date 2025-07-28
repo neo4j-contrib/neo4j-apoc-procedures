@@ -1,5 +1,6 @@
 [[load-ldap]]
 = Load LDAP
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/load-ldap/
 :description: This section describes procedures that can be used to import data from LDAP.
 
 With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
