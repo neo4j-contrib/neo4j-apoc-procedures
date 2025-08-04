@@ -1,5 +1,6 @@
 [[Mixedbread-api]]
 = Mixedbread API Access
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/mixedbread/
 :description: This section describes procedures that can be used to access the Mixedbread API.
 
 

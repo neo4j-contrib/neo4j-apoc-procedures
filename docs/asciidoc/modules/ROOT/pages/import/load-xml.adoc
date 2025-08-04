@@ -1,5 +1,6 @@
 [[load-xml]]
 = Load XML
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/load-xml/
 :description: This section describes procedures that can be used to import data from XML files.
 
 
