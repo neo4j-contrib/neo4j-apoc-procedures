@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 
+import org.neo4j.configuration.GraphDatabaseInternalSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
@@ -38,6 +39,8 @@ import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
 public class LoadXlsTest {
+    
+    // TODO - roundtrip example with vectors...
 
     private static String loadTest = Thread.currentThread().getContextClassLoader().getResource("load_test.xlsx").getPath();
     private static String testDate = Thread.currentThread().getContextClassLoader().getResource("test_date.xlsx").getPath();
@@ -45,7 +48,8 @@ public class LoadXlsTest {
     private static String testColumnsAfterZ = Thread.currentThread().getContextClassLoader().getResource("testLoadXlsColumnsAfterZ.xlsx").getPath();
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseInternalSettings.cypher_enable_vector_type, true);
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);

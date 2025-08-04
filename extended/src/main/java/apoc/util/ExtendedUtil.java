@@ -50,6 +50,8 @@ public class ExtendedUtil
     public static double doubleValue( Entity pc, String prop, Number defaultValue) {
         return Util.toDouble(pc.getProperty(prop, defaultValue));
     }
+    
+    // TODO - vector parse??
 
     public static Duration durationParse(String value) {
         return Duration.parse(value);
