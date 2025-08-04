@@ -1,5 +1,6 @@
 [[log]]
 = Logging
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/operational/log/
 :description: This section describes procedures that can be used to append messages to Neo4j log files.
 
 APOC provides a set of store procedures in order to add log functionality:

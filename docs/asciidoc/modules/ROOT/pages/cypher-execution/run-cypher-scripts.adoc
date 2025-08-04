@@ -1,5 +1,6 @@
 [[run-cypher-scripts]]
 = Run Cypher Script Files
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/cypher-execution/run-cypher-scripts/
 :description: This section describes procedures that can be used to execute files that contain Cypher statements.
 
 Runs each statement in the file / each file, all semicolon separated
