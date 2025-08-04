@@ -1,5 +1,6 @@
 [[exact-math-functions]]
 = Exact Math
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/exact-math-functions/
 :description: This section describes functions that can be used to do high precision arithmetic.
 
 

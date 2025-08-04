@@ -1,5 +1,6 @@
 [[nlp]]
 = Natural Language Processing (NLP)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/nlp/
 :description: This chapter describes procedures that can be used for added Natural Language Processing (NLP) functionality to graph applications.
 
 

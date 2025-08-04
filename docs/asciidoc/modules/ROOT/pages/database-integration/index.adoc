@@ -1,5 +1,6 @@
 [[database-integration]]
 = Database Integration
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/
 :description: This chapter describes data integration procedures in the APOC library.
 
 

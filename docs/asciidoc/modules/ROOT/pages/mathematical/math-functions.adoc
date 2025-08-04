@@ -1,5 +1,6 @@
 [[math-functions]]
 = Math Functions
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/mathematical/math-functions/
 :description: This section describes functions for common math operations.
 
 [separator=¦,opts=header,cols="5,1m,1m"]
