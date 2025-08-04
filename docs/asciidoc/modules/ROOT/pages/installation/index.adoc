@@ -1,5 +1,6 @@
 [[installation]]
 = Installation
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/installation/
 :description: This section contains instructions for installing the APOC standard library.
 
 
