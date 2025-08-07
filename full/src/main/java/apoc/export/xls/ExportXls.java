@@ -111,7 +111,7 @@ public class ExportXls {
         try {
             return ExportXlsHandler.getProgressInfoStream(fileName, source, data, configMap, apocConfig, db);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);
+            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR, e);
         }
     }
 }
