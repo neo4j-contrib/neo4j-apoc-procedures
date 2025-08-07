@@ -61,7 +61,7 @@ dependencies {
     // This was reported here https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3048
     implementation(group: 'org.apache.commons', name: 'commons-lang3') {
         version {
-            strictly '3.14.0'
+            strictly '3.18.0'
         }
     }
     implementation group: 'com.github.seancfoley', name: 'ipaddress', version: '5.3.3'
@@ -109,7 +109,7 @@ dependencies {
     testImplementation group: 'com.amazonaws', name: 'aws-java-sdk-comprehend', version: '1.12.770' , withoutJacksons
 
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1'
-    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.11.0'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
 
     testImplementation group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
