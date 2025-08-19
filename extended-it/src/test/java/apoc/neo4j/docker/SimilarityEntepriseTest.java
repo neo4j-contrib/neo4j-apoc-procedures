@@ -1,64 +1,79 @@
-package apoc.algo;
+package apoc.neo4j.docker;
 
 
-import apoc.util.TestUtil;
+import apoc.util.Neo4jContainerExtension;
+import apoc.util.TestContainerUtil;
 import apoc.util.Util;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.graphdb.Label;
+import org.junit.*;
+import org.neo4j.driver.Session;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.neo4j.values.storable.Values;
 
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestUtil.singleResultFirstColumn;
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
 
 // TODO
 // TODO
 // TODO - MOVE TO EXTENDED-IT DUE TO ENTERPRISE VECTOR TYPES
 // TODO
-public class SimilarityTest {
-
+public class SimilarityEntepriseTest {
+    
     private static List nodes = null;
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    private static Neo4jContainerExtension neo4jContainer;
+    private static Session session;
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        TestUtil.registerProcedure(db, Similarity.class);
-        db.executeTransactionally(
-                "UNWIND range(0, 50000) as id CREATE (:Similar {id: 1, test: 1}), (:Similar {id: 2}), (:Similar {id: 3}), (:Similar {ajeje: 1, id: 4}), (:Similar {brazorf: 1, id: 5})");
+    public static void beforeAll() throws InterruptedException {
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true)
+                .withNeo4jConfig("apoc.import.file.enabled", "true")
+                .withNeo4jConfig("metrics.enabled", "true")
+                .withNeo4jConfig("metrics.csv.interval", "1s")
+                .withNeo4jConfig("dbms.memory.transaction.total.max", "1G")
+                .withNeo4jConfig("server.memory.heap.initial_size", "1G")
+                .withNeo4jConfig("server.memory.heap.max_size", "1G")
+                .withNeo4jConfig("server.memory.heap.max_size", "1G")
+                .withNeo4jConfig("metrics.namespaces.enabled", "true");
+        neo4jContainer.start();
+        session = neo4jContainer.getSession();
 
-        nodes = singleResultFirstColumn(db, "MATCH (n:Similar) RETURN collect(n) AS nodes");
+        session.executeWrite(tx -> tx.run(
+                "UNWIND range(0, 50000) as id " +
+                        "CREATE (:Similar {id: 1, test: 1}), (:Similar {id: 2}), (:Similar {id: 3}), (:Similar {ajeje: 1, id: 4}), (:Similar {brazorf: 1, id: 5})"
+                ).consume()
+        );
 
-        try (Transaction tx = db.beginTx()) {
-            tx.findNodes(Label.label("Similar")).forEachRemaining(i -> {
-                i.setProperty("embedding", new float[]{1, 2, 4});
-            });
-            tx.commit();
-        }
+        nodes = singleResultFirstColumn(session, "MATCH (n:Similar) RETURN collect(n) AS nodes");
+
+//        try (Transaction tx = db.beginTx()) {
+//            tx.findNodes(Label.label("Similar")).forEachRemaining(i -> {
+//                i.setProperty("embedding", new float[]{1, 2, 4});
+//            });
+//            tx.commit();
+//        }
+    }
+
+    @AfterClass
+    public static void afterAll() {
+        neo4jContainer.close();
     }
 
     @Test
     public void testSimilarityCompare() {
         long before = System.currentTimeMillis();
-        String s = db.executeTransactionally(
-                "CALL custom.search.batchedSimilarity($nodes, 'null', null, 5, 0.8) YIELD node, score RETURN node, score",
+        String s = session.executeRead(tx -> tx.run(
+                "MATCH (node:Similar) WITH COLLECT(node) AS nodes " +
+                        "CALL custom.search.batchedSimilarity(nodes, 'null', null, 5, 0.8) YIELD node, score RETURN node, score",
 //                "CALL custom.search.batchedSimilarity($nodes, 'null', null, 5, 0.8, {stopWhenFound: true}) YIELD node, score RETURN node, score",
-                Map.of("nodes", nodes), Result::resultAsString);
+                Map.of(/*"nodes", nodes*/)).list().toString());
         long after = System.currentTimeMillis();
         System.out.println("after - before = " + (after - before));
 
         System.out.println("s = " + s);
     }
-
+    
     // TODO - forse questa parte: https://neo4j.com/docs/genai/tutorials/embeddings-vector-indexes/embeddings/compute-similarity/
     //   va più veloce..
 
@@ -68,22 +83,22 @@ public class SimilarityTest {
 
     // todo - pure cypher with float array
     // todo - ho questo warning: WARNING: Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+    // @Ignore
     @Test
     public void testSimilarityWithPureCypherInBatch() {
-
+        
         long before = System.currentTimeMillis();
-        String cypherRes = db.executeTransactionally("""
-                //MATCH (node:Similar)
-                UNWIND $nodes AS node
-                // 2. Calcola la similarità per ogni nodo
+        String cypherRes = session.executeRead(tx -> tx.run("""
+                MATCH (node:Similar)
+                WITH COLLECT(node) AS nodes
+                
+                UNWIND nodes AS node
                 WITH node, vector.similarity.cosine(node.embedding, $queryVector) AS score
-                // 3. Filtra i risultati che superano la soglia
                 WHERE score >= $threshold
-                // 4. Restituisce il nodo e il punteggio, ordinando per trovare i migliori K
                 RETURN node, score
                 ORDER BY score DESC
                 LIMIT $topK
-                """, Map.of( "nodes", Util.rebind(nodes, db.beginTx()), "threshold", 0.8, "queryVector", new float[]{1, 2, 3}, "topK", 5), Result::resultAsString);
+                """, Map.of(/*"nodes", nodes, */"threshold", 0.8, "queryVector", new float[]{1, 2, 3}, "topK", 5)).list().toString());
         long after = System.currentTimeMillis();
         System.out.println("after - before cypher = " + (after - before));
         System.out.println("cypherRes = " + cypherRes);
@@ -94,30 +109,30 @@ public class SimilarityTest {
     @Test
     public void testSimilarity() {
         long before = System.currentTimeMillis();
-        String s = db.executeTransactionally(
+        String s = session.executeRead(tx -> tx.run(
                 "MATCH (n:Similar) WITH collect(n) AS nodes CALL custom.search.batchedSimilarity(nodes, 'null', null, 2, 0.8) YIELD node, score RETURN node, score",
-                Map.of(), Result::resultAsString);
+                Map.of()).list().toString());
         long after = System.currentTimeMillis();
         System.out.println("after - before = " + (after - before));
 
         System.out.println("s = " + s);
 
 
-        String s1 = db.executeTransactionally(
+        String s1 = session.executeRead(tx -> tx.run(
                 "MATCH (n:Similar) WITH collect(n) AS nodes CALL custom.search.batchedSimilarity(nodes, 'null', null, 2, 0.95) YIELD node, score RETURN node, score",
-                Map.of(), Result::resultAsString);
+                Map.of()).list().toString());
 
         System.out.println("s = " + s1);
-        String s2 = db.executeTransactionally(
+        String s2 = session.executeRead(tx -> tx.run(
                 "MATCH (n:Similar) WITH collect(n) AS nodes CALL custom.search.batchedSimilarity(nodes, 'null', null, 5, 0.8) YIELD node, score RETURN node, score",
-                Map.of(), Result::resultAsString);
+                Map.of()).list().toString());
 
         System.out.println("s = " + s2);
 
 
-        String s12 = db.executeTransactionally(
+        String s12 = session.executeRead(tx -> tx.run(
                 "MATCH (n:Similar) WITH collect(n) AS nodes CALL custom.search.batchedSimilarity(nodes, 'null', null, 5, 0.95) YIELD node, score RETURN node, score",
-                Map.of(), Result::resultAsString);
+                Map.of()).list().toString());
 
         System.out.println("s = " + s12);
     }
@@ -126,16 +141,17 @@ public class SimilarityTest {
     @Ignore
     @Test
     public void testSimilarityWithStopWhenFound() {
-        String s = db.executeTransactionally(
+        String s = session.executeRead(tx -> tx.run(
                 "MATCH (n:Similar) WITH collect(n) AS nodes CALL custom.search.batchedSimilarity(nodes, 'null', null, 2, 0.8, {stopWhenFound: true}) YIELD node, score RETURN node, score",
-                Map.of(), Result::resultAsString);
+                Map.of()).list().toString());
 
         System.out.println("stopWhenFound = " + s);
     }
 
     // todo - remove
-    @Ignore
+    //@Ignore
     @Test
+    @Ignore
     public void testSimilarityWithPureCypher() {
 //        try (Transaction tx = db.beginTx()) {
 //            tx.findNodes(Label.label("Similar")).forEachRemaining(i -> {
@@ -145,7 +161,7 @@ public class SimilarityTest {
 //        }
 
         long before = System.currentTimeMillis();
-        String cypherRes = db.executeTransactionally("""
+        String cypherRes = session.executeRead(tx -> tx.run("""
                 MATCH (node:Similar)
                 // UNWIND $nodes AS node
                 // 2. Calcola la similarità per ogni nodo
@@ -156,8 +172,10 @@ public class SimilarityTest {
                 RETURN node, score
                 ORDER BY score DESC
                 LIMIT $topK
-                """, Map.of("threshold", 0.8, "queryVector", new float[]{1, 2, 3}, "topK", 5), Result::resultAsString);
+                """, Map.of("threshold", 0.8, "queryVector", new float[]{1, 2, 3}, "topK", 5)).list().toString());
         System.out.println("cypherRes = " + cypherRes);
+        long after = System.currentTimeMillis();
+        System.out.println("after - before cypher match = " + (after - before));
     }
 
 
@@ -169,7 +187,7 @@ public class SimilarityTest {
 
 
     // todo - mettere queryNodes
-
-
-
+    
+    
+    
 }
