@@ -212,9 +212,6 @@ public class LoadXls {
                     return dateParse(value.toString(), OffsetTime.class, dateParse);
                 case DURATION:
                     return durationParse(value.toString());
-                // TODO - vector
-                case VECTOR:
-                    return null;
                 default:
                     return value;
             }

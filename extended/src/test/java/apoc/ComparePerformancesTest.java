@@ -26,9 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 @Ignore("This test compare import/export procedures performances, we ignore it since it's slow and just log the times spent")
 public class ComparePerformancesTest {
-    
-    // TODO - roundrip with these kind of procedures and vectors
-    
     private static final File directory = new File("target/import");
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
