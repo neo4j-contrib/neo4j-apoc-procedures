@@ -74,6 +74,8 @@ public class ImportExportEnterpriseTest {
             cause = {Neo4jException@7483} "org.neo4j.driver.exceptions.Neo4jException: 22NBD: Unsupported struct tag: 0x56."
          */
 
+        session.run("MATCH (n) RETURN n").list();
+
         System.out.println("resultSummary2 = " + resultSummary2);
     }
 
