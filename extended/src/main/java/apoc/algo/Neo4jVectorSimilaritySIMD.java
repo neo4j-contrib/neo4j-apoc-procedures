@@ -62,7 +62,6 @@ public class Neo4jVectorSimilaritySIMD {
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
-    // Il metodo pubblico esterno applicherebbe poi la normalizzazione
     public double cosineSimilarity(float[] v1, float[] v2) {
         if (v1.length != v2.length) {
             throw new IllegalArgumentException("I vettori devono avere la stessa dimensione");

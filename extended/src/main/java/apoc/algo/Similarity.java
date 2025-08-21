@@ -6,11 +6,8 @@ package apoc.algo;
 import apoc.Extended;
 //import jdk.incubator.vector.*;
 import apoc.util.Util;
-import apoc.util.collection.Iterables;
-import apoc.util.collection.Iterators;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
 import org.neo4j.values.storable.*;
@@ -74,15 +71,14 @@ public class Similarity {
     ) {
         nodes = Util.rebind(nodes, tx);
         SimilarityConfig conf = SimilarityConfig.fromMap(config);
-
-        // TODO
-        // TODO
-        // TODO - RIMUOVERE, MOCKATO PER I TEST
-        // TODO
-        if (queryVector == null) {
-            queryVector = Values.int64Vector(1, 2, 3);
-        }
-        // TODO - FINE RIMOZIONE MOCK
+        
+//        // TODO
+//        // TODO - remove it, mock
+//        // TODO
+//        if (queryVector == null) {
+//            queryVector = Values.int64Vector(1, 2, 3);
+//        }
+//        // TODO - end mock
         
         PriorityQueue<NodeScore> topKQueue = new PriorityQueue<>(Comparator.comparingDouble(a -> a.score));
 
@@ -99,22 +95,22 @@ public class Similarity {
         } else if (queryVector instanceof IntegralVector queryVecByte) {
             for (Node node : nodes) {
                 Object propertyValue = node.getProperty(propertyName, "null");
-                // TODO
-                // TODO
-                // TODO - RIMUOVERE, MOCKATO PER I TEST
-                // TODO
-                if (propertyValue == "null") {
-                    if (node.hasProperty("test")) {
-                        propertyValue = Values.int64Vector(1, 2, 4);
-                    } else if (node.hasProperty("ajeje")) {
-                        propertyValue = Values.int64Vector(1, 2, 3);
-                    } else if (node.hasProperty("brazorf")) {
-                        propertyValue = Values.int64Vector(1, 3, 4);
-                    } else {
-                        propertyValue = Values.int64Vector(1, 3, 3);
-                    }
-                }
-                // TODO - FINE RIMOZIONE MOCK
+//                // TODO
+//                // TODO
+//                // TODO - REMOVE IT, mock
+//                // TODO
+//                if (propertyValue == "null") {
+//                    if (node.hasProperty("test")) {
+//                        propertyValue = Values.int64Vector(1, 2, 4);
+//                    } else if (node.hasProperty("ajeje")) {
+//                        propertyValue = Values.int64Vector(1, 2, 3);
+//                    } else if (node.hasProperty("brazorf")) {
+//                        propertyValue = Values.int64Vector(1, 3, 4);
+//                    } else {
+//                        propertyValue = Values.int64Vector(1, 3, 3);
+//                    }
+//                }
+//                // TODO - end mock
                 if (propertyValue instanceof IntegralVector nodeVecByte) {
                     if (processNode(node, nodeVecByte, queryVecByte, topK, threshold, topKQueue, conf)){
                         break;
@@ -142,9 +138,6 @@ public class Similarity {
         double rawSimilarity = calculateRawSimilarity(nodeVector, queryVector);
         double normalizedScore = (rawSimilarity + 1) / 2.0;
 
-        // WARNING: Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
-//        double normalizedScore = Iterators.single(tx.execute("RETURN vector.similarity.cosine($a, $b) AS s", Map.of("a", nodeVector, "b", queryVector)).columnAs("s"));
-
         if (normalizedScore >= threshold) {
             if (topKQueue.size() < topK) {
                 topKQueue.add(new NodeScore(node, normalizedScore));
@@ -157,27 +150,28 @@ public class Similarity {
                 return true;
             }
         }
-        return false; // Continua con il prossimo nodo
+        // Continue with the next node
+        return false;
     }
 
     // --- Section with SCALAR calculation functions ---
 
     private double calculateRawSimilarity(VectorValue v1, VectorValue v2) {
         if (v1 instanceof FloatingPointVector) {
-            return calculateFloat32_Scalar(v1, v2);
+            return calculateFloat(v1, v2);
         } else if (v1 instanceof IntegralVector) {
-            return calculateInteger8_Scalar(v1, v2);
+            return calculateInteger(v1, v2);
         }
         throw new UnsupportedOperationException("Unsupported vector type for calculation: " + v1.getClass().getName());
     }
 
-    private double calculateFloat32_Scalar(VectorValue v1, VectorValue v2) {
+    private double calculateFloat(VectorValue v1, VectorValue v2) {
         double dotProduct = 0.0;
         double normA = 0.0;
         double normB = 0.0;
         int dimensions = v1.dimensions();
         for (int i = 0; i < dimensions; i++) {
-            // Accessing data element-by-element, as per the public API
+            // Accessing data element-by-element, as per the public methods
             double valA = v1.doubleValue(i);
             double valB = v2.doubleValue(i);
             dotProduct += valA * valB;
@@ -188,7 +182,7 @@ public class Similarity {
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
-    private float calculateInteger8_Scalar(VectorValue v1, VectorValue v2) {
+    private float calculateInteger(VectorValue v1, VectorValue v2) {
         float dotProduct = 0;
         float normA = 0;
         float normB = 0;
