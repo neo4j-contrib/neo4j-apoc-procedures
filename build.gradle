@@ -142,6 +142,7 @@ subprojects {
     compileJava {
         options.annotationProcessorPath = configurations.apt
         options.compilerArgs += ["-AIgnoreContextWarnings"]
+        options.compilerArgs += ["--add-modules=jdk.incubator.vector"]
         options.encoding = "UTF-8"
     }
 
