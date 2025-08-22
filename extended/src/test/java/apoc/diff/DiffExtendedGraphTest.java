@@ -43,11 +43,11 @@ public class DiffExtendedGraphTest {
         session = neo4jContainer.getSession();
 
         try (Session session = driver.session()) {
-            session.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s;", secondDb)).consume());
+            session.executeWrite(tx -> tx.run(String.format("CREATE DATABASE %s;", secondDb)).consume());
         }
         try (Session session = driver.session(SessionConfig.forDatabase(secondDb))) {
-            session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;").consume());
-            session.writeTransaction(tx -> tx.run("CREATE (m:Person:Other {name: 'Michael Jordan', age: 54}), \n" +
+            session.executeWrite(tx -> tx.run("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;").consume());
+            session.executeWrite(tx -> tx.run("CREATE (m:Person:Other {name: 'Michael Jordan', age: 54}), \n" +
                     "(q:Person {name: 'Jerry Burton', age: 23}), \n" +
                     "(p:Person {name: 'Jack William', age: 22}), \n" +
                     "(q)-[:KNOWS{since:1999, time:time('125035.556+0100')}]->(p);").consume());
