@@ -4,7 +4,7 @@
 
 
 
-The APOC Extended library adds support for importing data from various data formats, including JSON, XML, XLS and Parquet.
+The APOC Extended library adds support for importing data from various data formats, including JSON, CSV, HTML, XLS, GEXF, Apache Arrow and Parquet.
 
 For more information on these procedures, see:
 
