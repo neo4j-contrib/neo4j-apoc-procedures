@@ -1,0 +1,11 @@
+[[comparing-graphs]]
+= Comparing Graph
+:description: This chapter describes procedures that can be used to perform graph comparisons.
+
+
+
+The APOC Extended library adds extra functionality for comparing graphs.
+
+For more information on how to use these procedures, see:
+
+* xref::comparing-graphs/graph-difference.adoc[]
