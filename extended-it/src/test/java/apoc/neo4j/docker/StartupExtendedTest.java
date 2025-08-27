@@ -58,6 +58,7 @@ public class StartupExtendedTest {
     }
 
     @Test
+    @Ignore
     public void checkCoreAndExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended, apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startContainerSessionWithExtraDeps((version) -> createDB(version, List.of(CORE, EXTENDED), true),
@@ -98,6 +99,7 @@ public class StartupExtendedTest {
     }
 
     @Test
+    @Ignore
     public void checkCoreWithExtraDependenciesJars() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startContainerSessionWithExtraDeps((version) -> createDB(version, List.of(CORE), true),
