@@ -108,9 +108,9 @@ public class StartupExtendedTest {
                                                     Consumer<Session> sessionConsumer) {
         for (var version: Neo4jVersion.values()) {
 
-            final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
-                    .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true");
-            try {
+            try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
+                    .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true")
+            ) {
                 // add extra-deps before starting it
                 ExtendedTestContainerUtil.addExtraDependencies();
                 neo4jContainer.start();
@@ -125,8 +125,6 @@ public class StartupExtendedTest {
 
                 sessionConsumer.accept(session);
             } catch (Exception ex) {
-                System.out.println("neo4jContainer.getLogs() after error");
-                System.out.println(neo4jContainer.getLogs());
                 // if Testcontainers wasn't able to retrieve the docker image we ignore the test
                 if (TestContainerUtil.isDockerImageAvailable(ex)) {
                     ex.printStackTrace();
@@ -136,8 +134,6 @@ public class StartupExtendedTest {
                 } else {
                     fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
                 }
-            } finally {
-                neo4jContainer.close();
             }
         }
     }
