@@ -42,7 +42,7 @@ Besides the above config, the `apoc.vectordb.<type>.get` and the `apoc.vectordb.
 |===
 
 
-= Ad-hoc procedures
+== Ad-hoc procedures
 
 See the following pages for more details on specific vector db procedures
 
@@ -53,7 +53,7 @@ See the following pages for more details on specific vector db procedures
 - xref:./milvus.adoc[Milvus]
 
 
-= Store Vector db info (i.e. `apoc.vectordb.configure`)
+== Store Vector db info (i.e. `apoc.vectordb.configure`)
 
 We can save some info in the System Database to be reused later, that is the host, login credentials, and mapping,
 to be used in `*.get` and `.*query` procedures, except for the `apoc.vectordb.custom.get` one.
