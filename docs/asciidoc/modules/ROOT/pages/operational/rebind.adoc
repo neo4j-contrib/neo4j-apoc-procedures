@@ -1,3 +1,5 @@
+[[rebind]]
+= Rebind entities
 APOC provides a list of functions to rebind nodes and relationships:
 
 * `apoc.node.rebind(node)`
