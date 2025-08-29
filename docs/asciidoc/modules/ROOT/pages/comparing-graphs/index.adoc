@@ -4,7 +4,7 @@
 
 
 
-The APOC Extended library adds extra functionality for comparing graphs.
+The APOC Extended library adds extra functionalities for comparing graphs.
 
 For more information on how to use these procedures, see:
 
