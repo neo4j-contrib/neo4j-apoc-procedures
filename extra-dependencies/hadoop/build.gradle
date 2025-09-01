@@ -31,13 +31,13 @@ dependencies {
     // the hadoop-hdfs-client and hadoop-common use by default the deprecated javax.servlet-api dependency
     implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0', commonExclusions
     
-    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.4.0', commonExclusions
-    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-hdfs-client', version: '3.4.2', commonExclusions
+//    implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2', commonExclusions
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.23.1', commonExclusions
-
+//
     implementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', commonExclusions
     implementation group: 'org.apache.parquet', name: 'parquet-column', version: '1.13.1', commonExclusions
-    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.4.0', commonExclusions
+    implementation group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: '3.4.2', commonExclusions
 }
 
 

@@ -17,6 +17,6 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.10.0' , commonExclusions
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.35.0' , commonExclusions
     implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '5.4.0', commonExclusions
 }

@@ -32,6 +32,111 @@ ext {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
         exclude group: 'org.apache.commons', module: 'commons-logging'
         exclude group: 'org.apache.commons', module: 'commons-text'
+        
+        // TODO - commons-cli
+        
+        exclude group: 'dnsjava', module: 'dnsjava'
+        exclude group: 'org.xbill', module: 'dnsjava'
+
+
+
+
+
+
+        // TODO - hadoop-common stuff
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.woodstox', module: 'woodstox-core'
+        exclude group: 'com.github.pjfanning', module: 'jersey-json'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'com.google.code.gson', module: 'gson'
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'com.google.re2j', module: 're2j'
+        exclude group: 'com.jcraft', module: 'jsch'
+        exclude group: 'com.sun.jersey', module: 'jersey-core'
+        exclude group: 'com.sun.jersey', module: 'jersey-servlet'
+        exclude group: 'com.sun.jersey', module: 'jersey-server'
+        exclude group: 'commons-beanutils', module: 'commons-beanutils'
+        exclude group: 'commons-cli', module: 'commons-cli'
+        exclude group: 'commons-codec', module: 'commons-codec'
+        exclude group: 'commons-collections', module: 'commons-collections'
+        exclude group: 'commons-io', module: 'commons-io'
+        exclude group: 'commons-net', module: 'commons-net'
+        exclude group: 'dnsjava', module: 'dnsjava'
+        exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
+        exclude group: 'io.netty', module: 'netty-handler'
+        exclude group: 'io.netty', module: 'netty-transport-native-epoll'
+        exclude group: 'javax.servlet', module: 'javax.servlet-api'
+        exclude group: 'org.apache.avro', module: 'avro'
+        exclude group: 'org.apache.commons', module: 'commons-math3'
+        exclude group: 'org.apache.commons', module: 'commons-configuration2'
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+        exclude group: 'org.apache.commons', module: 'commons-text'
+        exclude group: 'org.apache.commons', module: 'commons-compress'
+        exclude group: 'org.apache.curator', module: 'curator-client'
+        exclude group: 'org.apache.curator', module: 'curator-recipes'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-annotations'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-auth'
+        exclude group: 'org.apache.hadoop.thirdparty', module: 'hadoop-shaded-protobuf_3_21'
+        exclude group: 'org.apache.hadoop.thirdparty', module: 'hadoop-shaded-guava'
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+        exclude group: 'org.apache.kerby', module: 'kerb-core'
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+        exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+        exclude group: 'org.codehaus.jettison', module: 'jettison'
+        exclude group: 'org.codehaus.woodstox', module: 'stax2-api'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-util'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-webapp'
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        exclude group: 'org.xerial.snappy', module: 'snappy-java'
+
+        // TODO - hadoop-mapreduce-client-core stuff
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-client'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-common'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs-client'
+
+
+        // TODO - check this
+//        exclude group: 'org.slf4j'
+//        exclude group: 'org.xbill', module: 'dnsjava'
+//        exclude group: 'io.netty'
+//        exclude group: 'com.google.guava'
+
+
+
+
+//        exclude group: 'org.xbill', module: 'dnsjava'
+        
+        /*
+        org.seleniumhq.selenium » selenium-api	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-chrome-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-devtools-v112	4.10.0	4.13.0
+        org.seleniumhq.selenium » selenium-devtools-v113	4.10.0	4.14.1
+        org.seleniumhq.selenium » selenium-devtools-v114	4.10.0	4.12.1
+        org.seleniumhq.selenium » selenium-devtools-v85	4.10.0	4.29.0
+        org.seleniumhq.selenium » selenium-edge-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-firefox-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-ie-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-remote-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-safari-driver	4.10.0	4.35.0
+        org.seleniumhq.selenium » selenium-support
+         */
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-api'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-chrome-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v112'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v113'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v114'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v85'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-edge-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-firefox-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-ie-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-remote-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-safari-driver'
+//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-support'
 
         // reactor-core
         exclude group: 'io.projectreactor', module: 'reactor-core'
@@ -69,6 +174,7 @@ ext {
         exclude group: 'io.netty', module: 'netty-transport-native-kqueue'
         exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
         exclude group: 'io.netty', module: 'netty-tcnative-classes'
+        exclude group: 'io.netty', module: 'netty-all'
 
         // javax
         exclude group: 'javax.servlet', module: 'javax.servlet-api'
