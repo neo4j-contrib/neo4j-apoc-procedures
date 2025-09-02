@@ -1,0 +1,49 @@
+version: "2"
+services:
+  namenode:
+    image: apache/hadoop:3.3.6
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - 9870:9870
+      - 8020:8020
+    env_file:
+      - ./config
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    networks:
+      - hadoop-neo4j-net
+  datanode:
+    image: apache/hadoop:3.3.6
+    command: ["hdfs", "datanode"]
+    ports:
+      - 9866:9866
+      - 9864:9864
+    env_file:
+      - ./config
+    networks:
+      - hadoop-neo4j-net
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - 8088:8088
+    env_file:
+      - ./config
+    volumes:
+      - ./test.sh:/opt/test.sh
+    networks:
+      - hadoop-neo4j-net
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    command: ["yarn", "nodemanager"]
+    env_file:
+      - ./config
+    networks:
+      - hadoop-neo4j-net
+  
+
+networks:
+  hadoop-neo4j-net:
+    driver: bridge
