@@ -31,8 +31,13 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.singleResultFirstColumn;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import org.eclipse.jetty.util.ExceptionUtil.MultiException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.junit.Test;
+import java.io.OutputStream;
 
-@Ignore("It fails due to `java.lang.NoClassDefFoundError: org/eclipse/jetty/servlet`")
 public class LoadHdfsTest {
 
     @ClassRule
@@ -42,6 +47,30 @@ public class LoadHdfsTest {
     public DbmsRule db = new ImpermanentDbmsRule();
 
     private MiniDFSCluster miniDFSCluster;
+
+    @Test
+    public void testFileOperationsOnLocalFs() throws Exception {
+        Configuration conf = new Configuration();
+        // Imposta il file system su "local"
+        conf.set("fs.defaultFS", "file:///");
+
+        // Ottieni un'istanza del FileSystem locale
+        try (FileSystem localFs = FileSystem.get(conf)) {
+            Path testDir = new Path("/tmp/mytestdir");
+            Path testFile = new Path(testDir, "data.txt");
+
+            localFs.mkdirs(testDir);
+
+            try (OutputStream os = localFs.create(testFile)) {
+                os.write("Hello, local FS!".getBytes());
+            }
+
+            // Verifica che il file esista
+            assert localFs.exists(testFile);
+
+            localFs.delete(testDir, true); // Pulizia
+        }
+    }
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadPartial.class);
@@ -62,12 +91,9 @@ public class LoadHdfsTest {
         miniDFSCluster.shutdown();
     }
 
-    @AfterAll
-    public void tearDownAll() {
-        db.shutdown();
-    }
-
     @Test public void testLoadCsvFromHDFS() throws Exception {
+        System.out.println("hdfsDir = " + hdfsDir);
+        
         testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url", String.format("%s/user/%s/%s",
         		miniDFSCluster.getURI().toString(),
         		System.getProperty("user.name"), "test.csv")), // 'hdfs://localhost:12345/user/<sys_user_name>/test.csv'
