@@ -3,6 +3,7 @@ package apoc.util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.testcontainers.containers.DockerComposeContainer;
 
 import java.io.File;
 import java.io.IOException;
