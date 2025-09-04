@@ -104,9 +104,9 @@ public class StartupExtendedTest {
 
     private void startContainerSessionWithExtraDeps(Function<Neo4jVersion, Neo4jContainerExtension> neo4jContainerCreation,
                                                     Consumer<Session> sessionConsumer) {
-//        for (var version: Neo4jVersion.values()) {
+        for (var version: Neo4jVersion.values()) {
 
-            try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(Neo4jVersion.ENTERPRISE)
+            try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
                     .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true")
             ) {
                 // add extra-deps before starting it
@@ -128,12 +128,12 @@ public class StartupExtendedTest {
                     ex.printStackTrace();
                     fail("Should not have thrown exception when trying to start Neo4j: " + ex);
                 } else if (!TestUtil.isRunningInCI()) {
-//                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
+                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
                 } else {
-//                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
+                    fail( "The docker image " + dockerImageForNeo4j(version) + " could not be loaded. Check whether it's available locally / in the CI. Exception:" + ex);
                 }
             }
-//        }
+        }
     }
 
     private void checkCoreProcsAndFuncsExistence(Session session) {
