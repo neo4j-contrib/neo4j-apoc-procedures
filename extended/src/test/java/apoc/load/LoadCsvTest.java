@@ -86,11 +86,10 @@ public class LoadCsvTest {
         commonTestLoadCsv(db, url);
     }
 
-    // TODO - to delete
     @Test
     public void testLoadCsvWithBinary() {
-        testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)",
-                map("file", "hdfs://localhost:8020/DATA/test.csv",
+        testResult(db, "CALL apoc.load.csvParams($file, null, null, $conf)", 
+                map("file", fileToBinary(new File(getUrlFileName("test.csv").getPath()), CompressionAlgo.DEFLATE.name()),
                         "conf", map(COMPRESSION, CompressionAlgo.DEFLATE.name(), "results", List.of("map", "list", "stringMap", "strings"))),
                 LoadCsvTest::commonAssertionsLoadCsv);
     }

@@ -58,29 +58,6 @@ task gitSubmoduleLoad {
 }
 
 dependencies {
-//    implementation('blue.strategic.parquet:parquet-floor:1.57') {
-//        // Escludi la dipendenza da hadoop-common dalla libreria che causa il conflitto
-//        exclude group: 'org.apache.hadoop', module: 'hadoop-common'
-//    }
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2'
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '3.4.2'
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2'
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '3.4.2', {
-        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-util'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-webapp'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-security'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-http'
-        exclude group: 'org.eclipse.jetty', module: 'jetty-io'
-        exclude group: 'javax.servlet', module: 'javax.servlet-api'
-//        exclude group: 'org.eclipse.jetty'
-//        exclude group: 'org.eclipse.jetty.ee8'
-//        exclude group: 'org.eclipse.jetty.aggregate'
-//        exclude group: 'org.apache.hive', module: 'hive-service'
-    }
-//    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.1'
-    
     // to fix unresolved imports with IntelliJ from version 2024.1.x
     compileOnly sourceSets.main.java
     testImplementation sourceSets.main.java
@@ -110,7 +87,6 @@ dependencies {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
 
-//    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2'
     // These will be dependencies packaged with the .jar
     implementation project(':common')
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
@@ -124,9 +100,7 @@ dependencies {
 
     // These will be dependencies not packaged with the .jar
     // They need to be provided either through the database or in an extra .jar
-    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective, {
-        exclude group: 'blue.strategic.parquet'
-    }
+    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     // same version as the one included in  neo4j `lib`
     compileOnly group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '6.0.0-alpha03'
 
@@ -159,7 +133,7 @@ dependencies {
 
     compileOnly group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     // testImplementation analogous is not needed since is bundled via `test-utils` submodule
-    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2', withoutServers
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.0', withoutServers
 
     compileOnly group: 'org.apache.arrow', name: 'arrow-vector', version: '13.0.0'
     compileOnly group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
@@ -168,13 +142,8 @@ dependencies {
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
-    testImplementation project(':test-utils'), {
-        exclude group: 'blue.strategic.parquet'
-    }
+    testImplementation project(':test-utils')
     testImplementation project(':core')
-//    , {
-//        exclude group: 'org.apache.hadoop'
-//    }
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
         exclude group: 'org.apache.commons', module: 'commons-collections4'
     }
@@ -198,7 +167,6 @@ dependencies {
     testImplementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testImplementation group: 'org.zapodot', name: 'embedded-ldap-junit', version: '0.9.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.4.0'
-//    
     testImplementation group: 'org.apache.parquet', name: 'parquet-hadoop', version: '1.13.1', withoutServers
     testImplementation group: 'com.opencsv', name: 'opencsv', version: '5.7.1', {
         exclude group: 'org.apache.commons', module: 'commons-collections4'
@@ -212,15 +180,6 @@ dependencies {
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
     testImplementation group: 'org.duckdb', name: 'duckdb_jdbc', version: '1.1.3'
 
-
-    testImplementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.4.2'
-
-//    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '12.0.17'
-    // https://mvnrepository.com/artifact/org.eclipse.jetty.ee8/jetty-ee8-servlet
-//    testImplementation("org.eclipse.jetty.ee8:jetty-ee8-servlet:12.0.17")
-//    testImplementation group: 'org.eclipse.jetty', name: 'jetty-ee8-servlets', version: '12.0.17'
-//    implementation group: 'org.eclipse.jetty', name: 'jetty-util', version: '12.0.17'
-    
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
