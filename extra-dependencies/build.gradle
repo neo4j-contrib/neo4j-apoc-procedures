@@ -17,12 +17,6 @@ configure(subprojects) {
 ext {
     // packages included in `$NEO4j/lib` folder
     commonExclusions = {
-        // guava
-        exclude group: 'com.google.guava', module: 'guava'
-        
-        // gson
-        exclude group: 'com.google.code.gson', module: 'gson'
-
         // apache commons
         exclude group: 'org.apache.commons', module: 'commons-beanutils'
         exclude group: 'org.apache.commons', module: 'commons-collections'
@@ -32,73 +26,34 @@ ext {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
         exclude group: 'org.apache.commons', module: 'commons-logging'
         exclude group: 'org.apache.commons', module: 'commons-text'
-        
-        // TODO - commons-cli
-        
-        // todo - needed maybe??
-        exclude group: 'dnsjava', module: 'dnsjava'
-        exclude group: 'org.xbill', module: 'dnsjava'
 
-
-
+        // jersey
         exclude group: 'com.sun.jersey', module: 'jersey-client'
         exclude group: 'com.sun.jersey', module: 'jersey-server'
         exclude group: 'com.sun.jersey', module: 'jersey-servlet'
         exclude group: 'com.sun.jersey', module: 'jersey-container-servlet'
         exclude group: 'com.sun.jersey', module: 'jersey-container-servlet-core'
 
+        // dnsjava
+        exclude group: 'dnsjava', module: 'dnsjava'
+        exclude group: 'org.xbill', module: 'dnsjava'
+
+        // jetty
         exclude group: 'org.eclipse.jetty', module: 'jetty-server'
         exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
-        
-        
+
+        // parquet
         exclude group: 'org.apache.parquet', module: 'parquet-hadoop'
         exclude group: 'org.apache.parquet', module: 'parquet-column'
+
+        // snappy
         exclude group: 'org.xerial.snappy', module: 'snappy-java'
-
-        // TODO - hadoop-mapreduce-client-core stuff
-//        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-//        exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-client'
-//        exclude group: 'org.apache.hadoop', module: 'hadoop-yarn-common'
-//        exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs-client'
-
-
-        // TODO - check this
-//        exclude group: 'org.slf4j'
-//        exclude group: 'org.xbill', module: 'dnsjava'
-//        exclude group: 'io.netty'
-//        exclude group: 'com.google.guava'
-
-
-
-
-//        exclude group: 'org.xbill', module: 'dnsjava'
         
-        /*
-        org.seleniumhq.selenium » selenium-api	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-chrome-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-devtools-v112	4.10.0	4.13.0
-        org.seleniumhq.selenium » selenium-devtools-v113	4.10.0	4.14.1
-        org.seleniumhq.selenium » selenium-devtools-v114	4.10.0	4.12.1
-        org.seleniumhq.selenium » selenium-devtools-v85	4.10.0	4.29.0
-        org.seleniumhq.selenium » selenium-edge-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-firefox-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-ie-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-remote-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-safari-driver	4.10.0	4.35.0
-        org.seleniumhq.selenium » selenium-support
-         */
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-api'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-chrome-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v112'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v113'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v114'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-devtools-v85'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-edge-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-firefox-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-ie-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-remote-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-safari-driver'
-//        exclude group: 'org.seleniumhq.selenium', module: 'selenium-support'
+        // guava
+        exclude group: 'com.google.guava', module: 'guava'
+        
+        // gson
+        exclude group: 'com.google.code.gson', module: 'gson'
 
         // reactor-core
         exclude group: 'io.projectreactor', module: 'reactor-core'
