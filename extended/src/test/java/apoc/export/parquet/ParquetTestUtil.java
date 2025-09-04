@@ -86,10 +86,6 @@ public class ParquetTestUtil {
 
     public static void roundtripLoadAllAssertions(Result result) {
         ResourceIterator<Map<String, Object>> value = result.columnAs("value");
-        extracted(value);
-    }
-
-    public static void extracted(Iterator<Map<String, Object>> value) {
         Map<String, Object> actual = value.next();
         assertFirstUserNode(actual);
         actual = value.next();
@@ -100,22 +96,6 @@ public class ParquetTestUtil {
         assertSecondAnotherNode(actual);
         actual = value.next();
         assertRelationship(actual);
-        assertFalse(value.hasNext());
-    }
-
-    public static void extracted2(Iterator<Map<String, Object>> value) {
-        Map<String, Object> actual = value.next();
-        assertNodeAndLabel((Map) actual.get("value"), "User");
-        actual = value.next();
-        assertNodeAndLabel((Map) actual.get("value"), "User");
-        actual = value.next();
-        assertNodeAndLabel((Map) actual.get("value"), "Another");
-        actual = value.next();
-        assertNodeAndLabel((Map) actual.get("value"), "Another");
-        actual = value.next();
-        Map relMap = (Map) actual.get("value");
-        assertTrue(relMap.get(FIELD_SOURCE_ID) instanceof Long);
-        assertTrue(relMap.get(FIELD_TARGET_ID) instanceof Long);
         assertFalse(value.hasNext());
     }
 

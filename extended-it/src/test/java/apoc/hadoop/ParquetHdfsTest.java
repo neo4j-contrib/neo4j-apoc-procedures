@@ -10,10 +10,12 @@ import java.io.File;
 import java.util.Map;
 
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
-import static apoc.export.parquet.ParquetTestUtil.extracted2;
+import static apoc.export.parquet.ParquetTestUtil.assertNodeAndLabel;
+import static apoc.export.parquet.ParquetUtil.FIELD_SOURCE_ID;
+import static apoc.export.parquet.ParquetUtil.FIELD_TARGET_ID;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class ParquetHdfsTest extends HdfsContainerBaseTest{
 
@@ -48,7 +50,21 @@ public class ParquetHdfsTest extends HdfsContainerBaseTest{
                              "RETURN value";
 
         testResult(session, query, Map.of("file", file,  "config", MAPPING_ALL),
-                i -> extracted2(i));
+                value -> {
+                    Map<String, Object> actual = value.next();
+                    assertNodeAndLabel((Map) actual.get("value"), "User");
+                    actual = value.next();
+                    assertNodeAndLabel((Map) actual.get("value"), "User");
+                    actual = value.next();
+                    assertNodeAndLabel((Map) actual.get("value"), "Another");
+                    actual = value.next();
+                    assertNodeAndLabel((Map) actual.get("value"), "Another");
+                    actual = value.next();
+                    Map relMap = (Map) actual.get("value");
+                    assertTrue(relMap.get(FIELD_SOURCE_ID) instanceof Long);
+                    assertTrue(relMap.get(FIELD_TARGET_ID) instanceof Long);
+                    assertFalse(value.hasNext());
+                });
 
         // check import procedure
         Map<String, Object> params = Map.of("file", file, "config", MAPPING_ALL);
