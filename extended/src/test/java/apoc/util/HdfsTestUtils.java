@@ -3,13 +3,10 @@ package apoc.util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.testcontainers.containers.DockerComposeContainer;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
-
-//import org.eclipse.jetty.util.ExceptionUtil.MultiException;
 
 public class HdfsTestUtils {
 
@@ -44,24 +41,20 @@ public class HdfsTestUtils {
     }
     
     public static MiniDFSCluster getLocalHDFSCluster(File hdfsPath) throws Exception {
-        try {
-            setHadoopHomeWindows();
-            Configuration conf = new HdfsConfiguration();
-            conf.set("fs.defaultFS", "hdfs://localhost");
-            hdfsPath.setWritable(true);
-            conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
-            MiniDFSCluster miniDFSCluster = new MiniDFSCluster.Builder(conf)
-                    .nameNodePort(getFreePort())
+    	setHadoopHomeWindows();
+    	Configuration conf = new HdfsConfiguration();
+    	conf.set("fs.defaultFS", "hdfs://localhost");
+        hdfsPath.setWritable(true);
+        conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
+		MiniDFSCluster miniDFSCluster = new MiniDFSCluster.Builder(conf)
+                .nameNodePort(getFreePort())
 //                .nameNodeHttpPort(12341)
-                    .numDataNodes(1)
-                    .storagesPerDatanode(2)
-                    .format(true)
-                    .racks(null)
-                    .build();
-            miniDFSCluster.waitActive();
-            return miniDFSCluster;
-        } catch (Exception e) {
-            throw new RuntimeException("");
-        }
+                .numDataNodes(1)
+                .storagesPerDatanode(2)
+                .format(true)
+                .racks(null)
+                .build();
+		miniDFSCluster.waitActive();
+		return miniDFSCluster;
     }
 }

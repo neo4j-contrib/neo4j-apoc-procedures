@@ -14,8 +14,6 @@ configure(subprojects) {
     apply plugin: 'java'
 }
 
-
-
 ext {
     // packages included in `$NEO4j/lib` folder
     commonExclusions = {
@@ -43,7 +41,14 @@ ext {
 
 
 
+        exclude group: 'com.sun.jersey', module: 'jersey-client'
+        exclude group: 'com.sun.jersey', module: 'jersey-server'
+        exclude group: 'com.sun.jersey', module: 'jersey-servlet'
+        exclude group: 'com.sun.jersey', module: 'jersey-container-servlet'
+        exclude group: 'com.sun.jersey', module: 'jersey-container-servlet-core'
 
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
 
 
         // TODO - hadoop-common stuff
@@ -56,7 +61,8 @@ ext {
 //        exclude group: 'com.google.guava', module: 'guava'
 //        exclude group: 'com.google.re2j', module: 're2j'
 //        exclude group: 'com.jcraft', module: 'jsch'
-//        exclude group: 'com.sun.jersey', module: 'jersey-core'
+
+        // TODO -- OTHERS...
 //        exclude group: 'com.sun.jersey', module: 'jersey-servlet'
 //        exclude group: 'com.sun.jersey', module: 'jersey-server'
 //        exclude group: 'commons-beanutils', module: 'commons-beanutils'
@@ -88,13 +94,12 @@ ext {
 //        exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
 //        exclude group: 'org.codehaus.jettison', module: 'jettison'
 //        exclude group: 'org.codehaus.woodstox', module: 'stax2-api'
-//        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
 //        exclude group: 'org.eclipse.jetty', module: 'jetty-util'
-//        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
+
 //        exclude group: 'org.eclipse.jetty', module: 'jetty-webapp'
 //        exclude group: 'org.slf4j', module: 'slf4j-api'
 //        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
-//        exclude group: 'org.xerial.snappy', module: 'snappy-java'
+        exclude group: 'org.xerial.snappy', module: 'snappy-java'
 
         // TODO - hadoop-mapreduce-client-core stuff
 //        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
