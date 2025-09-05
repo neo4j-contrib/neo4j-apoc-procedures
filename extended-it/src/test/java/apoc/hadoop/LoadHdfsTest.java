@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static apoc.util.TestContainerUtil.testCall;
 
-public class LoadHdfsBaseTest extends HdfsContainerBaseTest {
+public class LoadHdfsTest extends HdfsContainerBaseTest {
 
     @BeforeClass
     public static void setUp() throws Exception {

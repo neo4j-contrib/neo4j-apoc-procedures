@@ -17,7 +17,7 @@ import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testResult;
 import static org.junit.Assert.*;
 
-public class ParquetHdfsTest extends HdfsContainerBaseTest{
+public class ParquetHdfsTest extends HdfsContainerBaseTest {
 
     private static final File directory = new File("target/hdfs-parquet-import");
     static { //noinspection ResultOfMethodCallIgnored

@@ -15,7 +15,7 @@ import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-public class ExportCsvTest extends HdfsContainerBaseTest {
+public class ExportCsvHdfsTest extends HdfsContainerBaseTest {
     private static final String EXPECTED = String.format("0,:User:User1,42,,[\"a\",\"b\",\"c\"],true,foo,,,,%n" +
             "1,:User,42,,,,bar,,,,%n" +
             "2,:User,12,,,,,,,,%n" +
