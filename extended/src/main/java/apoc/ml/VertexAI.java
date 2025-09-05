@@ -109,7 +109,7 @@ public class VertexAI {
         List<String> nonNullTexts = collect.get(true);
         
         Object inputs = texts.stream().map(text -> Map.of("content", text)).toList();
-        Stream<Object> resultStream = executeRequest(accessToken, project, configuration, "textembedding-gecko", inputs, List.of(), urlAccessChecker);
+        Stream<Object> resultStream = executeRequest(accessToken, project, configuration, "text-embedding-004", inputs, List.of(), urlAccessChecker);
         AtomicInteger ai = new AtomicInteger();
         Stream<EmbeddingResult> embeddingResultStream = resultStream
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
@@ -223,7 +223,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
         }
         Object inputs = List.of(Map.of("context",context, "examples",examples, "messages", messages));
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
-        return executeRequest(accessToken, project, configuration, "chat-bison", inputs, parameterKeys, urlAccessChecker)
+        return executeRequest(accessToken, project, configuration, "gemini-2.5-pro", inputs, parameterKeys, urlAccessChecker)
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(v -> (Map<String, Object>) v).map(MapResult::new);
         // POST https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/publishers/google/models/chat-bison:predict
@@ -311,7 +311,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
                                     @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
         var parameterKeys = List.of("temperature", "topK", "topP", "maxOutputTokens");
         
-        return executeRequest(accessToken, project, configuration, "gemini-pro", contents, parameterKeys, urlAccessChecker, VertexAIHandler.Type.STREAM)
+        return executeRequest(accessToken, project, configuration, "gemini-2.5-pro", contents, parameterKeys, urlAccessChecker, VertexAIHandler.Type.STREAM)
                 .flatMap(v -> ((List<Map<String, Object>>) v).stream())
                 .map(MapResult::new);
     }
@@ -322,7 +322,7 @@ docs https://cloud.google.com/vertex-ai/docs/generative-ai/text/test-text-prompt
                                        @Name("accessToken") String accessToken,
                                        @Name("project") String project,
                                        @Name(value = "configuration", defaultValue = "{}") Map<String, Object> configuration) throws Exception {
-        return executeRequest(accessToken, project, configuration, "gemini-pro", body, Collections.emptyList(), urlAccessChecker, VertexAIHandler.Type.CUSTOM)
+        return executeRequest(accessToken, project, configuration, "gemini-2.5-pro", body, Collections.emptyList(), urlAccessChecker, VertexAIHandler.Type.CUSTOM)
                 .map(ObjectResult::new);
     }
 }

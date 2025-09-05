@@ -1,13 +1,18 @@
 package apoc.ml;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -22,7 +27,8 @@ import static apoc.ml.OpenAITestResultUtils.assertCompletion;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assume.assumeNotNull;
 
-public class OpenAIAzureIT {
+@RunWith(Parameterized.class)
+public class OpenAiAzureIT {
     // In Azure, the endpoints can be different 
     private static String OPENAI_EMBEDDING_URL;
     private static String OPENAI_CHAT_URL;
@@ -34,6 +40,21 @@ public class OpenAIAzureIT {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
+
+    @Parameterized.Parameters(name = "chatModel: {0}")
+    public static Collection<String[]> data() {
+        return Arrays.asList(new String[][] {
+                // tests with model evaluated
+                {"gpt-35-turbo"},
+                {"gpt-4.1"},
+                {"gpt-4o"},
+                // tests with default model
+                {null}
+        });
+    }
+
+    @Parameterized.Parameter(0)
+    public String chatModel;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -66,8 +87,8 @@ public class OpenAIAzureIT {
 
     @Test
     public void embeddingFixPath() {
-        Map<String, Object> params = Map.of("apiKey", OPENAI_KEY,
-                "conf", Map.of(ENDPOINT_CONF_KEY, OPENAI_EMBEDDING_URL,
+        Map<String, Object> params = Util.map("apiKey", OPENAI_KEY,
+                "conf", Util.map(ENDPOINT_CONF_KEY, OPENAI_EMBEDDING_URL,
                         API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.AZURE.name(),
                         API_VERSION_CONF_KEY, OPENAI_AZURE_API_VERSION,
                         PATH_CONF_KEY, "openai/deployments/text-embedding-ada-002/embeddings"
@@ -83,22 +104,22 @@ public class OpenAIAzureIT {
     public void completion() {
         testCall(db, COMPLETION_QUERY,
                 getParams(OPENAI_CHAT_URL),
-                (row) -> assertCompletion(row, "gpt-35-turbo"));
+                (row) -> assertCompletion(row));
     }
 
     @Test
     public void chatCompletion() {
         testCall(db, CHAT_COMPLETION_QUERY, getParams(OPENAI_COMPLETION_URL),
-                (row) -> assertChatCompletion(row, "gpt-35-turbo"));
+                (row) -> assertChatCompletion(row, chatModel));
     }
 
-    private static Map<String, Object> getParams(String url) {
-        return Map.of("apiKey", OPENAI_KEY,
-                "conf", Map.of(ENDPOINT_CONF_KEY, url,
+    private Map<String, Object> getParams(String url) {
+        return Util.map("apiKey", OPENAI_KEY,
+                "conf", Util.map(ENDPOINT_CONF_KEY, url,
                         API_TYPE_CONF_KEY, OpenAIRequestHandler.Type.AZURE.name(),
                         API_VERSION_CONF_KEY, OPENAI_AZURE_API_VERSION,
                         // on Azure is available only "gpt-35-turbo"
-                        "model", "gpt-35-turbo"
+                        "model",chatModel
                 )
         );
     }
