@@ -10,6 +10,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
+import org.mockserver.socket.PortFactory;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -25,7 +26,7 @@ import static apoc.util.TestContainerUtil.*;
 public class HdfsContainerBaseTest {
 
     public static final String APACHE_HADOOP_IMAGE = "apache/hadoop:3.3.6";
-    public static final String hdfsUrl = "hdfs://namenode:8020";
+    public static String hdfsUrl = null;
 
     private static Network hadoopNetwork = Network.newNetwork();
 
@@ -42,7 +43,18 @@ public class HdfsContainerBaseTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        String rpcAddress = "namenode:8020";
+        int freePortNamenode1 = PortFactory.findFreePort();
+        int freePortNamenode2 = PortFactory.findFreePort();
+        int freePortDatanode1 = PortFactory.findFreePort();
+        int freePortDatanode2 = PortFactory.findFreePort();
+        int freePortResourceManager1 = PortFactory.findFreePort();
+        int freePortResourceManager2 = PortFactory.findFreePort();
+        int freePortNeo4j1 = PortFactory.findFreePort();
+        int freePortNeo4j2 = PortFactory.findFreePort();
+
+
+        hdfsUrl = "hdfs://namenode:" + freePortNamenode1;
+        String rpcAddress = "namenode:" + freePortNamenode1;
         
         // Namenode
         namenode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -54,7 +66,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870));
+                .withCreateContainerCmdModifier(createPortBindingModifier(freePortNamenode1, freePortNamenode2));
 
         // Datanode
         datanode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -66,7 +78,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .withExposedPorts(9866, 9864)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(9866, 9864));
+                .withCreateContainerCmdModifier(createPortBindingModifier(freePortDatanode1, freePortDatanode2));
 
         // ResourceManager
         resourcemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -79,7 +91,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .withExposedPorts(8088)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(8088, 8088));
+                .withCreateContainerCmdModifier(createPortBindingModifier(freePortResourceManager1, freePortResourceManager2));
 
         // NodeManager
         nodemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -90,8 +102,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .dependsOn(namenode, resourcemanager);
-
-        // TODO - put this try in PR
+        
         neo4jContainer = new Neo4jContainerExtension(neo4jCommunityDockerImageVersion, Files.createTempDirectory("neo4j-logs"))
                 .withNetwork(hadoopNetwork)
                 .withNetworkAliases("neo4j")
@@ -116,7 +127,7 @@ public class HdfsContainerBaseTest {
                 new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")),
                 pluginsFolder);
         
-        neo4jContainer.setExposedPorts(List.of(7474, 7687));
+        neo4jContainer.setExposedPorts(List.of(freePortNeo4j1, freePortNeo4j2));
 
         ExtendedTestContainerUtil.addExtraDependencies();
         neo4jContainer.start();

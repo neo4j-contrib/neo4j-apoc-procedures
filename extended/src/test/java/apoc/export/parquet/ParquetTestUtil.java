@@ -19,7 +19,6 @@ import org.neo4j.values.storable.PointValue;
 import org.neo4j.values.virtual.VirtualValues;
 
 import java.time.LocalDate;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
