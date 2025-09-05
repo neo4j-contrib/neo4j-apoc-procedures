@@ -19,7 +19,7 @@ ext {
     commonExclusions = {
         // guava
         exclude group: 'com.google.guava', module: 'guava'
-        
+
         // gson
         exclude group: 'com.google.code.gson', module: 'gson'
 
@@ -32,6 +32,28 @@ ext {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
         exclude group: 'org.apache.commons', module: 'commons-logging'
         exclude group: 'org.apache.commons', module: 'commons-text'
+
+        // jersey
+        exclude group: 'com.sun.jersey', module: 'jersey-client'
+        exclude group: 'com.sun.jersey', module: 'jersey-server'
+        exclude group: 'com.sun.jersey', module: 'jersey-servlet'
+        exclude group: 'com.sun.jersey', module: 'jersey-container-servlet'
+        exclude group: 'com.sun.jersey', module: 'jersey-container-servlet-core'
+
+        // dnsjava
+        exclude group: 'dnsjava', module: 'dnsjava'
+        exclude group: 'org.xbill', module: 'dnsjava'
+
+        // jetty
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
+
+        // parquet
+        exclude group: 'org.apache.parquet', module: 'parquet-hadoop'
+        exclude group: 'org.apache.parquet', module: 'parquet-column'
+
+        // snappy
+        exclude group: 'org.xerial.snappy', module: 'snappy-java'
 
         // reactor-core
         exclude group: 'io.projectreactor', module: 'reactor-core'
@@ -69,6 +91,7 @@ ext {
         exclude group: 'io.netty', module: 'netty-transport-native-kqueue'
         exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
         exclude group: 'io.netty', module: 'netty-tcnative-classes'
+        exclude group: 'io.netty', module: 'netty-all'
 
         // javax
         exclude group: 'javax.servlet', module: 'javax.servlet-api'
