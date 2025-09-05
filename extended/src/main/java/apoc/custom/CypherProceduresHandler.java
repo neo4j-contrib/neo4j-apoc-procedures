@@ -259,7 +259,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
                 public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
-                    if (isStatementNull) {
+                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx)) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
                                 "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
@@ -309,7 +309,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
                 public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
-                    if (isStatementNull) {
+                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx)) {
                         final String error = String.format("Unknown function '%s'", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
@@ -354,6 +354,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
             return false;
         }
+    }
+
+    private boolean isNotRegisteredInTheCorrectDb(Context ctx) {
+        return !ctx.graphDatabaseAPI().databaseName().equals(api.databaseName());
     }
 
     /**
