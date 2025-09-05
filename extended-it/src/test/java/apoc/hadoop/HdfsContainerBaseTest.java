@@ -15,7 +15,6 @@ import org.mockserver.socket.PortFactory;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.List;
 
 import static apoc.util.ExtendedTestContainerUtil.createPortBindingModifier;
 import static apoc.util.TestContainerUtil.*;
@@ -30,17 +29,13 @@ public class HdfsContainerBaseTest {
 
     private static Network hadoopNetwork = Network.newNetwork();
 
-    protected static Neo4jContainerExtension neo4jContainer;
     protected static GenericContainer<?> namenode;
+    protected static Neo4jContainerExtension neo4jContainer;
+    protected static Session session;
     private static GenericContainer<?> datanode;
     private static GenericContainer<?> resourcemanager;
     private static GenericContainer<?> nodemanager;
     
-
-    // Start the HDFS cluster with DockerComposeContainer
-    protected static Session session;
-    
-
     @BeforeClass
     public static void setUp() throws Exception {
         int freePortNamenode1 = PortFactory.findFreePort();
@@ -49,9 +44,6 @@ public class HdfsContainerBaseTest {
         int freePortDatanode2 = PortFactory.findFreePort();
         int freePortResourceManager1 = PortFactory.findFreePort();
         int freePortResourceManager2 = PortFactory.findFreePort();
-        int freePortNeo4j1 = PortFactory.findFreePort();
-        int freePortNeo4j2 = PortFactory.findFreePort();
-
 
         hdfsUrl = "hdfs://namenode:" + freePortNamenode1;
         String rpcAddress = "namenode:" + freePortNamenode1;
@@ -112,6 +104,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("apoc.export.file.enabled", "true")
                 .withEnv("apoc.import.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
+                .withExposedPorts(7687, 7473, 7474)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()));
 
         executeGradleTasks(extendedDir, "shadowJar");
@@ -126,8 +119,6 @@ public class HdfsContainerBaseTest {
                 new File(coreDir, "build/libs"),
                 new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")),
                 pluginsFolder);
-        
-        neo4jContainer.setExposedPorts(List.of(freePortNeo4j1, freePortNeo4j2));
 
         ExtendedTestContainerUtil.addExtraDependencies();
         neo4jContainer.start();
