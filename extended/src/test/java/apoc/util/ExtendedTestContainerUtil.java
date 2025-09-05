@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Ports;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.driver.AuthToken;
@@ -86,6 +90,27 @@ public class ExtendedTestContainerUtil
                         Map.of("dbName", dbName, "boltAddress", boltAddress) )
                 .single().get("writer")
                 .asBoolean();
+    }
+
+    /**
+     * Creates a Consumer that binds container ports to the same fixed host ports.
+     *
+     * @param ports The container ports to be exposed and bound.
+     * @return A Consumer<CreateContainerCmd> to be used with .withCreateContainerCmdModifier().
+     */
+    public static Consumer<CreateContainerCmd> createPortBindingModifier(int... ports) {
+        return cmd -> {
+            Ports portBindings = new Ports();
+            for (int port : ports) {
+                portBindings.bind(ExposedPort.tcp(port), Ports.Binding.bindPort(port));
+            }
+            HostConfig hostConfig = cmd.getHostConfig();
+            if (hostConfig == null) {
+                hostConfig = new HostConfig();
+                cmd.withHostConfig(hostConfig);
+            }
+            hostConfig.withPortBindings(portBindings);
+        };
     }
 
 }
