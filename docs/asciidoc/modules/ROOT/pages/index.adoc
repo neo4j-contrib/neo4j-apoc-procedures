@@ -19,8 +19,8 @@ The guide covers the following areas:
 * xref::security-guidelines/index.adoc[] -- Guidelines on securing the APOC Extended library, and its environment.
 * xref::overview/index.adoc[] -- A list of all APOC Extended procedures and functions.
 * xref::config/index.adoc[] -- Configuration options used by the APOC Extended library.
-* xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
-* xref::export/index.adoc[] -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
+* xref::import/index.adoc[] -- A detailed guide to procedures that can be used to import data from different formats.
+* xref::export/index.adoc[] -- A detailed guide to procedures that can be used to export data to different formats.
 * xref::database-integration/index.adoc[] -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
 * xref::graph-updates/index.adoc[] -- A detailed guide to procedures that can be used to apply graph updates.
 * xref::cypher-execution/index.adoc[] -- A detailed guide to procedures that can be used for Cypher scripting.
