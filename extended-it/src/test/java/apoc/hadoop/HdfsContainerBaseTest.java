@@ -1,9 +1,7 @@
 package apoc.hadoop;
 
+import apoc.util.ExtendedTestContainerUtil;
 import apoc.util.Neo4jContainerExtension;
-import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.Ports;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -17,8 +15,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
+import static apoc.util.ExtendedTestContainerUtil.createPortBindingModifier;
 import static apoc.util.TestContainerUtil.*;
 
 /**
@@ -45,24 +43,6 @@ public class HdfsContainerBaseTest {
     @BeforeClass
     public static void setUp() throws Exception {
         String rpcAddress = "namenode:8020";
-
-        Consumer<CreateContainerCmd> cmdModifier = cmd -> {
-            Ports portBindings = new Ports();
-            portBindings.bind(ExposedPort.tcp(8020), Ports.Binding.bindPort(8020));
-            portBindings.bind(ExposedPort.tcp(9870), Ports.Binding.bindPort(9870));
-            cmd.getHostConfig().withPortBindings(portBindings);
-        };
-        Consumer<CreateContainerCmd> cmdModifier2 = cmd -> {
-            Ports portBindings = new Ports();
-            portBindings.bind(ExposedPort.tcp(9866), Ports.Binding.bindPort(9866));
-            portBindings.bind(ExposedPort.tcp(9864), Ports.Binding.bindPort(9864));
-            cmd.getHostConfig().withPortBindings(portBindings);
-        };
-        Consumer<CreateContainerCmd> cmdModifier3 = cmd -> {
-            Ports portBindings = new Ports();
-            portBindings.bind(ExposedPort.tcp(8088), Ports.Binding.bindPort(8088));
-            cmd.getHostConfig().withPortBindings(portBindings);
-        };
         
         // Namenode
         namenode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -74,7 +54,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withCreateContainerCmdModifier(cmdModifier);
+                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870));
 
         // Datanode
         datanode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -86,7 +66,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .withExposedPorts(9866, 9864)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(cmdModifier2);
+                .withCreateContainerCmdModifier(createPortBindingModifier(9866, 9864));
 
         // ResourceManager
         resourcemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -99,7 +79,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .withExposedPorts(8088)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(cmdModifier3);
+                .withCreateContainerCmdModifier(createPortBindingModifier(8088, 8088));
 
         // NodeManager
         nodemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -137,7 +117,8 @@ public class HdfsContainerBaseTest {
                 pluginsFolder);
         
         neo4jContainer.setExposedPorts(List.of(7474, 7687));
-        
+
+        ExtendedTestContainerUtil.addExtraDependencies();
         neo4jContainer.start();
         namenode.start();
         datanode.start();
