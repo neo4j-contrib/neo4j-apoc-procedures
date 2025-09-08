@@ -10,11 +10,11 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
-import org.mockserver.socket.PortFactory;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 
 import static apoc.util.ExtendedTestContainerUtil.createPortBindingModifier;
 import static apoc.util.TestContainerUtil.*;
@@ -25,28 +25,24 @@ import static apoc.util.TestContainerUtil.*;
 public class HdfsContainerBaseTest {
 
     public static final String APACHE_HADOOP_IMAGE = "apache/hadoop:3.3.6";
-    public static String hdfsUrl = null;
+    public static final String hdfsUrl = "hdfs://namenode:8020";
 
     private static Network hadoopNetwork = Network.newNetwork();
 
-    protected static GenericContainer<?> namenode;
     protected static Neo4jContainerExtension neo4jContainer;
-    protected static Session session;
+    protected static GenericContainer<?> namenode;
     private static GenericContainer<?> datanode;
     private static GenericContainer<?> resourcemanager;
     private static GenericContainer<?> nodemanager;
     
+
+    // Start the HDFS cluster with DockerComposeContainer
+    protected static Session session;
+    
+
     @BeforeClass
     public static void setUp() throws Exception {
-        int freePortNamenode1 = PortFactory.findFreePort();
-        int freePortNamenode2 = PortFactory.findFreePort();
-        int freePortDatanode1 = PortFactory.findFreePort();
-        int freePortDatanode2 = PortFactory.findFreePort();
-        int freePortResourceManager1 = PortFactory.findFreePort();
-        int freePortResourceManager2 = PortFactory.findFreePort();
-
-        hdfsUrl = "hdfs://namenode:" + freePortNamenode1;
-        String rpcAddress = "namenode:" + freePortNamenode1;
+        String rpcAddress = "namenode:8020";
         
         // Namenode
         namenode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -58,7 +54,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withCreateContainerCmdModifier(createPortBindingModifier(freePortNamenode1, freePortNamenode2));
+                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870));
 
         // Datanode
         datanode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -68,9 +64,9 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withExposedPorts(9866, 9864)
+//                .withExposedPorts(9866, 9864)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(freePortDatanode1, freePortDatanode2));
+                .withCreateContainerCmdModifier(createPortBindingModifier(9866, 9864));
 
         // ResourceManager
         resourcemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -81,9 +77,9 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withExposedPorts(8088)
+//                .withExposedPorts(8088)
                 .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(freePortResourceManager1, freePortResourceManager2));
+                .withCreateContainerCmdModifier(createPortBindingModifier(8088, 8088));
 
         // NodeManager
         nodemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -94,7 +90,8 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .dependsOn(namenode, resourcemanager);
-        
+
+        // TODO - put this try in PR
         neo4jContainer = new Neo4jContainerExtension(neo4jCommunityDockerImageVersion, Files.createTempDirectory("neo4j-logs"))
                 .withNetwork(hadoopNetwork)
                 .withNetworkAliases("neo4j")
@@ -104,7 +101,6 @@ public class HdfsContainerBaseTest {
                 .withEnv("apoc.export.file.enabled", "true")
                 .withEnv("apoc.import.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-                .withExposedPorts(7687, 7473, 7474)
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()));
 
         executeGradleTasks(extendedDir, "shadowJar");
@@ -119,6 +115,8 @@ public class HdfsContainerBaseTest {
                 new File(coreDir, "build/libs"),
                 new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")),
                 pluginsFolder);
+        
+        neo4jContainer.setExposedPorts(List.of(7474, 7687));
 
         ExtendedTestContainerUtil.addExtraDependencies();
         neo4jContainer.start();
