@@ -56,7 +56,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870))
-                .waitingFor(Wait.forListeningPort()); // The crucial part
+                .waitingFor(Wait.forListeningPort());
 
 
         // Datanode
@@ -67,7 +67,6 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-//                .withExposedPorts(9866, 9864)
                 .dependsOn(namenode)
                 .withCreateContainerCmdModifier(createPortBindingModifier(9866, 9864));
 
@@ -80,7 +79,6 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-//                .withExposedPorts(8088)
                 .dependsOn(namenode)
                 .withCreateContainerCmdModifier(createPortBindingModifier(8088, 8088));
 
@@ -94,7 +92,6 @@ public class HdfsContainerBaseTest {
                 .withEnv("HADOOP_USER_NAME", "hadoop")
                 .dependsOn(namenode, resourcemanager);
 
-        // TODO - put this try in PR
         neo4jContainer = new Neo4jContainerExtension(neo4jCommunityDockerImageVersion, Files.createTempDirectory("neo4j-logs"))
                 .withNetwork(hadoopNetwork)
                 .withNetworkAliases("neo4j")
@@ -130,7 +127,8 @@ public class HdfsContainerBaseTest {
         nodemanager.start();
         session = neo4jContainer.getSession();
 
-        Thread.sleep(10000);
+        // waiting for hadoop container to be up and running
+        Thread.sleep(20000);
     }
 
     @AfterClass
