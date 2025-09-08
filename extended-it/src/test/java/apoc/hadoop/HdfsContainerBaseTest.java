@@ -8,6 +8,7 @@ import org.junit.BeforeClass;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -54,7 +55,9 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870));
+                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870))
+                .waitingFor(Wait.forListeningPort()); // The crucial part
+
 
         // Datanode
         datanode = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -101,7 +104,8 @@ public class HdfsContainerBaseTest {
                 .withEnv("apoc.export.file.enabled", "true")
                 .withEnv("apoc.import.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-                .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()));
+                .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
+                .dependsOn(namenode);
 
         executeGradleTasks(extendedDir, "shadowJar");
         copyFilesToPlugin(
@@ -125,6 +129,8 @@ public class HdfsContainerBaseTest {
         resourcemanager.start();
         nodemanager.start();
         session = neo4jContainer.getSession();
+
+        Thread.sleep(10000);
     }
 
     @AfterClass

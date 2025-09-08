@@ -15,7 +15,6 @@ public class LoadHdfsTest extends HdfsContainerBaseTest {
     @BeforeClass
     public static void setUp() throws Exception {
         HdfsContainerBaseTest.setUp();
-        Thread.sleep(5000);
         // copy csv file in hadoop
         Container.ExecResult execResult = namenode.execInContainer("hdfs", "dfs", "-mkdir", "/DATA/");
         System.out.println("execResult.getStdout() = " + execResult.getStdout());
