@@ -126,7 +126,7 @@ public class ParquetTestUtil {
         assertSecondUserNodeProps(map);
     }
 
-    private static void assertFirstUserNodeProps(Map<String, Object> props) {
+    public static void assertFirstUserNodeProps(Map<String, Object> props) {
         assertEquals("Adam", props.get("name"));
         assertEquals(42L, props.get("age"));
         assertEquals( true, props.get("male"));
@@ -137,17 +137,17 @@ public class ParquetTestUtil {
         assertEquals(LocalDateTimeValue.parse("2015-05-18T19:32:24.000").asObject(), props.get("born"));
     }
 
-    private static void assertSecondUserNodeProps(Map<String, Object> props) {
+    public static void assertSecondUserNodeProps(Map<String, Object> props) {
         assertEquals( "Jim", props.get("name"));
         assertEquals(42L, props.get("age"));
     }
 
-    private static void assertFirstAnotherNode(Map<String, Object> map) {
+    public static void assertFirstAnotherNode(Map<String, Object> map) {
         assertNodeAndLabel(map, "Another");
         assertFirstAnotherNodeProps(map);
     }
 
-    private static void assertFirstAnotherNodeProps(Map<String, Object> map) {
+    public static void assertFirstAnotherNodeProps(Map<String, Object> map) {
         assertEquals(1L, map.get("foo"));
         List<LocalDate> listDate = ConvertUtils.convertToList(map.get("listDate"));
         assertEquals(2, listDate.size());
@@ -156,22 +156,22 @@ public class ParquetTestUtil {
         assertArrayEquals(new long[] {1L, 2L}, (long[]) map.get("listInt"));
     }
 
-    private static void assertSecondAnotherNode(Map<String, Object> map) {
+    public static void assertSecondAnotherNode(Map<String, Object> map) {
         assertNodeAndLabel(map, "Another");
         assertSecondAnotherNodeProps(map);
     }
 
-    private static void assertSecondAnotherNodeProps(Map<String, Object> map) {
+    public static void assertSecondAnotherNodeProps(Map<String, Object> map) {
         assertEquals("Sam", map.get("bar"));
     }
 
-    private static void assertRelationship(Map<String, Object> map) {
+    public static void assertRelationship(Map<String, Object> map) {
         assertTrue(map.get(FIELD_SOURCE_ID) instanceof Long);
         assertTrue(map.get(FIELD_TARGET_ID) instanceof Long);
         assertRelationshipProps(map);
     }
 
-    private static void assertRelationshipProps(Map<String, Object> props) {
+    public static void assertRelationshipProps(Map<String, Object> props) {
         assertEquals(DurationValue.parse("P5M1DT12H"), props.get("bffSince"));
         assertEquals(1993L, props.get("since"));
     }

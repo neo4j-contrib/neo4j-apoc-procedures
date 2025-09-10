@@ -1,0 +1,69 @@
+version: "2"
+services:
+  namenode:
+    image: apache/hadoop:3.3.6
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - 9870:9870
+      - 8020:8020
+    environment:
+      - CORE-SITE.XML_fs.default.name=hdfs://namenode:8020
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:8020
+      - HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
+      - ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name
+    networks:
+      - hadoop-neo4j-net
+  datanode:
+    image: apache/hadoop:3.3.6
+    command: ["hdfs", "datanode"]
+    ports:
+      - 9866:9866
+      - 9864:9864
+    environment:
+      - CORE-SITE.XML_fs.default.name=hdfs://namenode:8020
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:8020
+      - HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
+    networks:
+      - hadoop-neo4j-net
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - 8088:8088
+    environment:
+      - CORE-SITE.XML_fs.default.name=hdfs://namenode:8020
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:8020
+      - HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
+    volumes:
+      - ./test.sh:/opt/test.sh
+    networks:
+      - hadoop-neo4j-net
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    command: ["yarn", "nodemanager"]
+    environment:
+      - CORE-SITE.XML_fs.default.name=hdfs://namenode:8020
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:8020
+      - HDFS-SITE.XML_dfs.namenode.rpc-address=namenode:8020
+    networks:
+      - hadoop-neo4j-net
+  neo4j:
+    image: neo4j:5.26.0
+    hostname: neo4j
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./data/neo4j:/data
+      - ./plugins:/plugins
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+    networks:
+      - hadoop-neo4j-net
+
+networks:
+  hadoop-neo4j-net:
+    driver: bridge
