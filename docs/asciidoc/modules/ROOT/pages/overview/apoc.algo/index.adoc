@@ -4,7 +4,7 @@
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+|xref::overview/apoc.algo/apoc.algo.aStarWithPoint.adoc[apoc.algo.aStarWithPoint icon:book[]]
 
 Equivalent to apoc.algo.aStar but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
 |label:procedure[]

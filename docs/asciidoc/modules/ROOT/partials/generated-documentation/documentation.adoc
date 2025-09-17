@@ -16,15 +16,7 @@ Returns index of the `element` that match the given `value`
 
 Returns index of the `element` that match the given `predicate`
 |label:procedure[]
-|===
 
-
-[discrete]
-== xref::overview/apoc.agg/index.adoc[]
-
-[.procedures, opts=header, cols='5a,1a']
-|===
-| Qualified Name | Type
 |xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
 
 apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
@@ -42,13 +34,13 @@ Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(agg
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+|xref::overview/apoc.algo/apoc.algo.aStarWithPoint.adoc[apoc.algo.aStarWithPoint icon:book[]]
 
 Equivalent to apoc.algo.aStar but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -67,8 +59,9 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 
 == xref::overview/apoc.coll/index.adoc[]
 
-[.procedures, opts=header, cols='5a,1a,1a']
+[.procedures, opts=header, cols='5a,1a']
 |===
+| Qualified Name | Type
 |xref::overview/apoc.coll/apoc.coll.avgDuration.adoc[apoc.coll.avgDuration icon:book[]]
 
 apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values
@@ -81,7 +74,7 @@ apoc.coll.fillObject(item, count) - returns a list of equals items with the give
 |===
 
 
-[discrete]
+
 == xref::overview/apoc.config/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -199,6 +192,14 @@ apoc.custom.list() - provide a list of custom procedures/function registered
 
 apoc.custom.show(databaseName) - Provides a list of custom procedures/function registered
 |label:procedure[]
+|xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]]
+
+apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
+|label:procedure[]
+|xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]]
+
+apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
+|label:procedure[]
 |===
 
 == xref::overview/apoc.cypher/index.adoc[]
@@ -265,7 +266,7 @@ Returns a Map detailing the property differences between the two given relations
 |===
 
 
-[discrete]
+
 == xref::overview/apoc.data/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -433,7 +434,7 @@ apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph 
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.gephi/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -445,7 +446,7 @@ apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) 
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.get/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -620,9 +621,6 @@ apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devi
 |===
 
 
-
-
-[discrete]
 == xref::overview/apoc.model/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -823,7 +821,7 @@ apoc.monitor.tx() returns informations about the neo4j transaction manager
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.node/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -839,7 +837,6 @@ apoc.node.rebind(node) - to rebind a node (i.e. executing a Transaction.getNodeB
 |label:function[]
 |===
 
-[discrete]
 == xref::overview/apoc.nlp/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -911,7 +908,7 @@ Returns a stream of entities for provided text
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.rel/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -1077,7 +1074,7 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 |label:function[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.systemdb/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
