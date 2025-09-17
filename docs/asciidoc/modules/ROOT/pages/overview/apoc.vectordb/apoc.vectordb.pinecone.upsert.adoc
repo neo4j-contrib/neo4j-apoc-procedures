@@ -1,0 +1,33 @@
+= apoc.vectordb.pinecone.upsert
+:description: This section contains reference documentation for the apoc.vectordb.pinecone.upsert procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Upserts, in the index with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+
+== Signature
+
+[source]
+----
+apoc.vectordb.pinecone.upsert(hostOrKey :: STRING, index :: STRING, vectors :: LIST<MAP<STRING, ANY>>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|index|STRING|null
+|vectors|LIST<MAP<STRING, ANY>>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/pinecone.adoc[More documentation of apoc.vectordb.pinecone.upsert,role=more information]

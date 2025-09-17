@@ -1,0 +1,11 @@
+= apoc.algo
+:description: This section contains reference documentation for the apoc.algo procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.agg/apoc.agg.position.adoc[apoc.agg.position icon:book[]]
+
+Equivalent to apoc.algo.aStar but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
+|label:procedure[]
+|===

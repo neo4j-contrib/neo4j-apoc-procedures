@@ -1,0 +1,23 @@
+= apoc.node.rebind
+:description: This section contains reference documentation for the apoc.node.rebind function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+to rebind a node (i.e. executing a Transaction.getNodeById(node.getId())
+
+== Signature
+
+[source]
+----
+apoc.node.rebind(node :: NODE) :: (NODE)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|node|NODE|null
+|===
+
+xref::operational/rebind.adoc[More documentation of apoc.node.rebind,role=more information]

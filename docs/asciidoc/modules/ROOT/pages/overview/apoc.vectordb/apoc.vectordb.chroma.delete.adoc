@@ -1,0 +1,33 @@
+= apoc.vectordb.chroma.delete
+:description: This section contains reference documentation for the apoc.vectordb.chroma.delete procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Deletes the vectors with the specified `ids`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.chroma.delete(hostOrKey :: STRING, collection :: STRING, ids :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: LIST?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|ids|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|LIST?
+|===
+
+xref::vectordb/chroma.adoc[More documentation of apoc.vectordb.chroma.delete,role=more information]

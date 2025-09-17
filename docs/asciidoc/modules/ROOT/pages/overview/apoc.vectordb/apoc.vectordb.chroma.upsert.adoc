@@ -1,0 +1,33 @@
+= apoc.vectordb.chroma.upsert
+:description: This section contains reference documentation for the apoc.vectordb.chroma.upsert procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+
+== Signature
+
+[source]
+----
+apoc.vectordb.chroma.upsert(hostOrKey :: STRING, collection :: STRING, vectors :: LIST<MAP<STRING, ANY>>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|vectors|LIST<MAP<STRING, ANY>>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/chroma.adoc[More documentation of apoc.vectordb.chroma.upsert,role=more information]

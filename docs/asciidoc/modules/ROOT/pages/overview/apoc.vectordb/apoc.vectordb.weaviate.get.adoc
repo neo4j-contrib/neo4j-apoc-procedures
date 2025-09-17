@@ -1,0 +1,33 @@
+= apoc.vectordb.weaviate.get
+:description: This section contains reference documentation for the apoc.vectordb.weaviate.get procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Gets the vectors with the specified `ids`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.weaviate.get(hostOrKey :: STRING, collection :: STRING, ids :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|ids|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/weaviate.adoc[More documentation of apoc.vectordb.weaviate.get,role=more information]

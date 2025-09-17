@@ -13,7 +13,7 @@ Returns index of the `element` that match the given `value`
 |xref::overview/apoc.agg/apoc.agg.row.adoc[apoc.agg.row icon:book[]]
 
 Returns index of the `element` that match the given `predicate`
-|label:procedure[]
+c
 
 
 |xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]

@@ -1,0 +1,15 @@
+= apoc.node
+:description: This section contains reference documentation for the apoc.node procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.node/apoc.node.match.adoc[apoc.node.match icon:book[]]
+
+Matches the given `NODE` values with the given dynamic labels.
+|label:procedure[]
+|xref::overview/apoc.node/apoc.node.rebind.adoc[apoc.node.rebind icon:book[]]
+
+apoc.node.rebind(node) - to rebind a node (i.e. executing a Transaction.getNodeById(node.getId())
+|label:function[]
+|===

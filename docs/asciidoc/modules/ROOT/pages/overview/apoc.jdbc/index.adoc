@@ -1,0 +1,11 @@
+= apoc.jdbc
+:description: This section contains reference documentation for the apoc.jdbc procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.jdbc/apoc.jdbc.analytics.adoc[apoc.jdbc.analytics icon:book[]]
+
+apoc.jdbc.analytics(<cypherQuery>, <jdbcUrl>, <sqlQueryOverTemporaryTable>, <paramsList>, $config) - to create a temporary table starting from a Cypher query and delegate complex analytics to the database defined JDBC URL
+|label:procedure[]
+|===

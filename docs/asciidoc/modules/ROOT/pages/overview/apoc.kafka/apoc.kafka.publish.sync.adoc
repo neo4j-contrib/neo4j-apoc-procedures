@@ -1,0 +1,32 @@
+= apoc.kafka.publish.sync
+:description: This section contains reference documentation for the apoc.kafka.publish.sync procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Allows custom synchronous streaming from Neo4j to the configured stream environment
+
+== Signature
+
+[source]
+----
+apoc.kafka.publish.sync(topic :: STRING?, payload :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|topic|STRING?|null
+|payload|ANY?|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::kafka/kafka.adoc[More documentation of apoc.kafka.publish.sync,role=more information]

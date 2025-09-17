@@ -1,0 +1,35 @@
+= apoc.vectordb.milvus.query
+:description: This section contains reference documentation for the apoc.vectordb.milvus.query procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Retrieve closest vectors the the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+
+== Signature
+
+[source]
+----
+apoc.vectordb.milvus.query(hostOrKey :: STRING, collection :: STRING, vector = [] :: LIST<FLOAT>, filter = {} :: MAP?, limit = 10 :: INTEGER, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|vector|LIST<FLOAT>|[]
+|filter|MAP?|{}
+|limit|INTEGER|10
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/milvus.adoc[More documentation of apoc.vectordb.milvus.query,role=more information]

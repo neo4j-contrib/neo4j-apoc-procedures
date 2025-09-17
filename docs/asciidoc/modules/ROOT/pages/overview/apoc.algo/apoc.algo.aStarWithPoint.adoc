@@ -1,0 +1,36 @@
+= apoc.algo.aStarWithPoint
+:description: This section contains reference documentation for the apoc.algo.aStarWithPoint procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Equivalent to apoc.algo.aStar but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
+
+== Signature
+
+[source]
+----
+apoc.algo.aStarWithPoint(startNode :: NODE, endNode :: NODE, relationshipTypesAndDirections :: STRING, weightPropertyName :: STRING, pointPropertyName :: STRING) :: (path :: PATH?, weight :: FLOAT?, totalCost :: FLOAT?, nodes :: LIST<NODE>, relationships :: LIST<RELATIONSHIP>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|startNode|NODE|null
+|endNode|NODE|null
+|relationshipTypesAndDirections|STRING|null
+|weightPropertyName|STRING|null
+|pointPropertyName|STRING|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|path|PATH?
+|weight|FLOAT?
+|totalCost|FLOAT?
+|nodes|LIST<NODE>
+|relationships|LIST<RELATIONSHIP>
+|===

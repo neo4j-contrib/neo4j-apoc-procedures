@@ -1,0 +1,31 @@
+= apoc.export.parquet.query.stream
+:description: This section contains reference documentation for the apoc.export.parquet.query.stream procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the given Cypher query as a Parquet byte array.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.query.stream(query :: STRING, config = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|query|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.query.stream,role=more information]

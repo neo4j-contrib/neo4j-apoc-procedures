@@ -1,0 +1,38 @@
+= apoc.diff.graphs
+:description: This section contains reference documentation for the apoc.diff.graphs procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Compares two graphs and returns the results
+
+== Signature
+
+[source]
+----
+apoc.diff.graphs(source :: ANY?, dest :: ANY?, config = {} :: MAP?) :: (difference :: ANY?, entityType :: STRING?, id :: INTEGER?, sourceLabel :: STRING?, destLabel :: STRING?, source :: ANY?, dest :: ANY?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|source|ANY?|null
+|dest|ANY?|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|difference|ANY?
+|entityType|STRING?
+|id|INTEGER?
+|sourceLabel|STRING?
+|destLabel|STRING?
+|source|ANY?
+|dest|ANY?
+|===
+
+xref::comparing-graphs/graph-difference.adoc[More documentation of apoc.diff.graphs,role=more information]

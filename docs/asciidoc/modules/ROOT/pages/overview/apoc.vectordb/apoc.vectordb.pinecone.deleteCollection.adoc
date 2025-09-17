@@ -1,0 +1,32 @@
+= apoc.vectordb.pinecone.deleteCollection
+:description: This section contains reference documentation for the apoc.vectordb.pinecone.deleteCollection procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Deletes a index with the name specified in the 2nd parameter
+
+== Signature
+
+[source]
+----
+apoc.vectordb.pinecone.deleteCollection(hostOrKey :: STRING, index :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|index|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/pinecone.adoc[More documentation of apoc.vectordb.pinecone.deleteCollection,role=more information]

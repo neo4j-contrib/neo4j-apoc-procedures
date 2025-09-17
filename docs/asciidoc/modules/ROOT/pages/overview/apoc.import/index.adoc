@@ -8,5 +8,13 @@
 
 apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
 |label:procedure[]
+|xref::overview/apoc.import/apoc.import.gexf.adoc[apoc.import.gexf icon:book[]]
+
+Imports a graph from the provided GraphML file.
+|label:procedure[]
+|xref::overview/apoc.import/apoc.import.parquet.adoc[apoc.import.parquet icon:book[]]
+
+Imports parquet from the provided file or binary
+|label:procedure[]
 |===
 

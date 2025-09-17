@@ -1,0 +1,19 @@
+= apoc.kafka
+:description: This section contains reference documentation for the apoc.kafka procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.kafka/apoc.kafka.consume.adoc[apoc.kafka.consume icon:book[]]
+
+apoc.kafka.consume(topic, {timeout: <long value>, from: <string>, groupId: <string>, commit: <boolean>, partitions:[{partition: <number>, offset: <number>}]}) YIELD event - Allows to consume custom topics
+|label:procedure[]
+|xref::overview/apoc.kafka/apoc.kafka.publish.adoc[apoc.kafka.publish icon:book[]]
+
+apoc.kafka.publish(topic, payload, config) - Allows custom streaming from Neo4j to the configured stream environment
+|label:procedure[]
+|xref::overview/apoc.kafka/apoc.kafka.publish.sync.adoc[apoc.kafka.publish.sync icon:book[]]
+
+apoc.kafka.publish.sync(topic, payload, config) - Allows custom synchronous streaming from Neo4j to the configured stream environment
+|label:procedure[]
+|===
