@@ -199,14 +199,6 @@ apoc.custom.show(databaseName) - Provides a list of custom procedures/function r
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.cypher/apoc.cypher.mapParallel.adoc[apoc.cypher.mapParallel icon:book[]]
-
-apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
-|label:procedure[]
-|xref::overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[apoc.cypher.mapParallel2 icon:book[]]
-
-apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
-|label:procedure[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel.adoc[apoc.cypher.parallel icon:book[]]
 
 apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`
@@ -1162,22 +1154,9 @@ CALL apoc.uuid.drop(label, databaseName) yield label, installed, properties \| e
 
 CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties \| eventually removes all previously added UUID handlers and returns uuids' information
 |label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.install.adoc[apoc.uuid.install icon:book[]]
-
-CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult \| it will add the uuid transaction handler
-for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
-|label:procedure[]
 |xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list icon:book[]]
 
 CALL apoc.uuid.list() yield label, installed, properties \| provides a list of all the uuid handlers installed with the related configuration
-|label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.remove.adoc[apoc.uuid.remove icon:book[]]
-
-CALL apoc.uuid.remove(label) yield label, installed, properties \| remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is
-|label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.removeAll.adoc[apoc.uuid.removeAll icon:book[]]
-
-CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
 |label:procedure[]
 |xref::overview/apoc.uuid/apoc.uuid.setup.adoc[apoc.uuid.setup icon:book[]]
 
