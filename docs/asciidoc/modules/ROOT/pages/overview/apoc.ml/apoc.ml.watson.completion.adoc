@@ -29,4 +29,4 @@ apoc.ml.watson.completion(prompt :: STRING, accessToken :: STRING, configuration
 |value|MAP?
 |===
 
-xref::ml/watson.adoc[More documentation of apoc.ml.watson.completion,role=more information]
+xref::ml/watsonai.adoc[More documentation of apoc.ml.watson.completion,role=more information]

@@ -29,4 +29,4 @@ apoc.ml.watson.embedding(texts :: LIST<STRING>, accessToken :: STRING, configura
 |embeddings|LIST<LIST<FLOAT>>
 |===
 
-xref::ml/watson.adoc[More documentation of apoc.ml.watson.embedding,role=more information]
+xref::ml/watsonai.adoc[More documentation of apoc.ml.watson.embedding,role=more information]

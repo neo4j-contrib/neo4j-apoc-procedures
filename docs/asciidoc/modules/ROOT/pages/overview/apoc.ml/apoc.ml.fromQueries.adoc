@@ -4,7 +4,7 @@
 label:procedure[] label:apoc-extended[]
 
 [.emphasis]
-Takes a list of cypher queries and returns a result in natural language
+Returns an explanation, in natural language, of the given set of queries.
 
 == Signature
 
@@ -28,4 +28,4 @@ apoc.ml.fromQueries(queries :: LIST<STRING>, conf = {} :: MAP?) :: (value :: STR
 |value|STRING?
 |===
 
-xref::ml/rag.adoc[More documentation of apoc.ml.fromQueries,role=more information]
+xref::ml/genai.adoc[More documentation of apoc.ml.fromQueries,role=more information]

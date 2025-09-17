@@ -4,7 +4,8 @@
 label:procedure[] label:apoc-extended[]
 
 [.emphasis]
-Takes a query in cypher and in natural language and returns the results in natural language
+Takes a list of paths or a vector index name, relevant attributes and a natural language question
+to create a prompt implementing a Retrieval-augmented generation (RAG) technique.
 
 == Signature
 

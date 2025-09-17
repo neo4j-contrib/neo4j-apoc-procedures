@@ -4,7 +4,7 @@
 label:procedure[] label:apoc-extended[]
 
 [.emphasis]
-Takes a question and returns a cypher query
+Takes a natural language question and transforms it into a number of requested cypher queries.
 
 == Signature
 
@@ -28,4 +28,4 @@ apoc.ml.cypher(question :: STRING, conf = {} :: MAP?) :: (value :: MAP?)
 |value|MAP?
 |===
 
-xref::ml/rag.adoc[More documentation of apoc.ml.cypher,role=more information]
+xref::ml/genai.adoc[More documentation of apoc.ml.cypher,role=more information]

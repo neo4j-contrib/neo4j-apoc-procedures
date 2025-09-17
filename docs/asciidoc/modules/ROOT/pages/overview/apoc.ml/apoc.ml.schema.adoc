@@ -27,4 +27,4 @@ apoc.ml.schema(conf = {} :: MAP?) :: (value :: STRING?)
 |value|STRING?
 |===
 
-xref::ml/rag.adoc[More documentation of apoc.ml.schema,role=more information]
+xref::ml/genai.adoc[More documentation of apoc.ml.schema,role=more information]

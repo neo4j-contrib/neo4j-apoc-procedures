@@ -29,4 +29,4 @@ apoc.ml.watson.chat(messages :: LIST<MAP<STRING, ANY>>, accessToken :: STRING, c
 |value|MAP?
 |===
 
-xref::ml/watson.adoc[More documentation of apoc.ml.watson.chat,role=more information]
+xref::ml/watsonai.adoc[More documentation of apoc.ml.watson.chat,role=more information]
