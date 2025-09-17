@@ -27,7 +27,7 @@ apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
 apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys]) 
 
 Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ... `
-|label:procedure[]
+|label:function[]
 |===
 
 == xref::overview/apoc.algo/index.adoc[]
