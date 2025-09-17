@@ -1,0 +1,32 @@
+= apoc.ml.watson.embedding
+:description: This section contains reference documentation for the apoc.ml.watson.embedding procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Returns the embeddings for a given text
+
+== Signature
+
+[source]
+----
+apoc.ml.watson.embedding(texts :: LIST<STRING>, accessToken :: STRING, configuration = {} :: MAP?) :: (embeddings :: LIST<LIST<FLOAT>>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|texts|LIST<STRING>|null
+|accessToken|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|embeddings|LIST<LIST<FLOAT>>
+|===
+
+xref::ml/watson.adoc[More documentation of apoc.ml.watson.embedding,role=more information]

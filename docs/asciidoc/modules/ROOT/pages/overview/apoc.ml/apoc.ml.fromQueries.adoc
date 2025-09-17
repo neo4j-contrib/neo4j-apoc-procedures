@@ -1,0 +1,31 @@
+= apoc.ml.fromQueries
+:description: This section contains reference documentation for the apoc.ml.fromQueries procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Takes a list of cypher queries and returns a result in natural language
+
+== Signature
+
+[source]
+----
+apoc.ml.fromQueries(queries :: LIST<STRING>, conf = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|queries|LIST<STRING>|null
+|conf|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::ml/rag.adoc[More documentation of apoc.ml.fromQueries,role=more information]

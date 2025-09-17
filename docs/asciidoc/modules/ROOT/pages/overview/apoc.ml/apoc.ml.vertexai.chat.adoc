@@ -1,0 +1,35 @@
+= apoc.ml.vertexai.chat
+:description: This section contains reference documentation for the apoc.ml.vertexai.chat procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts the completion API
+
+== Signature
+
+[source]
+----
+apoc.ml.vertexai.chat(messages :: LIST<MAP<STRING, STRING>>, accessToken :: STRING, project :: STRING, configuration = {} :: MAP?, context = "" :: STRING?, examples = [] :: LIST<MAP<STRING, MAP<STRING, STRING>>>?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|messages|LIST<MAP<STRING, STRING>>|null
+|accessToken|STRING|null
+|project|STRING|null
+|configuration|MAP?|{}
+|context|STRING?|""
+|examples|LIST<MAP<STRING, MAP<STRING, STRING>>>?|[]
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/vertexai.adoc[More documentation of apoc.ml.vertexai.chat,role=more information]

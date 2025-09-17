@@ -1,0 +1,32 @@
+= apoc.ml.watson.chat
+:description: This section contains reference documentation for the apoc.ml.watson.chat procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts the completion API
+
+== Signature
+
+[source]
+----
+apoc.ml.watson.chat(messages :: LIST<MAP<STRING, ANY>>, accessToken :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|messages|LIST<MAP<STRING, ANY>>|null
+|accessToken|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/watson.adoc[More documentation of apoc.ml.watson.chat,role=more information]

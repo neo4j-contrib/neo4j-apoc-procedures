@@ -1,0 +1,31 @@
+= apoc.ml.sagemaker.custom
+:description: This section contains reference documentation for the apoc.ml.sagemaker.custom procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+To create a customizable SageMaker call
+
+== Signature
+
+[source]
+----
+apoc.ml.sagemaker.custom(body :: ANY?, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|body|ANY?|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/sagemaker.adoc[More documentation of apoc.ml.sagemaker.custom,role=more information]

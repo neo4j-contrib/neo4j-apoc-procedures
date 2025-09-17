@@ -1,0 +1,32 @@
+= apoc.ml.mixedbread.embedding
+:description: This section contains reference documentation for the apoc.ml.mixedbread.embedding procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Returns the embeddings for a given text
+
+== Signature
+
+[source]
+----
+apoc.ml.mixedbread.embedding(texts :: LIST<STRING>, api_key :: STRING, configuration = {} :: MAP?) :: (embeddings :: LIST<LIST<FLOAT>>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|texts|LIST<STRING>|null
+|api_key|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|embeddings|LIST<LIST<FLOAT>>
+|===
+
+xref::ml/mixedbread.adoc[More documentation of apoc.ml.mixedbread.embedding,role=more information]

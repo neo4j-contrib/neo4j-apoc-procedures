@@ -1,0 +1,31 @@
+= apoc.ml.query
+:description: This section contains reference documentation for the apoc.ml.query procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Takes a question and returns the answer as a map
+
+== Signature
+
+[source]
+----
+apoc.ml.query(question :: STRING, conf = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|question|STRING|null
+|conf|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/rag.adoc[More documentation of apoc.ml.query,role=more information]

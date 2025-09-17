@@ -1,0 +1,31 @@
+= apoc.ml.cypher
+:description: This section contains reference documentation for the apoc.ml.cypher procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Takes a question and returns a cypher query
+
+== Signature
+
+[source]
+----
+apoc.ml.cypher(question :: STRING, conf = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|question|STRING|null
+|conf|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/rag.adoc[More documentation of apoc.ml.cypher,role=more information]
