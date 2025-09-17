@@ -20,7 +20,7 @@ Returns index of the `element` that match the given `predicate`
 |xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
 
 apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
-|label:procedure[]
+|label:function[]
 
 |xref::overview/apoc.agg/apoc.agg.rollup.adoc[apoc.agg.rollup icon:book[]]
 
@@ -191,14 +191,6 @@ apoc.custom.list() - provide a list of custom procedures/function registered
 |xref::overview/apoc.custom/apoc.custom.show.adoc[apoc.custom.show icon:book[]]
 
 apoc.custom.show(databaseName) - Provides a list of custom procedures/function registered
-|label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]]
-
-apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
-|label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]]
-
-apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
 |label:procedure[]
 |===
 

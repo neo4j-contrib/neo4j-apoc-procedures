@@ -36,13 +36,5 @@ apoc.custom.list() - provide a list of custom procedures/function registered
 
 apoc.custom.show(databaseName) - Provides a list of custom procedures/function registered
 |label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]]
-
-apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
-|label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]]
-
-apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
-|label:procedure[]
 |===
 
