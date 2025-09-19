@@ -1,0 +1,32 @@
+= apoc.dv.catalog.install
+:description: This section contains reference documentation for the apoc.dv.catalog.install procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Eventually adds a virtualized resource configuration
+
+== Signature
+
+[source]
+----
+apoc.dv.catalog.install(name :: STRING, databaseName = "neo4j" :: STRING?, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|name|STRING|null
+|databaseName|STRING?|"neo4j"
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

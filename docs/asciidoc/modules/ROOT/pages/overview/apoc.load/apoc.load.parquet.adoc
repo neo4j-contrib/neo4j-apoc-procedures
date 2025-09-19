@@ -1,0 +1,31 @@
+= apoc.load.parquet
+:description: This section contains reference documentation for the apoc.load.parquet procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Load parquet from the provided file or binary
+
+== Signature
+
+[source]
+----
+apoc.load.parquet(input :: ANY?, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|input|ANY?|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::import/parquet.adoc[More documentation of apoc.load.parquet,role=more information]

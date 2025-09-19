@@ -1,0 +1,199 @@
+= apoc.vectordb
+:description: This section contains reference documentation for the apoc.vectordb procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.vectordb/apoc.vectordb.configure.adoc[apoc.vectordb.configure icon:book[]]
+
+apoc.vectordb.configure(vectorName, host, credentialsValue, mapping) - To configure, given the vector defined by the 1st parameter, `host`, `credentials` and `mapping` into the system db
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.custom.adoc[apoc.vectordb.custom icon:book[]]
+
+apoc.vectordb.custom(host, $configuration) - fully customizable procedure, returns generic object results
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.custom.get.adoc[apoc.vectordb.custom.get icon:book[]]
+
+apoc.vectordb.custom.get(host, $configuration) - Customizable get / query procedure, which retrieves vectors from the host and the configuration map
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.createCollection.adoc[apoc.vectordb.chroma.createCollection icon:book[]]
+
+apoc.vectordb.chroma.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.deleteCollection.adoc[apoc.vectordb.chroma.deleteCollection icon:book[]]
+
+apoc.vectordb.chroma.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.upsert.adoc[apoc.vectordb.chroma.upsert icon:book[]]
+
+apoc.vectordb.chroma.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.delete.adoc[apoc.vectordb.chroma.delete icon:book[]]
+
+apoc.vectordb.chroma.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.get.adoc[apoc.vectordb.chroma.get icon:book[]]
+
+apoc.vectordb.chroma.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.getAndUpdate.adoc[apoc.vectordb.chroma.getAndUpdate icon:book[]]
+
+apoc.vectordb.chroma.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.query.adoc[apoc.vectordb.chroma.query icon:book[]]
+
+apoc.vectordb.chroma.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.queryAndUpdate.adoc[apoc.vectordb.chroma.queryAndUpdate icon:book[]]
+
+apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.chroma.info.adoc[apoc.vectordb.chroma.info icon:book[]]
+
+apoc.vectordb.chroma.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.createCollection.adoc[apoc.vectordb.qdrant.createCollection icon:book[]]
+
+apoc.vectordb.qdrant.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.deleteCollection.adoc[apoc.vectordb.qdrant.deleteCollection icon:book[]]
+
+apoc.vectordb.qdrant.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.upsert.adoc[apoc.vectordb.qdrant.upsert icon:book[]]
+
+apoc.vectordb.qdrant.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.delete.adoc[apoc.vectordb.qdrant.delete icon:book[]]
+
+apoc.vectordb.qdrant.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.get.adoc[apoc.vectordb.qdrant.get icon:book[]]
+
+apoc.vectordb.qdrant.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.getAndUpdate.adoc[apoc.vectordb.qdrant.getAndUpdate icon:book[]]
+
+apoc.vectordb.qdrant.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.query.adoc[apoc.vectordb.qdrant.query icon:book[]]
+
+apoc.vectordb.qdrant.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.queryAndUpdate.adoc[apoc.vectordb.qdrant.queryAndUpdate icon:book[]]
+
+apoc.vectordb.chroma.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.qdrant.info.adoc[apoc.vectordb.qdrant.info icon:book[]]
+
+apoc.vectordb.qdrant.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.createCollection.adoc[apoc.vectordb.weaviate.createCollection icon:book[]]
+
+apoc.vectordb.weaviate.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.deleteCollection.adoc[apoc.vectordb.weaviate.deleteCollection icon:book[]]
+
+apoc.vectordb.weaviate.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.upsert.adoc[apoc.vectordb.weaviate.upsert icon:book[]]
+
+apoc.vectordb.weaviate.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.delete.adoc[apoc.vectordb.weaviate.delete icon:book[]]
+
+apoc.vectordb.weaviate.delete(hostOrKey, collection, ids, $configuration) - Deletes the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.get.adoc[apoc.vectordb.weaviate.get icon:book[]]
+
+apoc.vectordb.weaviate.get(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.getAndUpdate.adoc[apoc.vectordb.weaviate.getAndUpdate icon:book[]]
+
+apoc.vectordb.weaviate.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.query.adoc[apoc.vectordb.weaviate.query icon:book[]]
+
+apoc.vectordb.weaviate.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.queryAndUpdate.adoc[apoc.vectordb.weaviate.queryAndUpdate icon:book[]]
+
+apoc.vectordb.weaviate.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.weaviate.info.adoc[apoc.vectordb.weaviate.info icon:book[]]
+
+apoc.vectordb.weaviate.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or throws an error if it does not exist
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.createCollection.adoc[apoc.vectordb.pinecone.createCollection icon:book[]]
+
+apoc.vectordb.pinecone.createCollection(hostOrKey, index, similarity, size, $configuration) - Creates a index, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.deleteCollection.adoc[apoc.vectordb.pinecone.deleteCollection icon:book[]]
+
+apoc.vectordb.pinecone.deleteCollection(hostOrKey, index, $configuration) - Deletes a index with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.upsert.adoc[apoc.vectordb.pinecone.upsert icon:book[]]
+
+apoc.vectordb.pinecone.upsert(hostOrKey, index, vectors, $configuration) - Upserts, in the index with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.delete.adoc[apoc.vectordb.pinecone.delete icon:book[]]
+
+apoc.vectordb.pinecone.delete(hostOrKey, index, ids, $configuration) - Delete the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.get.adoc[apoc.vectordb.pinecone.get icon:book[]]
+
+apoc.vectordb.pinecone.get(hostOrKey, index, ids, $configuration) - Get the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.getAndUpdate.adoc[apoc.vectordb.pinecone.getAndUpdate icon:book[]]
+
+apoc.vectordb.pinecone.getAndUpdate(hostOrKey, index, ids, $configuration) - Get the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.query.adoc[apoc.vectordb.pinecone.query icon:book[]]
+
+apoc.vectordb.pinecone.query(hostOrKey, index, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.queryAndUpdate.adoc[apoc.vectordb.pinecone.queryAndUpdate icon:book[]]
+
+apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, index, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.pinecone.info.adoc[apoc.vectordb.pinecone.info icon:book[]]
+
+apoc.vectordb.pinecone.info(hostOrKey, index, $configuration) - Get information about the specified existing index or throws an error if it does not exist
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.createCollection.adoc[apoc.vectordb.milvus.createCollection icon:book[]]
+
+apoc.vectordb.milvus.createCollection(hostOrKey, collection, similarity, size, $configuration) - Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.deleteCollection.adoc[apoc.vectordb.milvus.deleteCollection icon:book[]]
+
+apoc.vectordb.milvus.deleteCollection(hostOrKey, collection, $configuration) - Deletes a collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.upsert.adoc[apoc.vectordb.milvus.upsert icon:book[]]
+
+apoc.vectordb.milvus.upsert(hostOrKey, collection, vectors, $configuration) - Upserts, in the collection with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}]
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.delete.adoc[apoc.vectordb.milvus.delete icon:book[]]
+
+apoc.vectordb.milvus.delete(hostOrKey, collection, ids, $configuration) - Delete the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.get.adoc[apoc.vectordb.milvus.get icon:book[]]
+
+apoc.vectordb.milvus.get(hostOrKey, collection, ids, $configuration) - Get the vectors with the specified `ids`
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.getAndUpdate.adoc[apoc.vectordb.milvus.getAndUpdate icon:book[]]
+
+apoc.vectordb.milvus.getAndUpdate(hostOrKey, collection, ids, $configuration) - Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.query.adoc[apoc.vectordb.milvus.query icon:book[]]
+
+apoc.vectordb.milvus.query(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.queryAndUpdate.adoc[apoc.vectordb.milvus.queryAndUpdate icon:book[]]
+
+apoc.vectordb.milvus.queryAndUpdate(hostOrKey, collection, vector, filter, limit, $configuration) - Retrieve closest vectors the the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.milvus.info.adoc[apoc.vectordb.milvus.info icon:book[]]
+
+apoc.vectordb.milvus.info(hostOrKey, collection, $configuration) - Get information about the specified existing collection or returns a response with code 100 if it does not exist
+|label:procedure[]
+|===

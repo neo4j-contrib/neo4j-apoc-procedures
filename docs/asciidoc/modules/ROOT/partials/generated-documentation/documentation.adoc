@@ -16,30 +16,31 @@ Returns index of the `element` that match the given `value`
 
 Returns index of the `element` that match the given `predicate`
 |label:procedure[]
-|===
 
-
-[discrete]
-== xref::overview/apoc.agg/index.adoc[]
-
-[.procedures, opts=header, cols='5a,1a']
-|===
-| Qualified Name | Type
 |xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
 
 apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
-|label:procedure[]
+|label:function[]
 
 |xref::overview/apoc.agg/apoc.agg.rollup.adoc[apoc.agg.rollup icon:book[]]
 
 apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys]) 
 
 Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ... `
+|label:function[]
+|===
+
+== xref::overview/apoc.algo/index.adoc[]
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.algo/apoc.algo.aStarWithPoint.adoc[apoc.algo.aStarWithPoint icon:book[]]
+
+Equivalent to apoc.algo.aStar but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
 |label:procedure[]
 |===
 
 
-[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -58,8 +59,9 @@ apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other 
 
 == xref::overview/apoc.coll/index.adoc[]
 
-[.procedures, opts=header, cols='5a,1a,1a']
+[.procedures, opts=header, cols='5a,1a']
 |===
+| Qualified Name | Type
 |xref::overview/apoc.coll/apoc.coll.avgDuration.adoc[apoc.coll.avgDuration icon:book[]]
 
 apoc.coll.avgDuration([duration('P2DT3H'), duration('PT1H45S'), ...]) -  returns the average of a list of duration values
@@ -72,7 +74,7 @@ apoc.coll.fillObject(item, count) - returns a list of equals items with the give
 |===
 
 
-[discrete]
+
 == xref::overview/apoc.config/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -162,25 +164,33 @@ apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, exp
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.custom/apoc.custom.declareFunction.adoc[apoc.custom.declareFunction icon:book[]]
+|xref::overview/apoc.custom/apoc.custom.dropAll.adoc[apoc.custom.dropAll icon:book[]]
 
-apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function
+apoc.custom.dropAll(databaseName) - Eventually drops all previously added custom procedures/functions and returns info
 |label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.declareProcedure.adoc[apoc.custom.declareProcedure icon:book[]]
+|xref::overview/apoc.custom/apoc.custom.dropFunction.adoc[apoc.custom.dropFunction icon:book[]]
 
-apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure
+apoc.custom.dropFunction(name, databaseName) - Eventually drops the targeted custom function
+|label:procedure[]
+|xref::overview/apoc.custom/apoc.custom.dropProcedure.adoc[apoc.custom.dropProcedure icon:book[]]
+
+apoc.custom.dropProcedure(name, databaseName) - Eventually drops the targeted custom procedure
+|label:procedure[]
+|xref::overview/apoc.custom/apoc.custom.installFunction.adoc[apoc.custom.installFunction icon:book[]]
+
+apoc.custom.installFunction(signature, statement, databaseName, forceSingle, description) - Eventually registers a custom cypher function
+|label:procedure[]
+|xref::overview/apoc.custom/apoc.custom.installProcedure.adoc[apoc.custom.installProcedure icon:book[]]
+
+apoc.custom.installProcedure(signature, statement, databaseName, mode, description) - Eventually registers a custom cypher procedure
 |label:procedure[]
 |xref::overview/apoc.custom/apoc.custom.list.adoc[apoc.custom.list icon:book[]]
 
 apoc.custom.list() - provide a list of custom procedures/function registered
 |label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.removeFunction.adoc[apoc.custom.removeFunction icon:book[]]
+|xref::overview/apoc.custom/apoc.custom.show.adoc[apoc.custom.show icon:book[]]
 
-apoc.custom.removeFunction(name, type) - remove the targeted custom function
-|label:procedure[]
-|xref::overview/apoc.custom/apoc.custom.removeProcedure.adoc[apoc.custom.removeProcedure icon:book[]]
-
-apoc.custom.removeProcedure(name) - remove the targeted custom procedure
+apoc.custom.show(databaseName) - Provides a list of custom procedures/function registered
 |label:procedure[]
 |===
 
@@ -189,14 +199,6 @@ apoc.custom.removeProcedure(name) - remove the targeted custom procedure
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.cypher/apoc.cypher.mapParallel.adoc[apoc.cypher.mapParallel icon:book[]]
-
-apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
-|label:procedure[]
-|xref::overview/apoc.cypher/apoc.cypher.mapParallel2.adoc[apoc.cypher.mapParallel2 icon:book[]]
-
-apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _
-|label:procedure[]
 |xref::overview/apoc.cypher/apoc.cypher.parallel.adoc[apoc.cypher.parallel icon:book[]]
 
 apoc.cypher.parallel(fragment, `paramMap`, `keyList`) yield value - executes fragments in parallel through a list defined in `paramMap` with a key `keyList`
@@ -236,6 +238,11 @@ apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allow
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+|xref::overview/apoc.diff/apoc.diff.graphs.adoc[apoc.diff.graphs icon:book[]]
+
+apoc.diff.graphs(<source>, <dest>, <config>) - compares two graphs and returns the results
+|label:procedure[]
+
 |xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
 
 Returns a Map detailing the property differences between the two given relationships
@@ -243,7 +250,7 @@ Returns a Map detailing the property differences between the two given relations
 |===
 
 
-[discrete]
+
 == xref::overview/apoc.data/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -260,17 +267,17 @@ apoc.data.email('email_address') as {personal,user,domain} - extract the persona
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.dv/apoc.dv.catalog.add.adoc[apoc.dv.catalog.add icon:book[]]
-
-Add a virtualized resource configuration
-|label:procedure[]
-|xref::overview/apoc.dv/apoc.dv.catalog.list.adoc[apoc.dv.catalog.list icon:book[]]
-
-List all virtualized resource configs
-|label:procedure[]
-|xref::overview/apoc.dv/apoc.dv.catalog.remove.adoc[apoc.dv.catalog.remove icon:book[]]
+|xref::overview/apoc.dv/apoc.dv.catalog.drop.adoc[apoc.dv.catalog.drop icon:book[]]
 
 Remove a virtualized resource config by name
+|label:procedure[]
+|xref::overview/apoc.dv/apoc.dv.catalog.install.adoc[apoc.dv.catalog.install icon:book[]]
+
+Eventually adds a virtualized resource configuration
+|label:procedure[]
+|xref::overview/apoc.dv/apoc.dv.catalog.show.adoc[apoc.dv.catalog.show icon:book[]]
+
+List all virtualized resource configuration
 |label:procedure[]
 |xref::overview/apoc.dv/apoc.dv.query.adoc[apoc.dv.query icon:book[]]
 
@@ -287,6 +294,10 @@ Query a virtualized resource by name and return virtual nodes linked using virtu
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+|xref::overview/apoc.es/apoc.es.delete.adoc[apoc.es.delete icon:book[]]
+
+apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search
+|label:procedure[]
 |xref::overview/apoc.es/apoc.es.get.adoc[apoc.es.get icon:book[]]
 
 apoc.es.get(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null,$config) yield value - perform a GET operation on elastic search
@@ -315,10 +326,6 @@ apoc.es.query(host-or-key,index-or-null,type-or-null,query-or-null,payload-or-nu
 
 apoc.es.stats(host-or-key,$config) - elastic search statistics
 |label:procedure[]
-|xref::overview/apoc.es/apoc.es.delete.adoc[apoc.es.delete icon:book[]]
-
-apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$config) yield value - perform a DELETE operation on elastic search
-|label:procedure[]
 |===
 
 == xref::overview/apoc.export/index.adoc[]
@@ -326,19 +333,59 @@ apoc.es.delete(host-or-key,index-or-null,type-or-null,id-or-null,query-or-null,$
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
-|xref::overview/apoc.export/apoc.export.xls.all.adoc[apoc.export.xls.all icon:book[]]
+|xref::overview/apoc.export.parquet/apoc.export.parquet.all.adoc[apoc.export.parquet.all icon:book[]]
+
+Exports the full database as a Parquet file.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.all.stream.adoc[apoc.export.parquet.all.stream icon:book[]]
+
+Exports the full database as a Parquet byte array.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.data.adoc[apoc.export.parquet.data icon:book[]]
+
+Exports the given nodes and relationships as a Parquet file.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.data.stream.adoc[apoc.export.parquet.data.stream icon:book[]]
+
+Exports the given nodes and relationships as a Parquet byte array.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.graph.adoc[apoc.export.parquet.graph icon:book[]]
+
+Exports the given graph as a Parquet file.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.graph.stream.adoc[apoc.export.parquet.graph.stream icon:book[]]
+
+Exports the given graph as a Parquet byte array.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.query.adoc[apoc.export.parquet.query icon:book[]]
+
+Exports the given Cypher query as a Parquet file.
+|label:procedure[]
+
+|xref::overview/apoc.export.parquet/apoc.export.parquet.query.stream.adoc[apoc.export.parquet.query.stream icon:book[]]
+
+Exports the given Cypher query as a Parquet byte array.
+|label:procedure[]
+
+|xref::overview/apoc.export.xls.all.adoc[apoc.export.xls.all icon:book[]]
 
 apoc.export.xls.all(file,config) - exports whole database as xls to the provided file
 |label:procedure[]
-|xref::overview/apoc.export/apoc.export.xls.data.adoc[apoc.export.xls.data icon:book[]]
+|xref::overview/apoc.export.xls.data.adoc[apoc.export.xls.data icon:book[]]
 
 apoc.export.xls.data(nodes,rels,file,config) - exports given nodes and relationships as xls to the provided file
 |label:procedure[]
-|xref::overview/apoc.export/apoc.export.xls.graph.adoc[apoc.export.xls.graph icon:book[]]
+|xref::overview/apoc.export.xls.graph.adoc[apoc.export.xls.graph icon:book[]]
 
 apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to the provided file
 |label:procedure[]
-|xref::overview/apoc.export/apoc.export.xls.query.adoc[apoc.export.xls.query icon:book[]]
+|xref::overview/apoc.export.xls.query.adoc[apoc.export.xls.query icon:book[]]
 
 apoc.export.xls.query(query,file,{config,...,params:\{params}}) - exports results from the cypher statement as xls to the provided file
 |label:procedure[]
@@ -371,7 +418,7 @@ apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph 
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.gephi/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -383,7 +430,7 @@ apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) 
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.get/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -408,6 +455,26 @@ apoc.get.rels(rel\|id\|[ids]) - quickly returns all relationships with these id'
 
 apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
 |label:procedure[]
+|xref::overview/apoc.import/apoc.import.gexf.adoc[apoc.import.gexf icon:book[]]
+
+Imports a graph from the provided GraphML file.
+|label:procedure[]
+|xref::overview/apoc.import/apoc.import.parquet.adoc[apoc.import.parquet icon:book[]]
+
+Imports parquet from the provided file or binary
+|label:procedure[]
+|===
+
+
+== xref::overview/apoc.jdbc/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.jdbc/apoc.jdbc.analytics.adoc[apoc.jdbc.analytics icon:book[]]
+
+apoc.jdbc.analytics(<cypherQuery>, <jdbcUrl>, <sqlQueryOverTemporaryTable>, <paramsList>, $config) - to create a temporary table starting from a Cypher query and delegate complex analytics to the database defined JDBC URL
+|label:procedure[]
 |===
 
 == xref::overview/apoc.load/index.adoc[]
@@ -418,12 +485,12 @@ apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file o
 |xref::overview/apoc.load/apoc.load.csv.adoc[apoc.load.csv icon:book[]]
 
 apoc.load.csv('urlOrBinary',\{config}) YIELD lineNo, list, map - load CSV from URL as stream of values,
- config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.csvParams.adoc[apoc.load.csvParams icon:book[]]
 
 apoc.load.csvParams('urlOrBinary', {httpHeader: value}, payload, \{config}) YIELD lineNo, list, map - load from CSV URL (e.g. web-api) while sending headers / payload to load CSV from URL as stream of values,
- config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
+config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}
 |label:procedure[]
 |xref::overview/apoc.load/apoc.load.directory.adoc[apoc.load.directory icon:book[]]
 
@@ -449,6 +516,10 @@ apoc.load.directory.async.removeAll() - Removes all folder listeners
 
 apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database
 |label:procedure[]
+|xref::overview/apoc.load/apoc.load.gexf.adoc[apoc.load.gexf icon:book[]]
+
+apoc.load.gexf(urlOrBinary, path, $config) - load Gexf file from URL or binary source
+|label:procedure[]
 |xref::overview/apoc.load/apoc.load.html.adoc[apoc.load.html icon:book[]]
 
 apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map
@@ -469,10 +540,14 @@ apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - updat
 
 apoc.load.ldap("key" or \{connectionMap},\{searchMap}) Load entries from an ldap source (yield entry)
 |label:procedure[]
+|xref::overview/apoc.load/apoc.load.parquet.adoc[apoc.load.parquet icon:book[]]
+
+Load parquet from the provided file or binary
+|label:procedure[]
 |xref::overview/apoc.load/apoc.load.xls.adoc[apoc.load.xls icon:book[]]
 
 apoc.load.xls('url','selector',\{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
- config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
+config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
 |label:procedure[]
 |===
 
@@ -525,11 +600,11 @@ apoc.metrics.list() - get a list of available metrics
 |label:procedure[]
 |xref::overview/apoc.metrics/apoc.metrics.storage.adoc[apoc.metrics.storage icon:book[]]
 
-apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. directorySetting may be any valid neo4j directory setting name, such as 'server.directories.data'.  If null is provided as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are a neo4j.conf setting key name
+apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. directorySetting may be any valid neo4j directory setting name, such as 'server.directories.data'. If null is provided as a directorySetting, you will get back all available directory settings. For a list of available directory settings, see the Neo4j operations manual reference on configuration settings. Directory settings are **not** paths, they are a neo4j.conf setting key name
 |label:procedure[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.model/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -606,6 +681,22 @@ apoc.monitor.tx() returns informations about the neo4j transaction manager
 |label:procedure[]
 |===
 
+
+== xref::overview/apoc.node/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.node/apoc.node.match.adoc[apoc.node.match icon:book[]]
+
+Matches the given `NODE` values with the given dynamic labels.
+|label:procedure[]
+|xref::overview/apoc.node/apoc.node.rebind.adoc[apoc.node.rebind icon:book[]]
+
+apoc.node.rebind(node) - to rebind a node (i.e. executing a Transaction.getNodeById(node.getId())
+|label:function[]
+|===
+
 == xref::overview/apoc.nlp/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -675,6 +766,22 @@ Creates a (virtual) entity graph for provided text
 
 Returns a stream of entities for provided text
 |label:procedure[]
+|===
+
+
+== xref::overview/apoc.rel/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.rel/apoc.rel.match.adoc[apoc.rel.match icon:book[]]
+
+Matches the given `RELATIONSHIP` values with the given dynamic types/properties.
+|label:procedure[]
+|xref::overview/apoc.rel/apoc.rel.rebind.adoc[apoc.rel.rebind icon:book[]]
+
+apoc.rel.rebind(rel) - to rebind a rel (i.e. executing a Transaction.getRelationshipById(rel.getId())
+|label:function[]
 |===
 
 == xref::overview/apoc.redis/index.adoc[]
@@ -827,7 +934,7 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 |label:function[]
 |===
 
-[discrete]
+
 == xref::overview/apoc.systemdb/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']
@@ -869,6 +976,14 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 
 
 |label:function[]
+|xref::overview/apoc.trigger/apoc.trigger.toNode.adoc[apoc.trigger.toNode icon:book[]]
+
+apoc.trigger.toNode(node, $removedLabels, $removedNodeProperties) | function to rebuild a node as a virtual, to be used in triggers with a not 'afterAsync' phase
+|label:function[]
+|xref::overview/apoc.trigger/apoc.trigger.toRelationship.adoc[apoc.trigger.toRelationship icon:book[]]
+
+apoc.trigger.toRelationship(rel, $removedRelationshipProperties) | function to rebuild a relationship as a virtual, to be used in triggers with a not 'afterAsync' phase
+|label:function[]
 |===
 
 == xref::overview/apoc.ttl/index.adoc[]
@@ -876,6 +991,10 @@ apoc.static.getAll(prefix) - returns statically stored values from config (apoc.
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+|xref::overview/apoc.ttl/apoc.ttl.config.adoc[apoc.ttl.config icon:book[]]
+
+
+|label:function[]
 |xref::overview/apoc.ttl/apoc.ttl.expire.adoc[apoc.ttl.expire icon:book[]]
 
 CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by setting :TTL label and `ttl` property
@@ -884,10 +1003,6 @@ CALL apoc.ttl.expire(node,time,'time-unit') - expire node at specified time by s
 
 CALL apoc.ttl.expireIn(node,timeDelta,'time-unit') - expire node after specified length of time time by setting :TTL label and `ttl` property
 |label:procedure[]
-|xref::overview/apoc.ttl/apoc.ttl.config.adoc[apoc.ttl.config icon:book[]]
-
-
-|label:function[]
 |===
 
 == xref::overview/apoc.util/index.adoc[]
@@ -915,22 +1030,9 @@ CALL apoc.uuid.drop(label, databaseName) yield label, installed, properties \| e
 
 CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties \| eventually removes all previously added UUID handlers and returns uuids' information
 |label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.install.adoc[apoc.uuid.install icon:book[]]
-
-CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult \| it will add the uuid transaction handler
-for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
-|label:procedure[]
 |xref::overview/apoc.uuid/apoc.uuid.list.adoc[apoc.uuid.list icon:book[]]
 
 CALL apoc.uuid.list() yield label, installed, properties \| provides a list of all the uuid handlers installed with the related configuration
-|label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.remove.adoc[apoc.uuid.remove icon:book[]]
-
-CALL apoc.uuid.remove(label) yield label, installed, properties \| remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is
-|label:procedure[]
-|xref::overview/apoc.uuid/apoc.uuid.removeAll.adoc[apoc.uuid.removeAll icon:book[]]
-
-CALL apoc.uuid.removeAll() yield label, installed, properties \| it removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
 |label:procedure[]
 |xref::overview/apoc.uuid/apoc.uuid.setup.adoc[apoc.uuid.setup icon:book[]]
 
@@ -939,5 +1041,45 @@ CALL apoc.uuid.setup(label, databaseName, $config) \| eventually adds the uuid t
 |xref::overview/apoc.uuid/apoc.uuid.show.adoc[apoc.uuid.show icon:book[]]
 
 CALL apoc.uuid.show(databaseName) \| it lists all eventually installed UUID handler for a database
+|label:procedure[]
+|===
+
+
+== xref::overview/apoc.vectordb/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.vectordb/apoc.vectordb.configure.adoc[apoc.vectordb.configure icon:book[]]
+
+apoc.vectordb.configure(vectorName, host, credentialsValue, mapping) - To configure, given the vector defined by the 1st parameter, `host`, `credentials` and `mapping` into the system db
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.custom.adoc[apoc.vectordb.custom icon:book[]]
+
+apoc.vectordb.custom(host, $configuration) - fully customizable procedure, returns generic object results
+|label:procedure[]
+|xref::overview/apoc.vectordb/apoc.vectordb.custom.get.adoc[apoc.vectordb.custom.get icon:book[]]
+
+apoc.vectordb.custom.get(host, $configuration) - Customizable get / query procedure, which retrieves vectors from the host and the configuration map
+|label:procedure[]
+|===
+
+
+== xref::overview/apoc.kafka/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.kafka/apoc.kafka.consume.adoc[apoc.kafka.consume icon:book[]]
+
+apoc.kafka.consume(topic, {timeout: <long value>, from: <string>, groupId: <string>, commit: <boolean>, partitions:[{partition: <number>, offset: <number>}]}) YIELD event - Allows to consume custom topics
+|label:procedure[]
+|xref::overview/apoc.kafka/apoc.kafka.publish.adoc[apoc.kafka.publish icon:book[]]
+
+apoc.kafka.publish(topic, payload, config) - Allows custom streaming from Neo4j to the configured stream environment
+|label:procedure[]
+|xref::overview/apoc.kafka/apoc.kafka.publish.sync.adoc[apoc.kafka.publish.sync icon:book[]]
+
+apoc.kafka.publish.sync(topic, payload, config) - Allows custom synchronous streaming from Neo4j to the configured stream environment
 |label:procedure[]
 |===

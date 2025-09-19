@@ -1,0 +1,33 @@
+= apoc.vectordb.chroma.getAndUpdate
+:description: This section contains reference documentation for the apoc.vectordb.chroma.getAndUpdate procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities
+
+== Signature
+
+[source]
+----
+apoc.vectordb.chroma.getAndUpdate(hostOrKey :: STRING, collection :: STRING, ids :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|ids|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/chroma.adoc[More documentation of apoc.vectordb.chroma.getAndUpdate,role=more information]

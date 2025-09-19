@@ -1,0 +1,32 @@
+= apoc.vectordb.qdrant.info
+:description: This section contains reference documentation for the apoc.vectordb.qdrant.info procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Get information about the specified existing collection or throws an error if it does not exist
+
+== Signature
+
+[source]
+----
+apoc.vectordb.qdrant.info(hostOrKey :: STRING, collection :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/qdrant.adoc[More documentation of apoc.vectordb.qdrant.info,role=more information]

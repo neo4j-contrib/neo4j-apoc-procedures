@@ -1,0 +1,34 @@
+= apoc.vectordb.weaviate.createCollection
+:description: This section contains reference documentation for the apoc.vectordb.weaviate.createCollection procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Creates a collection, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.weaviate.createCollection(hostOrKey :: STRING, collection :: STRING, similarity :: STRING, size :: INTEGER, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|similarity|STRING|null
+|size|INTEGER|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/weaviate.adoc[More documentation of apoc.vectordb.weaviate.createCollection,role=more information]

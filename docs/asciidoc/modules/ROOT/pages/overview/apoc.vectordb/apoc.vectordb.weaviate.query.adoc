@@ -1,0 +1,35 @@
+= apoc.vectordb.weaviate.query
+:description: This section contains reference documentation for the apoc.vectordb.weaviate.query procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Retrieves closest vectors from the defined `vector`, `limit` of results, in the collection with the name specified in the 2nd parameter
+
+== Signature
+
+[source]
+----
+apoc.vectordb.weaviate.query(hostOrKey :: STRING, collection :: STRING, vector = [] :: LIST<FLOAT>, filter = {} :: MAP?, limit = 10 :: INTEGER, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|vector|LIST<FLOAT>|[]
+|filter|MAP?|{}
+|limit|INTEGER|10
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/weaviate.adoc[More documentation of apoc.vectordb.weaviate.query,role=more information]

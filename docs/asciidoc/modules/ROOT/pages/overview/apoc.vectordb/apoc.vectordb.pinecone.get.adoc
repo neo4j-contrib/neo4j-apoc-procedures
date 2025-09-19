@@ -1,0 +1,33 @@
+= apoc.vectordb.pinecone.get
+:description: This section contains reference documentation for the apoc.vectordb.pinecone.get procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Get the vectors with the specified `ids`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.pinecone.get(hostOrKey :: STRING, index :: STRING, ids :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|index|STRING|null
+|ids|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/pinecone.adoc[More documentation of apoc.vectordb.pinecone.get,role=more information]

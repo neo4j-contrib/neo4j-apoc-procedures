@@ -1,0 +1,32 @@
+= apoc.vectordb.weaviate.deleteCollection
+:description: This section contains reference documentation for the apoc.vectordb.weaviate.deleteCollection procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Deletes a collection with the name specified in the 2nd parameter
+
+== Signature
+
+[source]
+----
+apoc.vectordb.weaviate.deleteCollection(hostOrKey :: STRING, collection :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/weaviate.adoc[More documentation of apoc.vectordb.weaviate.deleteCollection,role=more information]

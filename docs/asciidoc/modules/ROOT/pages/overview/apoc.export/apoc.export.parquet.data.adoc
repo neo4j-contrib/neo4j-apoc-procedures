@@ -1,0 +1,33 @@
+= apoc.export.parquet.data
+:description: This section contains reference documentation for the apoc.export.parquet.data procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the given nodes and relationships as a Parquet file.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.data(nodes :: LIST<NODE>, rels :: LIST<RELATIONSHIP>, file :: STRING, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|nodes|LIST<NODE>|null
+|rels|LIST<RELATIONSHIP>|null
+|file|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.data,role=more information]

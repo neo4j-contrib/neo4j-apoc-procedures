@@ -1,0 +1,32 @@
+= apoc.export.parquet.query
+:description: This section contains reference documentation for the apoc.export.parquet.query procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the given Cypher query as a Parquet file.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.query(query :: STRING, file :: STRING, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|query|STRING|null
+|file|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.query,role=more information]

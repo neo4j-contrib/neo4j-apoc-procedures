@@ -1,0 +1,31 @@
+= apoc.dv.catalog.drop
+:description: This section contains reference documentation for the apoc.dv.catalog.drop procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Remove a virtualized resource config by name
+
+== Signature
+
+[source]
+----
+apoc.dv.catalog.drop(name :: STRING, databaseName = "neo4j" :: STRING?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|name|STRING|null
+|databaseName|STRING?|"neo4j"
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

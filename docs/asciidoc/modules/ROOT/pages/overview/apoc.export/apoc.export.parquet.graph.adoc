@@ -1,0 +1,32 @@
+= apoc.export.parquet.graph
+:description: This section contains reference documentation for the apoc.export.parquet.graph procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the given graph as a Parquet file.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.graph(graph :: MAP?, file :: STRING, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|graph|MAP?|null
+|file|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.graph,role=more information]
