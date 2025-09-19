@@ -2,7 +2,7 @@
 = Google Cloud Vertex.AI API Access
 :description: This section describes procedures that can be used to access the Vertex.AI API.
 
-NOTE: You need to create a Google Cloud project in your account an enable the Vertex.AI services. As an access-token you can run `gcloud auth print-access-token`. Using these services will incurr costs on your Google Cloud account.
+NOTE: You need to create a Google Cloud project in your account an enable the Vertex.AI services. As an access-token you can run `gcloud auth print-access-token`. Using these services will incur costs on your Google Cloud account.
 
 
 All the following procedures can have the following APOC config, i.e. in `apoc.conf` or via docker env variable

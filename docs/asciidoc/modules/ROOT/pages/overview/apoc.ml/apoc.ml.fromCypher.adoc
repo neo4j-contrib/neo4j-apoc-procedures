@@ -1,0 +1,31 @@
+= apoc.ml.fromCypher
+:description: This section contains reference documentation for the apoc.ml.fromCypher procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Takes a natural language question and transforms it into natural language query explanation.
+
+== Signature
+
+[source]
+----
+apoc.ml.fromCypher(cypher :: STRING, conf = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|cypher|STRING|null
+|conf|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::ml/genai.adoc[More documentation of apoc.ml.fromCypher,role=more information]

@@ -1,0 +1,31 @@
+= apoc.ml.sagemaker.chat
+:description: This section contains reference documentation for the apoc.ml.sagemaker.chat procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts the chat completion API
+
+== Signature
+
+[source]
+----
+apoc.ml.sagemaker.chat(messages :: LIST<MAP<STRING, STRING>>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|messages|LIST<MAP<STRING, STRING>>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/sagemaker.adoc[More documentation of apoc.ml.sagemaker.chat,role=more information]

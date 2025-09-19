@@ -658,6 +658,130 @@ apoc.mongodb.get.byObjectId(hostOrKey, db, collection, objectIdValue, config(def
 |label:procedure[]
 |===
 
+== xref::overview/apoc.ml/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.ml/apoc.ml.openai.embedding.adoc[apoc.ml.openai.embedding icon:book[]]
+
+apoc.openai.embedding([texts], api_key, configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.openai.completion.adoc[apoc.ml.openai.completion icon:book[]]
+
+apoc.ml.openai.completion(prompt, api_key, configuration) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.openai.chat.adoc[apoc.ml.openai.chat icon:book[]]
+
+apoc.ml.openai.chat(messages, api_key, configuration]) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.sagemaker.custom.adoc[apoc.ml.sagemaker.custom icon:book[]]
+
+apoc.ml.sagemaker.chat(body, $conf) - To create a customizable SageMaker call
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.sagemaker.chat.adoc[apoc.ml.sagemaker.chat icon:book[]]
+
+apoc.ml.sagemaker.chat(messages, $conf) - Prompts the chat completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.sagemaker.completion.adoc[apoc.ml.sagemaker.completion icon:book[]]
+
+apoc.ml.sagemaker.completion(prompt, $conf) - Prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.sagemaker.embedding.adoc[apoc.ml.sagemaker.embedding icon:book[]]
+
+apoc.ml.sagemaker.embedding([texts], $configuration) - Returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.list.adoc[apoc.ml.bedrock.list icon:book[]]
+
+apoc.ml.bedrock.list() - lists the available Bedrock models
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.custom.adoc[apoc.ml.bedrock.custom icon:book[]]
+
+apoc.ml.bedrock.custom(body, configuration) - to create a customizable bedrock call
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.chat.adoc[apoc.ml.bedrock.chat icon:book[]]
+
+apoc.ml.bedrock.chat(messages, $conf) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.completion.adoc[apoc.ml.bedrock.completion icon:book[]]
+
+apoc.ml.bedrock.completion(prompt, $conf) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.embedding.adoc[apoc.ml.bedrock.embedding icon:book[]]
+
+apoc.ml.bedrock.embedding([texts], $configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.bedrock.image.adoc[apoc.ml.bedrock.image icon:book[]]
+
+apoc.ml.bedrock.image(body, configuration) - generates an image from a prompt
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.watson.embedding.adoc[apoc.ml.watson.embedding icon:book[]]
+
+apoc.ml.watson.embedding([texts], accessToken, $configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.watson.chat.adoc[apoc.ml.watson.chat icon:book[]]
+
+apoc.ml.watson.chat(messages, accessToken, $configuration) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.watson.completion.adoc[apoc.ml.watson.completion icon:book[]]
+
+apoc.ml.watson.completion(prompt, accessToken, $configuration) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.mixedbread.custom.adoc[apoc.ml.mixedbread.custom icon:book[]]
+
+apoc.mixedbread.custom(, configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.mixedbread.embedding.adoc[apoc.ml.mixedbread.embedding icon:book[]]
+
+apoc.mixedbread.mixedbread([texts], api_key, configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.rag.adoc[apoc.ml.rag icon:book[]]
+
+apoc.ml.rag() - takes a query in cypher and in natural language and returns the results in natural language
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.fromCypher.adoc[apoc.ml.fromCypher icon:book[]]
+
+apoc.ml.fromCypher() - takes a query in cypher and in natural language and returns the results in natural language
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.query.adoc[apoc.ml.query icon:book[]]
+
+apoc.ml.query() - takes a question and returns the answer as a map
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.schema.adoc[apoc.ml.schema icon:book[]]
+
+apoc.ml.schema() - returns the schema of the database
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.cypher.adoc[apoc.ml.cypher icon:book[]]
+
+apoc.ml.cypher() - takes a question and returns a cypher query
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.fromQueries.adoc[apoc.ml.fromQueries icon:book[]]
+
+apoc.ml.fromQueries() - takes a list of cypher queries and returns a result in natural language
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.vertexai.embedding.adoc[apoc.ml.vertexai.embedding icon:book[]]
+
+apoc.vertexai.embedding([texts], accessToken, project, configuration) - returns the embeddings for a given text
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.vertexai.completion.adoc[apoc.ml.vertexai.completion icon:book[]]
+
+apoc.ml.vertexai.completion(prompt, accessToken, project, configuration) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.vertexai.chat.adoc[apoc.ml.vertexai.chat icon:book[]]
+
+apoc.ml.vertexai.chat(messages, accessToken, project, configuration]) - prompts the completion API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.vertexai.stream.adoc[apoc.ml.vertexai.stream icon:book[]]
+
+apoc.ml.vertexai.stream(contents, accessToken, project, configuration) - prompts the streaming API
+|label:procedure[]
+|xref::overview/apoc.ml/apoc.ml.vertexai.custom.adoc[apoc.ml.vertexai.custom icon:book[]]
+
+apoc.ml.vertexai.custom(contents, accessToken, project, configuration) - prompts a customizable API
+|label:procedure[]
+|===
+
+
 == xref::overview/apoc.monitor/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a']

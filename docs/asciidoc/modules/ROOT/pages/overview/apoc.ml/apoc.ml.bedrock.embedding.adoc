@@ -1,0 +1,31 @@
+= apoc.ml.bedrock.embedding
+:description: This section contains reference documentation for the apoc.ml.bedrock.embedding procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Returns the embeddings for a given text
+
+== Signature
+
+[source]
+----
+apoc.ml.bedrock.embedding(texts :: LIST<STRING>, configuration = {} :: MAP?) :: (embeddings :: LIST<LIST<FLOAT>>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|texts|LIST<STRING>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|embeddings|LIST<LIST<FLOAT>>
+|===
+
+xref::ml/bedrock.adoc[More documentation of apoc.ml.bedrock.embedding,role=more information]
