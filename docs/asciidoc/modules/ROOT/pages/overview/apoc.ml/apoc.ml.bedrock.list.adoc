@@ -1,0 +1,30 @@
+= apoc.ml.bedrock.list
+:description: This section contains reference documentation for the apoc.ml.bedrock.list procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Lists the available Bedrock models
+
+== Signature
+
+[source]
+----
+apoc.ml.bedrock.list(configuration = {} :: MAP?) :: (models :: LIST<MAP>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|models|LIST<MAP>
+|===
+
+xref::ml/bedrock.adoc[More documentation of apoc.ml.bedrock.list,role=more information]

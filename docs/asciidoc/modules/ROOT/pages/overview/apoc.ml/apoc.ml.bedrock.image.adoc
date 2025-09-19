@@ -1,0 +1,31 @@
+= apoc.ml.bedrock.image
+:description: This section contains reference documentation for the apoc.ml.bedrock.image procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Generates an image from a prompt
+
+== Signature
+
+[source]
+----
+apoc.ml.bedrock.image(body :: MAP?, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|body|MAP?|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/bedrock.adoc[More documentation of apoc.ml.bedrock.image,role=more information]

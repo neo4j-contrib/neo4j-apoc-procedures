@@ -1,0 +1,34 @@
+= apoc.ml.rag
+:description: This section contains reference documentation for the apoc.ml.rag procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Takes a list of paths or a vector index name, relevant attributes and a natural language question
+to create a prompt implementing a Retrieval-augmented generation (RAG) technique.
+
+== Signature
+
+[source]
+----
+apoc.ml.rag(paths :: ANY?, attributes :: LIST<STRING>, question :: STRING, conf = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|paths|ANY?|null
+|attributes|LIST<STRING>|null
+|question|STRING|null
+|conf|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::ml/rag.adoc[More documentation of apoc.ml.rag,role=more information]

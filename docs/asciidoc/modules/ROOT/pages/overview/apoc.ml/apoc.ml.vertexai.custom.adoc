@@ -1,0 +1,33 @@
+= apoc.ml.vertexai.custom
+:description: This section contains reference documentation for the apoc.ml.vertexai.custom procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts a customizable API
+
+== Signature
+
+[source]
+----
+apoc.ml.vertexai.custom(body :: MAP?, accessToken :: STRING, project :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|body|MAP?|null
+|accessToken|STRING|null
+|project|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/vertexai.adoc[More documentation of apoc.ml.vertexai.custom,role=more information]
