@@ -1,0 +1,55 @@
+= apoc.algo.aStarWithPoint
+:description: This section contains reference documentation for the apoc.algo.aStarWithPoint procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Equivalent to apoc.algo.aStar (present in APOC Core) but accepts a Point type as a pointProperty instead of Number types as latitude and longitude properties
+
+== Signature
+
+[source]
+----
+apoc.algo.aStarWithPoint(startNode :: NODE, endNode :: NODE, relationshipTypesAndDirections :: STRING, weightPropertyName :: STRING, pointPropertyName :: STRING) :: (path :: PATH?, weight :: FLOAT?, totalCost :: FLOAT?, nodes :: LIST<NODE>, relationships :: LIST<RELATIONSHIP>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|startNode|NODE|null
+|endNode|NODE|null
+|relationshipTypesAndDirections|STRING|null
+|weightPropertyName|STRING|null
+|pointPropertyName|STRING|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|path|PATH?
+|weight|FLOAT?
+|totalCost|FLOAT?
+|nodes|LIST<NODE>
+|relationships|LIST<RELATIONSHIP>
+|===
+
+
+== Usage Examples
+
+[source,cypher]
+----
+MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'})
+CALL apoc.algo.aStarWithPoint(from, to, 'DIRECT', 'dist', 'coords') yield path, weight
+RETURN path, weight
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| weight | path
+| 697430.0 | (:City {name: "München",lon: 11.5755,lat: 48.1374,coords: point({srid:4979, x:11.5755, y:48.1374, z:1})})<-[:DIRECT {dist: 304280.0}]-(:City {name: "Frankfurt",lon: 8.68333,lat: 50.1167,coords: point({srid:4979, x:8.68333, y:50.1167, z:1})})-[:DIRECT {dist: 393150.0}]->(:City {name: "Hamburg",lon: 9.994583,lat: 53.554423,coords: point({srid:4979, x:9.994583, y:53.554423, z:1})})
+|===
+

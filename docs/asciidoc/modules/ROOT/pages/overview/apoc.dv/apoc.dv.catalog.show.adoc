@@ -1,0 +1,30 @@
+= apoc.dv.catalog.show
+:description: This section contains reference documentation for the apoc.dv.catalog.show procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+List all virtualized resource configuration
+
+== Signature
+
+[source]
+----
+apoc.dv.catalog.show(databaseName = "neo4j" :: STRING?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|databaseName|STRING?|"neo4j"
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

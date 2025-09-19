@@ -1,0 +1,23 @@
+= apoc.rel.rebind
+:description: This section contains reference documentation for the apoc.rel.rebind function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+to rebind a rel (i.e. executing a Transaction.getRelationshipById(rel.getId())
+
+== Signature
+
+[source]
+----
+apoc.rel.rebind(rel :: RELATIONSHIP) :: (RELATIONSHIP)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|rel|RELATIONSHIP|null
+|===
+
+xref::operational/rebind.adoc[More documentation of apoc.node.rebind,role=more information]

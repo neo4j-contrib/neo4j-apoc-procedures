@@ -1,0 +1,31 @@
+= apoc.vectordb.custom
+:description: This section contains reference documentation for the apoc.vectordb.custom procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+fully customizable procedure, returns generic object results
+
+== Signature
+
+[source]
+----
+apoc.vectordb.custom(host :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|host|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::database-integration/vectordb/index.adoc[More documentation of apoc.vectordb.configure,role=more information]

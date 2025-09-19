@@ -45,3 +45,5 @@ The procedures support the following config parameters:
 | name | type | default | description
 | direction | String | "OUT" | The direction of the relationships, i.e. outgoing ("OUT") or incoming ("IN").
 |===
+
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

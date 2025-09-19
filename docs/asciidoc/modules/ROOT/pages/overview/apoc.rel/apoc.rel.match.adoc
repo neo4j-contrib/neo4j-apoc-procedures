@@ -1,0 +1,34 @@
+= apoc.rel.match
+:description: This section contains reference documentation for the apoc.rel.match procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Matches the given `RELATIONSHIP` values with the given dynamic types/properties.
+
+== Signature
+
+[source]
+----
+apoc.rel.match(startNode :: NODE, relType :: STRING, identProps :: MAP?, endNode :: NODE, onMatchProps = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|startNode|NODE|null
+|relType|STRING|null
+|identProps|MAP?|null
+|endNode|NODE|null
+|onMatchProps|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::misc/match-entities.adoc[More documentation of apoc.node.match,role=more information]

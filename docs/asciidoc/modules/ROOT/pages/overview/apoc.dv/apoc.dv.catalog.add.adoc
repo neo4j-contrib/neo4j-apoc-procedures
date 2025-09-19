@@ -45,3 +45,4 @@ This procedure is not intended to be used in a cluster environment, and may act 
 |params|LIST? OF STRING?
 |===
 
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

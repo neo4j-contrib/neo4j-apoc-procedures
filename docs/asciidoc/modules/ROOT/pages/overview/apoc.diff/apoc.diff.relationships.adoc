@@ -66,3 +66,5 @@ a|
 }
 ----
 |===
+
+xref::comparing-graphs/graph-difference.adoc[More documentation of apoc.diff.graphs,role=more information]

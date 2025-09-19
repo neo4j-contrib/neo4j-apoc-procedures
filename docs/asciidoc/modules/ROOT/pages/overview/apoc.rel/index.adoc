@@ -1,0 +1,15 @@
+= apoc.rel
+:description: This section contains reference documentation for the apoc.rel procedures.
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.rel/apoc.rel.match.adoc[apoc.rel.match icon:book[]]
+
+Matches the given `RELATIONSHIP` values with the given dynamic types/properties.
+|label:procedure[]
+|xref::overview/apoc.rel/apoc.rel.rebind.adoc[apoc.rel.rebind icon:book[]]
+
+apoc.rel.rebind(rel) - to rebind a rel (i.e. executing a Transaction.getRelationshipById(rel.getId())
+|label:function[]
+|===

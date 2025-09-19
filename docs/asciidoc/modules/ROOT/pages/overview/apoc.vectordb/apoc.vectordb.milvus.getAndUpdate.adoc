@@ -1,0 +1,33 @@
+= apoc.vectordb.milvus.getAndUpdate
+:description: This section contains reference documentation for the apoc.vectordb.milvus.getAndUpdate procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Gets the vectors with the specified `ids`, and optionally creates/updates neo4j entities
+
+== Signature
+
+[source]
+----
+apoc.vectordb.milvus.getAndUpdate(hostOrKey :: STRING, collection :: STRING, ids :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|ids|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/milvus.adoc[More documentation of apoc.vectordb.milvus.getAndUpdate,role=more information]

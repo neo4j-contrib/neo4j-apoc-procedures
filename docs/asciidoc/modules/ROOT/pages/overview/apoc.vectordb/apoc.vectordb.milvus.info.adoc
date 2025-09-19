@@ -1,0 +1,33 @@
+= apoc.vectordb.milvus.info
+:description: This section contains reference documentation for the apoc.vectordb.milvus.info procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Get information about the specified existing collection or returns a response with code 100 if it does not exist
+
+== Signature
+
+[source]
+----
+apoc.vectordb.milvus.info(hostOrKey :: STRING, collection :: STRING, dbName = "default" :: STRING?, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|dbName|STRING?|"default"
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/milvus.adoc[More documentation of apoc.vectordb.milvus.info,role=more information]

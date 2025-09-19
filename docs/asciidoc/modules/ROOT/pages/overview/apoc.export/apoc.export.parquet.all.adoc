@@ -1,0 +1,31 @@
+= apoc.export.parquet.all
+:description: This section contains reference documentation for the apoc.export.parquet.all procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the full database as a Parquet file.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.all(file :: STRING, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|file|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.all,role=more information]

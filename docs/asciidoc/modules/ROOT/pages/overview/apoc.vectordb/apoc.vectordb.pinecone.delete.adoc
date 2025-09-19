@@ -1,0 +1,33 @@
+= apoc.vectordb.pinecone.delete
+:description: This section contains reference documentation for the apoc.vectordb.pinecone.delete procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Delete the vectors with the specified `ids`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.pinecone.delete(hostOrKey :: STRING, index :: STRING, vectors :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|index|STRING|null
+|vectors|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/pinecone.adoc[More documentation of apoc.vectordb.pinecone.delete,role=more information]

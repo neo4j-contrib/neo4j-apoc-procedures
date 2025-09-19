@@ -1,0 +1,33 @@
+= apoc.vectordb.configure
+:description: This section contains reference documentation for the apoc.vectordb.configure procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+To configure, given the vector defined by the 1st parameter, `host`, `credentials` and `mapping` into the system db
+
+== Signature
+
+[source]
+----
+apoc.vectordb.configure(vectorName :: STRING, configKey :: STRING, databaseName :: STRING, config = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|vectorName|STRING|null
+|configKey|STRING|null
+|databaseName|STRING|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::database-integration/vectordb/index.adoc[More documentation of apoc.vectordb.configure,role=more information]

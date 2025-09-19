@@ -32,3 +32,4 @@ include::partial$/dv/deprecated.adoc[]
 |params|LIST? OF STRING?
 |===
 
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]
