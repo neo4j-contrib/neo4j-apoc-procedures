@@ -7,7 +7,6 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -58,7 +57,6 @@ public class StartupExtendedTest {
     }
 
     @Test
-    @Ignore
     public void checkCoreAndExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended, apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startContainerSessionWithExtraDeps((version) -> createDB(version, List.of(CORE, EXTENDED), true),
@@ -71,7 +69,6 @@ public class StartupExtendedTest {
     }
 
     @Test
-    @Ignore
     public void checkExtendedWithExtraDependenciesJars() {
         // we check that with apoc-extended jar and all extra-dependencies jars every procedure/function is detected
         // all full procedures and functions are present, also the ones which require extra-deps, e.g. the apoc.export.xls.*
@@ -99,7 +96,6 @@ public class StartupExtendedTest {
     }
 
     @Test
-    @Ignore
     public void checkCoreWithExtraDependenciesJars() {
         // we check that with apoc-core jar and all extra-dependencies jars every procedure/function is detected
         startContainerSessionWithExtraDeps((version) -> createDB(version, List.of(CORE), true),
