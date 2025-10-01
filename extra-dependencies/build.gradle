@@ -95,6 +95,14 @@ ext {
 
         // javax
         exclude group: 'javax.servlet', module: 'javax.servlet-api'
+
+        // org.apache.logging
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-core'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-layout-template-json'
+        
+        // commons.io
+        exclude group: 'commons-io', module: 'commons-io'
     }
 }
 
