@@ -11,6 +11,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.Sensitive;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -75,7 +76,7 @@ public class Jdbc {
 
     @Procedure(name = "apoc.load.jdbc", mode = Mode.READ)
     @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
-    public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
+    public Stream<RowResult> jdbc(@Name("jdbc") @Sensitive String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         params = params != null ? params : Collections.emptyList();
         return executeQuery(urlOrKey, tableOrSelect, config, log, params.toArray(new Object[params.size()]));
