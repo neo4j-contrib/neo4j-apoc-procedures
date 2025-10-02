@@ -308,6 +308,23 @@ CALL apoc.ml.openai.chat([{"role": "user", "content": "Explain the importance of
     {endpoint: 'https://api.groq.com/openai/v1', model: 'llama3-70b-8192'})
 ----
 
+
+
+We can also use the (https://docs.mistral.ai/getting-started/quickstart/ )[Mistral API] with the `apoc.ml.openai.chat` procedure, 
+for example:
+
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+ {role: "user", content: "What planet do humans live on?"}
+], 
+'<apiKey>',
+{
+ endpoint: 'https://api.mistral.ai/v1', 
+ model: 'mistral-large-latest'
+})
+----
+
 === Anthropic API (OpenAI-compatible)
 
 Another alternative is to use the https://docs.anthropic.com/en/api/getting-started[Anthropic API].
