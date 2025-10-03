@@ -1,0 +1,309 @@
+We can convert any YAML string to list/map of nodes/rels
+
+.Convert YAML string to map
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("a: 42
+b: foo") AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "b": "foo",
+  "a": 42
+}
+----
+|===
+
+
+.Convert YAML string to map, with custom mapping
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("a: 42
+b: foo", {mapping: {a: "Long"} }) AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+{
+  "b": "foo",
+  "a": 42
+}
+|===
+
+.Convert YAML string to map with custom features
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("a: 42
+b: foo", {enable: ['MINIMIZE_QUOTES'], disable: ['WRITE_DOC_START_MARKER']}) AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+{
+  "b": "foo",
+  "a": 42
+}
+|===
+
+
+.Convert YAML string to list
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+- 1
+- 2
+- 3") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+[1, 2, 3]
+|===
+
+
+.Convert YAML string to list and mapping type Long
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+- 1
+- 2
+- 3",
+{mapping: {_: "Long"}}) as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+[1, 2, 3]
+|===
+
+.Convert from YAML string to map
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+                            a: 42
+                            b: \"foo\"
+                            c:
+                            - 1
+                            - 2
+                            - 3") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "b": "foo",
+  "c": [
+    1,
+    2,
+    3
+  ],
+  "a": 42
+}
+|===
+
+.Convert from YAML string to node
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+id: \"<elementID>\"
+type: \"node\"
+labels:
+- \"Test\"
+properties:
+foo: 7") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+    "id": "<elementID>",
+    "labels": [
+        "Test"
+    ],
+    "properties": {
+        "foo": 7
+    },
+    "type": "node"
+}
+|===
+
+.Convert from YAML string to map with null values
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+a: null
+b: \"myString\"
+c:
+- 1
+- \"2\"
+- null") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "b": "myString",
+  "c": [
+    1,
+    "2",
+    null
+  ],
+  "a": null
+}
+|===
+
+.Convert from YAML string to map of nodes
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+one:
+    id: \"8d3a6b87-39ad-4482-9ce7-5684fe79fc57\"
+    type: \"node\"
+    labels:
+    - \"Test\"
+    properties:
+    foo: 7
+two:
+    id: \"3fc16aeb-629f-4181-97d2-a25b22b28b75\"
+    type: \"node\"
+    labels:
+    - \"Test\"
+    properties:
+    bar: 9
+") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+    "two": {
+        "id": "3fc16aeb-629f-4181-97d2-a25b22b28b75",
+        "labels": [
+            "Test"
+        ],
+        "properties": null,
+        "bar": 9,
+        "type": "node"
+    },
+    "one": {
+        "id": "8d3a6b87-39ad-4482-9ce7-5684fe79fc57",
+        "labels": [
+            "Test"
+        ],
+        "foo": 7,
+        "properties": null,
+        "type": "node"
+    }
+}
+|===
+
+.Convert from YAML string to relationship
+[source,cypher]
+----
+RETURN apoc.convert.fromYaml("---
+id: \"94996be1-7200-48c2-81e8-479f28bba84d\"
+type: \"relationship\"
+label: \"KNOWS\"
+start:
+    id: \"8d3a6b87-39ad-4482-9ce7-5684fe79fc57\"
+    type: \"node\"
+    labels:
+    - \"User\"
+    properties:
+    name: \"Adam\"
+end:
+    id: \"3fc16aeb-629f-4181-97d2-a25b22b28b75\"
+    type: \"node\"
+    labels:
+    - \"User\"
+    properties:
+        name: \"Jim\"
+        age: 42
+properties:
+    bffSince: \"P5M1DT12H\"
+    since: 1993.1
+") as value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+a|
+[source,json]
+----
+{
+  "id": "94996be1-7200-48c2-81e8-479f28bba84d",
+  "start": {
+    "id": "8d3a6b87-39ad-4482-9ce7-5684fe79fc57",
+    "name": "Adam",
+    "labels": [
+      "User"
+    ],
+    "properties": null,
+    "type": "node"
+  },
+  "label": "KNOWS",
+  "properties": {
+    "bffSince": "P5M1DT12H",
+    "since": 1993.1
+  },
+  "type": "relationship",
+  "end": {
+    "id": "3fc16aeb-629f-4181-97d2-a25b22b28b75",
+    "labels": [
+      "User"
+    ],
+    "properties": {
+      "name": "Jim",
+      "age": 42
+    },
+    "type": "node"
+  }
+}
+|===

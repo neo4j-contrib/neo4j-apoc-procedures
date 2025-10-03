@@ -1,8 +1,67 @@
 [[openai-api]]
 = OpenAI API Access
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/ml/openai/
 :description: This section describes procedures that can be used to access the OpenAI API.
 
 NOTE: You need to acquire an https://platform.openai.com/account/api-keys[OpenAI API key^] to use these procedures. Using them will incur costs on your OpenAI account. You can set the api key globally by defining the `apoc.openai.key` configuration in `apoc.conf`
+
+
+
+All the following procedures can have the following APOC config, i.e. in `apoc.conf` or via docker env variable
+.Apoc configuration
+|===
+|key | description | default
+| apoc.ml.openai.type | "AZURE" or "OPENAI", indicates whether the API is Azure or not | "OPENAI" 
+| apoc.ml.openai.url | the OpenAI endpoint base url | https://api.openai.com/v1 
+    (or empty string if `apoc.ml.openai.type=AZURE`)
+| apoc.ml.azure.api.version | in case of `apoc.ml.openai.type=AZURE`, indicates the `api-version` to be passed after the `?api-version=` url | ""
+|===
+
+
+Moreover, they can have the following configuration keys, as the last parameter.
+If present, they take precedence over the analogous APOC configs.
+
+.Common configuration parameter
+
+|===
+| key | description
+| apiType | analogous to `apoc.ml.openai.type` APOC config
+| endpoint | analogous to `apoc.ml.openai.url` APOC config
+| apiVersion | analogous to `apoc.ml.azure.api.version` APOC config
+| failOnError | If true (default), the procedure fails in case of empty, blank or null input
+| enableBackOffRetries | If set to true, enables the backoff retry strategy for handling failures. (default: false)
+| backOffRetries | Sets the maximum number of retry attempts before the operation throws an exception. (default: 5)
+| exponentialBackoff | If set to true, applies an exponential progression to the wait time between retries. If set to false, the wait time increases linearly. (default: false)
+|===
+
+
+Therefore, we can use the following procedures with the Open AI Services provided by Azure,
+pointing to the correct endpoints https://learn.microsoft.com/it-it/azure/ai-services/openai/reference[as explained in the documentation].
+
+That is, if we want to call an endpoint like https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/embeddings?api-version=my-api-version` for example,
+by passing as a configuration parameter:
+```
+    {endpoint: "https://my-resource.openai.azure.com/openai/deployments/my-deployment-id",
+        apiVersion: my-api-version,
+        apiType: 'AZURE'
+}
+```
+
+The `/embeddings` portion will be added under-the-hood.
+Similarly, if we use the `apoc.ml.openai.completion`,  if we want to call an endpoint like `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/completions?api-version=my-api-version` for example,
+we can write the same configuration parameter as above,
+where the `/completions` portion will be added.
+
+While using the `apoc.ml.openai.chat`, with the same configuration, the url portion `/chat/completions` will be added
+
+Or else, we can write this `apoc.conf`:
+```
+apoc.ml.openai.url=https://my-resource.openai.azure.com/openai/deployments/my-deployment-id
+apoc.ml.azure.api.version=my-api-version
+apoc.ml.openai.type=AZURE
+```
+
+
 
 == Generate Embeddings API
 
@@ -30,7 +89,15 @@ CALL apoc.ml.openai.embedding(['Some Text'], $apiKey, {}) yield index, text, emb
 |name | description
 | texts | List of text strings
 | apiKey | OpenAI API key
-| configuration | optional map for entries like model and other request parameters
+| configuration | optional map for entries like model and other request parameters.
+
+    We can also pass a custom `endpoint: <MyAndPointKey>` entry (it takes precedence over the `apoc.ml.openai.url` config).
+    The `<MyAndPointKey>` can be the complete andpoint (e.g. using Azure: `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/chat/completions?api-version=my-api-version`),
+    or with a `%s` (e.g. using Azure: `https://my-resource.openai.azure.com/openai/deployments/my-deployment-id/%s?api-version=my-api-version`) which will eventually be replaced with `embeddings`, `chat/completion` and `completion` 
+    by using respectively the `apoc.ml.openai.embedding`, `apoc.ml.openai.chat` and `apoc.ml.openai.completion`.
+
+    Or an `authType: `AUTH_TYPE`, which can be `authType: "BEARER"` (default config.), to pass the apiKey via the header as an `Authorization: Bearer $apiKey`,
+        or `authType: "API_KEY"` to pass the apiKey as an `api-key: $apiKey` header entry.
 |===
 
 
@@ -86,7 +153,7 @@ This procedure `apoc.ml.openai.chat` takes a list of maps of chat exchanges betw
 
 It uses the `/chat/create` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
 
-Additional configuration is passed to the API, the default model used is `gpt-3.5-turbo`.
+Additional configuration is passed to the API, the default model used is `gpt-4o`.
 
 .Chat Completion Call
 [source,cypher]
@@ -100,9 +167,41 @@ CALL apoc.ml.openai.chat([
 .Chat Completion Response
 ----
 {created=1684248203, id="chatcmpl-7GqBXZr94avd4fluYDi2fWEz7DIHL",
-object="chat.completion", model="gpt-3.5-turbo-0301",
+object="chat.completion", model="gpt-4o-0301",
 usage={completion_tokens=2, prompt_tokens=26, total_tokens=28},
 choices=[{finish_reason="stop", index=0, message={role="assistant", content="Earth."}}]}
+----
+
+.Chat Completion Call with custom model
+[source,cypher]
+----
+CALL apoc.ml.openai.chat([
+{role:"user", content:"Which athletes won the gold medal in mixed doubles's curling at the 2022 Winter Olympics?"}
+],  $apiKey, { model: "gpt-3.5-turbo" }) yield value
+----
+
+.Chat Completion Response with custom model
+----
+{
+  "created" : 1721902606,
+  "usage" : {
+    "total_tokens" : 59,
+    "completion_tokens" : 32,
+    "prompt_tokens" : 27
+  },
+  "model" : "gpt-3.5-turbo-2024-05-13",
+  "id" : "chatcmpl-9opocM1gj9AMXIh7oSWWfoumJOTRC",
+  "choices" : [ {
+    "index" : 0,
+    "finish_reason" : "stop",
+    "message" : {
+      "content" : "The gold medal in mixed doubles curling at the 2022 Winter Olympics was won by the Italian team, consisting of Stefania Constantini and Amos Mosaner.",
+      "role" : "assistant"
+    }
+  } ],
+  "system_fingerprint" : "fp_400f27fa1f",
+  "object" : "chat.completion"
+}
 ----
 
 .Parameters
@@ -121,213 +220,3 @@ choices=[{finish_reason="stop", index=0, message={role="assistant", content="Ear
 | value | result entry from OpenAI (containing created, id, model, object, usage(tokens), choices(message, index, finish_reason))
 |===
 
-
-== Query with natural language
-
-This procedure `apoc.ml.query` takes a question in natural language and returns the results of that query.
-
-It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
-
-.Query call
-[source,cypher]
-----
-CALL apoc.ml.query("What movies did Tom Hanks play in?") yield value, query
-RETURN *
-----
-
-.Example response
-[source, bash]
-----
-+------------------------------------------------------------------------------------------------------------------------------+
-| value                                 | query                                                                                |
-+------------------------------------------------------------------------------------------------------------------------------+
-| {m.title -> "You've Got Mail"}        | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Apollo 13"}              | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Joe Versus the Volcano"} | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "That Thing You Do"}      | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Cloud Atlas"}            | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "The Da Vinci Code"}      | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Sleepless in Seattle"}   | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "A League of Their Own"}  | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "The Green Mile"}         | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Charlie Wilson's War"}   | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "Cast Away"}              | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-| {m.title -> "The Polar Express"}      | "cypher
-MATCH (m:Movie)<-[:ACTED_IN]-(p:Person {name: 'Tom Hanks'})
-RETURN m.title
-" |
-+------------------------------------------------------------------------------------------------------------------------------+
-12 rows
-----
-
-.Input Parameters
-[%autowidth, opts=header]
-|===
-| name | description
-| question | The question in the natural language
-| conf | An optional configuration map, please check the next section
-|===
-
-.Configuration map
-[%autowidth, opts=header]
-|===
-| name | description | mandatory
-| retries | The number of retries in case of API call failures | no, default `3`
-| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
-| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
-|===
-
-.Results
-[%autowidth, opts=header]
-|===
-| name | description
-| value | the result of the query
-| cypher | the query used to compute the result
-|===
-
-
-== Describe the graph model with natural language
-
-This procedure `apoc.ml.schema` returns a description, in natural language, of the underlying dataset.
-
-It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
-
-.Query call
-[source,cypher]
-----
-CALL apoc.ml.schema() yield value
-RETURN *
-----
-
-.Example response
-[source, bash]
-----
-+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| "The graph database schema represents a system where users can follow other users and review movies. Users (:Person) can either follow other users (:Person) or review movies (:Movie). The relationships allow users to express their preferences and opinions about movies. This schema can be compared to social media platforms where users can follow each other and leave reviews or ratings for movies they have watched. It can also be related to movie recommendation systems where user preferences and reviews play a crucial role in generating personalized recommendations." |
-+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-1 row
-----
-
-.Input Parameters
-[%autowidth, opts=header]
-|===
-| name | description
-| conf | An optional configuration map, please check the next section
-|===
-
-.Configuration map
-[%autowidth, opts=header]
-|===
-| name | description | mandatory
-| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
-| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
-|===
-
-.Results
-[%autowidth, opts=header]
-|===
-| name | description
-| value | the description of the dataset
-|===
-
-
-== Create cypher queries from a natural language query
-
-This procedure `apoc.ml.cypher` takes a natural language question and transforms it into a number of requested cypher queries.
-
-It uses the `chat/completions` API which is https://platform.openai.com/docs/api-reference/chat/create[documented here^].
-
-.Query call
-[source,cypher]
-----
-CALL apoc.ml.cypher("Who are the actors which also directed a movie?", 4) yield cypher
-RETURN *
-----
-
-.Example response
-[source, bash]
-----
-+----------------------------------------------------------------------------------------------------------------+
-| query                                                                                                          |
-+----------------------------------------------------------------------------------------------------------------+
-| "
-MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(d:Person)
-RETURN a.name as actor, d.name as director
-" |
-| "cypher
-MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(a)
-RETURN a.name
-"                               |
-| "
-MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:DIRECTED]-(d:Person)
-RETURN a.name
-"                              |
-| "cypher
-MATCH (a:Person)-[:ACTED_IN]->(:Movie)<-[:DIRECTED]-(a)
-RETURN DISTINCT a.name
-"                       |
-+----------------------------------------------------------------------------------------------------------------+
-4 rows
-----
-
-.Input Parameters
-[%autowidth, opts=header]
-|===
-| name | description | mandatory
-| question | The question in the natural language | yes
-| conf | An optional configuration map, please check the next section
-|===
-
-.Configuration map
-[%autowidth, opts=header]
-|===
-| name | description | mandatory
-| count | The number of queries to retrieve | no, default `1`
-| apiKey | OpenAI API key | in case `apoc.openai.key` is not defined
-| model | The Open AI model | no, default `gpt-3.5-turbo`
-| sample | The number of nodes to skip, e.g. a sample of 1000 will read every 1000th node. It's used as a parameter to `apoc.meta.data` procedure that computes the schema | no, default is a random number
-|===
-
-.Results
-[%autowidth, opts=header]
-|===
-| name | description
-| value | the description of the dataset
-|===

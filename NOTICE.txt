@@ -38,7 +38,7 @@ Apache-2.0
   HikariCP-4.0.3.jar
   RoaringBitmap-0.7.17.jar
   WMI4Java-1.6.3.jar
-  accessors-smart-2.5.0.jar
+  accessors-smart-2.5.2.jar
   annotations-17.0.0.jar
   apiguardian-api-1.1.0.jar
   arrow-format-16.1.0.jar
@@ -55,71 +55,73 @@ Apache-2.0
   aws-java-sdk-s3-1.12.770.jar
   byte-buddy-1.11.13.jar
   byte-buddy-agent-1.11.13.jar
+  cache-api-1.1.1.jar
   caffeine-3.0.3.jar
   cassandra-driver-core-3.10.0.jar
+  commons-beanutils-1.11.0.jar
   commons-beanutils-1.9.4.jar
   commons-cli-1.5.0.jar
   commons-codec-1.16.1.jar
   commons-collections-3.2.2.jar
   commons-collections4-4.4.jar
   commons-compress-1.26.0.jar
+  commons-compress-1.26.1.jar
   commons-configuration2-2.10.1.jar
-  commons-configuration2-2.8.0.jar
   commons-csv-1.9.0.jar
   commons-daemon-1.0.13.jar
-  commons-io-2.15.1.jar
-  commons-io-2.9.0.jar
+  commons-io-2.17.0.jar
   commons-lang-2.6.jar
-  commons-lang3-3.14.0.jar
+  commons-lang3-3.18.0.jar
   commons-logging-1.2.jar
   commons-logging-1.3.0.jar
+  commons-logging-1.3.5.jar
   commons-math3-3.6.1.jar
   commons-net-3.9.0.jar
   commons-text-1.10.0.jar
+  commons-text-1.11.0.jar
   curator-client-5.2.0.jar
   curator-framework-5.2.0.jar
   curator-recipes-5.2.0.jar
-  docker-java-api-3.2.13.jar
-  docker-java-transport-3.2.13.jar
-  docker-java-transport-zerodep-3.2.13.jar
-  ehcache-3.3.1.jar
+  docker-java-api-3.3.6.jar
+  docker-java-transport-3.3.6.jar
+  docker-java-transport-zerodep-3.3.6.jar
+  ehcache-3.8.2.jar
   error_prone_annotations-2.18.0.jar
   failureaccess-1.0.1.jar
   flatbuffers-java-23.5.26.jar
   fst-2.50.jar
-  geronimo-jcache_1.0_spec-1.0-alpha-1.jar
   gson-2.9.0.jar
   guava-32.0.1-jre.jar
   guice-4.2.3.jar
   guice-servlet-4.2.3.jar
-  hadoop-annotations-3.4.0.jar
-  hadoop-auth-3.4.0.jar
-  hadoop-common-3.4.0-tests.jar
-  hadoop-common-3.4.0.jar
-  hadoop-hdfs-3.4.0-tests.jar
-  hadoop-hdfs-3.4.0.jar
-  hadoop-hdfs-client-3.4.0.jar
-  hadoop-mapreduce-client-app-3.4.0.jar
-  hadoop-mapreduce-client-common-3.4.0.jar
-  hadoop-mapreduce-client-core-3.4.0.jar
-  hadoop-mapreduce-client-hs-3.4.0.jar
-  hadoop-mapreduce-client-jobclient-3.4.0-tests.jar
-  hadoop-mapreduce-client-jobclient-3.4.0.jar
-  hadoop-mapreduce-client-shuffle-3.4.0.jar
-  hadoop-minicluster-3.4.0.jar
-  hadoop-registry-3.4.0.jar
-  hadoop-shaded-guava-1.2.0.jar
-  hadoop-shaded-protobuf_3_21-1.2.0.jar
-  hadoop-yarn-api-3.4.0.jar
-  hadoop-yarn-client-3.4.0.jar
-  hadoop-yarn-common-3.4.0.jar
-  hadoop-yarn-server-applicationhistoryservice-3.4.0.jar
-  hadoop-yarn-server-common-3.4.0.jar
-  hadoop-yarn-server-nodemanager-3.4.0.jar
-  hadoop-yarn-server-resourcemanager-3.4.0.jar
-  hadoop-yarn-server-tests-3.4.0-tests.jar
-  hadoop-yarn-server-timelineservice-3.4.0.jar
-  hadoop-yarn-server-web-proxy-3.4.0.jar
+  hadoop-annotations-3.4.1.jar
+  hadoop-auth-3.4.1.jar
+  hadoop-common-3.4.1-tests.jar
+  hadoop-common-3.4.1.jar
+  hadoop-hdfs-3.4.1-tests.jar
+  hadoop-hdfs-3.4.1.jar
+  hadoop-hdfs-client-3.4.1.jar
+  hadoop-mapreduce-client-app-3.4.1.jar
+  hadoop-mapreduce-client-common-3.4.1.jar
+  hadoop-mapreduce-client-core-3.4.1.jar
+  hadoop-mapreduce-client-hs-3.4.1.jar
+  hadoop-mapreduce-client-jobclient-3.4.1-tests.jar
+  hadoop-mapreduce-client-jobclient-3.4.1.jar
+  hadoop-mapreduce-client-shuffle-3.4.1.jar
+  hadoop-minicluster-3.4.1.jar
+  hadoop-registry-3.4.1.jar
+  hadoop-shaded-guava-1.3.0.jar
+  hadoop-shaded-protobuf_3_25-1.3.0.jar
+  hadoop-yarn-api-3.4.1.jar
+  hadoop-yarn-client-3.4.1.jar
+  hadoop-yarn-common-3.4.1.jar
+  hadoop-yarn-server-applicationhistoryservice-3.4.1.jar
+  hadoop-yarn-server-common-3.4.1.jar
+  hadoop-yarn-server-nodemanager-3.4.1.jar
+  hadoop-yarn-server-resourcemanager-3.4.1.jar
+  hadoop-yarn-server-tests-3.4.1-tests.jar
+  hadoop-yarn-server-timelineservice-3.4.1.jar
+  hadoop-yarn-server-web-proxy-3.4.1.jar
   httpclient-4.5.13.jar
   httpcore-4.4.13.jar
   ipaddress-5.3.3.jar
@@ -134,6 +136,7 @@ Apache-2.0
   jackson-databind-2.17.2.jar
   jackson-dataformat-cbor-2.17.2.jar
   jackson-dataformat-csv-2.17.2.jar
+  jackson-dataformat-yaml-2.17.0.jar
   jackson-datatype-jsr310-2.17.0.jar
   jackson-datatype-jsr310-2.17.2.jar
   jackson-jaxrs-base-2.15.2.jar
@@ -152,40 +155,34 @@ Apache-2.0
   jcip-annotations-1.0-1.jar
   jctools-core-3.3.0.jar
   jettison-1.5.4.jar
-  jetty-http-9.4.53.v20231009.jar
-  jetty-io-9.4.53.v20231009.jar
-  jetty-security-9.4.53.v20231009.jar
-  jetty-server-9.4.53.v20231009.jar
-  jetty-servlet-9.4.53.v20231009.jar
-  jetty-util-9.4.53.v20231009.jar
-  jetty-util-ajax-9.4.53.v20231009.jar
-  jetty-webapp-9.4.53.v20231009.jar
-  jetty-xml-9.4.53.v20231009.jar
+  jetty-http-9.4.57.v20241219.jar
+  jetty-io-9.4.57.v20241219.jar
+  jetty-security-9.4.57.v20241219.jar
+  jetty-server-9.4.57.v20241219.jar
+  jetty-servlet-9.4.57.v20241219.jar
+  jetty-util-9.4.57.v20241219.jar
+  jetty-util-ajax-9.4.57.v20241219.jar
+  jetty-webapp-9.4.57.v20241219.jar
+  jetty-xml-9.4.57.v20241219.jar
   jffi-1.2.16-native.jar
   jffi-1.2.16.jar
   jmespath-java-1.12.770.jar
+  jna-5.13.0.jar
   jna-5.9.0.jar
   jnr-constants-0.9.9.jar
   jnr-ffi-2.1.7.jar
   joda-time-2.12.7.jar
   json-path-2.9.0.jar
-  json-smart-2.5.0.jar
+  json-smart-2.5.2.jar
   jsonschema2pojo-core-1.0.2.jar
   jsr305-3.0.2.jar
-  kerb-admin-2.0.3.jar
-  kerb-client-2.0.3.jar
-  kerb-common-2.0.3.jar
   kerb-core-2.0.3.jar
   kerb-crypto-2.0.3.jar
-  kerb-identity-2.0.3.jar
-  kerb-server-2.0.3.jar
-  kerb-simplekdc-2.0.3.jar
   kerb-util-2.0.3.jar
   kerby-asn1-2.0.3.jar
   kerby-config-2.0.3.jar
   kerby-pkix-2.0.3.jar
   kerby-util-2.0.3.jar
-  kerby-xdr-2.0.3.jar
   listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
   log4j-api-2.17.1.jar
   log4j-core-2.17.1.jar
@@ -197,11 +194,11 @@ Apache-2.0
   mercator_2.12-0.2.1.jar
   metrics-core-3.2.4.jar
   netty-all-4.1.100.Final.jar
-  netty-buffer-4.1.111.Final.jar
-  netty-codec-4.1.111.Final.jar
+  netty-buffer-4.1.119.Final.jar
+  netty-codec-4.1.119.Final.jar
   netty-codec-dns-4.1.100.Final.jar
   netty-codec-haproxy-4.1.100.Final.jar
-  netty-codec-http-4.1.111.Final.jar
+  netty-codec-http-4.1.119.Final.jar
   netty-codec-http2-4.1.100.Final.jar
   netty-codec-memcache-4.1.100.Final.jar
   netty-codec-mqtt-4.1.100.Final.jar
@@ -210,35 +207,35 @@ Apache-2.0
   netty-codec-socks-4.1.100.Final.jar
   netty-codec-stomp-4.1.100.Final.jar
   netty-codec-xml-4.1.100.Final.jar
-  netty-common-4.1.111.Final.jar
-  netty-handler-4.1.111.Final.jar
+  netty-common-4.1.119.Final.jar
+  netty-handler-4.1.119.Final.jar
   netty-handler-proxy-4.1.100.Final.jar
   netty-handler-ssl-ocsp-4.1.100.Final.jar
-  netty-resolver-4.1.111.Final.jar
+  netty-resolver-4.1.119.Final.jar
   netty-resolver-dns-4.1.100.Final.jar
   netty-resolver-dns-classes-macos-4.1.100.Final.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-aarch_64.jar
   netty-resolver-dns-native-macos-4.1.100.Final-osx-x86_64.jar
-  netty-transport-4.1.111.Final.jar
-  netty-transport-classes-epoll-4.1.111.Final.jar
+  netty-transport-4.1.119.Final.jar
+  netty-transport-classes-epoll-4.1.119.Final.jar
   netty-transport-classes-kqueue-4.1.100.Final.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-aarch_64.jar
-  netty-transport-native-epoll-4.1.111.Final-linux-x86_64.jar
-  netty-transport-native-epoll-4.1.111.Final.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-aarch_64.jar
+  netty-transport-native-epoll-4.1.119.Final-linux-x86_64.jar
+  netty-transport-native-epoll-4.1.119.Final.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-aarch_64.jar
   netty-transport-native-kqueue-4.1.100.Final-osx-x86_64.jar
-  netty-transport-native-unix-common-4.1.111.Final.jar
+  netty-transport-native-unix-common-4.1.119.Final.jar
   netty-transport-rxtx-4.1.100.Final.jar
   netty-transport-sctp-4.1.100.Final.jar
   netty-transport-udt-4.1.100.Final.jar
-  nimbus-jose-jwt-9.31.jar
+  nimbus-jose-jwt-9.37.2.jar
   objenesis-3.2.jar
   opencsv-5.7.1.jar
   opentest4j-1.2.0.jar
   parboiled-core-1.2.0.jar
   parboiled-scala_2.12-1.2.0.jar
   picocli-4.6.1.jar
-  reactor-core-3.6.7.jar
+  reactor-core-3.6.14.jar
   reload4j-1.2.22.jar
   scala-library-2.12.13.jar
   scala-reflect-2.12.13.jar
@@ -251,8 +248,8 @@ Apache-2.0
   shiro-crypto-hash-1.13.0.jar
   shiro-event-1.13.0.jar
   shiro-lang-1.13.0.jar
+  snakeyaml-2.2.jar
   snappy-java-1.1.10.4.jar
-  token-provider-2.0.3.jar
   websocket-api-9.4.53.v20231009.jar
   websocket-client-9.4.53.v20231009.jar
   websocket-common-9.4.53.v20231009.jar
@@ -261,8 +258,8 @@ Apache-2.0
   woodstox-core-5.4.0.jar
   xercesImpl-2.12.2.jar
   xml-apis-1.4.01.jar
-  zookeeper-3.8.3.jar
-  zookeeper-jute-3.8.3.jar
+  zookeeper-3.8.4.jar
+  zookeeper-jute-3.8.4.jar
 
 Apache-2.0
   gradle-tooling-api-6.1.1.jar
@@ -274,13 +271,10 @@ BSD 2-Clause
   jersey-hk2-2.34.jar
 
 BSD-2-Clause
-  jline-3.22.0.jar
+  jline-3.9.0.jar
   jsch-0.1.55.jar
   stax2-api-4.2.1.jar
   zstd-jni-1.5.0-4.jar
-
-BSD-2-Clause
-  dnsjava-3.4.0.jar
 
 BSD-3-Clause
   ST4-4.1.jar
@@ -290,7 +284,7 @@ BSD-3-Clause
   antlr4-4.7.2.jar
   antlr4-runtime-4.7.2.jar
   asm-9.2.jar
-  asm-9.3.jar
+  asm-9.7.1.jar
   asm-analysis-9.2.jar
   asm-commons-5.0.3.jar
   asm-tree-9.2.jar
@@ -298,7 +292,9 @@ BSD-3-Clause
   hamcrest-2.2.jar
   hamcrest-core-1.3.jar
   leveldbjni-all-1.8.jar
-  protobuf-java-2.5.0.jar
+
+BSD-3-Clause
+  dnsjava-3.6.1.jar
 
 Common Development and Distribution License Version 1.1
   codemodel-2.6.jar
@@ -307,7 +303,7 @@ Common Development and Distribution License Version 1.1
   jersey-client-1.19.4.jar
   jersey-core-1.19.4.jar
   jersey-guice-1.19.4.jar
-  jersey-json-1.20.jar
+  jersey-json-1.22.0.jar
   jersey-server-1.19.4.jar
   jersey-servlet-1.19.4.jar
   jsp-api-2.1.jar
@@ -340,15 +336,15 @@ Eclipse Distribution License - v 1.0
 Eclipse Public License - Version 1.0
   javax-websocket-client-impl-9.4.53.v20231009.jar
   javax-websocket-server-impl-9.4.53.v20231009.jar
-  jetty-http-9.4.53.v20231009.jar
-  jetty-io-9.4.53.v20231009.jar
-  jetty-security-9.4.53.v20231009.jar
-  jetty-server-9.4.53.v20231009.jar
-  jetty-servlet-9.4.53.v20231009.jar
-  jetty-util-9.4.53.v20231009.jar
-  jetty-util-ajax-9.4.53.v20231009.jar
-  jetty-webapp-9.4.53.v20231009.jar
-  jetty-xml-9.4.53.v20231009.jar
+  jetty-http-9.4.57.v20241219.jar
+  jetty-io-9.4.57.v20241219.jar
+  jetty-security-9.4.57.v20241219.jar
+  jetty-server-9.4.57.v20241219.jar
+  jetty-servlet-9.4.57.v20241219.jar
+  jetty-util-9.4.57.v20241219.jar
+  jetty-util-ajax-9.4.57.v20241219.jar
+  jetty-webapp-9.4.57.v20241219.jar
+  jetty-xml-9.4.57.v20241219.jar
   websocket-api-9.4.53.v20231009.jar
   websocket-client-9.4.53.v20231009.jar
   websocket-common-9.4.53.v20231009.jar
@@ -360,10 +356,6 @@ Eclipse Public License - v 1.0
   eclipse-collections-api-10.4.0.jar
   junit-4.13.2.jar
   schemacrawler-15.04.01.jar
-
-Eclipse Public License - v 1.0
-  logback-classic-1.2.10.jar
-  logback-core-1.2.10.jar
 
 Eclipse Public License - v 2.0
   hk2-api-2.6.1.jar
@@ -396,10 +388,6 @@ GNU General Public License (GPL), version 2, with the Classpath exception
 GNU Lesser General Public License
   schemacrawler-15.04.01.jar
 
-GNU Lesser General Public License
-  logback-classic-1.2.10.jar
-  logback-core-1.2.10.jar
-
 GNU Lesser General Public License Version 2.1
   jnr-posix-3.0.44.jar
 
@@ -410,7 +398,7 @@ GPL2 w/ CPE
   jersey-client-1.19.4.jar
   jersey-core-1.19.4.jar
   jersey-guice-1.19.4.jar
-  jersey-json-1.20.jar
+  jersey-json-1.22.0.jar
   jersey-server-1.19.4.jar
   jersey-servlet-1.19.4.jar
 
@@ -435,17 +423,19 @@ LGPL 2.1
   javassist-3.25.0-GA.jar
 
 LGPL-2.1-or-later
+  jna-5.13.0.jar
   jna-5.9.0.jar
 
 MIT
-  bcpkix-jdk15on-1.70.jar
+  bcpkix-jdk18on-1.78.1.jar
   bcpkix-jdk18on-1.78.jar
-  bcprov-jdk15on-1.70.jar
+  bcprov-jdk18on-1.78.1.jar
   bcprov-jdk18on-1.78.jar
-  bcutil-jdk15on-1.70.jar
+  bcutil-jdk18on-1.78.1.jar
   bcutil-jdk18on-1.78.jar
   cassandra-1.17.6.jar
   checker-qual-3.42.0.jar
+  chromadb-1.19.7.jar
   couchbase-1.17.6.jar
   database-commons-1.17.6.jar
   duct-tape-1.0.8.jar
@@ -458,17 +448,20 @@ MIT
   jnr-x86asm-1.0.2.jar
   jsoup-1.15.3.jar
   localstack-1.17.6.jar
+  milvus-1.19.7.jar
   mockito-core-3.12.4.jar
   mssql-jdbc-6.2.1.jre7.jar
   mysql-1.17.6.jar
   neo4j-1.17.6.jar
   postgresql-1.17.6.jar
+  qdrant-1.19.7.jar
   reactive-streams-1.0.4.jar
   slf4j-api-1.7.36.jar
   slf4j-api-2.0.11.jar
   slf4j-nop-1.7.30.jar
   slf4j-reload4j-1.7.36.jar
-  testcontainers-1.17.6.jar
+  testcontainers-1.19.7.jar
+  weaviate-1.19.7.jar
 
 MPL 1.1
   javassist-3.25.0-GA.jar

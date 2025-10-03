@@ -1,5 +1,6 @@
 [[misc]]
 = Miscellaneous
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/misc/
 :description: This chapter describes miscellaneous functions and procedures in the APOC library.
 
 
@@ -10,6 +11,7 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * xref::misc/spatial.adoc[]
 * xref::misc/static-values.adoc[]
 * xref::misc/utility-functions.adoc[]
+* xref::misc/match-entities.adoc[]
 
 
 

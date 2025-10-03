@@ -1,0 +1,28 @@
+
+= apoc.trigger.toRelationship
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.trigger/apoc.trigger.toRelationship/
+:description: This section contains reference documentation for the apoc.trigger.toRelationship function.
+
+label:function[] label:apoc-full[]
+
+== Signature
+
+[source]
+----
+apoc.trigger.toRelationship(rel :: RELATIONSHIP, removedRelationshipProperties :: MAP) :: RELATIONSHIP
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default 
+|rel|RELATIONSHIP|null
+|removedRelationshipProperties|MAP|null
+|===
+
+[[usage-apoc.trigger.nodesByLabel]]
+== Usage Examples
+include::partial$usage/apoc.trigger.toRelationship.adoc[]
+
+xref::background-operations/triggers.adoc[More documentation of apoc.trigger.toNode,role=more information]
+

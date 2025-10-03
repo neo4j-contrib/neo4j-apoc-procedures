@@ -1,5 +1,6 @@
 [[web-apis]]
 = Load Data from Web-APIs
+:page-custom-canonical: https://neo4j.com/docs/apoc/current/import/web-apis/
 :description: This section gives an overview on how loading procedures can be used with external web APIs.
 
 

@@ -1,0 +1,260 @@
+
+= apoc.agg.rollup
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.agg/apoc.agg.rollup/
+:description: This section contains reference documentation for the apoc.agg.rollup function.
+
+label:function[] label:apoc-extended[]
+
+[.emphasis]
+apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys])
+
+Emulate an Oracle/Mysql ROLLUP command:
+`ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ...`.
+
+Note that the `[NULL]` values (see the `Interpreting "[NULL]" Values in Results` section https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32084[here])
+are returned by the procedure as `[NULL]`.
+
+
+
+== Signature
+
+[source]
+----
+apoc.agg.rollup(value :: ANY | RELATIONSHIP, groupKeys :: LIST OF STRING, aggKeys :: LIST OF STRING) :: (MAP?)
+----
+
+== Config parameters
+include::partial$usage/config/apoc.agg.rollup.adoc[]
+
+[[usage-apoc.agg.rollup]]
+== Usage Examples
+
+Given this dataset:
+
+[source, cypher]
+----
+CREATE (:Product {SupplierID: 1, CategoryID: 1, anotherID: 1, Price: 18, otherNum: 0.3}),
+    (:Product {SupplierID: 11, CategoryID: 3, anotherID: 1, Price: 14.0, otherNum: 0.1}),
+    (:Product {SupplierID: 11, CategoryID: 3, anotherID: 0, Price: 31.0, otherNum: 2}),
+    (:Product {SupplierID: 11, CategoryID: 4, anotherID: 0, Price: 44, otherNum: 0.7}),
+    (:Product {SupplierID: 1, CategoryID: null, anotherID: 1, Price: 18, otherNum: 0.7}),
+    (:Product {SupplierID: null, CategoryID: null, anotherID: 0, Price: 18, otherNum: 0.6}),
+    (:Product {SupplierID: null, CategoryID: 2, anotherID: 0, Price: 199, otherNum: 0.8});
+----
+
+We can emulate a https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32084[ROLLUP] clause
+like this:
+```
+SELECT SupplierID, CategoryID, anotherID,
+   SUM(Price), AVG(Price), COUNT(Price), SUM(otherNum), AVG(otherNum), COUNT(otherNum)
+   GROUP BY ROLLUP(SupplierID, CategoryID, anotherID)
+```
+
+by executing:
+
+[source, cypher]
+----
+MATCH (p:Product)
+RETURN apoc.agg.rollup(p,
+    ["SupplierID", "CategoryID", "anotherID"],
+    ["Price", "otherNum"]
+) as data
+----
+
+
+.Results
+[opts="header"]
+|===
+| data
+a|
+[source,json]
+----
+[
+    {"AVG(otherNum)":0.3,"CategoryID":1,"anotherID":1,"SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.3,"SupplierID":1,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.3,"CategoryID":1,"anotherID":"[NULL]","SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.3,"SupplierID":1,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.5,"CategoryID":"[NULL]","anotherID":"[NULL]","SUM(Price)":36,"COUNT(Price)":2,"AVG(Price)":18,"SUM(otherNum)":1,"SupplierID":1,"COUNT(otherNum)":2},
+    {"AVG(otherNum)":0.7,"CategoryID":null,"anotherID":1,"SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.7,"SupplierID":1,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.7,"CategoryID":null,"anotherID":"[NULL]","SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.7,"SupplierID":1,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":2,"CategoryID":3,"anotherID":0,"SUM(Price)":31,"COUNT(Price)":1,"AVG(Price)":31,"SUM(otherNum)":2,"SupplierID":11,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.1,"CategoryID":3,"anotherID":1,"SUM(Price)":14,"COUNT(Price)":1,"AVG(Price)":14,"SUM(otherNum)":0.1,"SupplierID":11,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":1.05,"CategoryID":3,"anotherID":"[NULL]","SUM(Price)":45,"COUNT(Price)":2,"AVG(Price)":22.5,"SUM(otherNum)":2.1,"SupplierID":11,"COUNT(otherNum)":2},
+    {"AVG(otherNum)":0.7,"CategoryID":4,"anotherID":0,"SUM(Price)":44,"COUNT(Price)":1,"AVG(Price)":44,"SUM(otherNum)":0.7,"SupplierID":11,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.7,"CategoryID":4,"anotherID":"[NULL]","SUM(Price)":44,"COUNT(Price)":1,"AVG(Price)":44,"SUM(otherNum)":0.7,"SupplierID":11,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.9333333333333332,"CategoryID":"[NULL]","anotherID":"[NULL]","SUM(Price)":89,"COUNT(Price)":3,"AVG(Price)":29.666666666666668,"SUM(otherNum)":2.8,"SupplierID":11,"COUNT(otherNum)":3},
+    {"AVG(otherNum)":0.7428571428571428,"CategoryID":"[NULL]","anotherID":"[NULL]","SUM(Price)":342,"COUNT(Price)":7,"AVG(Price)":48.857142857142854,"SUM(otherNum)":5.199999999999999,"SupplierID":"[NULL]","COUNT(otherNum)":7},
+    {"AVG(otherNum)":0.8,"CategoryID":2,"anotherID":0,"SUM(Price)":199,"COUNT(Price)":1,"AVG(Price)":199,"SUM(otherNum)":0.8,"SupplierID":null,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.8,"CategoryID":2,"anotherID":"[NULL]","SUM(Price)":199,"COUNT(Price)":1,"AVG(Price)":199,"SUM(otherNum)":0.8,"SupplierID":null,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.7,"CategoryID":"[NULL]","anotherID":"[NULL]","SUM(Price)":217,"COUNT(Price)":2,"AVG(Price)":108.5,"SUM(otherNum)":1.4,"SupplierID":null,"COUNT(otherNum)":2},
+    {"AVG(otherNum)":0.6,"CategoryID":null,"anotherID":0,"SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.6,"SupplierID":null,"COUNT(otherNum)":1},
+    {"AVG(otherNum)":0.6,"CategoryID":null,"anotherID":"[NULL]","SUM(Price)":18,"COUNT(Price)":1,"AVG(Price)":18,"SUM(otherNum)":0.6,"SupplierID":null,"COUNT(otherNum)":1}
+]
+----
+|===
+
+Note that the `[NULL]` values (see the `Interpreting "[NULL]" Values in Results` section https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32084[here]) 
+are returned by the procedure as `[NULL]`.
+
+
+or a ROLLUP clause like:
+```
+SELECT CategoryID, SupplierID, anotherID,
+   SUM(Price), AVG(Price), COUNT(Price), SUM(otherNum), AVG(otherNum), COUNT(otherNum)
+   GROUP BY ROLLUP(CategoryID, SupplierID, anotherID)
+```
+
+
+with this query:
+
+[source, cypher]
+----
+MATCH (p:Product)
+RETURN apoc.agg.rollup(p,
+    ["CategoryID", "SupplierID", "anotherID"],
+    ["Price", "otherNum"]
+) as data
+----
+
+
+.Results
+[opts="header"]
+|===
+| data
+a|
+[source,json]
+----
+[
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": "[NULL]", "SUM(Price)": 199, "COUNT(Price)": 1, "AVG(Price)": 199.0, "SUM(otherNum)": 0.8, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": 0, "SUM(Price)": 199, "COUNT(Price)": 1, "AVG(Price)": 199.0, "SUM(otherNum)": 0.8, "SupplierID": null, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": "[NULL]", "SUM(Price)": 199, "COUNT(Price)": 1, "AVG(Price)": 199.0, "SUM(otherNum)": 0.8, "SupplierID": null, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 2.0, "CategoryID": 3, "anotherID": 0, "SUM(Price)": 31.0, "COUNT(Price)": 1, "AVG(Price)": 31.0, "SUM(otherNum)": 2, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": 3, "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": 11, "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": 0, "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7428571428571428, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 342.0, "COUNT(Price)": 7, "AVG(Price)": 48.857142857142854, "SUM(otherNum)": 5.199999999999999, "SupplierID": "[NULL]", "COUNT(otherNum)": 7}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": null, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.7, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": null, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.7, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.6499999999999999, "CategoryID": null, "anotherID": "[NULL]", "SUM(Price)": 36, "COUNT(Price)": 2, "AVG(Price)": 18.0, "SUM(otherNum)": 1.2999999999999998, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.6, "CategoryID": null, "anotherID": 0, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.6, "SupplierID": null, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.6, "CategoryID": null, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.6, "SupplierID": null, "COUNT(otherNum)": 1}
+]
+----
+|===
+
+
+We can also emulate a https://docs.oracle.com/cd/F49540_01/DOC/server.815/a68003/rollup_c.htm#32311[CUBE] clause
+like this:
+```
+SELECT SupplierID, CategoryID, anotherID,
+   SUM(Price), AVG(Price), COUNT(Price), SUM(otherNum), AVG(otherNum), COUNT(otherNum)
+   GROUP BY CUBE(SupplierID, CategoryID, anotherID)
+```
+
+
+executing:
+
+[source, cypher]
+----
+MATCH (p:Product)
+RETURN apoc.agg.rollup(p,
+    ["SupplierID", "CategoryID", "anotherID"],
+    ["Price", "otherNum"],
+    {cube: true}
+) as data
+----
+
+.Results
+[opts="header"]
+|===
+| data
+a|
+[source,json]
+----
+[
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.5666666666666667, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 54, "COUNT(Price)": 3, "AVG(Price)": 18.0, "SUM(otherNum)": 1.7, "SupplierID": 1, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 0.5666666666666667, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 54, "COUNT(Price)": 3, "AVG(Price)": 18.0, "SUM(otherNum)": 1.7, "SupplierID": 1, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 2.0, "CategoryID": 3, "anotherID": 0, "SUM(Price)": 31.0, "COUNT(Price)": 1, "AVG(Price)": 31.0, "SUM(otherNum)": 2, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": 3, "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": 11, "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": 0, "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.35, "CategoryID": "[NULL]", "anotherID": 0, "SUM(Price)": 75.0, "COUNT(Price)": 2, "AVG(Price)": 37.5, "SUM(otherNum)": 2.7, "SupplierID": 11, "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.9333333333333332, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 89.0, "COUNT(Price)": 3, "AVG(Price)": 29.666666666666668, "SUM(otherNum)": 2.8, "SupplierID": 11, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": 0, "SUM(Price)": 398, "COUNT(Price)": 2, "AVG(Price)": 199.0, "SUM(otherNum)": 1.6, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": "[NULL]", "SUM(Price)": 398, "COUNT(Price)": 2, "AVG(Price)": 199.0, "SUM(otherNum)": 1.6, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 2.0, "CategoryID": 3, "anotherID": 0, "SUM(Price)": 31.0, "COUNT(Price)": 1, "AVG(Price)": 31.0, "SUM(otherNum)": 2, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": 3, "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": 0, "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8374999999999999, "CategoryID": "[NULL]", "anotherID": 0, "SUM(Price)": 545.0, "COUNT(Price)": 8, "AVG(Price)": 68.125, "SUM(otherNum)": 6.699999999999999, "SupplierID": "[NULL]", "COUNT(otherNum)": 8}, 
+    { "AVG(otherNum)": 0.45, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 68.0, "COUNT(Price)": 4, "AVG(Price)": 17.0, "SUM(otherNum)": 1.8, "SupplierID": "[NULL]", "COUNT(otherNum)": 4}, 
+    { "AVG(otherNum)": 0.7083333333333331, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 613.0, "COUNT(Price)": 12, "AVG(Price)": 51.083333333333336, "SUM(otherNum)": 8.499999999999998, "SupplierID": "[NULL]", "COUNT(otherNum)": 12}
+]
+----
+|===
+
+or a CUBE clause like:
+```
+SELECT CategoryID, SupplierID, anotherID,
+    SUM(Price), AVG(Price), COUNT(Price), SUM(otherNum), AVG(otherNum), COUNT(otherNum)
+    GROUP BY CUBE(CategoryID, SupplierID, anotherID)
+```
+
+
+with this query:
+[source, cypher]
+----
+MATCH (p:Product)
+RETURN apoc.agg.rollup(p,
+    ["CategoryID", "SupplierID", "anotherID"],
+    ["Price", "otherNum"],
+    {cube: true}
+) as data
+----
+
+.Results
+[opts="header"]
+|===
+| data
+a|
+[source,json]
+----
+[
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": 1, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": 1, "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.3, "CategoryID": 1, "anotherID": "[NULL]", "SUM(Price)": 18, "COUNT(Price)": 1, "AVG(Price)": 18.0, "SUM(otherNum)": 0.3, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": 0, "SUM(Price)": 398, "COUNT(Price)": 2, "AVG(Price)": 199.0, "SUM(otherNum)": 1.6, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.8, "CategoryID": 2, "anotherID": "[NULL]", "SUM(Price)": 398, "COUNT(Price)": 2, "AVG(Price)": 199.0, "SUM(otherNum)": 1.6, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 2.0, "CategoryID": 3, "anotherID": 0, "SUM(Price)": 31.0, "COUNT(Price)": 1, "AVG(Price)": 31.0, "SUM(otherNum)": 2, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": 3, "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": 11, "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 2.0, "CategoryID": 3, "anotherID": 0, "SUM(Price)": 31.0, "COUNT(Price)": 1, "AVG(Price)": 31.0, "SUM(otherNum)": 2, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": 3, "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 1.05, "CategoryID": 3, "anotherID": "[NULL]", "SUM(Price)": 45.0, "COUNT(Price)": 2, "AVG(Price)": 22.5, "SUM(otherNum)": 2.1, "SupplierID": "[NULL]", "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": 0, "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": 0, "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.7, "CategoryID": 4, "anotherID": "[NULL]", "SUM(Price)": 44, "COUNT(Price)": 1, "AVG(Price)": 44.0, "SUM(otherNum)": 0.7, "SupplierID": "[NULL]", "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.5666666666666667, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 54, "COUNT(Price)": 3, "AVG(Price)": 18.0, "SUM(otherNum)": 1.7, "SupplierID": 1, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 0.5666666666666667, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 54, "COUNT(Price)": 3, "AVG(Price)": 18.0, "SUM(otherNum)": 1.7, "SupplierID": 1, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 1.35, "CategoryID": "[NULL]", "anotherID": 0, "SUM(Price)": 75.0, "COUNT(Price)": 2, "AVG(Price)": 37.5, "SUM(otherNum)": 2.7, "SupplierID": 11, "COUNT(otherNum)": 2}, 
+    { "AVG(otherNum)": 0.1, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 14.0, "COUNT(Price)": 1, "AVG(Price)": 14.0, "SUM(otherNum)": 0.1, "SupplierID": 11, "COUNT(otherNum)": 1}, 
+    { "AVG(otherNum)": 0.9333333333333332, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 89.0, "COUNT(Price)": 3, "AVG(Price)": 29.666666666666668, "SUM(otherNum)": 2.8, "SupplierID": 11, "COUNT(otherNum)": 3}, 
+    { "AVG(otherNum)": 0.8374999999999999, "CategoryID": "[NULL]", "anotherID": 0, "SUM(Price)": 545.0, "COUNT(Price)": 8, "AVG(Price)": 68.125, "SUM(otherNum)": 6.699999999999999, "SupplierID": "[NULL]", "COUNT(otherNum)": 8}, 
+    { "AVG(otherNum)": 0.45, "CategoryID": "[NULL]", "anotherID": 1, "SUM(Price)": 68.0, "COUNT(Price)": 4, "AVG(Price)": 17.0, "SUM(otherNum)": 1.8, "SupplierID": "[NULL]", "COUNT(otherNum)": 4}, 
+    { "AVG(otherNum)": 0.7083333333333331, "CategoryID": "[NULL]", "anotherID": "[NULL]", "SUM(Price)": 613.0, "COUNT(Price)": 12, "AVG(Price)": 51.083333333333336, "SUM(otherNum)": 8.499999999999998, "SupplierID": "[NULL]", "COUNT(otherNum)": 12}
+]
+----
+|===

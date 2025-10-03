@@ -48,5 +48,15 @@ apoc.graph.fromPaths([paths],'name',\{properties}) - creates a virtual graph obj
 apoc.graph.validateDocument(\{json}, \{config}) yield row - validates the json, return the result of the validation
 |label:procedure[]
 |label:apoc-core[]
+|xref::overview/apoc.graph/apoc.graph.filterProperties.adoc[apoc.graph.filterProperties icon:book[]]
+
+CALL apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove) YIELD nodes, relationships - returns a set of virtual nodes and relationships without the properties defined in nodePropertiesToRemove and relPropertiesToRemove
+|label:procedure[]
+|label:apoc-full[]
+|xref::overview/apoc.graph/apoc.graph.filterPropertiesProcedure.adoc[apoc.graph.filterProperties icon:book[]]
+
+apoc.graph.filterProperties(anyEntityObject, nodePropertiesToRemove, relPropertiesToRemove) - aggregation function which returns an object {node: [virtual nodes], relationships: [virtual relationships]} without the properties defined in nodePropertiesToRemove and relPropertiesToRemove
+|label:function[]
+|label:apoc-full[]
 |===
 

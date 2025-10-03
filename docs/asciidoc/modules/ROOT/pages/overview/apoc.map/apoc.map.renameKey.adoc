@@ -1,5 +1,6 @@
 
 = apoc.map.renameKey
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.map/apoc.map.renameKey/
 :description: This section contains reference documentation for the apoc.map.renameKey procedure.
 
 label:function[] label:apoc-full[]

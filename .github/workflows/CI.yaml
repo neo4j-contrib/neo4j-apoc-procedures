@@ -37,13 +37,13 @@ jobs:
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3.28.8
         with:
           languages: java
       - name: Compile
         run: ./gradlew compileJava compileTestJava
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3.28.8
 
   format-checks:
     runs-on: ubuntu-latest

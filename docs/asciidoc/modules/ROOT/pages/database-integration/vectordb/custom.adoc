@@ -1,0 +1,100 @@
+
+== Custom (i.e. other vector databases)
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/custom/
+
+We can also interface with other db vectors that do not (yet) have dedicated procedures.
+For example, with https://docs.pinecone.io/guides/getting-started/overview[Pinecone], as we will see later.
+
+Here is a list of all available custom procedures:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.custom.get(host, $embeddingConfig) | Customizable get / query procedure,
+returning a result like the others `apoc.vectordb.*.get` ones
+| apoc.vectordb.custom(host, $config) | Fully customizable procedure, returns generic object results.
+|===
+
+
+=== Examples
+
+
+The `apoc.vectordb.custom.get` can be used with every API that return something like this
+(note that the call does not need to return all keys):
+
+```
+[
+   "<idKey>": "value",
+   "<scoreKey>": scoreValue,
+   "<vectorKey>": [ ... ]
+   "<metadataKey>": { .. },
+    "<textKey>": "..."
+],
+[
+   ...
+]
+```
+
+where we can customize idKey, scoreKey, vectorKey, metadataKey and textKey via the homonyms config parameters.
+
+
+Let's look at some examples using https://docs.pinecone.io/guides/getting-started/overview[Pinecone].
+
+
+.apoc.vectordb.custom.get example
+[source,cypher]
+----
+CALL apoc.vectordb.custom.get('https://<INDEX-ID>.svc.gcp-starter.pinecone.io/query', {
+    body: {
+        "namespace", namespace, 
+        "vector", vector, 
+        "topK", 3,
+        "includeValues", true,
+        "includeMetadata", true
+    },
+    headers: {"Api-Key", apiKey},
+    method: null,
+    jsonPath: "matches",
+    // the RestAPI return values as the key with values the vectors
+    vectorKey: 'values'
+}), text
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text
+| 1, | {a: 1} | 1 | [1,2,3,4]
+| 0.1 | {a: 2} | 2 | [1,2,3,4]
+| ...
+|===
+
+
+
+.apoc.vectordb.custom example
+[source,cypher]
+----
+CALL apoc.vectordb.custom('https://<INDEX-ID>.svc.gcp-starter.pinecone.io/query', {
+    body: {
+        "namespace", namespace, 
+        "vector", vector, 
+        "topK", 3,
+        "includeValues", true,
+        "includeMetadata", true
+    },
+    headers: {"Api-Key", apiKey},
+    method: null,
+    jsonPath: "matches"
+})
+----
+
+
+.Example esults
+[opts="header"]
+|===
+| value
+| {score: <score>, metadata: <metadata>, id: <id>, vector: <vector>}
+| {score: <score>, metadata: <metadata>, id: <id>, vector: <vector>}
+| ...
+|===

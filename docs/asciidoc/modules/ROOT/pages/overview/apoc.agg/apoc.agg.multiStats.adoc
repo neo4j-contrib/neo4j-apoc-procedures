@@ -1,0 +1,129 @@
+
+= apoc.agg.multiStats
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.agg/apoc.agg.multiStats/
+:description: This section contains reference documentation for the apoc.agg.multiStats function.
+
+label:function[] label:apoc-full[]
+
+[.emphasis]
+apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
+
+== Signature
+
+[source]
+----
+apoc.agg.multiStats(value :: NODE | RELATIONSHIP, keys :: LIST OF STRING) :: (MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|value|NODE \| RELATIONSHIP|null
+|===
+
+
+[[usage-apoc.agg.multiStats]]
+== Usage Examples
+
+Given this dataset:
+[source,cypher]
+----
+CREATE (:Person { louvain: 596, neo4jImportId: "18349390", wcc: 48, lpa: 598, name: "aaa", another: 548}),
+    (:Person { louvain: 596, neo4jImportId: "18349390", wcc: 48, lpa: 598, name: "eee", another: 549}),
+    (:Person { louvain: 596, neo4jImportId: "18349390", wcc: 48, lpa: 598, name: "eee", another: 549}),
+    (:Person { louvain: 597, neo4jImportId: "18349391", wcc: 48, lpa: 598, name: "eee", another: 549}),
+    (:Person { louvain: 597, neo4jImportId: "18349392", wcc: 47, lpa: 596, name: "iii", another: 549}),
+    (:Person { louvain: 597, neo4jImportId: "18349393", wcc: 47, lpa: 596, name: "iii", another: 549}),
+    (:Person { louvain: 597, neo4jImportId: "18349394", wcc: 47, lpa: 596, name: "iii", another: 549}),
+    (:Person { louvain: 597, neo4jImportId: "18349393", wcc: 47, lpa: 596, name: "iii", another: 10}),
+    (:Person { louvain: 597, neo4jImportId: "18349394", wcc: 47, lpa: 596, name: "iii", another: 10})
+----
+
+
+We can create an optimized multiple aggregation based on the property key, 
+similar to this one: 
+[source,cypher]
+----
+MATCH (p:Person)
+WITH p
+CALL {
+    WITH p
+    MATCH (n:Person {louvain: p.louvain})
+    RETURN sum(p.louvain) AS sumLouvain, avg(p.louvain) AS avgLouvain, count(p.louvain) AS countLouvain
+}
+CALL {
+    WITH p
+    MATCH (n:Person {wcc: p.wcc})
+    RETURN sum(p.wcc) AS sumWcc, avg(p.wcc) AS avgWcc, count(p.wcc) AS countWcc
+}
+CALL {
+    WITH p
+    MATCH (n:Person {another: p.another})
+    RETURN sum(p.another) AS sumAnother, avg(p.another) AS avgAnother, count(p.another) AS countAnother
+}
+CALL {
+    WITH p
+    MATCH (lpa:Person {lpa: p.lpa})
+    RETURN sum(p.lpa) AS sumLpa, avg(p.lpa) AS avgLpa, count(p.lpa) AS countLpa
+}
+RETURN p.name,
+    sumLouvain, avgLouvain, countLouvain,
+    sumWcc, avgWcc, countWcc,
+    sumAnother, avgAnother, countAnother,
+    sumLpa, avgLpa, countLpa
+----
+
+
+executing the following query:
+[source,cypher]
+----
+MATCH (p:Person)
+RETURN apoc.agg.multiStats(p, ["lpa","wcc","louvain", "another"]) as output
+----
+
+
+.Results
+[opts="header"]
+|===
+| output
+a|
+[source,json]
+----
+{
+  "louvain" :{"596" :{"avg" :596.0, "count" :3, "sum" :1788}, "597" :{"avg" :597.0, "count" :6, "sum" :3582}}, 
+  "wcc" :{"47" :{"avg" :47.0, "count" :5, "sum" :235}, "48" :{"avg" :48.0, "count" :4, "sum" :192}},
+  "another" :{"548" :{"avg" :548.0, "count" :1, "sum" :548}, "549" :{"avg" :549.0, "count" :6, "sum" :3294}, "10" :{"avg" :10.0, "count" :2, "sum" :20}},
+  "lpa" :{"596" :{"avg" :596.0, "count" :5, "sum" :2980}, "598" :{"avg" :598.0, "count" :4, "sum" :2392}}
+}
+----
+|===
+
+which can be used, for example, to return a result similar to the Cypher one in this way:
+
+[source,cypher]
+----
+MATCH (p:Person)
+WITH apoc.agg.multiStats(p, ["lpa","wcc","louvain", "another"]) as data
+MATCH (p:Person)
+RETURN p.name,
+    data.wcc[toString(p.wcc)].avg AS avgWcc,
+    data.louvain[toString(p.louvain)].avg AS avgLouvain,
+    data.lpa[toString(p.lpa)].avg AS avgLpa
+----
+
+
+.Results
+[opts="header"]
+|===
+| avgWcc | avgLouvain | avgLpa
+| 48.0 | 596.0 | 598.0
+| 48.0 | 596.0 | 598.0
+| 48.0 | 596.0 | 598.0
+| 47.0 | 597.0 | 596.0
+| 47.0 | 597.0 | 596.0
+| 47.0 | 597.0 | 596.0
+| 47.0 | 597.0 | 596.0
+| 47.0 | 597.0 | 596.0
+|===
+

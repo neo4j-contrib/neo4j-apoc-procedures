@@ -1,0 +1,367 @@
+[[match-entities]]
+= Match entities
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/misc/match-entities/
+:description: This section describes procedures and functions for matching entities.
+
+The library provides 2 procedure for matching entities:
+
+- apoc.node.match
+- apoc.rel.match
+
+[[matching-node]]
+== Matching nodes
+
+[.emphasis]
+"apoc.node.match(['Label'], identProps:{key:value, ...}, onMatchProps:{key:value,...})" - match nodes with dynamic labels, with support for setting properties on matched nodes
+
+=== Signature
+
+[source]
+----
+apoc.node.match(label :: LIST? OF STRING?, identProps :: MAP?, onMatchProps = {} :: MAP?) :: (node :: NODE?)
+----
+
+=== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default | Description
+| labels | LIST? OF STRING? | null | The list of labels used for the generated MATCH statement. Passing `null` or an empty list will match a node without any constraints on labels. `null` or empty strings within the list are not supported.
+| identProps | MAP? | null | Properties that are used for MATCH statement.
+| onMatchProps | MAP? | {} | Properties that are set when a node is matched.
+|===
+
+=== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|node|NODE?
+|===
+
+This procedure provides a more flexible and performant way of matching nodes than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/match/[`MATCH`^] clause.
+
+=== Usage Examples
+The example below shows equivalent ways of matching a node with the `Person` label, with a `name` property of "Billy Reviewer":
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.node.match
+[source,cypher]
+----
+CALL apoc.node.match(
+  ["Person"],
+  {name: "Billy Reviewer"},
+  {lastSeen: datetime()}
+)
+YIELD node
+RETURN node;
+----
+
+.MATCH clause
+[source,cypher]
+----
+MATCH (node:Person {name: "Billy Reviewer"})
+SET node.lastSeen = datetime()
+RETURN node;
+----
+// end::tabs[]
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Billy Reviewer", lastSeen: 2020-11-24T11:33:39.319Z})
+|===
+
+But this procedure is mostly useful for matching nodes that have dynamic labels or properties.
+For example, we might want to create a node with labels or properties passed in as parameters.
+
+The following creates `labels` and `properties` parameters:
+
+[source,cypher]
+----
+:param labels =>  (["Person"]);
+:param identityProperties => ({name: "Billy Reviewer"});
+:param onMatchProperties => ({placeOfBirth: "Stars of the milky way, Always at the time of sunrise."});
+----
+
+The following match a node with labels and properties based on `labels` and `identityProperties`, furthermore sets a new property based on `onMatchProperties`:
+
+[source,cypher]
+----
+CALL apoc.node.match($labels, $identityProperties, $onMatchProperties)
+YIELD node
+RETURN node;
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Person {name: "Billy Reviewer", lastSeen: 2020-11-24T11:33:39.319Z, placeOfBirth: "Stars of the milky way, Always at the time of sunrise."})
+|===
+
+
+In addition, we can use the `apoc.node.match` along with the `apoc.load.json` to dynamically set nodes starting from a JSON.
+
+For example, given the following dataset:
+
+[source,cypher]
+----
+CREATE (giacomo:Person:Actor {name: 'Giacomino Poretti'}),
+    (aldo:Person:Actor {name: 'Cataldo Baglio'}),
+    (giovanni:Person:Actor {name: 'Giovanni Storti'})
+----
+
+and the following `all.json` file:
+
+[source,json]
+----
+[
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Giacomino Poretti"
+      },
+      "setProps":{
+         "bio":"Giacomo Poretti was born on April 26 1956 in Busto Garolfo",
+         "Alias":"Tafazzi"
+      }
+   },
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Giovanni Storti"
+      },
+      "setProps":{
+         "bio":"Giovanni Storti was born ...",
+         "Alias":"Rezzonico"
+      }
+   },
+   {
+      "labels":[
+         "Person",
+         "Actor"
+      ],
+      "matchProps":{
+         "name":"Cataldo Baglio"
+      },
+      "setProps":{
+         "bio":"Cataldo Baglio was born somewhere",
+         "Alias":"Ajeje"
+      }
+   }
+]
+
+----
+
+
+we can execute the following query to MATCH and SET the `Person:Actor` nodes:
+
+[source,cypher]
+----
+CALL apoc.load.json("all.json") YIELD value
+WITH value
+CALL apoc.node.match(value.labels, value.matchProps, value.setProps)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header"]
+|===
+| node
+| (:Actor:Person {name: "Giacomino Poretti",bio: "Giacomo Poretti was born on April 26 1956 in Busto Garolfo",Alias: "Tafazzi"})
+| (:Actor:Person {name: "Giovanni Storti",bio: "Giovanni Storti was born ...",Alias: "Rezzonico"})
+| (:Actor:Person {name: "Cataldo Baglio",bio: "Cataldo Baglio was born somewhere",Alias: "Ajeje"})
+|===
+
+
+
+[[matching-relationship]]
+== Matching relationships
+
+[.emphasis]
+"apoc.rel.match(startNode, relType,  identProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...})" - match relationship with dynamic type, with support for setting properties on match
+
+=== Signature
+
+[source]
+----
+apoc.rel.match(startNode :: NODE?, relationshipType :: STRING?, identProps :: MAP?, endNode :: NODE?, onMatchProps = {} :: MAP?) :: (rel :: RELATIONSHIP?)
+----
+
+=== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default | Description
+| startNode | NODE? | null | Start node of the MATCH pattern.
+| relationshipType | STRING? | null | Relationship type of the MATCH pattern.
+| identProps | MAP? | null | Properties on the relationships that are used for MATCH statement.
+| endNode | NODE? | null | End node of the MATCH pattern.
+| onMatchProps | MAP? | {} | Properties that are set when the relationship is matched.
+|===
+
+=== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|rel|RELATIONSHIP?
+|===
+
+=== Usage Examples
+
+The examples in this section are based on the following graph:
+
+[source,cypher]
+----
+CREATE (p:Person {name: "Billy Reviewer"})
+CREATE (m:Movie {title:"spooky and goofy movie"})
+CREATE (p)-[REVIEW {lastSeen: date("1984-12-21")}]->(m);
+----
+
+This procedure provides a more flexible and performant way of matching relationships than Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/match/[`MATCH`^] clause.
+
+The example below shows equivalent ways of matching an `REVIEW` relationship between the `Billy Reviewer` and a Movie nodes:
+
+// tag::tabs[]
+[.tabs]
+
+.apoc.rel.match
+[source,cypher]
+----
+MATCH (p:Person {name: "Billy Reviewer"})
+MATCH (m:Movie {title:"spooky and goofy movie"})
+CALL apoc.rel.match(
+    p, "REVIEW",
+    {lastSeen: date("1984-12-21")},
+    m, {rating: 9.5}
+)
+YIELD rel
+RETURN rel;
+----
+
+.MATCH clause
+[source,cypher]
+----
+MATCH (p:Person {name: "Billy Reviewer"})
+MATCH (m:Movie {title:"spooky and goofy movie"})
+MATCH (p)-[rel:REVIEW {lastSeen: date("1984-12-21")}]->(m)
+SET rel.rating = 9.5
+RETURN rel;
+----
+// end::tabs[]
+
+If we run these queries, we'll see output as shown below:
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:REVIEW {lastSeen: 1984-12-21, rating: 9.5}]
+|===
+
+But this procedure is mostly useful for matching relationships that have a dynamic relationship type or dynamic properties.
+For example, we might want to match a relationship with a type or properties passed in as parameters.
+
+The following creates `relationshipType` and `properties` parameters:
+
+[source,cypher]
+----
+:param relType =>  ("REVIEW");
+:param identityProperties => ({lastSeen: date("1984-12-21")});
+----
+
+The following match a relationship with a type and properties based on the previously defined parameters:
+
+[source,cypher]
+----
+MATCH (bill:Person {name: "Billy Reviewer"})
+MATCH (movie:Movie {title:"spooky and goofy movie"})
+CALL apoc.rel.match(bill, $relType, $identityProperties, movie, {}})
+YIELD rel
+RETURN rel;
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:REVIEW {lastSeen: 1984-12-21, rating: 9.5}]
+|===
+
+
+In addition, we can use the `apoc.rel.match` along with the `apoc.load.json` to dynamically set nodes starting from a JSON.
+
+For example, given the following dataset:
+
+[source,cypher]
+----
+CREATE (giacomo:Person:Actor {name: 'Giacomino Poretti'}),
+    (aldo:Person:Actor {name: 'Cataldo Baglio'}),
+    (m:Movie {title: 'Three Men and a Leg', `y:ear`: 1997, `mean-rating`: 8, `release date`: date('1997-12-27')})
+WITH aldo, m
+CREATE (aldo)-[:ACTED_IN {role: 'Aldo'}]->(m),
+    (aldo)-[:DIRECTED {role: 'Director'}]->(m)
+----
+
+and the following `all.json` file 
+(note that it leverage the elementId of start and end nodes, therefore the values are mutable):
+
+[source,json]
+----
+[
+   {
+      "startNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "endNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "type":"ACTED_IN",
+      "matchProps":{
+         "role":"Aldo"
+      },
+      "setProps":{
+         "ajeje":"Brazorf",
+         "conte":"Dracula"
+      }
+   },
+   {
+      "startNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "endNodeId": "4:b3d54d7b-2c64-4994-9a26-0bb2aa175291:0", 
+      "type":"DIRECTED",
+      "matchProps":{
+         "role":"Director"
+      },
+      "setProps":{
+         "description": "did stuff..",
+         "alias":"i dunnoaaaaaa"
+      }
+   }
+]
+----
+
+
+we can execute the following query to MATCH and SET the relationships:
+
+[source,cypher]
+----
+CALL apoc.load.json("all.json") YIELD value
+WITH value
+WHERE elementId(start) = value.startNodeId AND elementId(end) = value.endNodeId
+CALL apoc.rel.match(start, value.type, value.matchProps, end, value.setProps)
+YIELD rel
+RETURN rel
+----
+
+.Results
+[opts="header"]
+|===
+| rel
+| [:ACTED_IN {role: "Aldo",conte: "Dracula",ajeje: "Brazorf"}]
+| (:Actor:Person {name: "Giovanni Storti",bio: "Giovanni Storti was born ...",Alias: "Rezzonico"})
+| [:DIRECTED {bio: "did stuff..",alias: "i dunno",role: "Director"}]
+|===

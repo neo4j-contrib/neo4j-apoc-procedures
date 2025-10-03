@@ -209,6 +209,26 @@ apoc.bitwise.op(60,'\|',13) bitwise operations a & b, a \| b, a ^ b, ~a, a >> b,
 |===
 
 [discrete]
+== xref::overview/apoc.agg/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.agg/apoc.agg.multiStats.adoc[apoc.agg.multiStats icon:book[]]
+
+apoc.agg.multiStats(nodeOrRel, keys) - Return a multi-dimensional aggregation
+|label:procedure[]
+
+|xref::overview/apoc.agg/apoc.agg.rollup.adoc[apoc.agg.rollup icon:book[]]
+
+apoc.agg.rollup(<ANY>, [groupKeys], [aggKeys]) 
+
+Emulate an Oracle/Mysql rollup command: `ROLLUP groupKeys, SUM(aggKey1), AVG(aggKey1), COUNT(aggKey1), SUM(aggKey2), AVG(aggKey2), ... `
+|label:procedure[]
+|===
+
+
+[discrete]
 == xref::overview/apoc.bolt/index.adoc[]
 
 [.procedures, opts=header, cols='5a,1a,1a']
@@ -676,6 +696,13 @@ apoc.convert.toString(value) \| tries it's best to convert the value to a string
 apoc.convert.toStringList(value) \| tries it's best to convert the value to a list of strings
 |label:function[]
 |label:apoc-core[]
+
+|xref::overview/apoc.convert/apoc.convert.fromYaml.adoc[apoc.convert.fromYaml icon:book[]]
+
+apoc.convert.fromYaml(value, $config) - Deserializes the YAML string to Neo4j value
+|label:function[]
+|label:apoc-full[]
+
 |===
 
 == xref::overview/apoc.couchbase/index.adoc[]
@@ -1576,6 +1603,17 @@ apoc.json.path('\{json}' [,'json-path' , 'path-options'])
 apoc.label.exists(element, label) - returns true or false related to label existance
 |label:function[]
 |label:apoc-core[]
+|===
+
+== xref::overview/apoc.import/index.adoc[]
+
+[.procedures, opts=header, cols='5a,1a']
+|===
+| Qualified Name | Type
+|xref::overview/apoc.import/apoc.import.arrow.adoc[apoc.import.arrow icon:book[]]
+
+apoc.import.arrow(input, $config) - Imports arrow from the provided arrow file or byte array
+|label:procedure[]
 |===
 
 == xref::overview/apoc.load/index.adoc[]

@@ -1,8 +1,9 @@
 
 = apoc.custom.installFunction
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.custom/apoc.custom.installFunction/
 :description: This section contains reference documentation for the apoc.custom.installFunction procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 Eventually registers a custom cypher function

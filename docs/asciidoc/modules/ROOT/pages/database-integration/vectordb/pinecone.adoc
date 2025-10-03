@@ -1,0 +1,276 @@
+
+= Pinecone
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/vectordb/pinecone/
+
+[NOTE]
+====
+In Pinecone a collection is a static and non-queryable copy of an index,
+therefore, unlike other vector dbs, the Pinecone procedures work on indexes instead of collections.
+
+However, the vectordb procedures to handle CRUD operations on collections are usually named `apoc.ml.<vdbname>.createCollection` and `apoc.ml.<vdbname>.deleteCollection`,
+so to be consistent, the Pinecone index procedures are named `apoc.ml.pinecone.createCollection` and `apoc.ml.pinecone.deleteCollection`.
+====
+
+Here is a list of all available Pinecone procedures:
+
+[opts=header, cols="1, 3"]
+|===
+| name | description
+| apoc.vectordb.pinecone.info(hostOrKey, index, $config) | Get information about the specified existing index or throws a 404 error if it does not exist
+| apoc.vectordb.pinecone.createCollection(hostOrKey, index, similarity, size, $config) |
+    Creates an index, with the name specified in the 2nd parameter, and with the specified `similarity` and `size`.
+    The default endpoint is `<hostOrKey param>/indexes`.
+| apoc.vectordb.pinecone.deleteCollection(hostOrKey, index, $config) | 
+    Deletes an index with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/indexes/<index param>`.
+| apoc.vectordb.pinecone.upsert(hostOrKey, index, vectors, $config) | 
+    Upserts, in the index with the name specified in the 2nd parameter, the vectors [{id: 'id', vector: '<vectorDb>', medatada: '<metadata>'}].
+    The default endpoint is `<hostOrKey param>/vectors/upsert`.
+| apoc.vectordb.pinecone.delete(hostOrKey, index, ids, $config) | 
+    Delete the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/indexes/<index param>`.
+| apoc.vectordb.pinecone.get(hostOrKey, index, ids, $config) | 
+    Get the vectors with the specified `ids`.
+    The default endpoint is `<hostOrKey param>/vectors/fetch`.
+| apoc.vectordb.pinecone.getAndUpdate(hostOrKey, index, ids, $config) | 
+    Get the vectors with the specified `ids`, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/vectors/fetch`.
+| apoc.vectordb.pinecone.query(hostOrKey, index, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter.
+    The default endpoint is `<hostOrKey param>/query`.
+| apoc.vectordb.pinecone.queryAndUpdate(hostOrKey, index, vector, filter, limit, $config) | 
+    Retrieve closest vectors the the defined `vector`, `limit` of results, in the index with the name specified in the 2nd parameter, and optionally creates/updates neo4j entities.
+    The default endpoint is `<hostOrKey param>/query`.
+|===
+
+where the 1st parameter can be a key defined by the apoc config `apoc.pinecone.<key>.host=myHost`.
+
+The default `hostOrKey` is `"https://api.pinecone.io"`,
+therefore in general can be null with the `createCollection` and `deleteCollection` procedures,
+and equal to the host name, with the other ones, that is, the one indicated in the Pinecone dashboard:
+
+image::pinecone-index.png[width=800]
+
+
+== Examples
+
+The following example assume we want to create and manage an index called `test-index`.
+
+.Get index info (it leverages https://docs.pinecone.io/guides/indexes/view-index-information[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.info(hostOrKey, 'test-index', {<optional config>})
+----
+
+.Example results
+[opts="header"]
+|===
+| value
+| { "dimension": 3,
+    "environment": "us-east1-gcp",
+    "name": "tiny-index",
+    "size": 3126700,
+    "status": "Ready",
+    "vector_count": 99
+}
+|===
+
+
+.Create an index (it leverages https://docs.pinecone.io/reference/api/control-plane/create_index[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.createCollection(null, 'test-index', 'cosine', 4, {<optional config>})
+----
+
+
+.Delete an index (it leverages https://docs.pinecone.io/reference/api/control-plane/delete_index[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.deleteCollection(null, 'test-index', {<optional config>})
+----
+
+
+.Upsert vectors (it leverages https://docs.pinecone.io/reference/api/data-plane/upsert[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.upsert('https://test-index-ilx67g5.svc.aped-4627-b74a.pinecone.io',
+  'test-index',
+  [
+    {id: '1', vector: [0.05, 0.61, 0.76, 0.74], metadata: {city: "Berlin", foo: "one"}},
+    {id: '2', vector: [0.19, 0.81, 0.75, 0.11], metadata: {city: "London", foo: "two"}}
+  ],
+  {<optional config>})
+----
+
+
+.Get vectors (it leverages https://docs.pinecone.io/reference/api/data-plane/fetch[this API])
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.get($host, 'test-index', [1,2], {<optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | null | null | null | null
+| null | {city: "Berlin", foo: "two"} | null | null | null | null
+| ...
+|===
+
+.Get vectors with `{allResults: true}`
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.get($host, 'test-index', ['1','2'], {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| null | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| null | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+.Query vectors (it leverages https://docs.pinecone.io/reference/api/data-plane/query[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.query($host, 
+    'test-index', 
+    [0.2, 0.1, 0.9, 0.7], 
+    { city: { `$eq`: "London" } }, 
+    5, 
+    {allResults: true, <optional config>})
+----
+
+
+.Example results
+[opts="header"]
+|===
+| score | metadata | id | vector | text | entity
+| 1, | {city: "Berlin", foo: "one"} | 1 | [...] | null | null
+| 0.1 | {city: "Berlin", foo: "two"} | 2 | [...] | null | null
+| ...
+|===
+
+
+We can define a mapping, to auto-create one/multiple nodes and relationships, by leveraging the vector metadata.
+
+For example, if we have created 2 vectors with the above upsert procedures,
+we can populate some existing nodes (i.e. `(:Test {myId: 'one'})` and `(:Test {myId: 'two'})`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two nodes as: `(:Test {myId: 'one', city: 'Berlin', vect: [vector1]})` and `(:Test {myId: 'two', city: 'London', vect: [vector2]})`,
+which will be returned in the `entity` column result.
+
+
+We can also set the mapping configuration `mode` to `CREATE_IF_MISSING` (which creates nodes if not exist), `READ_ONLY` (to search for nodes/rels, without making updates) or `UPDATE_EXISTING` (default behavior):
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            mode: "CREATE_IF_MISSING",
+            embeddingKey: "vect", 
+            nodeLabel: "Test", 
+            entityKey: "myId", 
+            metadataKey: "foo"
+        }
+    })
+----
+
+which creates and 2 new nodes as above.
+
+Or, we can populate an existing relationship (i.e. `(:Start)-[:TEST {myId: 'one'}]->(:End)` and `(:Start)-[:TEST {myId: 'two'}]->(:End)`):
+
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.queryAndUpdate($host, 'test-index',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+which populates the two relationships as: `()-[:TEST {myId: 'one', city: 'Berlin', vect: [vector1]}]-()`
+and `()-[:TEST {myId: 'two', city: 'London', vect: [vector2]}]-()`,
+which will be returned in the `entity` column result.
+
+
+We can also use mapping for `apoc.vectordb.pinecone.query` procedure, to search for nodes/rels fitting label/type and metadataKey, without making updates
+(i.e. equivalent to `*.queryOrUpdate` procedure with mapping config having `mode: "READ_ONLY"`).
+
+For example, with the previous relationships, we can execute the following procedure, which just return the relationships in the column `rel`:
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.query($host, 'test-index',
+    [0.2, 0.1, 0.9, 0.7],
+    {},
+    5, 
+    { mapping: {
+            embeddingKey: "vect", 
+            relType: "TEST", 
+            entityKey: "myId", 
+            metadataKey: "foo" 
+        }
+    })
+----
+
+[NOTE]
+====
+We can use mapping with `apoc.vectordb.pinecone.get*` procedures as well
+====
+
+[NOTE]
+====
+To optimize performances, we can choose what to `YIELD` with the `apoc.vectordb.pinecone.query*` and the `apoc.vectordb.pinecone.get*` procedures.
+
+For example, by executing a `CALL apoc.vectordb.pinecone.query(...) YIELD metadata, score, id`, the RestAPI request will have an {"with_payload": false, "with_vectors": false},
+so that we do not return the other values that we do not need.
+====
+
+It is possible to execute vector db procedures together with the xref::ml/rag.adoc[apoc.ml.rag] as follow:
+
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.getAndUpdate($host, $index, [<id1>, <id2>], $conf) YIELD node, metadata, id, vector
+WITH collect(node) as paths
+CALL apoc.ml.rag(paths, $attributes, $question, $confPrompt) YIELD value
+RETURN value
+----
+
+.Delete vectors (it leverages https://docs.pinecone.io/reference/api/data-plane/delete[this API])
+[source,cypher]
+----
+CALL apoc.vectordb.pinecone.delete($host, 'test-index', ['1','2'], {<optional config>})
+----

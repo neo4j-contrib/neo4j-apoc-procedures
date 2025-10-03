@@ -1,8 +1,9 @@
 
 = apoc.custom.dropProcedure
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/overview/apoc.custom/apoc.custom.dropProcedure/
 :description: This section contains reference documentation for the apoc.custom.dropProcedure procedure.
 
-label:procedure[] label:apoc-extended[]
+label:procedure[] label:apoc-full[]
 
 [.emphasis]
 Eventually drops the targeted custom procedure

@@ -1,5 +1,6 @@
 [[mongodb]]
 = MongoDB
+:page-custom-canonical: https://neo4j.com/labs/apoc/5/database-integration/mongo/
 :description: This section describes procedures that can be used to interact with MongoDB.
 
 

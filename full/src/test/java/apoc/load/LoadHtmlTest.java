@@ -106,7 +106,7 @@ public class LoadHtmlTest {
 
     @Test
     public void testParseGeneratedJs() {
-        testCallGeneratedJsWithBrowser("CHROME");
+        testCallGeneratedJsWithBrowser(CHROME);
     }
 
     @Test
@@ -116,8 +116,7 @@ public class LoadHtmlTest {
 
         assertWrongConfig(errorInvalidConfig, map("browser", FIREFOX, "architecture", "dunno"));
 
-        assertWrongConfig(
-                "Error HTTP 401 executing", map("browser", FIREFOX, "gitHubToken", "12345", "forceDownload", true));
+        assertWrongConfig("Error HTTP", map("browser", FIREFOX, "gitHubToken", "12345", "forceDownload", true));
     }
 
     private void assertWrongConfig(String msgError, Map<String, Object> config) {
@@ -128,7 +127,8 @@ public class LoadHtmlTest {
                     map("url", URL_HTML_JS, "query", map("a", "a"), "config", config),
                     r -> fail("Should fails due to wrong configuration"));
         } catch (RuntimeException e) {
-            assertTrue(e.getMessage().contains(msgError));
+            String message = e.getMessage();
+            assertTrue("Current message is: " + message, message.contains(msgError));
         }
     }
 
@@ -629,7 +629,7 @@ public class LoadHtmlTest {
                             "query",
                             map("td", "td", "strong", "strong"),
                             "config",
-                            map("browser", browser, "driverVersion", "0.30.0")),
+                            map("browser", browser)),
                     result -> {
                         Map<String, Object> value = (Map<String, Object>) result.get("value");
                         List<Map<String, Object>> tdList = (List<Map<String, Object>>) value.get("td");

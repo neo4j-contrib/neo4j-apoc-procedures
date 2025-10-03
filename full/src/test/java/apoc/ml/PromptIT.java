@@ -1,6 +1,9 @@
 package apoc.ml;
 
+import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import apoc.coll.Coll;
 import apoc.meta.Meta;
@@ -12,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -58,8 +60,8 @@ public class PromptIT {
                 Map.of("query", "What movies did Tom Hanks play in?", "retries", 2L, "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-                    Assertions.assertThat(list).hasSize(12);
-                    Assertions.assertThat(list.stream()
+                    assertThat(list).hasSize(12);
+                    assertThat(list.stream()
                                     .map(m -> m.get("query"))
                                     .filter(Objects::nonNull)
                                     .map(Object::toString)
@@ -72,7 +74,7 @@ public class PromptIT {
     public void testSchema() {
         testResult(db, "CALL apoc.ml.schema({apiKey: $apiKey})", Map.of("apiKey", OPENAI_KEY), (r) -> {
             List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-            Assertions.assertThat(list).hasSize(1);
+            assertThat(list).hasSize(1);
         });
     }
 
@@ -88,13 +90,108 @@ public class PromptIT {
                         "apiKey", OPENAI_KEY),
                 (r) -> {
                     List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
-                    Assertions.assertThat(list).hasSize((int) numOfQueries);
-                    Assertions.assertThat(list.stream()
+                    assertThat(list).hasSize((int) numOfQueries);
+                    assertThat(list.stream()
                                     .map(m -> m.get("query"))
                                     .filter(Objects::nonNull)
                                     .map(Object::toString)
                                     .filter(StringUtils::isNotEmpty))
                             .hasSize((int) numOfQueries);
+                });
+    }
+
+    @Test
+    public void testSchemaFromQueries() {
+        List<String> queries = List.of(
+                "MATCH p=(n:Movie)--() RETURN p",
+                "MATCH (n:Person) RETURN n",
+                "MATCH (n:Movie) RETURN n",
+                "MATCH p=(n)-[r]->() RETURN r");
+
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY),
+                (r) -> {
+                    String value = ((String) r.get("value")).toLowerCase();
+                    assertThat(value).containsIgnoringCase("movie");
+                    assertThat(value).satisfiesAnyOf(s -> assertThat(s).contains("person"), s -> assertThat(s)
+                            .contains("people"));
+                });
+    }
+
+    @Test
+    public void testSchemaFromQueriesWithSingleQuery() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN n");
+
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY),
+                (r) -> {
+                    String value = ((String) r.get("value")).toLowerCase();
+                    assertThat(value).containsIgnoringCase("movie");
+                    assertThat(value).doesNotContainIgnoringCase("person", "people");
+                });
+    }
+
+    @Test
+    public void testSchemaFromQueriesWithWrongQuery() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN a");
+        try {
+            testCall(
+                    db,
+                    "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+                    Map.of(
+                            "queries", queries,
+                            "apiKey", OPENAI_KEY),
+                    (r) -> fail());
+        } catch (Exception e) {
+            assertThat(e.getMessage()).contains(" Variable `a` not defined");
+        }
+    }
+
+    @Test
+    public void testSchemaFromEmptyQueries() {
+        List<String> queries = List.of("MATCH (n:Movie) RETURN 1");
+
+        testCall(
+                db,
+                "CALL apoc.ml.fromQueries($queries, {apiKey: $apiKey})",
+                Map.of(
+                        "queries", queries,
+                        "apiKey", OPENAI_KEY),
+                (r) -> {
+                    String value = ((String) r.get("value")).toLowerCase();
+
+                    assertThat(value)
+                            .satisfiesAnyOf(
+                                    s -> assertThat(s).contains("does not contain"),
+                                    s -> assertThat(s).contains("empty"),
+                                    s -> assertThat(s).contains("undefined"),
+                                    s -> assertThat(s).contains("doesn't have"));
+                });
+    }
+
+    @Test
+    public void testQueryGpt35Turbo() {
+        testResult(
+                db,
+                "CALL apoc.ml.query($query, {model: 'gpt-3.5-turbo', retries: $retries, apiKey: $apiKey})",
+                Map.of("query", "What movies has Tom Hanks acted in?", "retries", 2L, "apiKey", OPENAI_KEY),
+                (r) -> {
+                    List<Map<String, Object>> list = r.stream().collect(Collectors.toList());
+                    assertThat(list).hasSize(12);
+                    assertThat(list.stream()
+                                    .map(m -> m.get("query"))
+                                    .filter(Objects::nonNull)
+                                    .map(Object::toString)
+                                    .map(String::trim))
+                            .isNotEmpty();
                 });
     }
 }
