@@ -134,8 +134,8 @@ dependencies {
     compileOnly group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
     testImplementation group: 'com.couchbase.client', name: 'java-client', version: '3.3.0', withoutJacksons
 
-    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.2.5.RELEASE'
-    testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.2.5.RELEASE'
+    compileOnly group: 'io.lettuce', name: 'lettuce-core', version: '6.5.4.RELEASE'
+    testImplementation group: 'io.lettuce', name: 'lettuce-core', version: '6.5.4.RELEASE'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
 
