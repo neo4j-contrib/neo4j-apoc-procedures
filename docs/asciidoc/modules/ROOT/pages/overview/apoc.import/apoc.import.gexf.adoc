@@ -1,0 +1,31 @@
+= apoc.import.gexf
+:description: This section contains reference documentation for the apoc.import.gexf procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Imports a graph from the provided GraphML file.
+
+== Signature
+
+[source]
+----
+apoc.import.gexf(urlOrBinaryFile :: ANY?, config :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|urlOrBinaryFile|ANY?|null
+|config|MAP?|null
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::import/gexf.adoc[More documentation of apoc.import.gexf,role=more information]

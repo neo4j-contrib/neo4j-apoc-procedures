@@ -1,0 +1,31 @@
+= apoc.export.parquet.graph.stream
+:description: This section contains reference documentation for the apoc.export.parquet.graph.stream procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the given graph as a Parquet byte array.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.graph.stream(graph :: MAP?, config = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|graph|MAP?|null
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.graph.stream,role=more information]

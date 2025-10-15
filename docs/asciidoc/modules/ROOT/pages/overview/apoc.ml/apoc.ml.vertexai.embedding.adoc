@@ -1,0 +1,33 @@
+= apoc.ml.vertexai.embedding
+:description: This section contains reference documentation for the apoc.ml.vertexai.embedding procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Returns the embeddings for a given text
+
+== Signature
+
+[source]
+----
+apoc.ml.vertexai.embedding(texts :: LIST<STRING>, accessToken :: STRING, project :: STRING, configuration = {} :: MAP?) :: (embeddings :: LIST<LIST<FLOAT>>)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|texts|LIST<STRING>|null
+|accessToken|STRING|null
+|project|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|embeddings|LIST<LIST<FLOAT>>
+|===
+
+xref::ml/vertexai.adoc[More documentation of apoc.ml.vertexai.embedding,role=more information]

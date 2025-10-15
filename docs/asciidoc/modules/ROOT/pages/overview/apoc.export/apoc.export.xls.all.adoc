@@ -49,4 +49,3 @@ include::partial$xls-dependencies.adoc[]
 [[usage-apoc.export.xls.all]]
 == Usage Examples
 include::partial$usage/apoc.export.xls.all.adoc[]
-

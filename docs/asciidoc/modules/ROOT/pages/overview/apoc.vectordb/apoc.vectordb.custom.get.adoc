@@ -1,0 +1,31 @@
+= apoc.vectordb.custom.get
+:description: This section contains reference documentation for the apoc.vectordb.custom.get procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Customizable get / query procedure, which retrieves vectors from the host and the configuration map
+
+== Signature
+
+[source]
+----
+apoc.vectordb.custom.get(host :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|host|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::database-integration/vectordb/index.adoc[More documentation of apoc.vectordb.configure,role=more information]

@@ -33,3 +33,4 @@ apoc.dv.query(name :: STRING?, params = {} :: ANY?, config = {} :: MAP?) :: (nod
 |node|NODE?
 |===
 
+xref::virtual-resource/index.adoc[More documentation of apoc.dv.catalog.drop,role=more information]

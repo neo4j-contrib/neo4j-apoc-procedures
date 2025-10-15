@@ -1,0 +1,33 @@
+= apoc.vectordb.qdrant.delete
+:description: This section contains reference documentation for the apoc.vectordb.qdrant.delete procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Deletes the vectors with the specified `ids`
+
+== Signature
+
+[source]
+----
+apoc.vectordb.qdrant.delete(hostOrKey :: STRING, collection :: STRING, vectors :: LIST<ANY>, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|hostOrKey|STRING|null
+|collection|STRING|null
+|vectors|LIST<ANY>|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::vectordb/qdrant.adoc[More documentation of apoc.vectordb.qdrant.delete,role=more information]

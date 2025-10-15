@@ -1,0 +1,33 @@
+= apoc.ml.vertexai.stream
+:description: This section contains reference documentation for the apoc.ml.vertexai.stream procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts the streaming API
+
+== Signature
+
+[source]
+----
+apoc.ml.vertexai.stream(messages :: LIST<MAP<STRING, STRING>>, accessToken :: STRING, project :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|messages|LIST<MAP<STRING, STRING>>|null
+|accessToken|STRING|null
+|project|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/vertexai.adoc[More documentation of apoc.ml.vertexai.stream,role=more information]

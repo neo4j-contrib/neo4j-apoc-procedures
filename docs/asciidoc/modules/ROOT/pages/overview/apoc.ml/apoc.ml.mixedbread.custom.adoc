@@ -1,0 +1,31 @@
+= apoc.ml.mixedbread.custom
+:description: This section contains reference documentation for the apoc.ml.mixedbread.custom procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Returns the embeddings for a given text
+
+== Signature
+
+[source]
+----
+apoc.ml.mixedbread.custom(api_key :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|api_key|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/mixedbread.adoc[More documentation of apoc.ml.mixedbread.custom,role=more information]

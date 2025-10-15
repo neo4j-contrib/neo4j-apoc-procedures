@@ -1,0 +1,30 @@
+= apoc.export.parquet.all.stream
+:description: This section contains reference documentation for the apoc.export.parquet.all.stream procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Exports the full database as a Parquet byte array.
+
+== Signature
+
+[source]
+----
+apoc.export.parquet.all.stream(config = {} :: MAP?) :: (value :: STRING?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|config|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|STRING?
+|===
+
+xref::export/parquet.adoc[More documentation of apoc.export.parquet.all.stream,role=more information]

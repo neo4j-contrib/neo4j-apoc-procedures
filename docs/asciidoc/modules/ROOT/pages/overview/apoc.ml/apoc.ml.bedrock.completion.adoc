@@ -1,0 +1,31 @@
+= apoc.ml.bedrock.completion
+:description: This section contains reference documentation for the apoc.ml.bedrock.completion procedure.
+
+label:procedure[] label:apoc-extended[]
+
+[.emphasis]
+Prompts the completion API
+
+== Signature
+
+[source]
+----
+apoc.ml.bedrock.completion(prompt :: STRING, configuration = {} :: MAP?) :: (value :: MAP?)
+----
+
+== Input parameters
+[.procedures, opts=header]
+|===
+| Name | Type | Default
+|prompt|STRING|null
+|configuration|MAP?|{}
+|===
+
+== Output parameters
+[.procedures, opts=header]
+|===
+| Name | Type
+|value|MAP?
+|===
+
+xref::ml/bedrock.adoc[More documentation of apoc.ml.bedrock.completion,role=more information]

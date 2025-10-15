@@ -4,6 +4,11 @@
 [.procedures, opts=header, cols='5a,1a']
 |===
 | Qualified Name | Type
+|xref::overview/apoc.diff/apoc.diff.graphs.adoc[apoc.diff.graphs icon:book[]]
+
+apoc.diff.graphs(<source>, <dest>, <config>) - compares two graphs and returns the results
+|label:procedure[]
+
 |xref::overview/apoc.diff/apoc.diff.relationships.adoc[apoc.diff.relationships icon:book[]]
 
 Returns a Map detailing the property differences between the two given relationships
