@@ -59,6 +59,7 @@ public class CustomNewProcedureMultiDbTest {
     
     @Test
     public void testProceduresFunctionsInMultipleDatabase() {
+        System.out.println("test execution.testProceduresFunctionsInMultipleDatabase");
 
         // install a procedure and a function for each database
         installNeo4jProcAndFun();
@@ -93,6 +94,28 @@ public class CustomNewProcedureMultiDbTest {
         chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(testSession, 
                 "CALL custom.testProc", "RETURN custom.testFun() AS answer",
                 fooSession, neo4jSession);
+    }
+
+    @Test
+    public void testProceduresFunctionsInDatabaseAlias() {
+        systemSession.executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE dbfoo",
+                        Map.of("db", DB_TEST)).consume()
+        );
+
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('testAliasProc() :: (answer::INT)','RETURN 42 as answer', 'test-alias')")
+                        .consume()
+        );
+        
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('testFun() :: INT','RETURN 42 as answer', 'test-alias')")
+                        .consume()
+        );
+
+        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
+                "CALL custom.testAliasProc", 
+                "RETURN custom.testAliasFun() AS answer",
+                neo4jSession, testSession);
     }
 
     private static void installTestProcAndFun() {

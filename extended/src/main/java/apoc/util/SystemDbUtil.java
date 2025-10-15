@@ -8,10 +8,7 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,23 +63,32 @@ public class SystemDbUtil {
     }
 
     /**
-     * Check that the database exists and is not equal to "system"
+     * Check that the database name or alias exists and is not equal to "system"
      *
      * @param databaseName
      * @param type: the procedure type
+     * @return databaseName
      */
-    public static void checkTargetDatabase(Transaction tx, String databaseName, String type) {
+    public static String checkTargetDatabase(Transaction tx, String databaseName, String type) {
+        if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
+            throw new RuntimeException(type + BAD_TARGET_ERROR);
+        }
+        
         final Set<String> databases = tx.execute("SHOW DATABASES", Collections.emptyMap())
                 .<String>columnAs("name")
                 .stream()
                 .collect(Collectors.toSet());
-        if (!databases.contains(databaseName)) {
-            throw new RuntimeException( String.format(DB_NOT_FOUND_ERROR, databaseName) );
-        }
+        
+        var items = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
+                .map(i -> new AbstractMap.SimpleEntry<>((String) i.get("name"), (List<String>) i.get("aliases")))
+                .toList();
 
-        if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
-            throw new RuntimeException(type + BAD_TARGET_ERROR);
-        }
+        String database = items.stream().filter(i -> i.getKey().equals(databaseName) || i.getValue().contains(databaseName))
+                .findFirst()
+                .map(AbstractMap.SimpleEntry::getKey)
+                .orElseThrow(() -> new RuntimeException(String.format(DB_NOT_FOUND_ERROR, databaseName)));
+        
+        return database;
     }
 
     /**
