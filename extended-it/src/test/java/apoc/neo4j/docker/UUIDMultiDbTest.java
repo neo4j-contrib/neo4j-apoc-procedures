@@ -186,32 +186,32 @@ public class UUIDMultiDbTest {
 
     @Test
     public void setupUUIDUsingAliasInNotDefaultDbWithUUIDEnabled() throws InterruptedException {
-        driver.session(SYS_CONF).executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE dbfoo",
+        driver.session(SYS_CONF).executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE " + DB_TEST,
                 Map.of("db", DB_TEST)).consume()
         );
-                
+
         driver.session(SYS_CONF)
-                .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Another', $db, {addToExistingNodes: false })",
+                .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Alias', $db, {addToExistingNodes: false })",
                         Map.of("db", DB_ENABLED)).consume()
                 );
 
         try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
             // check uuid set
-            awaitUuidSet(session, "Another");
+            awaitUuidSet(session, "Alias");
 
-            session.executeWrite(tx -> tx.run("CREATE (:Another)").consume());
+            session.executeWrite(tx -> tx.run("CREATE (:Alias)").consume());
 
-            Result res = session.run("MATCH (n:Another) RETURN n.uuid AS uuid");
+            Result res = session.run("MATCH (n:Alias) RETURN n.uuid AS uuid");
             String uuid = res.single().get("uuid").asString();
             assertIsUUID(uuid);
         }
 
         try(Session session = driver.session()) {
-            session.run("CREATE (:Another)");
+            session.run("CREATE (:Alias)");
             // we cannot use assertEventually because the before and after conditions should be the same
             Thread.sleep(2000);
 
-            Value uuid = session.run("MATCH (n:Another) RETURN n.uuid AS uuid")
+            Value uuid = session.run("MATCH (n:Alias) RETURN n.uuid AS uuid")
                     .single()
                     .get("uuid");
             assertTrue(uuid.isNull());

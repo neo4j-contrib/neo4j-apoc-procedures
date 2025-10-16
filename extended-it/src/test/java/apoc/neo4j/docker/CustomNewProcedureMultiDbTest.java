@@ -116,6 +116,15 @@ public class CustomNewProcedureMultiDbTest {
                 "CALL custom.testAliasProc", 
                 "RETURN custom.testAliasFun() AS answer",
                 neo4jSession, testSession);
+
+        systemSession.executeWrite(tx -> {
+                tx.run("CALL apoc.custom.dropProcedure('testAliasProc', 'test-alias')")
+                        .consume();
+                tx.run("CALL apoc.custom.dropFunction('testAliasFun', 'test-alias')")
+                        .consume();
+                return null;
+        });
+        
     }
 
     private static void installTestProcAndFun() {
