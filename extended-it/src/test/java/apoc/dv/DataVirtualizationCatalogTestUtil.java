@@ -81,7 +81,7 @@ public class DataVirtualizationCatalogTestUtil {
     public static final String APOC_DV_LIST = "CALL apoc.dv.catalog.list()";
     public static final String APOC_DV_DROP_QUERY = "CALL apoc.dv.catalog.drop($name, $databaseName)";
     public static final String APOC_DV_INSTALL_QUERY = "CALL apoc.dv.catalog.install($name, $databaseName, $map)";
-    public static Map<String, Object> APOC_DV_INSTALL_PARAMS(String databaseName) {
+    public static Map<String, Object> getApocDvInstallParams(String databaseName) {
         return map(DATABASE_NAME, databaseName,
                 NAME_KEY, CSV_NAME_VALUE,
                 MAP_KEY, map("type", "CSV",
@@ -98,7 +98,7 @@ public class DataVirtualizationCatalogTestUtil {
     public static final String APOC_DV_SHOW_QUERY = "CALL apoc.dv.catalog.show()";
     
     public static Map<String, Object> APOC_DV_QUERY_PARAMS = map(NAME_KEY, NAME_VALUE, AGE_KEY, AGE_VALUE);
-    public static Map<String, Object> APOC_DV_DROP_PARAMS(String databaseName) {
+    public static Map<String, Object> getApocDvDropParams(String databaseName) {
         return map(DATABASE_NAME, databaseName,
                 NAME_KEY, CSV_NAME_VALUE);
     }

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.SystemDbUtil.getDbFromDbNameOrAlias;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -36,10 +37,6 @@ public class UUIDNewProcedures {
         return SystemDbUtil.checkTargetDatabase(tx, databaseName, "Automatic UUIDs");
     }
 
-//    private String checkTargetDatabase(String databaseName) {
-//        return SystemDbUtil.checkTargetDatabase(tx, databaseName, "Automatic UUIDs");
-//    }
-
     private void checkRefreshConfigSet() {
         if (!apocConfig().getConfig().containsKey(APOC_UUID_REFRESH)) {
             throw new RuntimeException(UUID_NOT_SET);
@@ -55,7 +52,6 @@ public class UUIDNewProcedures {
                                   @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         String dbNameOrAlias = checkInSystemLeader(databaseName);
-//         checkTargetDatabase(databaseName);
 
         UuidConfig uuidConfig = new UuidConfig(config);
 
@@ -97,6 +93,7 @@ public class UUIDNewProcedures {
     @Description("CALL apoc.uuid.show(databaseName) | it lists all eventually installed UUID handler for a database")
     public Stream<UuidInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkEnabled(databaseName);
+        String dbNameOrAlias = getDbFromDbNameOrAlias(tx, databaseName);
 
         return withSystemDb(sysTx -> {
             return UUIDHandlerNewProcedures.getUuidNodes(sysTx, databaseName)

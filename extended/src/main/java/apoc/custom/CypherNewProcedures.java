@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import static apoc.custom.CypherProceduresHandler.PREFIX;
 import static apoc.custom.CypherProceduresUtil.checkEnabled;
 import static apoc.util.SystemDbUtil.checkInSystemDb;
+import static apoc.util.SystemDbUtil.getDbFromDbNameOrAlias;
 
 
 @Extended
@@ -112,6 +113,7 @@ public class CypherNewProcedures {
     @Description("Provides a list of custom procedures/function registered")
     public Stream<CustomProcedureInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkInSystemDb(db);
+        String dbNameOrAlias = getDbFromDbNameOrAlias(tx, databaseName);
         return CypherHandlerNewProcedure.show(databaseName, tx);
     }
 }

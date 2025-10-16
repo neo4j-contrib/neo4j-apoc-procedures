@@ -21,6 +21,8 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
+import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.uuid.UUIDTestUtils.assertIsUUID;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -186,14 +188,18 @@ public class UUIDMultiDbTest {
 
     @Test
     public void setupUUIDUsingAliasInNotDefaultDbWithUUIDEnabled() throws InterruptedException {
-        driver.session(SYS_CONF).executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE " + DB_TEST,
-                Map.of("db", DB_TEST)).consume()
+        driver.session(SYS_CONF).executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE " + DB_ENABLED)
+                .consume()
         );
 
         driver.session(SYS_CONF)
                 .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Alias', $db, {addToExistingNodes: false })",
-                        Map.of("db", DB_ENABLED)).consume()
+                        Map.of("db", "test-alias")).consume()
                 );
+
+        String countCustom = "CALL apoc.uuid.show($db) YIELD label RETURN count(*) AS count";
+        long dvCount = singleResultFirstColumn(neo4jSession, countCustom, map("db", "test-alias"));
+        assertEquals(2, dvCount);
 
         try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
             // check uuid set

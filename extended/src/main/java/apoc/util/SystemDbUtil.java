@@ -73,23 +73,19 @@ public class SystemDbUtil {
         if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(type + BAD_TARGET_ERROR);
         }
-        
-        final Set<String> databases = tx.execute("SHOW DATABASES", Collections.emptyMap())
-                .<String>columnAs("name")
-                .stream()
-                .collect(Collectors.toSet());
-        System.out.println("databases = " + databases);
-        
-        var items = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
+
+        return getDbFromDbNameOrAlias(tx, databaseName);
+    }
+
+    public static String getDbFromDbNameOrAlias(Transaction tx, String databaseName) {
+        var databasesAndAliases = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
                 .map(i -> new AbstractMap.SimpleEntry<>((String) i.get("name"), (List<String>) i.get("aliases")))
                 .toList();
-        System.out.println("items = " + items);
 
-        String database = items.stream().filter(i -> i.getKey().equals(databaseName) || i.getValue().contains(databaseName))
+        String database = databasesAndAliases.stream().filter(i -> i.getKey().equals(databaseName) || i.getValue().contains(databaseName))
                 .findFirst()
                 .map(AbstractMap.SimpleEntry::getKey)
                 .orElseThrow(() -> new RuntimeException(String.format(DB_NOT_FOUND_ERROR, databaseName)));
-        System.out.println("database = " + database);
         return database;
     }
 

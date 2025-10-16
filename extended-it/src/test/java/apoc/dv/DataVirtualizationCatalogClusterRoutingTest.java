@@ -66,8 +66,8 @@ public class DataVirtualizationCatalogClusterRoutingTest {
     public void testVirtualizeCSV() {
         dvInSysLeaderMemberCommon(PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
                 (session) -> testCall(session, APOC_DV_INSTALL_QUERY,
-                        APOC_DV_INSTALL_PARAMS(DEFAULT_DATABASE_NAME),
-                        (row) -> assertCatalogContent(row, CSV_TEST_FILE)), APOC_DV_INSTALL_PARAMS(DEFAULT_DATABASE_NAME)
+                        getApocDvInstallParams(DEFAULT_DATABASE_NAME),
+                        (row) -> assertCatalogContent(row, CSV_TEST_FILE)), getApocDvInstallParams(DEFAULT_DATABASE_NAME)
         );
 
         clusterSession.executeRead(tx -> {
@@ -114,7 +114,7 @@ public class DataVirtualizationCatalogClusterRoutingTest {
 
         dvInSysLeaderMemberCommon(PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
                 (session) -> testCallEmpty(session, APOC_DV_DROP_QUERY,
-                            APOC_DV_DROP_PARAMS(DEFAULT_DATABASE_NAME)), APOC_DV_DROP_PARAMS(DEFAULT_DATABASE_NAME)
+                            getApocDvDropParams(DEFAULT_DATABASE_NAME)), getApocDvDropParams(DEFAULT_DATABASE_NAME)
         );
 
     }

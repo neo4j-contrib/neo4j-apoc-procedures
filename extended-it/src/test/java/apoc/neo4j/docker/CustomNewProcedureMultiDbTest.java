@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.*;
@@ -59,7 +60,6 @@ public class CustomNewProcedureMultiDbTest {
     
     @Test
     public void testProceduresFunctionsInMultipleDatabase() {
-        System.out.println("test execution.testProceduresFunctionsInMultipleDatabase");
 
         // install a procedure and a function for each database
         installNeo4jProcAndFun();
@@ -111,6 +111,10 @@ public class CustomNewProcedureMultiDbTest {
                 tx.run("CALL apoc.custom.installFunction('testAliasFun() :: INT','RETURN 42 as answer', 'test-alias')")
                         .consume()
         );
+
+        String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";
+        long dvCount = singleResultFirstColumn(neo4jSession, countCustom);
+        assertEquals(2, dvCount);
 
         chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
                 "CALL custom.testAliasProc", 

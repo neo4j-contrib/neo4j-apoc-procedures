@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.dv.DataVirtualizationCatalogTestUtil.*;
+import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static org.junit.Assert.assertEquals;
@@ -73,7 +74,7 @@ public class DataVirtualizationCatalogMultiDbTest {
 
     private static void testVirtualizeCSVCommon(String db, Session session) {
         TestContainerUtil.testCall(systemSession, APOC_DV_INSTALL_QUERY,
-                        APOC_DV_INSTALL_PARAMS(db),
+                        getApocDvInstallParams(db),
                         (row) -> assertCatalogContent(row, CSV_TEST_FILE));
 
         session.executeRead(tx -> {
@@ -91,6 +92,10 @@ public class DataVirtualizationCatalogMultiDbTest {
                     return result.consume();
                 }
         );
+
+        String countCustom = "CALL apoc.dv.catalog.show($db) YIELD name RETURN count(*) AS count";
+        long dvCount = singleResultFirstColumn(neo4jSession, countCustom, map("db", db));
+        assertEquals(1, dvCount);
 
         session.executeWrite(tx -> tx.run(CREATE_HOOK_QUERY, CREATE_HOOK_PARAMS).consume());
 
@@ -118,7 +123,7 @@ public class DataVirtualizationCatalogMultiDbTest {
                 }
         );
 
-        testCallEmpty(systemSession, APOC_DV_DROP_QUERY, APOC_DV_DROP_PARAMS(db));
+        testCallEmpty(systemSession, APOC_DV_DROP_QUERY, getApocDvDropParams(db));
     }
 
 
