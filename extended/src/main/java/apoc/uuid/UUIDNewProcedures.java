@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.util.SystemDbUtil.getDbFromDbNameOrAlias;
+import static apoc.util.SystemDbUtil.getDbFromDbNameOrAliasForReadProcedures;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -93,7 +93,7 @@ public class UUIDNewProcedures {
     @Description("CALL apoc.uuid.show(databaseName) | it lists all eventually installed UUID handler for a database")
     public Stream<UuidInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkEnabled(databaseName);
-        String dbNameOrAlias = getDbFromDbNameOrAlias(tx, databaseName);
+        String dbNameOrAlias = getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
 
         return withSystemDb(sysTx -> {
             return UUIDHandlerNewProcedures.getUuidNodes(sysTx, databaseName)

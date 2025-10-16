@@ -76,7 +76,19 @@ public class SystemDbUtil {
         return getDbFromDbNameOrAlias(tx, databaseName);
     }
 
+    public static String getDbFromDbNameOrAliasForReadProcedures(Transaction tx, String databaseName, GraphDatabaseService db) {
+        if (!SYSTEM_DATABASE_NAME.equals(db.databaseName())) {
+            // If we are not executing a procedure against the systemdb we cannot retrieve the aliases
+            // since `SHOW DATABASES` is a system command, so we just get the `databaseName` 
+            return databaseName;
+        }
+        
+        return getDbFromDbNameOrAlias(tx, databaseName);
+    }
+
     public static String getDbFromDbNameOrAlias(Transaction tx, String databaseName) {
+
+        
         var databasesAndAliases = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
                 .map(i -> new AbstractMap.SimpleEntry<>((String) i.get("name"), (List<String>) i.get("aliases")))
                 .toList();
