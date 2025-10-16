@@ -78,16 +78,18 @@ public class SystemDbUtil {
                 .<String>columnAs("name")
                 .stream()
                 .collect(Collectors.toSet());
+        System.out.println("databases = " + databases);
         
         var items = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
                 .map(i -> new AbstractMap.SimpleEntry<>((String) i.get("name"), (List<String>) i.get("aliases")))
                 .toList();
+        System.out.println("items = " + items);
 
         String database = items.stream().filter(i -> i.getKey().equals(databaseName) || i.getValue().contains(databaseName))
                 .findFirst()
                 .map(AbstractMap.SimpleEntry::getKey)
                 .orElseThrow(() -> new RuntimeException(String.format(DB_NOT_FOUND_ERROR, databaseName)));
-        
+        System.out.println("database = " + database);
         return database;
     }
 

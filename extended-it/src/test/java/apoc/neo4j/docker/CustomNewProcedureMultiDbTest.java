@@ -108,7 +108,7 @@ public class CustomNewProcedureMultiDbTest {
         );
         
         systemSession.executeWrite(tx ->
-                tx.run("CALL apoc.custom.installFunction('testFun() :: INT','RETURN 42 as answer', 'test-alias')")
+                tx.run("CALL apoc.custom.installFunction('testAliasFun() :: INT','RETURN 42 as answer', 'test-alias')")
                         .consume()
         );
 
