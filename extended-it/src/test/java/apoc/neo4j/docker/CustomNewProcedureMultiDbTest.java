@@ -112,10 +112,6 @@ public class CustomNewProcedureMultiDbTest {
                         .consume()
         );
 
-        String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(systemSession, countCustom);
-        assertEquals(2, dvCount);
-
         chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
                 "CALL custom.testAliasProc", 
                 "RETURN custom.testAliasFun() AS answer",
@@ -128,6 +124,10 @@ public class CustomNewProcedureMultiDbTest {
                         .consume();
                 return null;
         });
+
+        String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";
+        long count = singleResultFirstColumn(systemSession, countCustom);
+        assertEquals(0, count);
         
     }
 

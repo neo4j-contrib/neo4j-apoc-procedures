@@ -197,10 +197,6 @@ public class UUIDMultiDbTest {
                         Map.of("db", "test-alias")).consume()
                 );
 
-        String countCustom = "CALL apoc.uuid.show($db) YIELD label RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(driver.session(SYS_CONF), countCustom, map("db", "test-alias"));
-        assertEquals(2, dvCount);
-
         try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
             // check uuid set
             awaitUuidSet(session, "Alias");
@@ -222,6 +218,10 @@ public class UUIDMultiDbTest {
                     .get("uuid");
             assertTrue(uuid.isNull());
         }
+
+        String countUUid = "CALL apoc.uuid.show($db) YIELD label RETURN count(*) AS count";
+        long count = singleResultFirstColumn(driver.session(SYS_CONF), countUUid, map("db", "test-alias"));
+        assertEquals(0, count);
     }
 
     private static void awaitUuidSet(Session session, String expected) {

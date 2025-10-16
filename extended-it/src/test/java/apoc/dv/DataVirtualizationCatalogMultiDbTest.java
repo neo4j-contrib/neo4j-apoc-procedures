@@ -93,9 +93,9 @@ public class DataVirtualizationCatalogMultiDbTest {
                 }
         );
 
-        String countCustom = "CALL apoc.dv.catalog.show($db) YIELD name RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(systemSession, countCustom, map("db", db));
-        assertEquals(1, dvCount);
+        String countDv = "CALL apoc.dv.catalog.show($db) YIELD name RETURN count(*) AS count";
+        long count = singleResultFirstColumn(systemSession, countDv, map("db", db));
+        assertEquals(1, count);
 
         session.executeWrite(tx -> tx.run(CREATE_HOOK_QUERY, CREATE_HOOK_PARAMS).consume());
 
