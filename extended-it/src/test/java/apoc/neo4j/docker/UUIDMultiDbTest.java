@@ -198,7 +198,7 @@ public class UUIDMultiDbTest {
                 );
 
         String countCustom = "CALL apoc.uuid.show($db) YIELD label RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(neo4jSession, countCustom, map("db", "test-alias"));
+        long dvCount = singleResultFirstColumn(driver.session(SYS_CONF), countCustom, map("db", "test-alias"));
         assertEquals(2, dvCount);
 
         try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {

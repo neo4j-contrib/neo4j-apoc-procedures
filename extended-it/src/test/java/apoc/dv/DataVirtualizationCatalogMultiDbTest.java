@@ -94,7 +94,7 @@ public class DataVirtualizationCatalogMultiDbTest {
         );
 
         String countCustom = "CALL apoc.dv.catalog.show($db) YIELD name RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(neo4jSession, countCustom, map("db", db));
+        long dvCount = singleResultFirstColumn(systemSession, countCustom, map("db", db));
         assertEquals(1, dvCount);
 
         session.executeWrite(tx -> tx.run(CREATE_HOOK_QUERY, CREATE_HOOK_PARAMS).consume());

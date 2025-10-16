@@ -113,7 +113,7 @@ public class CustomNewProcedureMultiDbTest {
         );
 
         String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";
-        long dvCount = singleResultFirstColumn(neo4jSession, countCustom);
+        long dvCount = singleResultFirstColumn(systemSession, countCustom);
         assertEquals(2, dvCount);
 
         chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
