@@ -81,13 +81,15 @@ public class DataVirtualizationCatalogTestUtil {
     public static final String APOC_DV_LIST = "CALL apoc.dv.catalog.list()";
     public static final String APOC_DV_DROP_QUERY = "CALL apoc.dv.catalog.drop($name, $databaseName)";
     public static final String APOC_DV_INSTALL_QUERY = "CALL apoc.dv.catalog.install($name, $databaseName, $map)";
-    public static final Map<String, Object> APOC_DV_INSTALL_PARAMS = map(DATABASE_NAME, DEFAULT_DATABASE_NAME, 
-            NAME_KEY, CSV_NAME_VALUE, 
-            MAP_KEY, map("type", "CSV",
-                    "url", CSV_TEST_FILE, "query", QUERY_VALUE,
-                    "desc", DESC_VALUE,
-                    "labels", LABELS)
-    );
+    public static Map<String, Object> APOC_DV_INSTALL_PARAMS(String databaseName) {
+        return map(DATABASE_NAME, databaseName,
+                NAME_KEY, CSV_NAME_VALUE,
+                MAP_KEY, map("type", "CSV",
+                        "url", CSV_TEST_FILE, "query", QUERY_VALUE,
+                        "desc", DESC_VALUE,
+                        "labels", LABELS)
+        );
+    }
     public static final String APOC_DV_QUERY = "CALL apoc.dv.query($name, $queryParams, $config)";
     public static final String APOC_DV_QUERY_WITH_PARAM = "CALL apoc.dv.query($name, ['Italy'], $config)";
     public static final String APOC_DV_QUERY_AND_LINK_QUERY = "MATCH (hook:Hook) WITH hook " +
@@ -96,8 +98,10 @@ public class DataVirtualizationCatalogTestUtil {
     public static final String APOC_DV_SHOW_QUERY = "CALL apoc.dv.catalog.show()";
     
     public static Map<String, Object> APOC_DV_QUERY_PARAMS = map(NAME_KEY, NAME_VALUE, AGE_KEY, AGE_VALUE);
-    public static final Map<String, Object> APOC_DV_DROP_PARAMS = map(DATABASE_NAME, DEFAULT_DATABASE_NAME,
-            NAME_KEY, CSV_NAME_VALUE);
+    public static Map<String, Object> APOC_DV_DROP_PARAMS(String databaseName) {
+        return map(DATABASE_NAME, databaseName,
+                NAME_KEY, CSV_NAME_VALUE);
+    }
 
     public static Map<String, Object> getJdbcCredentials(JdbcDatabaseContainer mysql) {
         return map("user", mysql.getUsername(), "password", mysql.getPassword());

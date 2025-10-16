@@ -25,9 +25,9 @@ public class DataVirtualizationCatalogNewProcedures {
     @Context
     public GraphDatabaseAPI db;
 
-    private void checkIsValidDatabase(String databaseName) {
+    private String checkIsValidDatabase(String databaseName) {
         SystemDbUtil.checkInSystemLeader(db);
-        SystemDbUtil.checkTargetDatabase(tx, databaseName, "Data virtualization catalog");
+        return SystemDbUtil.checkTargetDatabase(tx, databaseName, "Data virtualization catalog");
     }
 
     @SystemProcedure
@@ -38,10 +38,10 @@ public class DataVirtualizationCatalogNewProcedures {
             @Name("name") String name,
             @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
             @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        checkIsValidDatabase(databaseName);
+        String dbNameOrAlias = checkIsValidDatabase(databaseName);
 
         return Stream.of(new DataVirtualizationCatalogHandlerNewProcedures()
-                        .install(databaseName, VirtualizedResource.from(name, config)))
+                        .install(dbNameOrAlias, VirtualizedResource.from(name, config)))
                 .map(VirtualizedResource::toDTO);
     }
 
@@ -53,9 +53,9 @@ public class DataVirtualizationCatalogNewProcedures {
             @Name("name") String name,
             @Name(value = "databaseName", defaultValue = "neo4j") String databaseName
     ) {
-        checkIsValidDatabase(databaseName);
+        String dbNameOrAlias = checkIsValidDatabase(databaseName);
         return new DataVirtualizationCatalogHandlerNewProcedures()
-                .drop(databaseName, name)
+                .drop(dbNameOrAlias, name)
                 .map(VirtualizedResource::toDTO);
     }
 
@@ -65,9 +65,9 @@ public class DataVirtualizationCatalogNewProcedures {
     public Stream<VirtualizedResource.VirtualizedResourceDTO> show(
             @Name(value = "databaseName", defaultValue = "neo4j") String databaseName
     ) {
-        checkIsValidDatabase(databaseName);
+        String dbNameOrAlias = checkIsValidDatabase(databaseName);
         return new DataVirtualizationCatalogHandlerNewProcedures()
-                .show(databaseName)
+                .show(dbNameOrAlias)
                 .map(VirtualizedResource::toDTO);
     }
 
