@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.SystemDbUtil.getDbFromDbNameOrAliasForReadProcedures;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static apoc.uuid.UUIDHandlerNewProcedures.checkEnabled;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -27,15 +28,13 @@ public class UUIDNewProcedures {
     @Context
     public Transaction tx;
 
-    private void checkInSystemLeader(String databaseName) {
+    private String checkInSystemLeader(String databaseName) {
         checkEnabled(databaseName);
         checkRefreshConfigSet();
 
         SystemDbUtil.checkInSystemLeader(db);
-    }
-
-    private void checkTargetDatabase(String databaseName) {
-        SystemDbUtil.checkTargetDatabase(tx, databaseName, "Automatic UUIDs");
+        
+        return SystemDbUtil.checkTargetDatabase(tx, databaseName, "Automatic UUIDs");
     }
 
     private void checkRefreshConfigSet() {
@@ -52,13 +51,12 @@ public class UUIDNewProcedures {
     public Stream<UuidInfo> setup(@Name("label") String label,
                                   @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                   @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
-        checkInSystemLeader(databaseName);
-        checkTargetDatabase(databaseName);
+        String dbNameOrAlias = checkInSystemLeader(databaseName);
 
         UuidConfig uuidConfig = new UuidConfig(config);
 
         // unlike the apoc.uuid.install we don't return the UuidInstallInfo because we don't retrieve the `batchComputationResult` field
-        UuidInfo uuidInfo = UUIDHandlerNewProcedures.create(databaseName, label, uuidConfig);
+        UuidInfo uuidInfo = UUIDHandlerNewProcedures.create(dbNameOrAlias, label, uuidConfig);
         return Stream.of(uuidInfo);
     }
 
@@ -68,9 +66,9 @@ public class UUIDNewProcedures {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.uuid.drop(label, databaseName) yield label, installed, properties | eventually removes previously added UUID handler and returns uuid information")
     public Stream<UuidInfo> drop(@Name("label") String label, @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        checkInSystemLeader(databaseName);
+        String dbNameOrAlias = checkInSystemLeader(databaseName);
 
-        final UuidInfo uuidInfo = UUIDHandlerNewProcedures.drop(databaseName, label);
+        final UuidInfo uuidInfo = UUIDHandlerNewProcedures.drop(dbNameOrAlias, label);
         return Stream.ofNullable(uuidInfo);
     }
 
@@ -80,9 +78,9 @@ public class UUIDNewProcedures {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.uuid.dropAll(databaseName) yield label, installed, properties | eventually removes all previously added UUID handlers and returns uuids' information")
     public Stream<UuidInfo> dropAll(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        checkInSystemLeader(databaseName);
+        String dbNameOrAlias = checkInSystemLeader(databaseName);
 
-        return UUIDHandlerNewProcedures.dropAll(databaseName)
+        return UUIDHandlerNewProcedures.dropAll(dbNameOrAlias)
                 .stream()
                 .sorted(Comparator.comparing(i -> i.label));
     }
@@ -95,6 +93,7 @@ public class UUIDNewProcedures {
     @Description("CALL apoc.uuid.show(databaseName) | it lists all eventually installed UUID handler for a database")
     public Stream<UuidInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkEnabled(databaseName);
+        String dbNameOrAlias = getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
 
         return withSystemDb(sysTx -> {
             return UUIDHandlerNewProcedures.getUuidNodes(sysTx, databaseName)

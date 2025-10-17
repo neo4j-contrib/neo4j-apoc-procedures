@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.*;
@@ -93,6 +94,41 @@ public class CustomNewProcedureMultiDbTest {
         chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(testSession, 
                 "CALL custom.testProc", "RETURN custom.testFun() AS answer",
                 fooSession, neo4jSession);
+    }
+
+    @Test
+    public void testProceduresFunctionsInDatabaseAlias() {
+        systemSession.executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE dbfoo",
+                        Map.of("db", DB_TEST)).consume()
+        );
+
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('testAliasProc() :: (answer::INT)','RETURN 42 as answer', 'test-alias')")
+                        .consume()
+        );
+        
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('testAliasFun() :: INT','RETURN 42 as answer', 'test-alias')")
+                        .consume()
+        );
+
+        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
+                "CALL custom.testAliasProc", 
+                "RETURN custom.testAliasFun() AS answer",
+                neo4jSession, testSession);
+
+        systemSession.executeWrite(tx -> {
+                tx.run("CALL apoc.custom.dropProcedure('testAliasProc', 'test-alias')")
+                        .consume();
+                tx.run("CALL apoc.custom.dropFunction('testAliasFun', 'test-alias')")
+                        .consume();
+                return null;
+        });
+
+        String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";
+        long count = singleResultFirstColumn(systemSession, countCustom);
+        assertEquals(0, count);
+        
     }
 
     private static void installTestProcAndFun() {

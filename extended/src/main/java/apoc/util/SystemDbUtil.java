@@ -8,13 +8,9 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.SystemPropertyKeys.database;
@@ -66,23 +62,42 @@ public class SystemDbUtil {
     }
 
     /**
-     * Check that the database exists and is not equal to "system"
+     * Check that the database name or alias exists and is not equal to "system"
      *
      * @param databaseName
      * @param type: the procedure type
+     * @return databaseName
      */
-    public static void checkTargetDatabase(Transaction tx, String databaseName, String type) {
-        final Set<String> databases = tx.execute("SHOW DATABASES", Collections.emptyMap())
-                .<String>columnAs("name")
-                .stream()
-                .collect(Collectors.toSet());
-        if (!databases.contains(databaseName)) {
-            throw new RuntimeException( String.format(DB_NOT_FOUND_ERROR, databaseName) );
-        }
-
+    public static String checkTargetDatabase(Transaction tx, String databaseName, String type) {
         if (databaseName.equals(SYSTEM_DATABASE_NAME)) {
             throw new RuntimeException(type + BAD_TARGET_ERROR);
         }
+
+        return getDbFromDbNameOrAlias(tx, databaseName);
+    }
+
+    public static String getDbFromDbNameOrAliasForReadProcedures(Transaction tx, String databaseName, GraphDatabaseService db) {
+        if (!SYSTEM_DATABASE_NAME.equals(db.databaseName())) {
+            // If we are not executing a procedure against the systemdb we cannot retrieve the aliases
+            // since `SHOW DATABASES` is a system command, so we just get the `databaseName` 
+            return databaseName;
+        }
+        
+        return getDbFromDbNameOrAlias(tx, databaseName);
+    }
+
+    public static String getDbFromDbNameOrAlias(Transaction tx, String databaseName) {
+
+        
+        var databasesAndAliases = tx.execute("SHOW DATABASES", Collections.emptyMap()).stream()
+                .map(i -> new AbstractMap.SimpleEntry<>((String) i.get("name"), (List<String>) i.get("aliases")))
+                .toList();
+
+        String database = databasesAndAliases.stream().filter(i -> i.getKey().equals(databaseName) || i.getValue().contains(databaseName))
+                .findFirst()
+                .map(AbstractMap.SimpleEntry::getKey)
+                .orElseThrow(() -> new RuntimeException(String.format(DB_NOT_FOUND_ERROR, databaseName)));
+        return database;
     }
 
     /**
