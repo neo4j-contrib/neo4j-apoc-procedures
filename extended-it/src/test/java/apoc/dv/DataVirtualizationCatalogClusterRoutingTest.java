@@ -34,6 +34,7 @@ import static apoc.util.TestContainerUtil.testCallEmpty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 
@@ -65,8 +66,8 @@ public class DataVirtualizationCatalogClusterRoutingTest {
     public void testVirtualizeCSV() {
         dvInSysLeaderMemberCommon(PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
                 (session) -> testCall(session, APOC_DV_INSTALL_QUERY,
-                        APOC_DV_INSTALL_PARAMS,
-                        (row) -> assertCatalogContent(row, CSV_TEST_FILE)), APOC_DV_INSTALL_PARAMS
+                        getApocDvInstallParams(DEFAULT_DATABASE_NAME),
+                        (row) -> assertCatalogContent(row, CSV_TEST_FILE)), getApocDvInstallParams(DEFAULT_DATABASE_NAME)
         );
 
         clusterSession.executeRead(tx -> {
@@ -113,7 +114,7 @@ public class DataVirtualizationCatalogClusterRoutingTest {
 
         dvInSysLeaderMemberCommon(PROCEDURE_NOT_ROUTED_ERROR, SYSTEM_DATABASE_NAME,
                 (session) -> testCallEmpty(session, APOC_DV_DROP_QUERY,
-                            APOC_DV_DROP_PARAMS), APOC_DV_DROP_PARAMS
+                            getApocDvDropParams(DEFAULT_DATABASE_NAME)), getApocDvDropParams(DEFAULT_DATABASE_NAME)
         );
 
     }
