@@ -46,7 +46,11 @@ public class StartupExtendedTest {
         // retrieve every extended procedure and function via the extended.txt file
         final File extendedFile = new File(TestContainerUtil.extendedDir, "src/main/resources/extended.txt");
         try {
-            EXPECTED_EXTENDED_NAMES = FileUtils.readLines(extendedFile, StandardCharsets.UTF_8);
+            // The apoc.import.arrow procedure requires the user to provide their own dependencies,
+            // so they will not be loaded by default
+            EXPECTED_EXTENDED_NAMES = FileUtils.readLines(extendedFile, StandardCharsets.UTF_8).stream()
+                    .filter(p -> !p.contains("apoc.import.arrow"))
+                    .toList();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -132,7 +136,13 @@ public class StartupExtendedTest {
         final List<String> procedureNames = getNames(session, APOC_HELP_QUERY,
                 Map.of("core", true, "type", "procedure") );
 
-        assertEquals(sorted(ApocSignatures.PROCEDURES_CYPHER_5), procedureNames);
+        // The apoc.load.arrow procedures requires the user to provide their own dependencies,
+        // so they will not be loaded by default
+        var expectedCypher5Procedures = sorted(ApocSignatures.PROCEDURES_CYPHER_5).stream()
+                .filter(p -> !p.contains("apoc.load.arrow"))
+                .toList();
+        
+        assertEquals(expectedCypher5Procedures, procedureNames);
         assertEquals(sorted(ApocSignatures.FUNCTIONS_CYPHER_5), functionNames);
     }
 
