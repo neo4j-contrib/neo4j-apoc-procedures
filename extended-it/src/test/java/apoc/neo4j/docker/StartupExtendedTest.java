@@ -132,7 +132,13 @@ public class StartupExtendedTest {
         final List<String> procedureNames = getNames(session, APOC_HELP_QUERY,
                 Map.of("core", true, "type", "procedure") );
 
-        assertEquals(sorted(ApocSignatures.PROCEDURES_CYPHER_5), procedureNames);
+        // The apoc.load.arrow procedures requires the user to provide their own dependencies,
+        // so they will not be loaded by default
+        var expectedCypher5Procedures = sorted(ApocSignatures.PROCEDURES_CYPHER_5).stream()
+                .filter(p -> !p.contains("apoc.load.arrow"))
+                .toList();
+        
+        assertEquals(expectedCypher5Procedures, procedureNames);
         assertEquals(sorted(ApocSignatures.FUNCTIONS_CYPHER_5), functionNames);
     }
 
