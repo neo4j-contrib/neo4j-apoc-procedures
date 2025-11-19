@@ -41,7 +41,7 @@ public class ExtractEmail {
         try {
             return extractEmail(value);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(EMAIL_MISSING_DEPS_ERROR);
+            throw new MissingDependencyException(EMAIL_MISSING_DEPS_ERROR, e);
         }
     }
 }
