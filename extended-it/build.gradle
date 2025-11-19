@@ -11,6 +11,7 @@ description = 'APOC :: Apoc Extended Integration Tests Module'
 
 test {
     maxParallelForks = 1
+    environment "NEO4JVERSION", neo4jVersionEffective
 }
 
 dependencies {
