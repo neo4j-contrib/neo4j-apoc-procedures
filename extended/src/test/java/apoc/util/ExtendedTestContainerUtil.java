@@ -32,7 +32,11 @@ public class ExtendedTestContainerUtil
     }
 
     public static <T> T singleResultFirstColumn(Session session, String cypher) {
-        return (T) session.executeWrite(tx -> tx.run(cypher).single().fields().get(0).value().asObject());
+        return singleResultFirstColumn(session, cypher, Map.of());
+    }
+    
+    public static <T> T singleResultFirstColumn(Session session, String cypher, Map<String, Object> params) {
+        return (T) session.executeWrite(tx -> tx.run(cypher, params).single().fields().get(0).value().asObject());
     }
 
     public static void testCallInReadTransaction(Session session, String call, Consumer<Map<String, Object>> consumer) {
