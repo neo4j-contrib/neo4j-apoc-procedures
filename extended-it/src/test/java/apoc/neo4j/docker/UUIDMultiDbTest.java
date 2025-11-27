@@ -21,6 +21,8 @@ import java.util.stream.Stream;
 
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED;
 import static apoc.ExtendedApocConfig.APOC_UUID_ENABLED_DB;
+import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.uuid.UUIDTestUtils.assertIsUUID;
 import static apoc.uuid.UuidHandler.APOC_UUID_REFRESH;
@@ -182,6 +184,44 @@ public class UUIDMultiDbTest {
                     .get("uuid");
             assertTrue(uuid.isNull());
         }
+    }
+
+    @Test
+    public void setupUUIDUsingAliasInNotDefaultDbWithUUIDEnabled() throws InterruptedException {
+        driver.session(SYS_CONF).executeWrite(tx -> tx.run("CREATE ALIAS `test-alias` FOR DATABASE " + DB_ENABLED)
+                .consume()
+        );
+
+        driver.session(SYS_CONF)
+                .executeWrite(tx -> tx.run("CALL apoc.uuid.setup('Alias', $db, {addToExistingNodes: false })",
+                        Map.of("db", "test-alias")).consume()
+                );
+
+        try(Session session = driver.session(SessionConfig.forDatabase(DB_ENABLED))) {
+            // check uuid set
+            awaitUuidSet(session, "Alias");
+
+            session.executeWrite(tx -> tx.run("CREATE (:Alias)").consume());
+
+            Result res = session.run("MATCH (n:Alias) RETURN n.uuid AS uuid");
+            String uuid = res.single().get("uuid").asString();
+            assertIsUUID(uuid);
+        }
+
+        try(Session session = driver.session()) {
+            session.run("CREATE (:Alias)");
+            // we cannot use assertEventually because the before and after conditions should be the same
+            Thread.sleep(2000);
+
+            Value uuid = session.run("MATCH (n:Alias) RETURN n.uuid AS uuid")
+                    .single()
+                    .get("uuid");
+            assertTrue(uuid.isNull());
+        }
+
+        String countUUid = "CALL apoc.uuid.show($db) YIELD label RETURN count(*) AS count";
+        long count = singleResultFirstColumn(driver.session(SYS_CONF), countUUid, map("db", "test-alias"));
+        assertEquals(0, count);
     }
 
     private static void awaitUuidSet(Session session, String expected) {
