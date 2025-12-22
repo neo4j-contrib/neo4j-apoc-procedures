@@ -155,6 +155,9 @@ subprojects {
 
 }
 
+
+
+
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
     neo4jVersion = "2025.10.1"
