@@ -37,6 +37,7 @@ repositories {
                 password System.getenv('CODEARTIFACT_TOKEN')
             }
         }
+        // TEST - maybe remove the else
     } else {
         mavenCentral()
     }
