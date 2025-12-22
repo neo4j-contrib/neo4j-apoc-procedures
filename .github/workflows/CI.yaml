@@ -62,7 +62,6 @@ jobs:
             NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
             NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
           fi
-          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL" >> "$GITHUB_ENV"
 
           echo "Found NEO4JVERSION=$NEO4JVERSION"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
@@ -144,7 +143,6 @@ jobs:
             NEO4J_DOCKER_CE_OVERRIDE="neo4j:$neo4j_version_base"
             NEO4J_DOCKER_EE_OVERRIDE="neo4j:$neo4j_version_base-enterprise"
           fi
-          echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL" >> "$GITHUB_ENV"
 
           echo "Found NEO4JVERSION=$NEO4JVERSION"
           echo "Found NEO4J_DOCKER_CE_OVERRIDE=$NEO4J_DOCKER_CE_OVERRIDE"
