@@ -37,8 +37,9 @@ repositories {
                 password System.getenv('CODEARTIFACT_TOKEN')
             }
         }
+    } else {
+        mavenCentral()
     }
-    mavenCentral()
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
@@ -159,6 +160,6 @@ ext {
     neo4jVersion = "2025.13.0"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-    testContainersVersion = '1.20.2'
+    testContainersVersion = '2.0.2'
     apacheArrowVersion = '15.0.0'
 }
