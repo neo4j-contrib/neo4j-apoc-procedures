@@ -83,7 +83,7 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: Compile
-        run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava compileTestJava
+        run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava :extended:compileTestJava :extended-it:compileTestJava
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3.28.8
