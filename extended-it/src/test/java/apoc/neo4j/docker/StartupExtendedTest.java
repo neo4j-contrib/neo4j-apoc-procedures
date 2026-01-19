@@ -7,7 +7,6 @@ import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.Neo4jVersion;
 import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
@@ -40,7 +39,6 @@ import static org.junit.Assert.fail;
  * so we need to set the environment variable `NEO4JVERSION=<correctVersion>`, e.g. `NEO4JVERSION=5.25.1`,
  * which is valued via {@link TestContainerUtil#executeGradleTasks(File, String...)} present in APOC Core and therefore not modifiable by APOC Extended
  */
-@Ignore
 public class StartupExtendedTest {
     private static final String APOC_HELP_QUERY = "CALL apoc.help('') YIELD core, type, name WHERE core = $core and type = $type RETURN name";
     private static final List<String> EXPECTED_EXTENDED_NAMES_CYPHER_5;
