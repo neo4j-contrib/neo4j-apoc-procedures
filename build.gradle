@@ -97,8 +97,8 @@ subprojects {
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
                 'user.country ' : 'US',
-                'neo4jDockerImage' : "neo4j:${neo4jDockerVersion}-enterprise-debian",
-                'neo4jCommunityDockerImage': "neo4j:${neo4jDockerVersion}-debian"
+                'neo4jDockerImage' : "neo4j-enterprise-${neo4jDockerVersion}-bullseye-docker-loadable",
+                'neo4jCommunityDockerImage': "neo4j-community-${neo4jDockerVersion}-bullseye-docker-loadable"
 
         maxHeapSize = "5G"
         forkEvery = 50
