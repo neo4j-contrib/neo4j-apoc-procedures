@@ -100,8 +100,6 @@ subprojects {
                 'neo4jDockerImage' : "neo4j-enterprise-${neo4jDockerVersion}-bullseye-docker-loadable",
                 'neo4jCommunityDockerImage': "neo4j-community-${neo4jDockerVersion}-bullseye-docker-loadable"
 
-        neo4j-enterprise-4.4.47-bullseye-docker-loadable.tar
-
         maxHeapSize = "5G"
         forkEvery = 50
         maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
