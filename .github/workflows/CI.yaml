@@ -7,7 +7,6 @@ on:
     branches: [ "4.4" ]
 
 env:
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
   TEAMCITY_FOUR_FOUR_URL: ${{ secrets.TEAMCITY_FOUR_FOUR_URL }}
   TEAMCITY_USER: ${{ secrets.TEAMCITY_USER }}
   TEAMCITY_PASSWORD: ${{ secrets.TEAMCITY_PASSWORD }}
