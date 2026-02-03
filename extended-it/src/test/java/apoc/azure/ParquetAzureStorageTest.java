@@ -58,6 +58,7 @@ public class ParquetAzureStorageTest extends AzureStorageBaseTest {
                        "RETURN value";
 
         String url = putToAzureStorageAndGetUrl(EXTENDED_RESOURCES_PATH + EXPORT_FILENAME);
+        System.out.println("url PARQUET = " + url);
         testResult(db, query, Map.of("url", url,  "config", MAPPING_ALL),
                 ParquetTestUtil::roundtripLoadAllAssertions);
     }
