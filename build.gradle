@@ -87,7 +87,7 @@ subprojects {
         archiveClassifier = 'javadoc'
     }
     test {
-        include '**/GexfTest.class'//, '**/AtomicTest.class'
+        //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
         // neo4jDockerImage system property is used in TestContainerUtil
         systemProperties 'user.language' : 'en' ,
