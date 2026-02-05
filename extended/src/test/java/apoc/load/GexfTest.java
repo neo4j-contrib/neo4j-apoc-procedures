@@ -15,6 +15,7 @@ import java.util.Map;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG;
 import static apoc.ApocConfig.apocConfig;
+import static apoc.util.ExtendedTestUtil.assertMapEquals;
 import static apoc.util.ExtendedTestUtil.assertRelationship;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;
 import static apoc.util.MapUtil.map;
@@ -41,6 +42,42 @@ public class GexfTest {
 
     @Test
     public void testLoadGexf() {
+        Map<String, Object> expected = map(
+            "_type", "gexf",
+            "version", "1.2",
+            "_children", List.of(
+                map(
+                    "_type", "graph",
+                    "defaultedgetype", "directed",
+                    "_children", List.of(
+                        map(
+                            "_type", "nodes",
+                            "_children", List.of(
+                                map(
+                                    "_type", "node",
+                                    "id", "0",
+                                    "label", "bar",
+                                    "_children", List.of(
+                                        map(
+                                            "_type", "attvalues",
+                                            "_children", List.of(
+                                                map(
+                                                    "_type", "attvalue",
+                                                    "for", "0",
+                                                    "value", "http://gephi.org"
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
+        
+        
         final String file = ClassLoader.getSystemResource("gexf/single-node.gexf").toString();
         testCall(
                 db,
@@ -48,8 +85,7 @@ public class GexfTest {
                 Map.of("file", file),
                 (row) -> {
                     Map<String, Object> value = (Map) row.get("value");
-                    String expected = "{_type=gexf, _children=[{_type=graph, defaultedgetype=directed, _children=[{_type=nodes, _children=[{_type=node, _children=[{_type=attvalues, _children=[{_type=attvalue, for=0, value=http://gephi.org}]}], id=0, label=bar}]}]}], version=1.2}";
-                    assertEquals(expected, value.toString());
+                    assertMapEquals(expected, value);
                 });
     }
 
