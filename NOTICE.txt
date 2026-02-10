@@ -26,12 +26,12 @@ Third-party licenses
 --------------------
 
 Apache License, 2.0
-  jersey-client-2.34.jar
-  jersey-common-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
-  jersey-server-2.34.jar
+  jersey-client-2.46.jar
+  jersey-common-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
+  jersey-server-2.46.jar
 
 Apache-2.0
   FastInfoset-1.2.16.jar
@@ -148,7 +148,7 @@ Apache-2.0
   jakarta.validation-api-2.0.2.jar
   jamm-0.3.3.jar
   javapoet-1.13.0.jar
-  javassist-3.25.0-GA.jar
+  javassist-3.30.2-GA.jar
   javax-websocket-client-impl-9.4.53.v20231009.jar
   javax-websocket-server-impl-9.4.53.v20231009.jar
   javax.inject-1.jar
@@ -265,10 +265,10 @@ Apache-2.0
   gradle-tooling-api-6.1.1.jar
 
 BSD 2-Clause
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
 
 BSD-2-Clause
   jline-3.9.0.jar
@@ -326,10 +326,10 @@ Eclipse Distribution License - v 1.0
   jakarta.activation-api-1.2.2.jar
   jakarta.xml.bind-api-2.3.3.jar
   jaxb-runtime-2.3.2.jar
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
   stax-ex-1.8.1.jar
   txw2-2.3.2.jar
 
@@ -365,12 +365,12 @@ Eclipse Public License - v 2.0
   jakarta.inject-2.6.1.jar
   jakarta.ws.rs-api-2.1.6.jar
   javax.ws.rs-api-2.1.1.jar
-  jersey-client-2.34.jar
-  jersey-common-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
-  jersey-server-2.34.jar
+  jersey-client-2.46.jar
+  jersey-common-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
+  jersey-server-2.46.jar
   junit-jupiter-5.7.2.jar
   junit-jupiter-api-5.7.2.jar
   junit-jupiter-engine-5.7.2.jar
@@ -410,17 +410,17 @@ GPL2 w/ CPE
   jakarta.inject-2.6.1.jar
   jakarta.ws.rs-api-2.1.6.jar
   javax.ws.rs-api-2.1.1.jar
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
   osgi-resource-locator-1.0.3.jar
 
 GPL2 w/ CPE
   jaxb-impl-2.2.3-1.jar
 
 LGPL 2.1
-  javassist-3.25.0-GA.jar
+  javassist-3.30.2-GA.jar
 
 LGPL-2.1-or-later
   jna-5.13.0.jar
@@ -441,10 +441,10 @@ MIT
   duct-tape-1.0.8.jar
   elasticsearch-1.17.6.jar
   jdbc-1.17.6.jar
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
   jnr-x86asm-1.0.2.jar
   jsoup-1.15.3.jar
   localstack-1.17.6.jar
@@ -464,27 +464,27 @@ MIT
   weaviate-1.19.7.jar
 
 MPL 1.1
-  javassist-3.25.0-GA.jar
+  javassist-3.30.2-GA.jar
 
 Modified BSD
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
-  jersey-server-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
+  jersey-server-2.46.jar
 
 Public Domain, per Creative Commons CC0
   HdrHistogram-2.1.9.jar
   aopalliance-1.0.jar
-  jersey-client-2.34.jar
-  jersey-common-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-common-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
 
 The GNU General Public License (GPL), Version 2, With Classpath Exception
-  jersey-common-2.34.jar
-  jersey-server-2.34.jar
+  jersey-common-2.46.jar
+  jersey-server-2.46.jar
 
 The Go license
   re2j-1.1.jar
@@ -499,13 +499,13 @@ The W3C License
   xml-apis-1.4.01.jar
 
 W3C license
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
 
 jQuery license
-  jersey-client-2.34.jar
-  jersey-container-servlet-2.34.jar
-  jersey-container-servlet-core-2.34.jar
-  jersey-hk2-2.34.jar
+  jersey-client-2.46.jar
+  jersey-container-servlet-2.46.jar
+  jersey-container-servlet-core-2.46.jar
+  jersey-hk2-2.46.jar
