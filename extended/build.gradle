@@ -142,9 +142,7 @@ dependencies {
     testImplementation group: 'org.apache.arrow', name: 'arrow-memory-netty', version: '13.0.0'
 
     // These dependencies affect the tests only, they will not be packaged in the resulting .jar
-    testImplementation(project(':test-utils')) {
-        exclude group: 'org.junit.jupiter'
-    }
+    testImplementation project(':test-utils')
     testImplementation project(':core')
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0', {
         exclude group: 'org.apache.commons', module: 'commons-collections4'

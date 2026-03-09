@@ -36,9 +36,7 @@ dependencies {
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
 
     testImplementation project(':core')
-    testImplementation(project(':test-utils')) {
-        exclude group: 'org.junit.jupiter'
-    }
+    testImplementation project(':test-utils')
     testImplementation project(':common')
     testImplementation project(':extended')
     testImplementation project(':core').sourceSets.test.output
