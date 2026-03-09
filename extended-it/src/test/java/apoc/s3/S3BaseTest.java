@@ -16,6 +16,9 @@ public abstract class S3BaseTest {
 
         // Used by S3ParamsExtractor to prepend http:// to endpoints for local testing
         System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
+
+        // Disable checksum validation
+        System.setProperty("software.amazon.awssdk.sdk.disableBinaryChecksumValidation", "true");
     }
 
     @AfterClass
