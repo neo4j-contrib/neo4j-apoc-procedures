@@ -36,7 +36,9 @@ dependencies {
     testImplementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
 
     testImplementation project(':core')
-    testImplementation project(':test-utils')
+    testImplementation(project(':test-utils')) {
+        exclude group: 'org.junit.jupiter'
+    }
     testImplementation project(':common')
     testImplementation project(':extended')
     testImplementation project(':core').sourceSets.test.output
@@ -65,6 +67,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
+    testImplementation 'junit:junit:4.13.2'
 }
 
 tasks.register('copyApocCoreJar', Copy) {
