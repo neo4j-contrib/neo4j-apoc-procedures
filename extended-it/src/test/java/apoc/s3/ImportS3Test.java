@@ -2,7 +2,6 @@ package apoc.s3;
 
 import apoc.load.Gexf;
 import apoc.util.TestUtil;
-import apoc.util.s3.S3BaseTest;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;

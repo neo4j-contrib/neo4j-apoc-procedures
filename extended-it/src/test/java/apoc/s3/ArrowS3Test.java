@@ -1,7 +1,6 @@
 package apoc.s3;
 
 import apoc.export.arrow.ArrowTestUtil;
-import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -4,7 +4,6 @@ import apoc.load.*;
 import apoc.load.partial.LoadPartial;
 import apoc.load.xls.LoadXls;
 import apoc.util.TestUtil;
-import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,10 +24,8 @@ import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.ExtendedITUtil.testLoadXmlCommon;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.singleResultFirstColumn;
-import static apoc.util.TestUtil.testResult;
 import static apoc.util.s3.S3Util.putToS3AndGetUrl;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 public class LoadS3Test extends S3BaseTest {
 
