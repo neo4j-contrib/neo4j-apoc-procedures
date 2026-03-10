@@ -2,8 +2,6 @@ package apoc.load.jdbc;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.hamcrest.Matchers;
-import org.hamcrest.collection.IsMapContaining;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -17,7 +15,6 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class CassandraJdbcTest extends AbstractJdbcTest {
 
