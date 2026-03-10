@@ -1,15 +1,14 @@
 package apoc.s3;
 
-import apoc.util.s3.S3Container;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public abstract class S3BaseTest {
-    protected static S3Container s3Container;
+    protected static ExtendedS3Container s3Container;
 
     @BeforeClass
     public static void baseBeforeClass() {
-        s3Container = new S3Container();
+        s3Container = new ExtendedS3Container();
 
         // In test environment we skip the MD5 validation that can cause issues
         System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");

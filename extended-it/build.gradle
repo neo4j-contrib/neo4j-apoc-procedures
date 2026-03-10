@@ -66,6 +66,7 @@ dependencies {
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
     testImplementation 'junit:junit:4.13.2'
+    implementation group: 'software.amazon.awssdk', name: 's3', version: awsSdkVersion
 }
 
 tasks.register('copyApocCoreJar', Copy) {
