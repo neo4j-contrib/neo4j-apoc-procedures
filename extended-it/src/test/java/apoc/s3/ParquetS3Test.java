@@ -2,7 +2,6 @@ package apoc.s3;
 
 import apoc.export.parquet.ParquetTestUtil;
 import apoc.util.collection.Iterators;
-import apoc.util.s3.S3BaseTest;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -19,7 +18,7 @@ import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.s3.S3Util.putToS3AndGetUrl;
+import static apoc.s3.S3Util.putToS3AndGetUrl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

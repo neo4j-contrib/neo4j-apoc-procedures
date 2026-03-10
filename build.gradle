@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'antlr'
     id "com.github.hierynomus.license-report" version"0.16.1"
-    id "org.jetbrains.kotlin.jvm" version "2.1.10" apply false
+    id "org.jetbrains.kotlin.jvm" version "2.1.0" apply false
 }
 
 downloadLicenses {
@@ -157,9 +157,11 @@ subprojects {
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "2026.02.1"
+    neo4jVersion = "2026.02.2"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '2.0.2'
     apacheArrowVersion = '15.0.0'
+    guavaVersion = '33.5.0-jre'
+    awsSdkVersion = '2.34.0'
 }
