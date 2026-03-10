@@ -3,7 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow'
     id 'maven-publish'
     id 'antlr'
-    id "org.jetbrains.kotlin.jvm" version "2.1.10"
+    id "org.jetbrains.kotlin.jvm" version "2.1.0"
     id "com.diffplug.spotless" version "6.7.2"
 }
 
@@ -65,6 +65,8 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
+    testImplementation 'junit:junit:4.13.2'
+    implementation group: 'software.amazon.awssdk', name: 's3', version: awsSdkVersion
 }
 
 tasks.register('copyApocCoreJar', Copy) {

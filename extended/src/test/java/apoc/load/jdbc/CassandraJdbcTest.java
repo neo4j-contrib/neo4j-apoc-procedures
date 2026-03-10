@@ -2,8 +2,6 @@ package apoc.load.jdbc;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.hamcrest.Matchers;
-import org.hamcrest.collection.IsMapContaining;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -17,7 +15,6 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class CassandraJdbcTest extends AbstractJdbcTest {
 
@@ -71,11 +68,9 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
                 ),
                 (r) -> {
                     Map<String, Object> row = (Map<String, Object>) r.get("row");
-                    assertThat(row, Matchers.allOf(
-                            IsMapContaining.hasEntry("NAME", "John") ,
-                            IsMapContaining.hasEntry("SURNAME", "DOE"), // FIXME: it seems that cassandra is not updated via first statment in this method
-                            IsMapContaining.hasEntry("EFFECTIVE_FROM_DATE", (Object)effectiveFromDate.toLocalDateTime())
-                            ));
+                    assertEquals("John", row.get("NAME"));
+                    assertEquals("DOE", row.get("SURNAME"));
+                    assertEquals(effectiveFromDate.toLocalDateTime(), row.get("EFFECTIVE_FROM_DATE"));
                 });
     }
 
