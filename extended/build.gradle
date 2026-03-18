@@ -176,7 +176,7 @@ dependencies {
     testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.16.1'
     testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: '1.6.0'
     testImplementation group: 'org.apache.kafka', name: 'kafka-clients', version: kafkaVersion
-    testImplementation group: 'org.testcontainers', name: 'kafka', version: testContainersVersion
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-kafka', version: testContainersVersion
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
     testImplementation group: 'org.duckdb', name: 'duckdb_jdbc', version: '1.1.3'
 
