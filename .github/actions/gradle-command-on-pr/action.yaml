@@ -32,8 +32,9 @@ runs:
         TEAMCITY_FOUR_FOUR_URL: ${{ inputs.TEAMCITY_FOUR_FOUR_URL }}
         TEAMCITY_USER: ${{ inputs.TEAMCITY_USER }}
         TEAMCITY_PASSWORD: ${{ inputs.TEAMCITY_PASSWORD }}
+        GRADLE_COMMAND: ${{ inputs.gradle-command }}
       run: |
-        ./gradlew ${{ inputs.gradle-command }} || true
+        ./gradlew "$GRADLE_COMMAND" || true
 
     - name: Check for modified files
       shell: bash
@@ -43,13 +44,15 @@ runs:
         echo modified=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi) >> $GITHUB_OUTPUT
 
     - name: Commit to the PR branch
+      env:
+        GRADLE_COMMAND: ${{ inputs.gradle-command }}
       shell: bash
       if: steps.git-check.outputs.modified == 'true'
       run: |
         git config --global user.name 'neo-technology-build-agent'
         git config --global user.email 'neo-technology-build-agent@users.noreply.github.com'
         git add -A
-        git commit -m "[NOID] Run ${{ inputs.gradle-command }}"
+        git commit -m "[NOID] Run $GRADLE_COMMAND"
 
     - name: Push changes
       uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df # v0.8.0
@@ -82,6 +85,8 @@ runs:
       run: echo run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID >> $GITHUB_OUTPUT
 
     - name: Create comment with URL on failure
+      env:
+        GRADLE_COMMAND: ${{ inputs.gradle-command }}
       if: ${{ !success() }}
       uses: peter-evans/create-or-update-comment@v2
       with:
@@ -89,7 +94,7 @@ runs:
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
         issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
         body: |
-          :x: [${{ inputs.gradle-command }} failed][1]
+          :x: ["$GRADLE_COMMAND" failed][1]
 
           [1]: ${{ steps.vars.outputs.run-url }}
 

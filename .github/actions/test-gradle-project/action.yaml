@@ -11,8 +11,10 @@ runs:
     - uses: ./.github/actions/setup-jdk
     - uses: ./.github/actions/setup-gradle-cache
     - name: Run tests
+      env:
+        PROJECT_NAME: ${{ inputs.project-name }}
       shell: bash
-      run: ./gradlew ${{inputs.project-name}}:test --parallel
+      run: ./gradlew "$PROJECT_NAME":test --parallel
     - name: Archive test results
       uses: actions/upload-artifact@v4
       if: always()
