@@ -190,7 +190,7 @@ class RoutingConfigurationTest {
         assertEquals(listOf("two"),routing[0].exclude)
 
         // valid relKeyStrategy ALL
-        routing = RoutingConfigurationFactory.getRoutingConfiguration("topic6", "KNOWS{*}", EntityType.relationship, RelKeyStrategy.ALL.toString().toLowerCase()) as List<RelationshipRoutingConfiguration>
+        routing = RoutingConfigurationFactory.getRoutingConfiguration("topic6", "KNOWS{*}", EntityType.relationship, RelKeyStrategy.ALL.toString().lowercase()) as List<RelationshipRoutingConfiguration>
         assertEquals(1, routing.size)
         assertEquals("topic6", routing[0].topic)
         assertEquals(RelKeyStrategy.ALL, routing[0].relKeyStrategy)
@@ -200,7 +200,7 @@ class RoutingConfigurationTest {
         assertTrue { routing[0].exclude.isEmpty() }
 
         // valid relKeyStrategy DEFAULT
-        routing = RoutingConfigurationFactory.getRoutingConfiguration("topic7", "LOVES{-p1, -p2 }", EntityType.relationship, RelKeyStrategy.DEFAULT.toString().toLowerCase()) as List<RelationshipRoutingConfiguration>
+        routing = RoutingConfigurationFactory.getRoutingConfiguration("topic7", "LOVES{-p1, -p2 }", EntityType.relationship, RelKeyStrategy.DEFAULT.toString().lowercase()) as List<RelationshipRoutingConfiguration>
         assertEquals(1, routing.size)
         assertEquals("topic7", routing[0].topic)
         assertEquals(RelKeyStrategy.DEFAULT, routing[0].relKeyStrategy)
