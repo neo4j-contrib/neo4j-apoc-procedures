@@ -1,10 +1,13 @@
-package apoc.diff;
+package apoc.neo4j.docker;
 
 import apoc.bolt.Bolt;
 import apoc.create.Create;
+import apoc.diff.DiffExtendedGraph;
+import apoc.diff.SourceDestConfig;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.*;
 import org.neo4j.driver.*;
 import org.neo4j.test.rule.DbmsRule;
@@ -19,9 +22,6 @@ import static apoc.diff.DiffExtendedGraph.*;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.Util.map;
 import static org.junit.Assert.*;
-
-
-
 
 
 public class DiffExtendedGraphTest {
@@ -46,11 +46,11 @@ public class DiffExtendedGraphTest {
         session = neo4jContainer.getSession();
 
         try (Session session = driver.session()) {
-            session.writeTransaction(tx -> tx.run(String.format("CREATE DATABASE %s;", secondDb)).consume());
+            session.executeWrite(tx -> tx.run(String.format("CREATE DATABASE %s;", secondDb)).consume());
         }
         try (Session session = driver.session(SessionConfig.forDatabase(secondDb))) {
-            session.writeTransaction(tx -> tx.run("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;").consume());
-            session.writeTransaction(tx -> tx.run("CREATE (m:Person:Other {name: 'Michael Jordan', age: 54}), \n" +
+            session.executeWrite(tx -> tx.run("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;").consume());
+            session.executeWrite(tx -> tx.run("CREATE (m:Person:Other {name: 'Michael Jordan', age: 54}), \n" +
                     "(q:Person {name: 'Jerry Burton', age: 23}), \n" +
                     "(p:Person {name: 'Jack William', age: 22}), \n" +
                     "(q)-[:KNOWS{since:1999, time:time('125035.556+0100')}]->(p);").consume());
@@ -94,7 +94,7 @@ public class DiffExtendedGraphTest {
     public void shouldNotFindDifferencesInTheSameDbUsingDatabaseTypeAndFindById() {
         TestUtil.testCallEmpty(db, "CALL apoc.diff.graphs($querySourceDest, $querySourceDest, $conf)",
                 map("querySourceDest", "MATCH p = (start)-[rel:KNOWS]->(end) RETURN start, rel, end",
-                        "conf", map("dest", map("target", map("type", SourceDestConfig.SourceDestConfigType.DATABASE.name(), "value", "neo4j")),
+                        "conf", map("dest", Util.map("target", map("type", SourceDestConfig.SourceDestConfigType.DATABASE.name(), "value", "neo4j")),
                                 "findById", true
                         )));
     }
