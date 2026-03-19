@@ -103,19 +103,6 @@ public class HdfsContainerBaseTest {
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
                 .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .dependsOn(namenode);
-
-        executeGradleTasks(extendedDir, "shadowJar");
-        copyFilesToPlugin(
-                new File(extendedDir, "build/libs"),
-                new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")),
-                pluginsFolder);
-
-        File coreDir = new File(baseDir, System.getProperty("coreDir"));
-        executeGradleTasks(coreDir, "shadowJar");
-        copyFilesToPlugin(
-                new File(coreDir, "build/libs"),
-                new WildcardFileFilter(Arrays.asList("*-extended.jar", "*-core.jar")),
-                pluginsFolder);
         
         neo4jContainer.setExposedPorts(List.of(7474, 7687));
 
