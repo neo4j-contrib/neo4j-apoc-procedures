@@ -2,7 +2,6 @@ package apoc.s3;
 
 import apoc.load.Gexf;
 import apoc.util.TestUtil;
-import apoc.util.s3.S3BaseTest;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,7 +21,7 @@ import static apoc.export.arrow.ArrowTestUtil.createNodesForImportTests;
 import static apoc.export.arrow.ArrowTestUtil.testImportCommon;
 import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
 import static apoc.util.GexfTestUtil.testImportGexfCommon;
-import static apoc.util.s3.S3Util.putToS3AndGetUrl;
+import static apoc.s3.S3Util.putToS3AndGetUrl;
 
 public class ImportS3Test extends S3BaseTest {
     private static File directory = new File(ARROW_BASE_FOLDER);

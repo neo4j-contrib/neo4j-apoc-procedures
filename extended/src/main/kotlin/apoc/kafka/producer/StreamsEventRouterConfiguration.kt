@@ -31,7 +31,7 @@ private inline fun <reified T> filterMap(config: Map<String, String>, routingPre
                 val keyStrategy = routingSuffix?.let { suffix ->
                     print("suffix - $suffix")
                     config.entries.firstOrNull{ it.key.startsWith(prefixAndTopic) && it.key.endsWith(suffix) }?.value
-                } ?: RelKeyStrategy.DEFAULT.toString().toLowerCase()
+                } ?: RelKeyStrategy.DEFAULT.toString().lowercase()
 
                 RoutingConfigurationFactory
                     .getRoutingConfiguration(prefixAndTopic.replace(routingPrefix, StringUtils.EMPTY),

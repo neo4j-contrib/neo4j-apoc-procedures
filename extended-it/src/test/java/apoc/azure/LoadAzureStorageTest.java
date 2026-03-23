@@ -27,7 +27,6 @@ import static apoc.util.ExtendedITUtil.testLoadJsonCommon;
 import static apoc.util.ExtendedITUtil.testLoadXmlCommon;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.singleResultFirstColumn;
-import static apoc.util.s3.S3Util.putToS3AndGetUrl;
 import static org.junit.Assert.assertEquals;
 
 

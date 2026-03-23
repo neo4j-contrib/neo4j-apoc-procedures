@@ -75,7 +75,7 @@ class CUDIngestionStrategy: IngestionStrategy {
 
     private fun CUDRelationship.isValidOperation(): Boolean = from.op in LIST_VALID_CUD_NODE_REL && to.op in LIST_VALID_CUD_NODE_REL && op in LIST_VALID_CUD_REL
 
-    private fun NodeRelMetadata.getOperation() = op.toString().toUpperCase()
+    private fun NodeRelMetadata.getOperation() = op.toString().uppercase()
 
     private fun buildNodeLookupByIds(keyword: String = "MATCH", ids: Set<String>, labels: List<String>, identifier: String = "n", field: String = ""): String {
         val fullField = if (field.isNotBlank()) "$field." else field
