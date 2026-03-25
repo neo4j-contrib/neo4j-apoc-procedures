@@ -49,7 +49,22 @@ public class CsvPropertyConverter {
             if (listContainingNull || isEmptyCell) {
                 return false;
             }
-            final Object[] prototype = getPrototypeFor(field.getType().toUpperCase());
+            final String typeUpper = field.getType().toUpperCase();
+            // Vector properties must be stored as primitive float[] so they are
+            // compatible with Neo4j vector indexes. Boxing to Float[] would cause
+            // a runtime error when the property is used in a vector index query.
+            if ("VECTOR".equals(typeUpper) || "FLOAT_ARRAY".equals(typeUpper)) {
+                final float[] floats = new float[list.size()];
+                for (int i = 0; i < list.size(); i++) {
+                    final Object item = list.get(i);
+                    floats[i] = (item instanceof Number)
+                            ? ((Number) item).floatValue()
+                            : Float.parseFloat(item.toString());
+                }
+                entity.setProperty(field.getName(), floats);
+                return true;
+            }
+            final Object[] prototype = getPrototypeFor(typeUpper);
             final Object[] array = list.toArray(prototype);
             entity.setProperty(field.getName(), array);
         } else {
@@ -63,6 +78,11 @@ public class CsvPropertyConverter {
 
     public static Object[] getPrototypeFor(String type) {
         switch (type) {
+            case "VECTOR":
+            case "FLOAT_ARRAY":
+                // Neo4j vector properties are stored as float[] — preserve 32-bit
+                // precision rather than widening to Double[].
+                return new Float[] {};
             case "INT":
             case "LONG":
                 return new Long[] {};
