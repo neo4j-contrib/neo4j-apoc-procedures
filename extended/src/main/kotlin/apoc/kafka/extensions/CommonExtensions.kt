@@ -36,7 +36,7 @@ fun Node.labelNames() : List<String> {
 }
 
 fun String.toPointCase(): String {
-    return this.split("(?<=[a-z])(?=[A-Z])".toRegex()).joinToString(separator = ".").lowercase()
+    return this.split("(?<=[a-z])(?=[A-Z])".toRegex()).joinToString(separator = ".").toLowerCase()
 }
 
 fun String.quote(): String = if (SourceVersion.isIdentifier(this)) this else "`$this`"

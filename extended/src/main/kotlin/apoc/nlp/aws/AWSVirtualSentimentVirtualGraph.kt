@@ -44,7 +44,7 @@ data class AWSVirtualSentimentVirtualGraph(private val detectEntitiesResult: Bat
             val sentiment = WordUtils.capitalizeFully(value["sentiment"] as String)
             val sentimentScore = value["sentimentScore"] as Map<String, Any>
 
-            return Pair(sentiment, sentimentScore[sentiment.lowercase()] as Float)
+            return Pair(sentiment, sentimentScore[sentiment.toLowerCase()] as Float)
         }
     }
 }

@@ -191,9 +191,9 @@ data class RelationshipRoutingConfiguration(val name: String = "",
                     val properties = RoutingProperties.from(matcher)
 
                     val relKeyStrategy = try {
-                        RelKeyStrategy.valueOf(keyStrategyString.uppercase())
+                        RelKeyStrategy.valueOf(keyStrategyString.toUpperCase())
                     } catch (e: IllegalArgumentException) {
-                        log?.warn("Invalid key strategy setting, switching to default value ${RelKeyStrategy.DEFAULT.toString().lowercase()}")
+                        log?.warn("Invalid key strategy setting, switching to default value ${RelKeyStrategy.DEFAULT.toString().toLowerCase()}")
                         RelKeyStrategy.DEFAULT
                     }
 

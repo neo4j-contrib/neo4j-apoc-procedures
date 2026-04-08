@@ -25,7 +25,7 @@ object Assert {
                     val description = StringDescription()
                     description.appendText(reason.apply(last)).appendText("\nExpected: ").appendDescriptionOf(matcher).appendText("\n     but: ")
                     matcher.describeMismatch(last, description)
-                    throw AssertionError("Timeout hit (" + timeout + " " + timeUnit.toString().lowercase() + ") while waiting for condition to match: " + description.toString())
+                    throw AssertionError("Timeout hit (" + timeout + " " + timeUnit.toString().toLowerCase() + ") while waiting for condition to match: " + description.toString())
                 } else {
                     return
                 }
