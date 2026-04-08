@@ -24,6 +24,7 @@ apoc.custom.installProcedure(signature :: STRING?, statement :: STRING?, databas
 |databaseName|STRING?|neo4j
 |mode|STRING?|read
 |description|STRING?|
+|global|BOOLEAN?|false
 |===
 
 xref:cypher-execution/cypher-based-procedures-functions.adoc[More documentation of apoc.custom.installProcedure,role=more information]

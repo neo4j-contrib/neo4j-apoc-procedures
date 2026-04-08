@@ -95,3 +95,7 @@ It can be:
 
 Also, we can pass a `description` parameter as the 5th parameter,
 which will be returned by the `call apoc.custom.list` and `SHOW PROCEDURES`.
+
+// TODO - maybe leverage the database name
+Moreover, we can pass a `global` boolean as the 6th parameter, 
+which allows the procedure to be registered in each database.
