@@ -55,7 +55,7 @@ public class GexfTest {
                             "_children", List.of(
                                 map(
                                     "_type", "node",
-                                    "id", "0",     // Nota: potrebbe essere Integer 0 a seconda del parser
+                                    "id", "0",
                                     "label", "bar",
                                     "_children", List.of(
                                         map(
