@@ -24,6 +24,7 @@ apoc.custom.installFunction(signature :: STRING?, statement :: STRING?, database
 |databaseName|STRING?|neo4j
 |forceSingle|BOOLEAN?|false
 |description|STRING?|
+|global|BOOLEAN?|false
 |===
 
 
