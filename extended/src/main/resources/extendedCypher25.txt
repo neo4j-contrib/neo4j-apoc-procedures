@@ -96,8 +96,6 @@ apoc.import.arrow
 apoc.import.gexf
 apoc.import.parquet
 apoc.load.stringPartial
-apoc.load.arrow
-apoc.load.arrow.stream
 apoc.load.csv
 apoc.load.csvParams
 apoc.load.directory
