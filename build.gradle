@@ -117,6 +117,7 @@ subprojects {
             exclude '**/*HdfsTest*'
             exclude '**/*AzureStorage*'
             exclude '**/*WeaviateTest*'
+            exclude '**/*QdrantTest*'
         }
 
         jvmArgs = [ "--add-opens", "java.base/java.lang=ALL-UNNAMED",
