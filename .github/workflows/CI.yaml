@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "5.26" ]
+    branches: [ "release/5.26.4" ]
   pull_request:
-    branches: [ "5.26" ]
+    branches: [ "release/5.26.4" ]
 
 env:
   CODEARTIFACT_BUILD_SERVICE_LIVE_URL: ${{ secrets.CODEARTIFACT_BUILD_SERVICE_LIVE_URL }}

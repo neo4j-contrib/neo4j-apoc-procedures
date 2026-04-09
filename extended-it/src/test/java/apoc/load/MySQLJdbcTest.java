@@ -41,14 +41,14 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
     
     public static class MySQLJdbcLatestVersionTest {
         
-        public static MySQLContainerExtension mysql;
+        @ClassRule
+        public static MySQLContainerExtension mysql = new MySQLContainerExtension("mysql:8.0.31");
 
         @ClassRule
         public static DbmsRule db = new ImpermanentDbmsRule();
         
         @BeforeClass
         public static void setUpContainer() throws Exception {
-            mysql = new MySQLContainerExtension("mysql:8.0.31");
             mysql.start();
             TestUtil.registerProcedure(db, Jdbc.class, Analytics.class, Periodic.class);
             createAnalyticsDataset(db);
@@ -150,14 +150,14 @@ public class MySQLJdbcTest extends AbstractJdbcTest {
     
     public static class MySQLJdbcFiveVersionTest {
         
-        public static MySQLContainerExtension mysql;
+        @ClassRule
+        public static MySQLContainerExtension mysql = new MySQLContainerExtension("mysql:5.7");
 
         @ClassRule
         public static DbmsRule db = new ImpermanentDbmsRule();
 
         @BeforeClass
         public static void setUpContainer() {
-            mysql = new MySQLContainerExtension("mysql:5.7");
             mysql.start();
             TestUtil.registerProcedure(db, Jdbc.class, Periodic.class);
         }
