@@ -13,10 +13,7 @@ import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
@@ -87,7 +84,7 @@ public class CypherProceduresUtil {
 
     public static ProcedureSignature getProcedureSignature(Node node) {
         String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-        String description = (String) node.getProperty( ExtendedSystemPropertyKeys.description.name(), null);
+        String description = (String) node.getProperty( ExtendedSystemPropertyKeys.description.name(), UUID.randomUUID().toString());
         String[] prefix = (String[]) node.getProperty(ExtendedSystemPropertyKeys.prefix.name(), new String[]{PREFIX});
 
         String property = (String) node.getProperty(ExtendedSystemPropertyKeys.inputs.name());

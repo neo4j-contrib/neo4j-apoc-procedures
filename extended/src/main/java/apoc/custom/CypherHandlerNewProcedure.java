@@ -31,6 +31,7 @@ import static apoc.ExtendedSystemPropertyKeys.outputs;
 import static apoc.ExtendedSystemPropertyKeys.prefix;
 import static apoc.SystemPropertyKeys.database;
 import static apoc.SystemPropertyKeys.name;
+import static apoc.custom.CypherNewProcedures.ALL_DATABASES;
 import static apoc.custom.CypherProceduresUtil.qualifiedName;
 import static apoc.util.SystemDbUtil.getSystemNodes;
 import static apoc.util.SystemDbUtil.withSystemDb;
@@ -152,6 +153,8 @@ public class CypherHandlerNewProcedure {
 
     private static void setLastUpdate(Transaction tx, String databaseName) {
         SystemDbUtil.setLastUpdate(tx, databaseName, ApocCypherProceduresMeta);
+        // TODO - check if is correct
+        SystemDbUtil.setLastUpdate(tx, ALL_DATABASES, ApocCypherProceduresMeta);
     }
 
 }
