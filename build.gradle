@@ -116,9 +116,6 @@ subprojects {
         if (System.env.TEAMCITY_VERSION != null || System.env.CI != null) {
             exclude '**/*HdfsTest*'
             exclude '**/*AzureStorage*'
-            exclude '**/*WeaviateTest*'
-            exclude '**/*QdrantTest*'
-            exclude '**/*ChromaDbTest*'
         }
 
         jvmArgs = [ "--add-opens", "java.base/java.lang=ALL-UNNAMED",
