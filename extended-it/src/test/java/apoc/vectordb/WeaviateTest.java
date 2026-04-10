@@ -178,7 +178,7 @@ public class WeaviateTest {
                     r -> fail()
             );
         } catch (Exception e) {
-            assertThat( e.getMessage() ).contains("HTTP response code: 403");
+            assertThat( e.getMessage() ).contains("user 'ian-smith' has insufficient permissions");
         }
     }
     

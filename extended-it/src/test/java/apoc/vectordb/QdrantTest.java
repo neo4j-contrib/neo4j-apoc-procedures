@@ -142,7 +142,7 @@ public class QdrantTest {
                 db,
                 "CALL apoc.vectordb.qdrant.info($host, 'wrong_collection', $conf)",
                 map("host", HOST, "conf", ADMIN_HEADER_CONF),
-                "java.io.FileNotFoundException"
+                "Collection `wrong_collection` doesn't exist"
         );
     }
     
@@ -169,7 +169,7 @@ public class QdrantTest {
                     r -> fail()
             );
         } catch (Exception e) {
-            assertThat( e.getMessage() ).contains("HTTP response code: 403");
+            assertThat( e.getMessage() ).contains("Invalid api-key");
         }
     }
     

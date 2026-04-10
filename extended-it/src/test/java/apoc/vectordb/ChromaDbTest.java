@@ -124,7 +124,7 @@ public class ChromaDbTest {
     public void getInfoNotExistentCollection() {
         assertFails(db, "CALL apoc.vectordb.chroma.info($host, 'wrong_collection', $conf) ",
                 map("host", HOST, "collection", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true)),
-                "Server returned HTTP response code: 500"
+                "Collection wrong_collection does not exist"
         );
     }
     
