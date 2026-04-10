@@ -105,6 +105,8 @@ public class StartupExtendedTest {
     private void startContainerSessionWithExtraDeps(Function<Neo4jVersion, Neo4jContainerExtension> neo4jContainerCreation,
                                                     Consumer<Session> sessionConsumer) {
         for (var version: Neo4jVersion.values()) {
+            System.out.println("version = " + version);
+            System.out.println("StartupExtendedTest.startContainerSessionWithExtraDeps");
 
             try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
                     .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true")

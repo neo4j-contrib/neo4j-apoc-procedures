@@ -103,8 +103,6 @@ apoc.jdbc.analytics
 apoc.load.ldap
 apoc.load.parquet
 apoc.load.xls
-apoc.load.arrow
-apoc.load.arrow.stream
 apoc.log.debug
 apoc.log.error
 apoc.log.info
