@@ -16,6 +16,9 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -50,7 +53,13 @@ public class ExtendedTestContainerUtil
         TestContainerUtil.testCallInReadTransaction(session, call, null, consumer);
     }
 
-    public static void addExtraDependencies() {
+    public static void addExtraDependencies(TestContainerUtil.Neo4jVersion version) {
+        IOFileFilter filter = switch (version) {
+            case ENTERPRISE ->  //FileFileFilter.INSTANCE;
+                    FileFilterUtils.notFileFilter(new WildcardFileFilter("*arrow-dependencies*"));
+            case COMMUNITY ->  //FileFilterUtils.notFileFilter(new WildcardFileFilter("*arrow-dependencies*"));
+                    FileFileFilter.INSTANCE;
+        };
         String jarPathProp = "apoc-extra-dependencies.test.jar.path";
         String property = System.getProperty(jarPathProp);
         final var jarPath = Path.of(property);
@@ -66,7 +75,7 @@ public class ExtendedTestContainerUtil
             if (!destinationFolder.exists()) {
                 throw new RuntimeException("Folder %s doesn't exist".formatted(destination));
             }
-            copyFilesToFolder(jarFolder, FileFileFilter.INSTANCE, destinationFolder);
+            copyFilesToFolder(jarFolder, filter, destinationFolder);
         } catch (IOException e) {
             throw new RuntimeException("Failed to copy %s to %s".formatted(jarPath, destination), e);
         }
