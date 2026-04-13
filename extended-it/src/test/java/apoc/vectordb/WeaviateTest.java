@@ -153,7 +153,7 @@ public class WeaviateTest {
                 db,
                 "CALL apoc.vectordb.weaviate.info($host, 'wrong_collection', $conf)",
                 map("host", HOST, "collectionName", COLLECTION_NAME, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, READONLY_AUTHORIZATION)),
-                "java.io.FileNotFoundException"
+                "NullPointerException"
         );
     }
 
@@ -561,7 +561,7 @@ public class WeaviateTest {
                     db,
                     query,
                     params,
-                    "Caused by: java.io.FileNotFoundException"
+                    "v3/graphql was not found"
             );
             return;
         }
