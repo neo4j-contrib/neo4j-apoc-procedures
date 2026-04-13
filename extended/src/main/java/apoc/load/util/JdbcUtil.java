@@ -111,7 +111,7 @@ public class JdbcUtil {
                 String[] user = userInfo.split(":");
                 return createConnection(cleanUrl, user[0], user[1], classType);
             }
-            return DriverManager.getConnection(jdbcUrl);
+            return createConnectionByClass(jdbcUrl, null, null, classType);
         }
     }
 
@@ -141,10 +141,18 @@ public class JdbcUtil {
      * as SchemaCrawlerUtility.getCatalog accepts only `DatabaseConnectionSource` class,
      * otherwise we return a `Connection`, via `DriverManager.getConnection`, for Jdbc.java,
      * as `DatabaseConnectionSource` causes these error: https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4141
+     * Null credentials are passed as empty strings ("") to MultiUseUserCredentials, 
+     * ensuring SchemaCrawler receives the expected DatabaseConnectionSource without failing authentication.
      */
     private static Object createConnectionByClass(String jdbcUrl, String userName, String password, Class<?> classType) throws SQLException {
         if (classType.isAssignableFrom(DatabaseConnectionSource.class)) {
-            return DatabaseConnectionSources.newDatabaseConnectionSource(jdbcUrl, new MultiUseUserCredentials(userName, password));
+            String safeUser = userName == null ? "" : userName;
+            String safePass = password == null ? "" : password;
+            return DatabaseConnectionSources.newDatabaseConnectionSource(jdbcUrl, new MultiUseUserCredentials(safeUser, safePass));
+        }
+
+        if (userName == null) {
+            return DriverManager.getConnection(jdbcUrl);
         }
         return DriverManager.getConnection(jdbcUrl, userName, password);
     }
