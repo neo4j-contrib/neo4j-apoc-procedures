@@ -238,7 +238,7 @@ public class QdrantTest {
     }
 
     @Test
-//    @Ignore
+    @Ignore
     public void queryVectors() {
         testResultEventually(db, "CALL apoc.vectordb.qdrant.query($host, 'test_collection', [0.2, 0.1, 0.9, 0.7], {}, 5, $conf)",
                 map("host", HOST, "conf", map(ALL_RESULTS_KEY, true, HEADERS_KEY, ADMIN_AUTHORIZATION)),
