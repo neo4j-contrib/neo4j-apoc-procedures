@@ -55,10 +55,8 @@ public class ExtendedTestContainerUtil
 
     public static void addExtraDependencies(TestContainerUtil.Neo4jVersion version) {
         IOFileFilter filter = switch (version) {
-            case ENTERPRISE ->  //FileFileFilter.INSTANCE;
-                    FileFilterUtils.notFileFilter(new WildcardFileFilter("*arrow-dependencies*"));
-            case COMMUNITY ->  //FileFilterUtils.notFileFilter(new WildcardFileFilter("*arrow-dependencies*"));
-                    FileFileFilter.INSTANCE;
+            case ENTERPRISE -> FileFilterUtils.notFileFilter(new WildcardFileFilter("*arrow-dependencies*"));
+            case COMMUNITY -> FileFileFilter.INSTANCE;
         };
         String jarPathProp = "apoc-extra-dependencies.test.jar.path";
         String property = System.getProperty(jarPathProp);
