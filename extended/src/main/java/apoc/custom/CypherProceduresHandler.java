@@ -73,9 +73,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public static final List<FieldSignature> DEFAULT_MAP_OUTPUT = singletonList(FieldSignature.inputField("row", NTMap));
     public static final String ERROR_INVALID_TYPE = "Invalid type name." +
             "\nCheck the documentation to see possible values: https://neo4j.com/labs/apoc/4.1/cypher-execution/cypher-based-procedures-functions/";
-    private static final String ERROR_DIFFERENT_DB = 
-            "The `%1$s` is registered in another db (`%2$s`), it's not possible to register a `%1$s` with the same name in a different db.\n" +
-            "You have to remove it via `%3$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%4$s`";
 
     private final GraphDatabaseAPI api;
     private final Log log;
@@ -107,9 +104,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
             restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
                 long lastUpdate1 = getLastUpdate();
-                System.out.println("lastUpdate1 = " + lastUpdate1);
-                System.out.println("lastUpdate = " + lastUpdate);
-                System.out.println("lastUpdateMinor = " + (lastUpdate1 > lastUpdate));
+//                System.out.println("lastUpdate1 = " + lastUpdate1);
+//                System.out.println("lastUpdate = " + lastUpdate);
+//                System.out.println("lastUpdateMinor = " + (lastUpdate1 > lastUpdate));
                 if (true) {
 //                if (lastUpdate1 > lastUpdate) {
                     restoreProceduresAndFunctions();
@@ -295,12 +292,12 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 //        signature.description();
         try {
             Stream<ProcedureSignature> allProcedures = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5);
-            System.out.println("allProcedures.toList() = " + allProcedures.toList());
             boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
-            System.out.println("exists = " + exists);
+//            System.out.println("exists = " + exists);
             if (exists) {
-                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Procedure);
+//                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Procedure);
+//                System.out.println("existsone = " + exists);
 
                 // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
@@ -311,11 +308,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
                 public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
-//                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
-//                        final String error = String.format("There is nooooo procedure with the name `%s` registered for this database instance. " +
-//                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
-//                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
-//                    } else {
+                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
+                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
+                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
+                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                    } else {
                         Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
                         Transaction tx = ctx.transaction();
                         Result result = tx.execute(statement, params);
@@ -327,16 +324,16 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
                         Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
                         return Iterators.asRawIterator(stream);
-//                    }
+                    }
                 }
             });
-            try {
-                // Assumendo che tu abbia accesso all'oggetto 'db' (GraphDatabaseService)
-                api.executeTransactionally("CALL db.clearQueryCaches()");
-            } catch (Exception e) {
-                // Gestisci eventuali log
-                System.out.println("Impossibile pulire la cache: " + e.getMessage());
-            }
+//            try {
+//                // Assumendo che tu abbia accesso all'oggetto 'db' (GraphDatabaseService)
+//                api.executeTransactionally("CALL db.clearQueryCaches()");
+//            } catch (Exception e) {
+//                // Gestisci eventuali log
+//                System.out.println("Impossibile pulire la cache: " + e.getMessage());
+//            }
             if (isStatementNull) {
                 registeredProcedureSignatures.remove(signature);
             } else {
@@ -344,41 +341,44 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             }
             return true;
         } catch (Exception e) {
+            System.out.println("e = " + e);
             throw new RuntimeException("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
 //            log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
 //            return false;
         }
     }
 
-    private void checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(QualifiedName qualifiedName, String databaseName, ExtendedSystemLabels procedure) {
-        String systemNodeDatabaseName = withSystemDb(tx -> {
-            return tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures, 
-                            SystemPropertyKeys.name.name(), qualifiedName.name(),
-                            ExtendedSystemPropertyKeys.prefix.name(), qualifiedName.namespace()
-                    ).stream()
-                    .filter(n -> n.hasLabel(procedure))
-                    .findFirst()
-                    .map(n -> {
-                        return (String) n.getProperty(SystemPropertyKeys.database.name());
-                    }).orElse(null);
-            
-        });
-
-        if (!databaseName.equals(ALL_DATABASES) && !api.databaseName().equals(systemNodeDatabaseName)) {
-            throw new RuntimeException(
-                    String.format(ERROR_DIFFERENT_DB,
-                            qualifiedName.namespace(),
-                            systemNodeDatabaseName,
-                            procedure.equals(ExtendedSystemLabels.Procedure) 
-                                    ? "CALL apoc.custom.dropProcedure('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')" 
-                                    : "CALL apoc.custom.dropFunction('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')",
-                            procedure.equals(ExtendedSystemLabels.Procedure)
-                                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
-                                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)"
-                            )
-            );
-        }
-    }
+//    public void checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(QualifiedName qualifiedName, String databaseName, ExtendedSystemLabels procedure) throws Exception {
+//        String systemNodeDatabaseName = withSystemDb(tx -> {
+//            return tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures, 
+//                            SystemPropertyKeys.name.name(), qualifiedName.name(),
+//                            ExtendedSystemPropertyKeys.prefix.name(), qualifiedName.namespace()
+//                    ).stream()
+//                    .filter(n -> n.hasLabel(procedure))
+//                    .findFirst()
+//                    .map(n -> {
+//                        return (String) n.getProperty(SystemPropertyKeys.database.name());
+//                    }).orElse(null);
+//            
+//        });
+//        System.out.println("systemNodeDatabaseName = " + systemNodeDatabaseName);
+//
+//        if (!databaseName.equals(ALL_DATABASES) && !api.databaseName().equals(systemNodeDatabaseName)) {
+//            System.out.println("qualifiedName = " + qualifiedName);
+//            throw new RuntimeException(
+//                    String.format(ERROR_DIFFERENT_DB,
+//                            qualifiedName.namespace(),
+//                            systemNodeDatabaseName,
+//                            procedure.equals(ExtendedSystemLabels.Procedure) 
+//                                    ? "CALL apoc.custom.dropProcedure('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')" 
+//                                    : "CALL apoc.custom.dropFunction('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')",
+//                            procedure.equals(ExtendedSystemLabels.Procedure)
+//                                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
+//                                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)"
+//                            )
+//            );
+//        }
+//    }
 
     public boolean registerFunction(UserFunctionSignature signature) {
         return registerFunction(signature, null, false, false, null);
@@ -390,7 +390,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
-                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Function);
+//                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Function);
                 
                 // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);

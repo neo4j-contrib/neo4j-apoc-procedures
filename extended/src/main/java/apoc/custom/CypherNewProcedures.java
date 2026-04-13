@@ -121,7 +121,9 @@ public class CypherNewProcedures {
     @Description("Provides a list of custom procedures/function registered")
     public Stream<CustomProcedureInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkInSystemDb(db);
-        String dbNameOrAlias = getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
+        String dbNameOrAlias = databaseName == null
+                ? ALL_DATABASES
+                : getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
         return CypherHandlerNewProcedure.show(databaseName, tx);
     }
 }
