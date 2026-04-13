@@ -59,7 +59,10 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'testcontainers-milvus', version: testContainersVersion
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
-    testImplementation 'com.azure:azure-storage-blob:12.22.0'
+    testImplementation ('com.azure:azure-storage-blob:12.22.0') {
+        exclude group: 'com.azure', module: 'azure-core-http-netty'
+    }
+    testImplementation 'com.azure:azure-core-http-okhttp:1.11.14'
     testImplementation group: 'org.mock-server', name: 'mockserver-client-java', version: '5.6.0'
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
