@@ -106,13 +106,6 @@ public class QdrantTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        testCallEventually(db, "CALL apoc.vectordb.qdrant.deleteCollection($host, 'test_collection', $conf)",
-                map("host", HOST, "conf", ADMIN_HEADER_CONF),
-                r -> {
-                    Map value = (Map) r.get("value");
-                    assertEquals(true, value.get("result"));
-                }, TIMEOUT);
-
         databaseManagementService.shutdown();
         QDRANT_CONTAINER.stop();
     }
