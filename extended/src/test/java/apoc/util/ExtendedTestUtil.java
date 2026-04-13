@@ -135,7 +135,6 @@ public class ExtendedTestUtil {
                     return true;
                 });
             } catch (Exception e) {
-                System.out.println("assertEventually Exception: " + e);
                 return false;
             }
         }, (v) -> v, timeout, TimeUnit.SECONDS);
