@@ -133,7 +133,7 @@ public class CustomNewProcedureMultiDbTest {
     }
 
     @Test
-    public void testProceduresFunctionsWithSameName1() {
+    public void testProceduresFunctionsWithSameNameAndDifferentDbFailsButCanBeOverwrittenIfInstalledGlobally() {
 
         String procName = "fooProc";
         String funName = "fooFun";
@@ -147,26 +147,35 @@ public class CustomNewProcedureMultiDbTest {
                 tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', null)",
                         Map.of("db", DB_FOO)).consume()
         );
-
-//        checkInstalled(fooSession, "CALL custom." + procName);
-//        checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
-
-//        // install a procedure and a function for test database
-//        systemSession.executeWrite(tx ->
-//                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
-//                        Map.of("db", DB_TEST)).consume()
-//        );
-//        systemSession.executeWrite(tx ->
-//                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
-//                        Map.of("db", DB_TEST)).consume()
-//        );
-
         checkInstalled(testSession, "CALL custom." + procName);
         checkInstalled(testSession, "RETURN custom." + funName + "() AS answer");
 
         checkInstalled(fooSession, "CALL custom." + procName);
         checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
     }
+
+    @Test
+    public void testProceduresFunctionsWithSameNameButGlobally() {
+
+        String procName = "fooProc";
+        String funName = "fooFun";
+
+        // install a procedure and a function for foo database
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        checkInstalled(testSession, "CALL custom." + procName);
+        checkInstalled(testSession, "RETURN custom." + funName + "() AS answer");
+
+        checkInstalled(fooSession, "CALL custom." + procName);
+        checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
+    }
+    
 
     @Test
     public void testProceduresFunctionsInDatabaseAlias() {

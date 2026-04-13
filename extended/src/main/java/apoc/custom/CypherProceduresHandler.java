@@ -73,7 +73,9 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public static final List<FieldSignature> DEFAULT_MAP_OUTPUT = singletonList(FieldSignature.inputField("row", NTMap));
     public static final String ERROR_INVALID_TYPE = "Invalid type name." +
             "\nCheck the documentation to see possible values: https://neo4j.com/labs/apoc/4.1/cypher-execution/cypher-based-procedures-functions/";
-    private static final String TODO_ERROR_DIFFERENT_DB = "TODO ERROR, different db";
+    private static final String ERROR_DIFFERENT_DB = 
+            "The `%1$s` is registered in another db (`%2$s`), it's not possible to register a `%1$s` with the same name in a different db.\n" +
+            "You have to remove it via `%3$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%4$s`";
 
     private final GraphDatabaseAPI api;
     private final Log log;
@@ -298,8 +300,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     .anyMatch(s -> s.name().equals(name));
             System.out.println("exists = " + exists);
             if (exists) {
-                ExtendedSystemLabels procedure = ExtendedSystemLabels.Procedure;
-                extracted(name, databaseName, procedure);
+                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Procedure);
 
                 // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
@@ -349,7 +350,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    private void extracted(QualifiedName qualifiedName, String databaseName, ExtendedSystemLabels procedure) {
+    private void checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(QualifiedName qualifiedName, String databaseName, ExtendedSystemLabels procedure) {
         String systemNodeDatabaseName = withSystemDb(tx -> {
             return tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures, 
                             SystemPropertyKeys.name.name(), qualifiedName.name(),
@@ -364,7 +365,18 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
 
         if (!databaseName.equals(ALL_DATABASES) && !api.databaseName().equals(systemNodeDatabaseName)) {
-            throw new RuntimeException(TODO_ERROR_DIFFERENT_DB);
+            throw new RuntimeException(
+                    String.format(ERROR_DIFFERENT_DB,
+                            qualifiedName.namespace(),
+                            systemNodeDatabaseName,
+                            procedure.equals(ExtendedSystemLabels.Procedure) 
+                                    ? "CALL apoc.custom.dropProcedure('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')" 
+                                    : "CALL apoc.custom.dropFunction('" + qualifiedName.name() + "', '" + systemNodeDatabaseName + "')",
+                            procedure.equals(ExtendedSystemLabels.Procedure)
+                                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
+                                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)"
+                            )
+            );
         }
     }
 
@@ -378,7 +390,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
             if (exists) {
-                extracted(name, databaseName, ExtendedSystemLabels.Function);
+                checkIfProcedureExitsInAnotherDbAndDbNameIsNotAll(name, databaseName, ExtendedSystemLabels.Function);
                 
                 // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
