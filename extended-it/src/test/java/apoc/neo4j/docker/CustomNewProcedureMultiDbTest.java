@@ -228,37 +228,26 @@ public class CustomNewProcedureMultiDbTest {
         );
 
         systemSession.executeWrite(tx ->
-                tx.run("CALL apoc.custom.installProcedure('testAliasProc() :: (answer::INT)','RETURN 42 as answer', null)")
+                tx.run("CALL apoc.custom.installProcedure('testAliasProc() :: (answer::INT)','RETURN 42 as answer', 'test-alias')")
                         .consume()
         );
         
         systemSession.executeWrite(tx ->
-                tx.run("CALL apoc.custom.installFunction('testAliasFun() :: INT','RETURN 42 as answer', null)")
+                tx.run("CALL apoc.custom.installFunction('testAliasFun() :: INT','RETURN 42 as answer', 'test-alias')")
                         .consume()
         );
 
-        checkInstalled(neo4jSession, "CALL custom.testAliasProc");
-        checkInstalled(neo4jSession, "RETURN custom.testAliasFun() AS answer");
-
-//        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
-//                "CALL custom.testAliasProc", 
-//                "RETURN custom.testAliasFun() AS answer",
-//                neo4jSession, testSession);
-
-//        systemSession.executeWrite(tx -> {
-//                tx.run("CALL apoc.custom.dropProcedure('testAliasProc', 'test-alias')")
-//                        .consume();
-//                tx.run("CALL apoc.custom.dropFunction('testAliasFun', 'test-alias')")
-//                        .consume();
-//                return null;
-//        });
+        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
+                "CALL custom.testAliasProc", 
+                "RETURN custom.testAliasFun() AS answer",
+                neo4jSession, testSession);
 
         systemSession.executeWrite(tx -> {
-            tx.run("CALL apoc.custom.dropAll(null)")
-                    .consume();
-//            tx.run("CALL apoc.custom.dropFunction('testAliasFun', 'test-alias')")
-//                    .consume();
-            return null;
+                tx.run("CALL apoc.custom.dropProcedure('testAliasProc', 'test-alias')")
+                        .consume();
+                tx.run("CALL apoc.custom.dropFunction('testAliasFun', 'test-alias')")
+                        .consume();
+                return null;
         });
 
         String countCustom = "CALL apoc.custom.show('test-alias') YIELD name RETURN count(*) AS count";

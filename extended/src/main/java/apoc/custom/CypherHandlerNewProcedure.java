@@ -48,7 +48,6 @@ public class CypherHandlerNewProcedure {
             QualifiedName qualifiedName,
             String targetDatabaseName,
             ExtendedSystemLabels procOrFunLabel) {
-//        String systemNodeDatabaseName = withSystemDb(tx -> {
         Node existingNode = tx.findNodes(ApocCypherProcedures,
                         name.name(), qualifiedName.name(),
                         prefix.name(), qualifiedName.namespace()
@@ -56,23 +55,12 @@ public class CypherHandlerNewProcedure {
                 .filter(n -> n.hasLabel(procOrFunLabel))
                 .findFirst()
                 .orElse(null);
-//        String existingDatabaseName = existingNode
-//                    .map(n -> {
-//                        return (String) n.getProperty(SystemPropertyKeys.database.name());
-//                    }).orElse(null);
 
-//        });
-
-        System.out.println("existingNode = " + existingNode);
-        System.out.println("qualifiedName = " + qualifiedName.name());
         if (existingNode == null) {
             return;
         }
         
         String existingDatabaseName = (String) existingNode.getProperty(SystemPropertyKeys.database.name());
-        
-        System.out.println("existingDatabaseName = " + existingDatabaseName);
-        System.out.println("targetDatabaseName = " + targetDatabaseName);
 
         boolean isSameDb = targetDatabaseName.equals(existingDatabaseName);
         
@@ -81,10 +69,8 @@ public class CypherHandlerNewProcedure {
         }
         
         if (targetDatabaseName.equals(ALL_DATABASES)) {
-            System.out.println("CypherHandlerNewProcedure.checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll");
             existingNode.delete();
         } else {
-            System.out.println("qualifiedName = " + qualifiedName);
             throw new RuntimeException(
                     String.format(ERROR_DIFFERENT_DB,
                             String.join(".", qualifiedName.namespace()),
@@ -99,16 +85,6 @@ public class CypherHandlerNewProcedure {
                     )
             );
         }
-        
-        
-//        if (targetDatabaseName.equals(ALL_DATABASES) && isInDifferentDb) {
-//            existingNode.delete();
-//            return;
-//        }
-//
-//        if (existingDatabaseName != null && !targetDatabaseName.equals(ALL_DATABASES) && !targetDatabaseName.equals(existingDatabaseName)) {
-//            
-//        }
     }
     
     public static void installProcedure(String databaseName, ProcedureSignature signature, String statement) {
@@ -126,8 +102,6 @@ public class CypherHandlerNewProcedure {
             node.setProperty(outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(mode.name(), signature.mode().name());
 
-            System.out.println("installProcedure databaseName = " + databaseName);
-            
             setLastUpdate(tx, databaseName);
         });
     }
@@ -146,19 +120,16 @@ public class CypherHandlerNewProcedure {
             node.setProperty(inputs.name(), serializeSignatures(signature.inputSignature()));
             node.setProperty(output.name(), signature.outputType().toString());
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
-            System.out.println("installFunction databaseName = " + databaseName);
 
             setLastUpdate(tx, databaseName);
         });
     }
 
     public static List<CustomProcedureInfo> dropAll(String databaseName) {
-        System.out.println("dropAll databaseName = " + databaseName);
         return withSystemDb(tx -> {
             List<CustomProcedureInfo> previous = getCustomNodes(databaseName, tx)
                     .stream()
                     .map(node -> {
-                        System.out.println("dropAll node = " + node);
                         // we'll return previous uuid info
                         CustomProcedureInfo info = CustomProcedureInfo.fromNode(node);
                         node.delete();
@@ -234,8 +205,6 @@ public class CypherHandlerNewProcedure {
 
     private static void setLastUpdate(Transaction tx, String databaseName) {
         SystemDbUtil.setLastUpdate(tx, databaseName, ApocCypherProceduresMeta);
-        // TODO - check if is correct
-//        SystemDbUtil.setLastUpdate(tx, ALL_DATABASES, ApocCypherProceduresMeta);
     }
 
 }
