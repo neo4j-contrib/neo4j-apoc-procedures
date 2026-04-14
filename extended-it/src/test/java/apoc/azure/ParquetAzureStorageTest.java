@@ -1,35 +1,24 @@
 package apoc.azure;
 
 import apoc.export.parquet.ParquetTestUtil;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
-import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.export.parquet.ParquetTestUtil.testImportAllCommon;
 import static apoc.util.ExtendedITUtil.EXTENDED_RESOURCES_PATH;
-import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.TestUtil.testResult;
 
 public class ParquetAzureStorageTest extends AzureStorageBaseTest {
 
     private final String EXPORT_FILENAME = "test_all.parquet";
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
-
-    @BeforeClass
-    public static void beforeClass() {
-        beforeClassCommon(db);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void before() {

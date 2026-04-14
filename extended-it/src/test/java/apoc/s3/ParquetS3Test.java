@@ -3,10 +3,7 @@ package apoc.s3;
 import apoc.export.parquet.ParquetTestUtil;
 import apoc.util.collection.Iterators;
 import apoc.util.s3.S3BaseTest;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -15,7 +12,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
-import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -27,13 +23,8 @@ public class ParquetS3Test extends S3BaseTest {
 
     private final String EXPORT_FILENAME = "test_all.parquet";
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
-
-    @BeforeClass
-    public static void beforeClass() {
-        beforeClassCommon(db);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void before() {
