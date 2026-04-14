@@ -39,11 +39,9 @@ import static org.junit.Assert.assertTrue;
 
 public class ParquetTestUtil {
 
-    public static void beforeClassCommon(GraphDatabaseService db) {
-        TestUtil.registerProcedure(db, ExportParquet.class, ImportParquet.class, LoadParquet.class, Graphs.class, Meta.class);
-    }
-
     public static void beforeCommon(GraphDatabaseService db) {
+        TestUtil.registerProcedure(db, ExportParquet.class, ImportParquet.class, LoadParquet.class, Graphs.class, Meta.class);
+        
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace', 'Qwe'], born:localdatetime('2015-05-18T19:32:24.000'), place:point({latitude: 13.1, longitude: 33.46789, height: 100.0})})-[:KNOWS {since: 1993, bffSince: duration('P5M1.5D')}]->(b:User {name:'Jim',age:42})");
