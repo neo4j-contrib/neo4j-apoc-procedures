@@ -77,6 +77,13 @@ For example, the following one creates a custom procedure in the `foo` database:
 CALL apoc.custom.installFunction('foodb() :: INT', 'RETURN 42', 'foo')
 ----
 
+Alternatively, we can pass `null` to install the function globally across all databases.
+If the function already exists locally, it will be overwritten by the global version, e.g.
+[source,cypher]
+----
+CALL apoc.custom.installFunction('foodb() :: INT', 'RETURN 42', null)
+----
+
 Furthermore, we can pass as a 4th parameter a boolean (with default false) which, if true,
 in case the function returns a list of a single element, it will return only the single element itself and not the list.
 

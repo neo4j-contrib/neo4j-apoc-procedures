@@ -14,6 +14,11 @@ apoc.custom.procedures.enabled=false
 
 include::partial$systemdbonly.note.adoc[]
 
+[NOTE]
+====
+All procedures are designed to be installed locally in a specific database, unless you pass `null` to the parameter that requires the database name. see below
+====
+
 [WARNING]
 ====
 Installing, updating or removing a custom Cypher statement is an eventually consistent operation.
@@ -133,19 +138,28 @@ Given this call:
 CALL apoc.custom.dropProcedure(<name>, <databaseName>)
 ----
 
+
+Also, we can delete a global procedure specifying `null` as the 2nd parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.dropFunction(<name>, null)
+----
+
+
 Fields:
 
 [%autowidth,opts=header]
 |===
 | argument | description
 | name  | the procedure name
-| databaseName  | the database name (default: `neo4j`)
+| databaseName  | the database name (default: `neo4j`), or `null` to drop the global procedure
 |===
 
 
 == Remove a procedure `apoc.custom.dropFunction`
 
-The procedure `apoc.custom.dropFunction` allows to delete the targeted custom function, from a specific database (with `neo4j` as a default),
+The procedure `apoc.custom.dropFunction` allows to delete the targeted custom function, from a specific database (with `neo4j` as a default)
 *after a time defined by the configuration `apoc.custom.procedures.refresh`*.
 
 
@@ -156,13 +170,48 @@ Given this call:
 CALL apoc.custom.dropFunction(<name>)
 ----
 
+
+Also, we can delete a global function specifying `null` as the 2nd parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.dropFunction(<name>, null)
+----
+
+
 Fields:
 
 [%autowidth,opts=header]
 |===
 | argument | description
 | name  | the function name
-| databaseName  | the database name (default: `neo4j`)
+| databaseName  | the database name (default: `neo4j`), or `null` to drop the global function
+|===
+
+
+== Remove all procedures and functions via `apoc.custom.dropAll`
+
+You can delete all local procedures and functions from a specific database (default is `neo4j`) using `apoc.custom.dropAll`:
+
+[source,cypher]
+----
+CALL apoc.custom.dropAll('<databaseName>')
+----
+
+Additionally, you can delete all global procedures and functions by passing `null` as the first parameter:
+
+[source,cypher]
+----
+CALL apoc.custom.dropAll(null)
+----
+
+Fields:
+
+[%autowidth,opts=header]
+
+|===
+| Argument | Description
+| databaseName | The name of the database (default: `neo4j`), or `null` to drop all global procedures and functions.
 |===
 
 

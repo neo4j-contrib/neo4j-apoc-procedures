@@ -84,6 +84,13 @@ For example, the following one creates a custom procedure in the `foo` database:
 CALL apoc.custom.installProcedure('foodb() :: (row::INT)', 'RETURN 42 as row', 'foo')
 ----
 
+Alternatively, we can pass `null` to install the procedure globally across all databases.
+If the procedure already exists locally, it will be overwritten by the global version, e.g.
+[source,cypher]
+----
+CALL apoc.custom.installProcedure('foodb() :: (row::INT)', 'RETURN 42 as row', null)
+----
+
 
 Furthermore, we can pass as the 4th parameter a string to specify the procedure mode (default "WRITE").
 It can be:

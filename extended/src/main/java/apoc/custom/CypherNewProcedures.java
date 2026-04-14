@@ -53,12 +53,12 @@ public class CypherNewProcedures {
                                  @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                  @Name(value = "mode", defaultValue = "read") String mode,
                                  @Name(value = "description", defaultValue = "") String description) {
-        String dbNameOrAlias = checkIsValidDatabase(databaseName);
+        String dbName = checkIsValidDatabase(databaseName);
 
         Mode modeProcedure = CypherProceduresUtil.mode(mode);
         ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, modeProcedure);
 
-        CypherHandlerNewProcedure.installProcedure(dbNameOrAlias, procedureSignature, statement);
+        CypherHandlerNewProcedure.installProcedure(dbName, procedureSignature, statement);
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -69,14 +69,11 @@ public class CypherNewProcedures {
     public void installFunction(@Name("signature") String signature, @Name("statement") String statement,
                                 @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                 @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
-                                @Name(value = "description", defaultValue = "") String description,
-                                // TODO - maybe useless?
-                                @Name(value = "global", defaultValue = "false") boolean global
-    ) {
-        String dbNameOrAlias = checkIsValidDatabase(databaseName);
+                                @Name(value = "description", defaultValue = "") String description) {
+        String dbName = checkIsValidDatabase(databaseName);
 
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
-        CypherHandlerNewProcedure.installFunction(dbNameOrAlias, userFunctionSignature, statement, forceSingle);
+        CypherHandlerNewProcedure.installFunction(dbName, userFunctionSignature, statement, forceSingle);
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -85,9 +82,9 @@ public class CypherNewProcedures {
     @Procedure(value = "apoc.custom.dropProcedure", mode = Mode.WRITE)
     @Description("Eventually drops the targeted custom procedure")
     public void dropProcedure(@Name("name") String name, @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        String dbNameOrAlias = checkIsValidDatabase(databaseName);
+        String dbName = checkIsValidDatabase(databaseName);
 
-        CypherHandlerNewProcedure.dropProcedure(dbNameOrAlias, name);
+        CypherHandlerNewProcedure.dropProcedure(dbName, name);
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -96,9 +93,9 @@ public class CypherNewProcedures {
     @Procedure(value = "apoc.custom.dropFunction", mode = Mode.WRITE)
     @Description("Eventually drops the targeted custom function")
     public void dropFunction(@Name("name") String name, @Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        String dbNameOrAlias = checkIsValidDatabase(databaseName);
+        String dbName = checkIsValidDatabase(databaseName);
 
-        CypherHandlerNewProcedure.dropFunction(dbNameOrAlias, name);
+        CypherHandlerNewProcedure.dropFunction(dbName, name);
     }
 
     // TODO - change with @SystemOnlyProcedure
@@ -107,9 +104,9 @@ public class CypherNewProcedures {
     @Procedure(value = "apoc.custom.dropAll", mode = Mode.WRITE)
     @Description("Eventually drops all previously added custom procedures/functions and returns info")
     public Stream<CustomProcedureInfo> dropAll(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
-        String dbNameOrAlias = checkIsValidDatabase(databaseName);
+        String dbName = checkIsValidDatabase(databaseName);
 
-        return CypherHandlerNewProcedure.dropAll(dbNameOrAlias)
+        return CypherHandlerNewProcedure.dropAll(dbName)
                 .stream();
     }
 
@@ -121,7 +118,7 @@ public class CypherNewProcedures {
     @Description("Provides a list of custom procedures/function registered")
     public Stream<CustomProcedureInfo> show(@Name(value = "databaseName", defaultValue = "neo4j") String databaseName) {
         checkInSystemDb(db);
-        String dbNameOrAlias = databaseName == null
+        String dbName = databaseName == null
                 ? ALL_DATABASES
                 : getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
         return CypherHandlerNewProcedure.show(databaseName, tx);
