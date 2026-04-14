@@ -3,9 +3,17 @@
 :description: This section describes procedures that can be used to import Apache Arrow data from web APIs or files.
 
 
-
 The following procedures allow you to read an Apache Arrow file exported via xref::export/arrow.adoc[apoc.export.arrow.* procedures].
 It could also potentially read other Apache Arrow files that have not been created via the export procedures.
+
+== Library Requirements
+
+With Community version, there are some Arrow missing libs that need to use the following procedures.
+
+These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-arrow-dependencies-{apoc-release}-all.jar[apoc-arrow-dependencies-{apoc-release}-all.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+For Enterprise versions, they are already included.
 
 [[load-arrow-available-procedures]]
 == Procedure and Function Overview

@@ -105,12 +105,13 @@ public class StartupExtendedTest {
     private void startContainerSessionWithExtraDeps(Function<Neo4jVersion, Neo4jContainerExtension> neo4jContainerCreation,
                                                     Consumer<Session> sessionConsumer) {
         for (var version: Neo4jVersion.values()) {
+            System.out.println("Current neo4j version: " + version);
 
             try (final Neo4jContainerExtension neo4jContainer = neo4jContainerCreation.apply(version)
                     .withNeo4jConfig("internal.dbms.cypher.enable_experimental_versions", "true")
             ) {
                 // add extra-deps before starting it
-                ExtendedTestContainerUtil.addExtraDependencies();
+                ExtendedTestContainerUtil.addExtraDependencies(version);
                 neo4jContainer.start();
                 assertTrue("Neo4j Instance should be up-and-running", neo4jContainer.isRunning());
 
