@@ -39,10 +39,7 @@ import static apoc.load.util.JdbcUtil.KEY_NOT_FOUND_MESSAGE;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DuckDBJdbcTest extends AbstractJdbcTest {
 
