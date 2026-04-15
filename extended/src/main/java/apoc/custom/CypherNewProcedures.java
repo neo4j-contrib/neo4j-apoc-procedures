@@ -121,7 +121,7 @@ public class CypherNewProcedures {
         String dbName = databaseName == null
                 ? ALL_DATABASES
                 : getDbFromDbNameOrAliasForReadProcedures(tx, databaseName, db);
-        return CypherHandlerNewProcedure.show(databaseName, tx);
+        return CypherHandlerNewProcedure.show(dbName, tx);
     }
 }
 

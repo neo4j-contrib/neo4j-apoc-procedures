@@ -33,6 +33,7 @@ import static apoc.ExtendedSystemPropertyKeys.prefix;
 import static apoc.SystemPropertyKeys.database;
 import static apoc.SystemPropertyKeys.name;
 import static apoc.custom.CypherNewProcedures.ALL_DATABASES;
+import static apoc.custom.CypherProceduresUtil.getSringifiedName;
 import static apoc.custom.CypherProceduresUtil.qualifiedName;
 import static apoc.util.SystemDbUtil.getSystemNodes;
 import static apoc.util.SystemDbUtil.withSystemDb;
@@ -40,8 +41,11 @@ import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class CypherHandlerNewProcedure {
     private static final String ERROR_DIFFERENT_DB =
-            "%5$s `%1$s` is registered in another db (`%2$s`), it's not possible to register a `%1$s` with the same name in a different db.\n" +
-                    "You have to remove it via `%3$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%4$s`";
+            "%1$s `%2$s` is registered in another db (`%3$s`), it's not possible to register a %1$s with the same name in a different db.\n" +
+                    "If you want to use the same name you have to remove it via `%4$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%5$s`";
+    private static final String ERROR_GLOBAL_DB =
+            "%1$s `%2$s` is registered globally in all databases, it's not possible to register a %1$s with the same name in a specific database.\n" +
+                    "If you want to use the same name you have to remove it via `%3$s`";
 
     public static void checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(
             Transaction tx,
@@ -70,18 +74,32 @@ public class CypherHandlerNewProcedure {
         
         if (targetDatabaseName.equals(ALL_DATABASES)) {
             existingNode.delete();
+            return;
+        }
+
+        String stringifiedName = getSringifiedName(qualifiedName);
+        boolean isProcedure = procOrFunLabel.equals(Procedure);
+        if (existingDatabaseName.equals(ALL_DATABASES)) {
+            String dropStatement = isProcedure
+                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', 'null')"
+                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', 'null')";
+            
+            throw new RuntimeException(
+                    String.format(ERROR_GLOBAL_DB, 
+                            procOrFunLabel, stringifiedName, dropStatement
+                    )
+            );
         } else {
+            String dropStatement = isProcedure
+                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', '" + existingDatabaseName + "')"
+                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', '" + existingDatabaseName + "')";
+            String installStatement = isProcedure
+                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
+                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)";
+            
             throw new RuntimeException(
                     String.format(ERROR_DIFFERENT_DB,
-                            String.join(".", qualifiedName.namespace()),
-                            existingDatabaseName,
-                            procOrFunLabel.equals(ExtendedSystemLabels.Procedure)
-                                    ? "CALL apoc.custom.dropProcedure('" + qualifiedName.name() + "', '" + existingDatabaseName + "')"
-                                    : "CALL apoc.custom.dropFunction('" + qualifiedName.name() + "', '" + existingDatabaseName + "')",
-                            procOrFunLabel.equals(ExtendedSystemLabels.Procedure)
-                                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
-                                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)",
-                            procOrFunLabel
+                            procOrFunLabel, stringifiedName, existingDatabaseName, dropStatement, installStatement
                     )
             );
         }

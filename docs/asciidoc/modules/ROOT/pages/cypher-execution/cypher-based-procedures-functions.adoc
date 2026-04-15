@@ -125,6 +125,23 @@ The output will look like the following table:
 |===
 
 
+== List of global / local registered procedures / functions  with `apoc.custom.show`
+
+The procedure `apoc.custom.show` provide a list of all local registered procedures / functions in a specific database, 
+specifying the 1st parameter (with `neo4j` as a default):
+
+[source,cypher]
+----
+CALL apoc.custom.show('<databaseName>')
+----
+
+Also, we can show all the global procedures / functions (specifying `null`):
+
+[source,cypher]
+----
+CALL apoc.custom.show(null)
+----
+
 == Remove a procedure `apoc.custom.dropProcedure`
 
 The procedure `apoc.custom.dropProcedure` allows to delete the targeted custom procedure, from a specific database (with `neo4j` as a default),
