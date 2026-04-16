@@ -33,6 +33,10 @@ public class CypherProceduresUtil {
     public static final String CUSTOM_PROCEDURES_ENABLED = "apoc.custom.procedures.enabled";
     public static final String PROCEDURES_NOT_ENABLED_ERROR = "Custom procedures and functions have not been enabled." +
             " Set 'apoc.custom.procedures.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
+
+    public static String getSringifiedName(QualifiedName name) {
+        return name.toString().substring(PREFIX.length() + 1);
+    }
     
     public static QualifiedName qualifiedName(@Name("name") String name) {
         String[] names = name.split("\\.");
