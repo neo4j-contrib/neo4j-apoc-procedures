@@ -84,7 +84,7 @@ public class CypherNewProceduresTest {
         // drop both global and local procedures
         sysDb.executeTransactionally("CALL apoc.custom.dropAll(null)");
         sysDb.executeTransactionally("CALL apoc.custom.dropAll('neo4j')");
-//        testCallCountEventually(db, "CALL apoc.custom.list", 0, TIMEOUT);
+        testCallCountEventually(db, "CALL apoc.custom.list", 0, TIMEOUT);
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
