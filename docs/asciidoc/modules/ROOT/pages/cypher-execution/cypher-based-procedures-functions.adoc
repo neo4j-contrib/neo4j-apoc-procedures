@@ -16,7 +16,7 @@ include::partial$systemdbonly.note.adoc[]
 
 [NOTE]
 ====
-All procedures are designed to be installed locally in a specific database, unless you pass `null` to the parameter that requires the database name. see below
+All procedures are designed to be installed locally in a specific database, unless you pass `null` to the parameter that requires the database name. See below.
 ====
 
 [WARNING]
