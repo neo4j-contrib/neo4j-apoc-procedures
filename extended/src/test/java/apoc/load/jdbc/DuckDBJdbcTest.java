@@ -1,5 +1,6 @@
 package apoc.load.jdbc;
 
+import apoc.model.Model;
 import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
@@ -11,7 +12,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.DateValue;
@@ -26,7 +27,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.time.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.jdbc.Analytics.*;
@@ -34,10 +39,7 @@ import static apoc.load.util.JdbcUtil.KEY_NOT_FOUND_MESSAGE;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DuckDBJdbcTest extends AbstractJdbcTest {
 
@@ -50,14 +52,14 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
+    
     @Before
     public void setUp() throws Exception {
         JDBC_DUCKDB = "jdbc:duckdb:" + temporaryFolder.newFolder() + "/testDB";
         apocConfig().setProperty("apoc.jdbc.duckdb.url", JDBC_DUCKDB);
         apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
         apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
-        TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Analytics.class);
+        TestUtil.registerProcedure(db, Jdbc.class, Periodic.class, Analytics.class, Model.class);
         
         conn = DriverManager.getConnection(JDBC_DUCKDB);
         createPersonTableAndData(conn);
@@ -68,6 +70,73 @@ public class DuckDBJdbcTest extends AbstractJdbcTest {
     @After
     public void tearDown() throws SQLException {
         conn.close();
+    }
+
+    @Test
+    public void testModelJdbc() throws SQLException {
+        // We ensure the connection created in the setUp() is closed before invoking SchemaCrawler.
+        // DuckDB embedded mode doesn't allow multiple concurrent connections to the same file, with different configurations (SchemaCrawler uses an empty username/password).
+        // By releasing the lock here, SchemaCrawler can successfully open its own connection.
+        if (conn != null && !conn.isClosed()) {
+            conn.close();
+        }
+
+        testCall(db, "CALL apoc.model.jdbc($url, $config)",
+                Util.map("url", JDBC_DUCKDB, "config", Util.map("schema", "testDB.main")),
+                (row) -> {
+                    Long count = db.executeTransactionally("MATCH (n) RETURN count(n) AS count", Collections.emptyMap(),
+                            result -> Iterators.single(result.columnAs("count")));
+                    // There are 9 nodes created by `createAnalyticsDataset(db)`
+                    assertEquals(9L, count.longValue());
+
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+
+                    // 1 Schema + 1 Table (PERSON) + 6 Columns = 8 virtual nodes
+                    assertEquals(8, nodes.size());
+                    // 1 rel IN_SCHEMA + 6 rel IN_TABLE = 7 virtual rels
+                    assertEquals(7, rels.size());
+
+                    // schema
+                    Node schema = nodes.stream().filter(node -> node.hasLabel(Label.label("Schema"))).findFirst().orElse(null);
+                    assertNotNull("should have schema", schema);
+                    assertEquals("testDB.main", schema.getProperty("name"));
+
+                    // tables
+                    nodes.stream().filter(node -> node.hasLabel(Label.label("Table")))
+                            .forEach(table -> {
+                                Relationship rel = table.getSingleRelationship(RelationshipType.withName("IN_SCHEMA"), Direction.OUTGOING);
+                                assertNotNull("should have relationship IN_SCHEMA", rel);
+                                assertEquals(schema, rel.getEndNode());
+                            });
+                    List<String> tables = nodes.stream().filter(node -> node.hasLabel(Label.label("Table")))
+                            .map(node -> node.getProperty("name").toString())
+                            .collect(Collectors.toList());
+                    assertEquals(1, tables.size());
+                    assertEquals(Arrays.asList("PERSON"), tables);
+
+                    List<Node> columns = nodes.stream().filter(node -> node.hasLabel(Label.label("Column")))
+                            .collect(Collectors.toList());
+                    assertEquals(6, columns.size());
+
+                    List<String> personNodes = filterColumnsByTableName(columns, "PERSON");
+                    List<String> expectedPersonCols = Arrays.asList("NAME", "SURNAME", "HIRE_DATE", "EFFECTIVE_FROM_DATE", "TEST_TIME", "NULL_DATE");
+                    assertTrue(personNodes.containsAll(expectedPersonCols));
+                });
+    }
+
+    private List<String> filterColumnsByTableName(List<Node> columns, String tableName) {
+        return columns.stream()
+                .filter(node -> {
+                    Relationship rel = node.getSingleRelationship(RelationshipType.withName("IN_TABLE"), Direction.OUTGOING);
+                    if (rel == null) {
+                        return false;
+                    }
+                    String name = rel.getEndNode().getProperty("name").toString();
+                    return name.equalsIgnoreCase(tableName);
+                })
+                .map(node -> node.getProperty("name").toString())
+                .collect(Collectors.toList());
     }
     
     @Test
