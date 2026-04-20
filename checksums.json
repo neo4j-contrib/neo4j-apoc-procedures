@@ -993,5 +993,10 @@
         "sha1": "a0400015801e630c2451dd13c2f5a019a7b9e02f",
         "sha256": "626d9600675a1149801c75c744f25c7b26e7490137449246db1e6ddb4bd2ab46",
         "md5": "bf5a8e64093e55bfc9c58d9813b581d9"
+    },
+    "2026.03.0": {
+        "sha1": "d306ed2b048ff4741d2088f5ddc9bb8794683237",
+        "sha256": "a932d74fca1aa4a49b88844f08482ae9a81ff0fde2a02fe825c39fb8d8a97c77",
+        "md5": "901b99675ea01bb98d7df23fafb5c4ea"
     }
 }
