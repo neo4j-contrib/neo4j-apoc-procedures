@@ -119,16 +119,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Stream<ProcedureOrFunctionDescriptor> readSignatures() {
         List<ProcedureOrFunctionDescriptor> descriptors;
         try (Transaction tx = systemDb.beginTx()) {
-            
-            // todo - if another node has the same name and prefix in another db prevent the registration
-            /*
-            Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Procedure,
-                    Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
-                    Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
-                    Pair.of(ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
-            );
-            * */
-//            tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), api.databaseName())
              descriptors = tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
                 if (node.hasLabel(ExtendedSystemLabels.Procedure)) {
                     return procedureDescriptor(node);
@@ -214,13 +204,6 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public synchronized void storeProcedure(ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
-//            TODO  - HERE the check
-            boolean existsInOtherDb = tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures,
-                            SystemPropertyKeys.name.name(), signature.name().name(),
-                            ExtendedSystemPropertyKeys.prefix.name(), signature.name().namespace())
-                    .stream()
-                    .anyMatch(i -> !i.getProperty(SystemPropertyKeys.database.name()).equals(api.databaseName()));
-
             Node node = Util.mergeNode(tx, ExtendedSystemLabels.ApocCypherProcedures, ExtendedSystemLabels.Procedure,
                     Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
                     Pair.of(SystemPropertyKeys.name.name(), signature.name().name()),
@@ -266,13 +249,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         try {
             boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
                     .anyMatch(s -> s.name().equals(name));
-            System.out.println("exists = " + exists);
             if (exists) {
-//                withSystemDb(tx -> {
-//                    tx.findNodes(ExtendedSystemLabels.ApocCypherProcedures, )
-//                })
-                
-                
                 // we deregister and remove possible homonyms signatures overridden/overloaded
                 ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
                 registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
