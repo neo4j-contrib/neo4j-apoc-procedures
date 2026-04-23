@@ -82,34 +82,13 @@ public class CypherNewProceduresTest {
     @After
     public void after() throws Exception {
         sysDb.executeTransactionally("CALL apoc.custom.dropAll('neo4j')");
-//        testCallCountEventually(db, "CALL apoc.custom.list", 0, TIMEOUT);
+        testCallCountEventually(db, "CALL apoc.custom.list", 0, TIMEOUT);
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
     }
 
     //
     // test cases taken and adapted from CypherProceduresTest.java
     //
-
-    /*
-    TODO: i cannot merge a null value
-    Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.IllegalArgumentException: [null] is not a supported property value
-    org.neo4j.graphdb.QueryExecutionException: Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.IllegalArgumentException: [null] is not a supported property value
-     */
-    @Test
-    public void registerSimpleStatementWithDbNull() throws Exception {
-//        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer2() :: (answer::INT)','RETURN 42 as answer', 'neo4j')");
-        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer2() :: (answer::INT)','RETURN 42 as answer', null)"); 
-        Thread.sleep(3000);
-//        System.out.println("directory = " + directory); 
-//        db.executeTransactionally("CALL custom.answer2()");
-        testCallEventually("CALL custom.answer2()", (row) -> assertEquals(42L, row.get("answer")));
-    }
-
-    @Test
-    public void registerSimpleStatementFunctionWithDbNull() throws Exception {
-        sysDb.executeTransactionally("CALL apoc.custom.installFunction('answer2() :: STRING','RETURN 42 as answer', null)");
-        testCallEventually("return custom.answer2() as row", (row) -> assertEquals(42L, row.get("row")));
-    }
 
     @Test
     public void registerSimpleStatement() throws Exception {

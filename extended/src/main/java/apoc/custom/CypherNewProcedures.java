@@ -29,13 +29,8 @@ public class CypherNewProcedures {
 
     @Context
     public Transaction tx;
-    
-    public static final String ALL_DATABASES = "_all";
 
     private String checkIsValidDatabase(String databaseName) {
-        if (databaseName == null) {
-            return ALL_DATABASES;
-        }
         SystemDbUtil.checkInSystemLeader(db);
 
         checkEnabled();
@@ -69,10 +64,7 @@ public class CypherNewProcedures {
     public void installFunction(@Name("signature") String signature, @Name("statement") String statement,
                                 @Name(value = "databaseName", defaultValue = "neo4j") String databaseName,
                                 @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
-                                @Name(value = "description", defaultValue = "") String description,
-                                // TODO - maybe useless?
-                                @Name(value = "global", defaultValue = "false") boolean global
-    ) {
+                                @Name(value = "description", defaultValue = "") String description) {
         String dbNameOrAlias = checkIsValidDatabase(databaseName);
 
         UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
