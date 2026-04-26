@@ -1,0 +1,22 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+archivesBaseName = 'apoc-arrow-dependencies'
+description = """APOC Apache Arrow Dependencies"""
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+dependencies {
+    implementation group: 'org.apache.arrow', name: 'arrow-vector', version: '18.3.0', commonExclusions
+}
