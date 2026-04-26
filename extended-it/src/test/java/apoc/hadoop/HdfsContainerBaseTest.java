@@ -106,7 +106,7 @@ public class HdfsContainerBaseTest {
         
         neo4jContainer.setExposedPorts(List.of(7474, 7687));
 
-        ExtendedTestContainerUtil.addExtraDependencies();
+        ExtendedTestContainerUtil.addExtraDependencies(Neo4jVersion.COMMUNITY);
         neo4jContainer.start();
         namenode.start();
         datanode.start();
