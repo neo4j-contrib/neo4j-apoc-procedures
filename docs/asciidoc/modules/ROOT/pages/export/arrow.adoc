@@ -4,6 +4,14 @@
 
 These procedures export data into a format that's used by many Apache and non-Apache tools.
 
+== Library Requirements
+
+With Community version, there are some Arrow missing libs that need to use the following procedures.
+
+These dependencies are included in https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-arrow-dependencies-{apoc-release}-all.jar[apoc-arrow-dependencies-{apoc-release}-all.jar^], which can be downloaded from the https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/tag/{apoc-release}[releases page^].
+Once that file is downloaded, it should be placed in the `plugins` directory and the Neo4j Server restarted.
+
+For Enterprise versions, they are already included.
 
 [[export-arrow-available-procedures]]
 == Available Procedures
