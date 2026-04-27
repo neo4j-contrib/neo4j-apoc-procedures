@@ -30,7 +30,7 @@ plugins {
 }
 
 
-if (!project.hasProperty('apocVersion')) { ext.apocVersion = '2026.04.0' }
+if (!project.hasProperty('apocVersion')) { ext.apocVersion = '2026.05.0' }
 
 ext {
     versionParts = apocVersion.split('-')
