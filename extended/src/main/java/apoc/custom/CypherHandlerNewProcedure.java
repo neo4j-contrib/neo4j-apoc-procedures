@@ -1,5 +1,6 @@
 package apoc.custom;
 
+import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.SystemDbUtil;
@@ -31,15 +32,83 @@ import static apoc.ExtendedSystemPropertyKeys.outputs;
 import static apoc.ExtendedSystemPropertyKeys.prefix;
 import static apoc.SystemPropertyKeys.database;
 import static apoc.SystemPropertyKeys.name;
+import static apoc.custom.CypherNewProcedures.ALL_DATABASES;
+import static apoc.custom.CypherProceduresUtil.getSringifiedName;
 import static apoc.custom.CypherProceduresUtil.qualifiedName;
 import static apoc.util.SystemDbUtil.getSystemNodes;
 import static apoc.util.SystemDbUtil.withSystemDb;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class CypherHandlerNewProcedure {
+    private static final String ERROR_DIFFERENT_DB =
+            "%1$s `%2$s` is registered in another db (`%3$s`), it's not possible to register a %1$s with the same name in a different db.\n" +
+                    "If you want to use the same name you have to remove it via `%4$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%5$s`";
+    private static final String ERROR_GLOBAL_DB =
+            "%1$s `%2$s` is registered globally in all databases, it's not possible to register a %1$s with the same name in a specific database.\n" +
+                    "If you want to use the same name you have to remove it via `%3$s`";
 
+    public static void checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(
+            Transaction tx,
+            QualifiedName qualifiedName,
+            String targetDatabaseName,
+            ExtendedSystemLabels procOrFunLabel) {
+        Node existingNode = tx.findNodes(ApocCypherProcedures,
+                        name.name(), qualifiedName.name(),
+                        prefix.name(), qualifiedName.namespace()
+                ).stream()
+                .filter(n -> n.hasLabel(procOrFunLabel))
+                .findFirst()
+                .orElse(null);
+
+        if (existingNode == null) {
+            return;
+        }
+        
+        String existingDatabaseName = (String) existingNode.getProperty(SystemPropertyKeys.database.name());
+
+        boolean isSameDb = targetDatabaseName.equals(existingDatabaseName);
+        
+        if (isSameDb) {
+            return;
+        }
+        
+        if (targetDatabaseName.equals(ALL_DATABASES)) {
+            existingNode.delete();
+            return;
+        }
+
+        String stringifiedName = getSringifiedName(qualifiedName);
+        boolean isProcedure = procOrFunLabel.equals(Procedure);
+        if (existingDatabaseName.equals(ALL_DATABASES)) {
+            String dropStatement = isProcedure
+                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', 'null')"
+                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', 'null')";
+            
+            throw new RuntimeException(
+                    String.format(ERROR_GLOBAL_DB, 
+                            procOrFunLabel, stringifiedName, dropStatement
+                    )
+            );
+        } else {
+            String dropStatement = isProcedure
+                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', '" + existingDatabaseName + "')"
+                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', '" + existingDatabaseName + "')";
+            String installStatement = isProcedure
+                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
+                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)";
+            
+            throw new RuntimeException(
+                    String.format(ERROR_DIFFERENT_DB,
+                            procOrFunLabel, stringifiedName, existingDatabaseName, dropStatement, installStatement
+                    )
+            );
+        }
+    }
+    
     public static void installProcedure(String databaseName, ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
+            checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(tx, signature.name(), databaseName, Procedure);
+            
             Node node = Util.mergeNode(tx, ApocCypherProcedures, Procedure,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),
@@ -57,6 +126,8 @@ public class CypherHandlerNewProcedure {
 
     public static void installFunction(String databaseName, UserFunctionSignature signature, String statement, boolean forceSingle) {
         withSystemDb(tx -> {
+            checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(tx, signature.name(), databaseName, Function);
+            
             Node node = Util.mergeNode(tx, ApocCypherProcedures, Function,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),

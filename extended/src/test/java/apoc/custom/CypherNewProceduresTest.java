@@ -81,6 +81,8 @@ public class CypherNewProceduresTest {
 
     @After
     public void after() throws Exception {
+        // drop both global and local procedures
+        sysDb.executeTransactionally("CALL apoc.custom.dropAll(null)");
         sysDb.executeTransactionally("CALL apoc.custom.dropAll('neo4j')");
         testCallCountEventually(db, "CALL apoc.custom.list", 0, TIMEOUT);
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
@@ -89,6 +91,18 @@ public class CypherNewProceduresTest {
     //
     // test cases taken and adapted from CypherProceduresTest.java
     //
+    
+    @Test
+    public void registerSimpleStatementWithDbNull() throws Exception {
+        sysDb.executeTransactionally("CALL apoc.custom.installProcedure('answer2() :: (answer::INT)','RETURN 42 as answer', null)");
+        testCallEventually("CALL custom.answer2()", (row) -> assertEquals(42L, row.get("answer")));
+    }
+
+    @Test
+    public void registerSimpleStatementFunctionWithDbNull() throws Exception {
+        sysDb.executeTransactionally("CALL apoc.custom.installFunction('answer2() :: STRING','RETURN 42 as answer', null)");
+        testCallEventually("return custom.answer2() as row", (row) -> assertEquals(42L, row.get("row")));
+    }
 
     @Test
     public void registerSimpleStatement() throws Exception {

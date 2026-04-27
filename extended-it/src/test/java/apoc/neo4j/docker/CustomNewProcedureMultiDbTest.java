@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static apoc.custom.CypherProceduresHandler.CUSTOM_PROCEDURES_REFRESH;
 import static apoc.util.ExtendedTestContainerUtil.singleResultFirstColumn;
-import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.*;
@@ -26,7 +26,7 @@ import static org.neo4j.test.assertion.Assert.assertEventually;
 
 public class CustomNewProcedureMultiDbTest {
 
-    public static final long TIMEOUT = 60L;
+    public static final long TIMEOUT = 10L;
     private static Neo4jContainerExtension neo4jContainer;
     private static Driver driver;
     private static Session neo4jSession;
@@ -36,10 +36,12 @@ public class CustomNewProcedureMultiDbTest {
 
     private static final String DB_TEST = "dbtest";
     private static final String DB_FOO = "dbfoo";
+    private static final List<String> ALL_DB_NAMES = List.of(DB_TEST, DB_FOO, DEFAULT_DATABASE_NAME);
 
     @BeforeClass
     public static void setupContainer() {
-        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true);
+        neo4jContainer = createEnterpriseDB(List.of(TestContainerUtil.ApocPackage.EXTENDED), true)
+                .withNeo4jConfig(CUSTOM_PROCEDURES_REFRESH, "1000");
         neo4jContainer.start();
         driver = neo4jContainer.getDriver();
         createDatabases();
@@ -48,9 +50,13 @@ public class CustomNewProcedureMultiDbTest {
 
     @After
     public void cleanDb() {
-        neo4jSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
-        testSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
-        fooSession.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n;").consume());
+        systemSession.executeWrite(tx -> {
+            for (String db: ALL_DB_NAMES) {
+                tx.run("CALL apoc.custom.dropAll('" + db + "')").consume();
+            }
+            tx.run("CALL apoc.custom.dropAll(null)").consume();
+            return null;
+        });
     }
 
     @AfterClass
@@ -95,6 +101,199 @@ public class CustomNewProcedureMultiDbTest {
                 "CALL custom.testProc", "RETURN custom.testFun() AS answer",
                 fooSession, neo4jSession);
     }
+
+    @Test
+    public void testProceduresFunctionsWithSameNameAndDifferentDbFailsIfTryOverwriteGlobalOne() {
+        String procName = "sameName.foo.proc";
+        String funName = "sameName.foo.fun";
+
+        installProcsAndFuncsAndCheckExist(procName, funName);
+
+        // procedure and function locally will throw error
+        try {
+            systemSession.executeWrite(tx ->
+                    tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                            Map.of("db", DB_TEST)).consume()
+            );
+            fail("Should fail due to procedure with same name");
+        } catch (Exception e) {
+            String actual = e.getMessage();
+            String expected = "Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.RuntimeException: Procedure `sameName.foo.proc` is registered globally in all databases, it's not possible to register a Procedure with the same name in a specific database.\n" +
+                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropProcedure('sameName.foo.proc', 'null')`";
+            assertEquals(expected, actual);
+        }
+        try {
+            systemSession.executeWrite(tx ->
+                    tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                            Map.of("db", DB_TEST)).consume()
+            );
+        } catch (Exception e) {
+            String actual = e.getMessage();
+            String expected = "Failed to invoke procedure `apoc.custom.installFunction`: Caused by: java.lang.RuntimeException: Function `sameName.foo.fun` is registered globally in all databases, it's not possible to register a Function with the same name in a specific database.\n" +
+                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropFunction('sameName.foo.fun', 'null')`";
+            assertEquals(expected, actual);
+        }
+
+        // check procedure and function are not installed locally
+        String countCustomLocals = "CALL apoc.custom.show('" + DB_TEST + "') YIELD name RETURN count(*) AS count";
+        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomLocals),
+                (value) -> value == 0L, TIMEOUT, SECONDS);
+        
+        systemSession.executeWrite(
+                tx -> tx.run("CALL apoc.custom.dropAll(null)").consume()
+        );
+
+        checkProcsAndFuncsAreDeleted();
+
+        // install procedure and function locally
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+
+        // check procedure and function are installed locally
+        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomLocals),
+                (value) -> value == 2L, TIMEOUT, SECONDS);
+    }
+
+    @Test
+    public void testProceduresFunctionsWithSameNameAndDifferentDbFailsButCanBeOverwrittenIfInstalledGlobally() {
+        
+        String procName = "sameNameFooProc";
+        String funName = "sameNameFooFun";
+        
+        // install a procedure and a function for foo database
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+
+        checkInstalled(fooSession, "CALL custom." + procName);
+        checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
+
+        try {
+            // install a procedure and a function for test database
+            systemSession.executeWrite(tx ->
+                    tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                            Map.of("db", DB_TEST)).consume()
+            );
+            fail("Should fail due to procedure with same name");
+        } catch (Exception e) {
+            String actual = e.getMessage();
+            String expected = "Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.RuntimeException: Procedure `sameNameFooProc` is registered in another db (`dbfoo`), it's not possible to register a Procedure with the same name in a different db.\n" +
+                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropProcedure('sameNameFooProc', 'dbfoo')` or different db or install it globally by putting null as the 3rd parameter, e.g. `CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)`";
+            assertEquals(expected, actual);
+        }
+        try {
+            systemSession.executeWrite(tx ->
+                    tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                            Map.of("db", DB_TEST)).consume()
+            );
+        } catch (Exception e) {
+            String actual = e.getMessage();
+            String expected = "Failed to invoke procedure `apoc.custom.installFunction`: Caused by: java.lang.RuntimeException: Function `sameNameFooFun` is registered in another db (`dbfoo`), it's not possible to register a Function with the same name in a different db.\n" +
+                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropFunction('sameNameFooFun', 'dbfoo')` or different db or install it globally by putting null as the 3rd parameter, e.g. `CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)`";
+            assertEquals(expected, actual);
+        }
+
+        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
+                "CALL custom." + procName, "RETURN custom." + funName + "() AS answer",
+                testSession, neo4jSession);
+
+        installAndDropProcsAndFuncsGlobally(procName, funName);
+    }
+
+    @Test
+    public void testProceduresFunctionsInstalledGlobally() {
+
+        String procName = "barProc";
+        String funName = "barFun";
+
+        installAndDropProcsAndFuncsGlobally(procName, funName);
+    }
+
+    private static void installAndDropProcsAndFuncsGlobally(String procName, String funName)  {
+        // -- using dropProcedure and dropFunction
+        installProcsAndFuncsAndCheckExist(procName, funName);
+
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.dropProcedure('" + procName + "',null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.dropFunction('" + funName + "', null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        
+        checkProcsAndFuncsAreDeleted();
+
+        // -- using dropAll
+        installProcsAndFuncsAndCheckExist(procName, funName);
+
+        systemSession.executeWrite(
+                tx -> tx.run("CALL apoc.custom.dropAll(null)").consume()
+        );
+
+        checkProcsAndFuncsAreDeleted();
+    }
+
+    private static void checkProcsAndFuncsAreDeleted() {
+        String countCustomGlobals = "CALL apoc.custom.show(null) YIELD name RETURN count(*) AS count";
+        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomGlobals),
+                (value) -> value == 0L, TIMEOUT, SECONDS);
+
+        for (String db: ALL_DB_NAMES) {
+            String countCustomLocal = "CALL apoc.custom.show('" + db + "') YIELD name RETURN count(*) AS count";
+            long count = singleResultFirstColumn(systemSession, countCustomLocal);
+            assertEquals(0, count);
+        }
+        
+        String countCustom = "CALL apoc.custom.list() YIELD name RETURN count(*) AS count";
+        assertEventually(() -> (long) singleResultFirstColumn(testSession, countCustom),
+                (value) -> value == 0L, TIMEOUT, SECONDS);
+    }
+
+    private static void installProcsAndFuncsAndCheckExist(String procName, String funName) {
+        // install a procedure and a function for foo database
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', null)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+
+        checkInstalled(testSession, "CALL custom." + procName);
+        checkInstalled(testSession, "RETURN custom." + funName + "() AS answer");
+
+        checkInstalled(fooSession, "CALL custom." + procName);
+        checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
+
+        checkInstalled(neo4jSession, "CALL custom." + procName);
+        checkInstalled(neo4jSession, "RETURN custom." + funName + "() AS answer");
+
+        // check that the procedure are global, not local
+        String countCustomGlobals = "CALL apoc.custom.show(null) YIELD name RETURN count(*) AS count";
+        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomGlobals),
+                (value) -> value == 2L, TIMEOUT, SECONDS);
+
+        for (String db: ALL_DB_NAMES) {
+            String countCustomLocal = "CALL apoc.custom.show('" + db + "') YIELD name RETURN count(*) AS count";
+            long count = singleResultFirstColumn(systemSession, countCustomLocal);
+            assertEquals(0, count);
+        }
+    }
+
 
     @Test
     public void testProceduresFunctionsInDatabaseAlias() {
