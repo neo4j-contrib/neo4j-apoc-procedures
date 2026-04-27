@@ -11,11 +11,9 @@ import java.util.Optional;
 
 import static apoc.ExtendedSystemLabels.Function;
 import static apoc.ExtendedSystemLabels.Procedure;
-import static apoc.custom.CypherProceduresUtil.getFunctionInfo;
-import static apoc.custom.CypherProceduresUtil.getProcedureInfo;
 import static apoc.custom.CypherProceduresHandler.FUNCTION;
-import static apoc.custom.CypherProceduresHandler.PREFIX;
 import static apoc.custom.CypherProceduresHandler.PROCEDURE;
+import static apoc.custom.CypherProceduresUtil.*;
 
 public class CustomProcedureInfo {
     public String type;
@@ -53,7 +51,7 @@ public class CustomProcedureInfo {
     public static CustomProcedureInfo getCustomProcedureInfo(ProcedureSignature signature, String statement) {
         return new CustomProcedureInfo(
                 PROCEDURE,
-                signature.name().toString().substring(PREFIX.length() + 1),
+                getSringifiedName(signature.name()),
                 signature.description().orElse(null),
                 signature.mode().toString().toLowerCase(),
                 statement,
@@ -65,7 +63,7 @@ public class CustomProcedureInfo {
     public static CustomProcedureInfo getCustomFunctionInfo(UserFunctionSignature signature, boolean forceSingle, String statement) {
         return new CustomProcedureInfo(
                 FUNCTION,
-                signature.name().toString().substring(PREFIX.length() + 1),
+                getSringifiedName(signature.name()),
                 signature.description().orElse(null),
                 null,
                 statement,

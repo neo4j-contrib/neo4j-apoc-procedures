@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.custom.CypherNewProcedures.ALL_DATABASES;
 import static apoc.custom.CypherProceduresUtil.*;
 import static apoc.custom.CypherHandlerNewProcedure.serializeSignatures;
 import static java.util.Collections.singletonList;
@@ -119,7 +120,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public Stream<ProcedureOrFunctionDescriptor> readSignatures() {
         List<ProcedureOrFunctionDescriptor> descriptors;
         try (Transaction tx = systemDb.beginTx()) {
-             descriptors = tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream().map(node -> {
+             descriptors = Stream.concat(
+                     tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), ALL_DATABASES).stream(), 
+                     tx.findNodes( ExtendedSystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName()).stream()
+                 ).map(node -> {
                 if (node.hasLabel(ExtendedSystemLabels.Procedure)) {
                     return procedureDescriptor(node);
                 } else if (node.hasLabel(ExtendedSystemLabels.Function)) {
@@ -135,18 +139,20 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     private ProcedureDescriptor procedureDescriptor(Node node) {
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+        String databaseName = (String) node.getProperty(SystemPropertyKeys.database.name());
 
         ProcedureSignature procedureSignature = getProcedureSignature(node);
-        return new ProcedureDescriptor(procedureSignature, statement);
+        return new ProcedureDescriptor(procedureSignature, statement, databaseName);
     }
 
     private UserFunctionDescriptor userFunctionDescriptor(Node node) {
         String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
         boolean forceSingle = (boolean) node.getProperty(ExtendedSystemPropertyKeys.forceSingle.name(), false);
         boolean mapResult = (boolean) node.getProperty(ExtendedSystemPropertyKeys.mapResult.name(), false);
+        String databaseName = (String) node.getProperty(SystemPropertyKeys.database.name());
 
         UserFunctionSignature signature = getUserFunctionSignature(node);
-        return new UserFunctionDescriptor(signature, statement, forceSingle, mapResult);
+        return new UserFunctionDescriptor(signature, statement, forceSingle, mapResult, databaseName);
     }
 
     public synchronized void restoreProceduresAndFunctions() {
@@ -166,7 +172,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         });
 
         // de-register removed procs/functions
-        currentProceduresToRemove.forEach(signature -> registerProcedure(signature, null));
+        currentProceduresToRemove.forEach(signature -> registerProcedure(signature, null, null));
         currentUserFunctionsToRemove.forEach(this::registerFunction);
 
         api.executeTransactionally("call db.clearQueryCaches()");
@@ -195,7 +201,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.mapResult.name(), mapResult);
 
             setLastUpdate(tx);
-            if (!registerFunction(signature, statement, forceSingle, mapResult)) {
+            if (!registerFunction(signature, statement, forceSingle, mapResult, null)) {
                 throw new IllegalStateException("Error registering function " + signature + ", see log.");
             }
             return null;
@@ -215,7 +221,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             node.setProperty(ExtendedSystemPropertyKeys.outputs.name(), serializeSignatures(signature.outputSignature()));
             node.setProperty(ExtendedSystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
-            if (!registerProcedure(signature, statement)) {
+            if (!registerProcedure(signature, statement, null)) {
                 throw new IllegalStateException("Error registering procedure " + signature.name() + ", see log.");
             }
             return null;
@@ -234,7 +240,14 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private long getLastUpdate() {
         return withSystemDb( tx -> {
             Node node = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
-            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+            Node nodeAllDatabases = tx.findNode(ExtendedSystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), ALL_DATABASES);
+            Long lastUpdateLocalDb = node != null
+                    ? Util.toLong(node.getProperty(SystemPropertyKeys.lastUpdated.name(), 0L)) 
+                    : 0L;
+            Long lastUpdateGlobalDb = nodeAllDatabases != null 
+                    ? Util.toLong(nodeAllDatabases.getProperty(SystemPropertyKeys.lastUpdated.name(), 0L)) 
+                    : 0L;
+            return Math.max(lastUpdateLocalDb, lastUpdateGlobalDb);
         });
     }
 
@@ -244,7 +257,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
      * @param statement null indicates a removed procedure
      * @return
      */
-    public boolean registerProcedure(ProcedureSignature signature, String statement) {
+    public boolean registerProcedure(ProcedureSignature signature, String statement, String databaseName) {
         QualifiedName name = signature.name();
         try {
             boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
@@ -259,7 +272,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
                 public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
-                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx)) {
+                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
                         final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
                                 "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
@@ -291,10 +304,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     public boolean registerFunction(UserFunctionSignature signature) {
-        return registerFunction(signature, null, false, false);
+        return registerFunction(signature, null, false, false, null);
     }
 
-    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
+    public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult, String databaseName) {
         try {
             QualifiedName name = signature.name();
             boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
@@ -309,7 +322,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
                 public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
-                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx)) {
+                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
                         final String error = String.format("Unknown function '%s'", name);
                         throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
                     } else {
@@ -356,7 +369,10 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    private boolean isNotRegisteredInTheCorrectDb(Context ctx) {
+    private boolean isNotRegisteredInTheCorrectDb(Context ctx, String databaseName) {
+        if (ALL_DATABASES.equals(databaseName)) {
+            return false;
+        }
         return !ctx.graphDatabaseAPI().databaseName().equals(api.databaseName());
     }
 
@@ -431,7 +447,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
                     ExtendedSystemPropertyKeys.prefix.name(), qName.namespace()
             ).stream().filter(n -> n.hasLabel(ExtendedSystemLabels.Procedure)).forEach(node -> {
                 ProcedureDescriptor descriptor = procedureDescriptor(node);
-                registerProcedure(descriptor.getSignature(), null);
+                registerProcedure(descriptor.getSignature(), null, null);
                 node.delete();
                 setLastUpdate(tx);
             });
@@ -459,13 +475,19 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public abstract class ProcedureOrFunctionDescriptor {
         private final String statement;
+        private final String databaseName;
 
-        protected ProcedureOrFunctionDescriptor(String statement) {
+        protected ProcedureOrFunctionDescriptor(String statement, String databaseName) {
             this.statement = statement;
+            this.databaseName = databaseName;
         }
 
         public String getStatement() {
             return statement;
+        }
+
+        public String getDatabaseName() {
+            return databaseName;
         }
 
         abstract public void register();
@@ -474,8 +496,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     public class ProcedureDescriptor extends ProcedureOrFunctionDescriptor {
         private final ProcedureSignature signature;
 
-        public ProcedureDescriptor(ProcedureSignature signature, String statement) {
-            super(statement);
+        public ProcedureDescriptor(ProcedureSignature signature, String statement, String databaseName) {
+            super(statement, databaseName);
             this.signature = signature;
         }
 
@@ -485,7 +507,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         @Override
         public void register() {
-            registerProcedure(getSignature(), getStatement());
+            registerProcedure(getSignature(), getStatement(), getDatabaseName());
         }
     }
 
@@ -494,8 +516,8 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         private final boolean forceSingle;
         private final boolean mapResult;
 
-        public UserFunctionDescriptor(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {
-            super(statement);
+        public UserFunctionDescriptor(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult, String databaseName) {
+            super(statement, databaseName);
             this.signature = signature;
             this.forceSingle = forceSingle;
             this.mapResult = mapResult;
@@ -511,7 +533,7 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
         @Override
         public void register() {
-            registerFunction(getSignature(), getStatement(), isForceSingle(), mapResult);
+            registerFunction(getSignature(), getStatement(), isForceSingle(), mapResult, getDatabaseName());
         }
     }
 }
