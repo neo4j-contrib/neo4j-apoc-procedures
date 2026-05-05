@@ -36,7 +36,7 @@ public class CypherEnterpriseExtendedTest {
                                                            "CREATE (n:ReturnQuery {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
     private static final String CREATE_RESULT_NODES = "UNWIND range(0,3) as id \n" +
                                                       "CREATE (n:Result {id:id})-[:REL {idRel: id}]->(:Other {idOther: id})";
-    private static final String SIMPLE_RETURN_QUERIES = "MATCH (n:ReturnQuery) RETURN n";
+    private static final String SIMPLE_RETURN_QUERIES = "MATCH (n:ReturnQuery) ORDER BY n.id RETURN n";
 
     private static final String SET_RETURN_FILE = "set_and_return.cypher";
     private static final String MATCH_RETURN_FILE = "match_and_return.cypher";
@@ -291,7 +291,7 @@ public class CypherEnterpriseExtendedTest {
         String query = """
                 MATCH (n:ReturnQuery) WITH COLLECT(n) AS list
                 CALL apoc.cypher.mapParallel('MATCH (_)-[r:REL]->(o:Other) RETURN r, o', {}, list)
-                YIELD value RETURN value""";
+                YIELD value ORDER BY value.idOther RETURN value""";
         Map<String, Object> params = Map.of("file", SIMPLE_RETURN_QUERIES);
 
         testCypherMapParallelCommon(query, params);
