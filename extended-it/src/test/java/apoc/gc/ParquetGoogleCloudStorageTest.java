@@ -2,11 +2,7 @@ package apoc.gc;
 
 import apoc.export.parquet.ParquetTestUtil;
 import apoc.util.GoogleCloudStorageContainerExtension;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -16,7 +12,7 @@ import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
 import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.export.parquet.ParquetTest.MAPPING_ALL;
-import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
+import static apoc.export.parquet.ParquetTestUtil.registerProcedures;
 import static apoc.export.parquet.ParquetTestUtil.testImportAllCommon;
 import static apoc.util.GoogleCloudStorageContainerExtension.gcsUrl;
 import static apoc.util.TestUtil.testResult;
@@ -28,15 +24,15 @@ public class ParquetGoogleCloudStorageTest {
     public static GoogleCloudStorageContainerExtension gcs;
 
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
-        
-        beforeClassCommon(db);
+
+        registerProcedures(db);
 
         gcs = new GoogleCloudStorageContainerExtension()
                 .withMountedResourceFile(FILENAME, "/folder/" + FILENAME);
@@ -44,8 +40,8 @@ public class ParquetGoogleCloudStorageTest {
         gcs.start();
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         gcs.close();
         db.shutdown();
     }
