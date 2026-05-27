@@ -27,7 +27,7 @@ if (System.env.CI != null && System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" !=
 repositories {
 
     /*maven {  // this contains the neo4j 4.0.0-beta jars
-    url "https://neo4j.bintray.com/community/"
+    url "https://neo4j.bintray.com/community/" test CI
 }*/
     if (System.getenv("CODEARTIFACT_DOWNLOAD_URL") ?: "" != "") {
         maven {
