@@ -16,7 +16,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
-import static apoc.algo.PathFindingUtils.buildPathExpander;
 
 @Extended
 public class PathFindingExtended {

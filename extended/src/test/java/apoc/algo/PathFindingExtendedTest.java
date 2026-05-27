@@ -8,8 +8,6 @@ import org.junit.Test;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.algo.AlgoUtil.SETUP_GEO;
-import static apoc.util.TestUtil.testResult;
 
 public class PathFindingExtendedTest {
 
