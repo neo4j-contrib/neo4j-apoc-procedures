@@ -65,16 +65,19 @@ public class CollExtendedTest {
     public void testAvgDurationWrongType() {
         final String queryIntType = "WITH [1,2,3] AS dur " +
                 "RETURN apoc.coll.avgDuration(dur)";
-        testWrongType(queryIntType);
+        // Error comes from Cypher
+        try {
+            testCall(db, queryIntType, row -> fail("should fail due to Wrong argument type"));
+        } catch (RuntimeException e) {
+            String expected = "Type mismatch: expected List<Duration> but was List<Integer>";
+            MatcherAssert.assertThat(e.getMessage(), Matchers.containsString(expected));
+        }
 
         final String queryMixedType = "WITH [duration('P2DT4H1S'), duration('PT1H6S'), 1] AS dur " +
                 "RETURN apoc.coll.avgDuration(dur)";
-        testWrongType(queryMixedType);
-    }
-
-    private void testWrongType(String query) {
+        // Error comes from APOC as the list is represented as a LIST<ANY>
         try {
-            testCall(db, query, row -> fail("should fail due to Wrong argument type"));
+            testCall(db, queryMixedType, row -> fail("should fail due to Wrong argument type"));
         } catch (RuntimeException e) {
             String expected = "Can't coerce `Long(1)` to Duration";
             MatcherAssert.assertThat(e.getMessage(), Matchers.containsString(expected));

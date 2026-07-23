@@ -30,12 +30,12 @@ public class Store {
         RecordDatabaseLayout databaseLayout = RecordDatabaseLayout.convert( database.getDatabaseLayout() );
         return Stream.of(new StoreInfoResult(
                 getDirectorySize(databaseLayout.getTransactionLogsDirectory().toFile()),
-                databaseLayout.propertyStringStore().toFile().length(),
-                databaseLayout.propertyArrayStore().toFile().length(),
-                databaseLayout.relationshipStore().toFile().length(),
-                databaseLayout.propertyStore().toFile().length(),
+                databaseLayout.propertyStringStore().storeBaseFileName().toFile().length(),
+                databaseLayout.propertyArrayStore().storeBaseFileName().toFile().length(),
+                databaseLayout.relationshipStore().storeBaseFileName().toFile().length(),
+                databaseLayout.propertyStore().storeBaseFileName().toFile().length(),
                 getDirectorySize(databaseLayout.databaseDirectory().toFile()), //databaseLayout.storeFiles().stream().mapToLong(File::length).sum(),
-                databaseLayout.nodeStore().toFile().length()
+                databaseLayout.nodeStore().storeBaseFileName().toFile().length()
         ));
     }
 
