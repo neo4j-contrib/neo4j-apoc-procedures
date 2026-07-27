@@ -89,6 +89,11 @@ dependencies {
 
     // These will be dependencies packaged with the .jar
     implementation project(':common')
+    implementation(group: 'org.neo4j', name: 'neo4j-graph-algo', version: neo4jVersionEffective) {
+        exclude group: 'org.neo4j', module: 'neo4j-cypher-runtime-util'
+        exclude group: 'org.neo4j', module: 'neo4j-util'
+        exclude group: 'org.neo4j', module: 'neo4j-kernel'
+    }
     implementation group: 'com.unboundid', name: 'unboundid-ldapsdk', version: '6.0.11'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
     implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.10.0', {
