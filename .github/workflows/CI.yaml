@@ -25,7 +25,7 @@ jobs:
         language: [ 'java', 'javascript' ]
     steps:
       - name: Configure AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@90a7a1fb1ee4e8d6a99f60d2fd22287e1657e51e # v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,7 +41,7 @@ jobs:
         run: |
           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
 
@@ -78,7 +78,7 @@ jobs:
           ./gradlew --no-daemon --info -Pneo4jVersionOverride=$NEO4JVERSION --init-script init.gradle clean
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.28.8
+        uses: github/codeql-action/init@8ff85221d12737ec1137e6a892722e5130f32d05 # v3.28.8
         with:
           languages: ${{ matrix.language }}
 
@@ -86,7 +86,7 @@ jobs:
         run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava compileTestJava
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3.28.8
+        uses: github/codeql-action/analyze@8ff85221d12737ec1137e6a892722e5130f32d05 # v3.28.8
         with:
           category: "/language:${{matrix.language}}"
   
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@90a7a1fb1ee4e8d6a99f60d2fd22287e1657e51e # v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -114,13 +114,13 @@ jobs:
         run: |
           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@215b7e5f829ab9cac114c149667e57dc1b70b4bc # v2
         with:
           java-version: '17.0.8'
           distribution: 'temurin'
-      - uses: actions/cache@v3
+      - uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
         with:
           path: |
             ~/.gradle/caches
