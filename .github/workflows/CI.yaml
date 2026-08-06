@@ -16,7 +16,7 @@ jobs:
   compile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
       - name: Compile
@@ -32,24 +32,24 @@ jobs:
       actions: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.28.8
+        uses: github/codeql-action/init@8ff85221d12737ec1137e6a892722e5130f32d05 # v3.28.8
         with:
           languages: java
       - name: Compile
         run: ./gradlew compileJava compileTestJava
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3.28.8
+        uses: github/codeql-action/analyze@8ff85221d12737ec1137e6a892722e5130f32d05 # v3.28.8
 
   format-checks:
     runs-on: ubuntu-latest
     needs: compile
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
       - name: Check all the files are properly formatted
@@ -60,7 +60,7 @@ jobs:
     needs: compile
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - uses: ./.github/actions/setup-jdk
       - uses: ./.github/actions/setup-gradle-cache
       - name: Check LICENSE and NOTICE files
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       - name: Download neo4j 4.4 docker container
         if: matrix.project == 'core-it' ||  matrix.project == 'full-it' ||  matrix.project == 'core'
         run: |
