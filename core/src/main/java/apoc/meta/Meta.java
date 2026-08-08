@@ -161,7 +161,13 @@ public class Meta {
         LOCAL_TIME,
         LOCAL_DATE_TIME,
         TIME,
-        DURATION;
+        DURATION,
+        /**
+         * Native Neo4j vector type: float[] properties used for vector index storage.
+         * Distinct from LIST so that import/export operations can preserve the
+         * 32-bit float precision and avoid converting to double[] or Double[].
+         */
+        VECTOR;
 
         private String typeOfList = "ANY";
 
@@ -217,6 +223,11 @@ public class Meta {
 
         public static Types of(Class<?> type) {
             if (type == null) return NULL;
+            // Detect Neo4j vector properties (stored natively as float[]) before the
+            // generic array branch, which would otherwise classify them as LIST OF FLOAT.
+            if (type == float[].class) {
+                return VECTOR;
+            }
             if (type.isArray()) {
                 Types innerType = Types.of(type.getComponentType());
                 Types returnType = LIST;
