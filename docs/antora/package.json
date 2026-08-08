@@ -16,7 +16,7 @@
     "@antora/site-generator-default": "^3.1.1",
     "@neo4j-documentation/macros": "^1.0.0",
     "@neo4j-documentation/remote-include": "^1.0.0",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "npm-watch": "^0.11.0"
   },
   "watch": {
