@@ -149,7 +149,7 @@ public class LoadXls {
                     url, stream, selection, skip, hasHeader, limit, ignore, nullValues, mappings, skipNulls);
             return StreamSupport.stream(xlsSpliterator, false);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR);
+            throw new MissingDependencyException(XLS_MISSING_DEPS_ERROR, e);
         } catch (Exception e) {
             if (!failOnError)
                 return Stream.of(

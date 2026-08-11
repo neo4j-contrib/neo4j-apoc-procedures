@@ -400,7 +400,7 @@ public class Couchbase {
             CouchbaseConfig config = new CouchbaseConfig(configMap);
             return CouchbaseManager.getConnection(hostOrKey, bucket, config);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(COUCHBASE_MISSING_DEPS_ERROR);
+            throw new MissingDependencyException(COUCHBASE_MISSING_DEPS_ERROR, e);
         }
     }
 }

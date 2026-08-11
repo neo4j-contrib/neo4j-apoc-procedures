@@ -7,12 +7,12 @@ Once that file is downloaded, it should be placed in the `plugins` directory and
 Alternatively, you can download these jars from Maven Repository (putting them into `plugins` directory as well):
 
 .For XLS files:
-* https://repo1.maven.org/maven2/org/apache/poi/poi/5.1.0/poi-5.1.0.jar[poi-5.1.0.jar^]
+* https://repo1.maven.org/maven2/org/apache/poi/poi/5.3.0/poi-5.3.0.jar[poi-5.3.0.jar^]
 
 .Additional for XLSX files:
 * https://repo1.maven.org/maven2/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar[commons-collections4-4.4.jar^]
-* https://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/5.1.0/poi-ooxml-5.1.0.jar[poi-ooxml-5.1.0.jar^]
-* https://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-lite/5.1.0/poi-ooxml-lite-5.1.0.jar[poi-ooxml-lite-5.1.0.jar^]
+* https://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/5.3.0/poi-ooxml-5.3.0.jar[poi-ooxml-5.3.0.jar^]
+* https://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-lite/5.3.0/poi-ooxml-lite-5.3.0.jar[poi-ooxml-lite-5.3.0.jar^]
 * https://repo1.maven.org/maven2/org/apache/xmlbeans/xmlbeans/5.0.2/xmlbeans-5.0.2.jar[xmlbeans-5.0.2.jar^]
 * https://repo1.maven.org/maven2/com/github/virtuald/curvesapi/1.06/curvesapi-1.06.jar[curvesapi-1.06.jar^]
 

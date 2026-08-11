@@ -56,7 +56,7 @@ public class MongoDBUtils {
         try {
             return new MongoDbConfig(config);
         } catch (NoClassDefFoundError e) {
-            throw new MissingDependencyException(MONGO_MISSING_DEPS_ERROR);
+            throw new MissingDependencyException(MONGO_MISSING_DEPS_ERROR, e);
         }
     }
 }
