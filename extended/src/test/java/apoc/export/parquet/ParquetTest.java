@@ -25,7 +25,6 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.export.parquet.ExportParquet.EXPORT_TO_FILE_PARQUET_ERROR;
 import static apoc.export.parquet.ParquetTestUtil.assertBarRel;
 import static apoc.export.parquet.ParquetTestUtil.assertNodeAndLabel;
-import static apoc.export.parquet.ParquetTestUtil.beforeClassCommon;
 import static apoc.export.parquet.ParquetTestUtil.beforeCommon;
 import static apoc.export.parquet.ParquetTestUtil.testImportAllCommon;
 import static apoc.util.TestUtil.testCall;
@@ -50,14 +49,10 @@ public class ParquetTest {
         directory.mkdirs();
     }
 
-    @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule()
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
-
-    @BeforeClass
-    public static void beforeClass() {
-        beforeClassCommon(db);
-    }
+    
 
     @Before
     public void before() {
@@ -125,7 +120,7 @@ public class ParquetTest {
         assertFails("CALL apoc.import.parquet('ignore.parquet')", LOAD_FROM_FILE_ERROR);
     }
 
-    private static void assertFails(String call, String expectedErrMsg) {
+    private void assertFails(String call, String expectedErrMsg) {
         try {
             testCall(db, call, r -> fail("Should fail due to " + expectedErrMsg));
         } catch (Exception e) {
@@ -140,7 +135,7 @@ public class ParquetTest {
         testStreamRoundtripAllCommon();
     }
 
-    private static void testStreamRoundtripAllCommon() {
+    private void testStreamRoundtripAllCommon() {
         // given - when
         final byte[] bytes = db.executeTransactionally("CALL apoc.export.parquet.all.stream()",
                 Map.of(),
@@ -227,7 +222,7 @@ public class ParquetTest {
                 ParquetTestUtil::extractFileName));
     }
 
-    public static void testReturnNodeAndRelCommon(Supplier<Object> supplier) {
+    public void testReturnNodeAndRelCommon(Supplier<Object> supplier) {
         db.executeTransactionally("CREATE (:ParquetNode{idStart:1})-[:BAR {idRel: 'one'}]->(:Other {idOther: datetime('2020')})");
         db.executeTransactionally("CREATE (:ParquetNode{idStart:2})-[:BAR {idRel: 'two'}]->(:Other {idOther: datetime('1999')})");
 
