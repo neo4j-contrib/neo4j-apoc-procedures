@@ -74,12 +74,14 @@ dependencies {
 
 tasks.register('copyApocCoreJar', Copy) {
     dependsOn(':core:shadowJar')
-    from project(':core').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-core/jar')
+    from(project(':core').tasks.named('shadowJar').flatMap { it.archiveFile })
+    into layout.buildDirectory.dir('test-core/jar')
 }
 
 tasks.register('copyApocExtendedJar', Copy) {
     dependsOn(':extended:shadowJar')
-    from project(':extended').tasks.shadowJar.archiveFile into layout.buildDirectory.dir('test-extended/jar')
+    from(project(':extended').tasks.named('shadowJar').flatMap { it.archiveFile })
+    into layout.buildDirectory.dir('test-extended/jar')
 }
 
 test {
