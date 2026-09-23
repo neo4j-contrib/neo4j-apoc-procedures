@@ -91,8 +91,8 @@ So we must necessarily open a new transaction to execute the custom procedures /
 ====
 
 
-The following examples assume that we are on the `neo4j` database,
-and we want to create the custom procedures/function in that database.
+The following examples assume that we want to create the custom procedures/function in the `neo4j` database,
+and that `apoc.custom.installProcedure`/`apoc.custom.installFunction` themselves are executed against the `system` database, as described above.
 
 == Custom Procedures with `apoc.custom.installProcedure`
 
