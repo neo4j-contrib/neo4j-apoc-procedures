@@ -25,6 +25,7 @@ jobs:
         language: [ 'java', 'javascript' ]
     steps:
       - name: Configure AWS CLI
+        if: matrix.language == 'java'
         uses: aws-actions/configure-aws-credentials@90a7a1fb1ee4e8d6a99f60d2fd22287e1657e51e # v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -32,20 +33,25 @@ jobs:
           aws-region: eu-west-1
 
       - name: Configure CodeArtifact Authentication Token
+        if: matrix.language == 'java'
         run: |
           CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }} --query authorizationToken --output text`
           echo "::add-mask::$CODEARTIFACT_TOKEN"
           echo "CODEARTIFACT_TOKEN=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
       
       - name: Login in to AWS ECR
+        if: matrix.language == 'java'
         run: |
           aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_NEO4J_DOCKER_URL
 
       - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
-      - uses: ./.github/actions/setup-jdk
-      - uses: ./.github/actions/setup-gradle-cache
+      - if: matrix.language == 'java'
+        uses: ./.github/actions/setup-jdk
+      - if: matrix.language == 'java'
+        uses: ./.github/actions/setup-gradle-cache
 
       - name: Determine CODEARTIFACT_DOWNLOAD_URL, NEO4JVERSION and Docker Image environment variables
+        if: matrix.language == 'java'
         run: |
           echo "Current branch BRANCH_NAME=$BRANCH_NAME"
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
@@ -73,6 +79,7 @@ jobs:
           echo "NEO4J_DOCKER_EE_OVERRIDE=$NEO4J_DOCKER_EE_OVERRIDE" >> "$GITHUB_ENV"
 
       - name: Compile Java
+        if: matrix.language == 'java'
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --info -Pneo4jVersionOverride=$NEO4JVERSION --init-script init.gradle clean
@@ -83,6 +90,7 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: Compile
+        if: matrix.language == 'java'
         run: ./gradlew --info -Pneo4jVersionOverride=$NEO4JVERSION compileJava :extended:compileTestJava :extended-it:compileTestJava
 
       - name: Perform CodeQL Analysis
