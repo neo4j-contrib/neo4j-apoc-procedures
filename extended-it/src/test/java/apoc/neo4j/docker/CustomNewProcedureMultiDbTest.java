@@ -103,70 +103,48 @@ public class CustomNewProcedureMultiDbTest {
     }
 
     @Test
-    public void testProceduresFunctionsWithSameNameAndDifferentDbFailsIfTryOverwriteGlobalOne() {
+    public void testProceduresFunctionsWithSameNameGlobalAndSpecificDbCoexist() {
         String procName = "sameName.foo.proc";
         String funName = "sameName.foo.fun";
 
         installProcsAndFuncsAndCheckExist(procName, funName);
 
-        // procedure and function locally will throw error
-        try {
-            systemSession.executeWrite(tx ->
-                    tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
-                            Map.of("db", DB_TEST)).consume()
-            );
-            fail("Should fail due to procedure with same name");
-        } catch (Exception e) {
-            String actual = e.getMessage();
-            String expected = "Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.RuntimeException: Procedure `sameName.foo.proc` is registered globally in all databases, it's not possible to register a Procedure with the same name in a specific database.\n" +
-                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropProcedure('sameName.foo.proc', 'null')`";
-            assertEquals(expected, actual);
-        }
-        try {
-            systemSession.executeWrite(tx ->
-                    tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
-                            Map.of("db", DB_TEST)).consume()
-            );
-        } catch (Exception e) {
-            String actual = e.getMessage();
-            String expected = "Failed to invoke procedure `apoc.custom.installFunction`: Caused by: java.lang.RuntimeException: Function `sameName.foo.fun` is registered globally in all databases, it's not possible to register a Function with the same name in a specific database.\n" +
-                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropFunction('sameName.foo.fun', 'null')`";
-            assertEquals(expected, actual);
-        }
+        // installing the same name/signature into a specific db must now coexist with the global ("_all")
+        // registration, with the specific db's version taking precedence there
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 99 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 99 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+        testSession.executeWrite(tx -> tx.run("call db.clearQueryCaches()").consume());
 
-        // check procedure and function are not installed locally
-        String countCustomLocals = "CALL apoc.custom.show('" + DB_TEST + "') YIELD name RETURN count(*) AS count";
-        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomLocals),
-                (value) -> value == 0L, TIMEOUT, SECONDS);
-        
+        checkInstalled(testSession, "CALL custom." + procName, 99L);
+        checkInstalled(testSession, "RETURN custom." + funName + "() AS answer", 99L);
+
+        // other databases are still served by the global version
+        checkInstalled(fooSession, "CALL custom." + procName, 42L);
+        checkInstalled(neo4jSession, "RETURN custom." + funName + "() AS answer", 42L);
+
         systemSession.executeWrite(
                 tx -> tx.run("CALL apoc.custom.dropAll(null)").consume()
         );
+        systemSession.executeWrite(tx -> {
+            tx.run("CALL apoc.custom.dropProcedure('" + procName + "', $db)", Map.of("db", DB_TEST)).consume();
+            tx.run("CALL apoc.custom.dropFunction('" + funName + "', $db)", Map.of("db", DB_TEST)).consume();
+            return null;
+        });
 
         checkProcsAndFuncsAreDeleted();
-
-        // install procedure and function locally
-        systemSession.executeWrite(tx ->
-                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
-                        Map.of("db", DB_TEST)).consume()
-        );
-
-        systemSession.executeWrite(tx ->
-                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
-                        Map.of("db", DB_TEST)).consume()
-        );
-
-        // check procedure and function are installed locally
-        assertEventually(() -> (long) singleResultFirstColumn(systemSession, countCustomLocals),
-                (value) -> value == 2L, TIMEOUT, SECONDS);
     }
 
     @Test
-    public void testProceduresFunctionsWithSameNameAndDifferentDbFailsButCanBeOverwrittenIfInstalledGlobally() {
-        
+    public void testProceduresFunctionsWithSameNameInTwoDbsCoexist() {
         String procName = "sameNameFooProc";
         String funName = "sameNameFooFun";
-        
+
         // install a procedure and a function for foo database
         systemSession.executeWrite(tx ->
                 tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
@@ -180,36 +158,81 @@ public class CustomNewProcedureMultiDbTest {
         checkInstalled(fooSession, "CALL custom." + procName);
         checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer");
 
+        // installing the same name/signature into a second, different db must now succeed and coexist,
+        // instead of failing - this is the fix for #4570
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 7 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 7 as answer', $db)",
+                        Map.of("db", DB_TEST)).consume()
+        );
+
+        checkInstalled(fooSession, "CALL custom." + procName, 42L);
+        checkInstalled(fooSession, "RETURN custom." + funName + "() AS answer", 42L);
+        checkInstalled(testSession, "CALL custom." + procName, 7L);
+        checkInstalled(testSession, "RETURN custom." + funName + "() AS answer", 7L);
+
+        // dropping in one db must not affect the other
+        systemSession.executeWrite(tx -> {
+            tx.run("CALL apoc.custom.dropProcedure('" + procName + "', $db)", Map.of("db", DB_FOO)).consume();
+            tx.run("CALL apoc.custom.dropFunction('" + funName + "', $db)", Map.of("db", DB_FOO)).consume();
+            return null;
+        });
+
+        checkCustomProcAndFunNotInstalled("CALL custom." + procName, "RETURN custom." + funName + "() AS answer", fooSession);
+        checkInstalled(testSession, "CALL custom." + procName, 7L);
+        checkInstalled(testSession, "RETURN custom." + funName + "() AS answer", 7L);
+
+        systemSession.executeWrite(tx -> {
+            tx.run("CALL apoc.custom.dropProcedure('" + procName + "', $db)", Map.of("db", DB_TEST)).consume();
+            tx.run("CALL apoc.custom.dropFunction('" + funName + "', $db)", Map.of("db", DB_TEST)).consume();
+            return null;
+        });
+
+        checkProcsAndFuncsAreDeleted();
+    }
+
+    @Test
+    public void testProceduresFunctionsWithIncompatibleSignatureInAnotherDbFails() {
+        String procName = "incompatibleFooProc";
+        String funName = "incompatibleFooFun";
+
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+        systemSession.executeWrite(tx ->
+                tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                        Map.of("db", DB_FOO)).consume()
+        );
+
         try {
-            // install a procedure and a function for test database
             systemSession.executeWrite(tx ->
-                    tx.run("CALL apoc.custom.installProcedure('" + procName + "() :: (answer::INT)','RETURN 42 as answer', $db)",
+                    tx.run("CALL apoc.custom.installProcedure('" + procName + "(xx :: STRING) :: (answer::INT)','RETURN 42 as answer', $db)",
                             Map.of("db", DB_TEST)).consume()
             );
-            fail("Should fail due to procedure with same name");
+            fail("Should fail due to incompatible signature already registered in another db");
         } catch (Exception e) {
-            String actual = e.getMessage();
-            String expected = "Failed to invoke procedure `apoc.custom.installProcedure`: Caused by: java.lang.RuntimeException: Procedure `sameNameFooProc` is registered in another db (`dbfoo`), it's not possible to register a Procedure with the same name in a different db.\n" +
-                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropProcedure('sameNameFooProc', 'dbfoo')` or different db or install it globally by putting null as the 3rd parameter, e.g. `CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)`";
-            assertEquals(expected, actual);
+            assertTrue("Actual err. message is: " + e.getMessage(), e.getMessage().contains("incompatible signature"));
         }
+
         try {
             systemSession.executeWrite(tx ->
-                    tx.run("CALL apoc.custom.installFunction('" + funName + "() :: INT','RETURN 42 as answer', $db)",
+                    tx.run("CALL apoc.custom.installFunction('" + funName + "() :: STRING','RETURN \"42\" as answer', $db)",
                             Map.of("db", DB_TEST)).consume()
             );
+            fail("Should fail due to incompatible signature already registered in another db");
         } catch (Exception e) {
-            String actual = e.getMessage();
-            String expected = "Failed to invoke procedure `apoc.custom.installFunction`: Caused by: java.lang.RuntimeException: Function `sameNameFooFun` is registered in another db (`dbfoo`), it's not possible to register a Function with the same name in a different db.\n" +
-                    "If you want to use the same name you have to remove it via `CALL apoc.custom.dropFunction('sameNameFooFun', 'dbfoo')` or different db or install it globally by putting null as the 3rd parameter, e.g. `CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)`";
-            assertEquals(expected, actual);
+            assertTrue("Actual err. message is: " + e.getMessage(), e.getMessage().contains("incompatible signature"));
         }
 
-        chackThatFunAndProcAreInstalledOnlyInTheSpecifiedDb(fooSession,
-                "CALL custom." + procName, "RETURN custom." + funName + "() AS answer",
-                testSession, neo4jSession);
-
-        installAndDropProcsAndFuncsGlobally(procName, funName);
+        systemSession.executeWrite(tx -> {
+            tx.run("CALL apoc.custom.dropProcedure('" + procName + "', $db)", Map.of("db", DB_FOO)).consume();
+            tx.run("CALL apoc.custom.dropFunction('" + funName + "', $db)", Map.of("db", DB_FOO)).consume();
+            return null;
+        });
     }
 
     @Test
@@ -373,10 +396,14 @@ public class CustomNewProcedureMultiDbTest {
     }
 
     private static void checkInstalled(Session sessionWithCustom, String neo4jProc) {
+        checkInstalled(sessionWithCustom, neo4jProc, 42L);
+    }
+
+    private static void checkInstalled(Session sessionWithCustom, String neo4jProc, long expected) {
         assertEventually(() -> {
                     try {
                         long res = singleResultFirstColumn(sessionWithCustom, neo4jProc);
-                        return 42L == res;
+                        return expected == res;
                     } catch (Exception e) {
                         return false;
                     }
