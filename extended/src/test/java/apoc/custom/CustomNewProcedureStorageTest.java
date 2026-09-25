@@ -1,5 +1,6 @@
 package apoc.custom;
 
+import apoc.RegisterComponentFactory;
 import apoc.path.PathExplorer;
 import apoc.util.ExtendedTestUtil;
 import apoc.util.FileUtils;
@@ -15,6 +16,11 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
+import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.Mode;
 import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
@@ -357,6 +363,151 @@ public class CustomNewProcedureStorageTest {
         sysDb.executeTransactionally("CALL apoc.custom.installFunction('nn(val::INTEGER) :: NODE', 'MATCH (t:Target {value : $val}) RETURN t')");
         restartDb();
         TestUtil.testCall(db, "RETURN custom.nn(2) as row", (row) -> assertEquals(2L, ((Node) row.get("row")).getProperty("value")));
+    }
+
+    // regression tests for https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/4570 :
+    // installing the same name into a different db must not remove/overwrite another db's entry.
+    // CypherHandlerNewProcedure is exercised directly (bypassing the `apoc.custom.install*` procedures'
+    // target-database validation) so the storage-layer coexistence/signature-compatibility logic can be
+    // tested against arbitrary db-name strings without needing real additional databases.
+
+    @Test
+    public void installingSameNamedProcedureInTwoDbsCoexists() {
+        ProcedureSignature signature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asProcedureSignature("multiDbProc() :: (answer::INT)", "", Mode.READ);
+
+        CypherHandlerNewProcedure.installProcedure("dbone", signature, "RETURN 1 as answer");
+        CypherHandlerNewProcedure.installProcedure("dbtwo", signature, "RETURN 2 as answer");
+
+        assertEquals("RETURN 1 as answer", statementOf("dbone", "multiDbProc"));
+        assertEquals("RETURN 2 as answer", statementOf("dbtwo", "multiDbProc"));
+
+        CypherHandlerNewProcedure.dropProcedure("dbone", "multiDbProc");
+        CypherHandlerNewProcedure.dropProcedure("dbtwo", "multiDbProc");
+    }
+
+    @Test
+    public void installingSameNamedFunctionInTwoDbsCoexists() {
+        UserFunctionSignature signature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asFunctionSignature("multiDbFun() :: INT", "");
+
+        CypherHandlerNewProcedure.installFunction("dbone", signature, "RETURN 1 as answer", false);
+        CypherHandlerNewProcedure.installFunction("dbtwo", signature, "RETURN 2 as answer", false);
+
+        assertEquals("RETURN 1 as answer", statementOf("dbone", "multiDbFun"));
+        assertEquals("RETURN 2 as answer", statementOf("dbtwo", "multiDbFun"));
+
+        CypherHandlerNewProcedure.dropFunction("dbone", "multiDbFun");
+        CypherHandlerNewProcedure.dropFunction("dbtwo", "multiDbFun");
+    }
+
+    @Test
+    public void installingIncompatibleSignatureProcedureInAnotherDbFails() {
+        ProcedureSignature signature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asProcedureSignature("mismatchProc() :: (answer::INT)", "", Mode.READ);
+        CypherHandlerNewProcedure.installProcedure("dbone", signature, "RETURN 1 as answer");
+
+        ProcedureSignature incompatible = new Signatures(CypherProceduresHandler.PREFIX)
+                .asProcedureSignature("mismatchProc(xx :: STRING) :: (answer::INT)", "", Mode.READ);
+        try {
+            CypherHandlerNewProcedure.installProcedure("dbtwo", incompatible, "RETURN 1 as answer");
+            fail("Should fail because of incompatible signature already registered in another db");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("incompatible signature"));
+        }
+
+        CypherHandlerNewProcedure.dropProcedure("dbone", "mismatchProc");
+    }
+
+    @Test
+    public void installingIncompatibleSignatureFunctionInAnotherDbFails() {
+        UserFunctionSignature signature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asFunctionSignature("mismatchFun() :: INT", "");
+        CypherHandlerNewProcedure.installFunction("dbone", signature, "RETURN 1 as answer", false);
+
+        UserFunctionSignature incompatible = new Signatures(CypherProceduresHandler.PREFIX)
+                .asFunctionSignature("mismatchFun() :: STRING", "");
+        try {
+            CypherHandlerNewProcedure.installFunction("dbtwo", incompatible, "RETURN '1' as answer", false);
+            fail("Should fail because of incompatible signature already registered in another db");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().contains("incompatible signature"));
+        }
+
+        CypherHandlerNewProcedure.dropFunction("dbone", "mismatchFun");
+    }
+
+    // Migration scenario: a database upgraded from a version where cross-db signature compatibility was
+    // never enforced (e.g. data written via the deprecated apoc.custom.declareProcedure/declareFunction,
+    // which has no such check even today) may already contain two databases' worth of registrations for the
+    // same name with genuinely incompatible signatures. CypherProceduresHandler.registerProcedure/registerFunction
+    // is exercised directly (as restoreProceduresAndFunctions() would call it for each database's own node)
+    // to simulate that pre-existing, inconsistent data without needing real additional databases.
+    @Test
+    public void conflictingLegacyProcedureSignaturesDoNotFlapBetweenDbs() {
+        CypherProceduresHandler handler = cypherProceduresHandler();
+
+        ProcedureSignature ownSignature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asProcedureSignature("legacyConflictProc() :: (answer::INT)", "", Mode.READ);
+        ProcedureSignature otherSignature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asProcedureSignature("legacyConflictProc(xx :: STRING) :: (answer::INT)", "", Mode.READ);
+
+        // this db's own (legitimate) registration
+        assertTrue(handler.registerProcedure(ownSignature, "RETURN 1 as answer", null));
+        testCallEventually(db, "CALL custom.legacyConflictProc()", row -> assertEquals(1L, row.get("answer")));
+
+        // a pre-existing, incompatible registration for a different (simulated) db must not overwrite it
+        assertTrue(handler.registerProcedure(otherSignature, "RETURN 2 as answer", "otherDb"));
+        testCallEventually(db, "CALL custom.legacyConflictProc()", row -> assertEquals(1L, row.get("answer")));
+
+        // simulating a periodic refresh re-processing both (unchanged) entries must not flap either
+        assertTrue(handler.registerProcedure(otherSignature, "RETURN 2 as answer", "otherDb"));
+        assertTrue(handler.registerProcedure(ownSignature, "RETURN 1 as answer", null));
+        testCallEventually(db, "CALL custom.legacyConflictProc()", row -> assertEquals(1L, row.get("answer")));
+
+        handler.registerProcedure(ownSignature, null, null);
+        handler.registerProcedure(otherSignature, null, "otherDb");
+    }
+
+    @Test
+    public void conflictingLegacyFunctionSignaturesDoNotFlapBetweenDbs() {
+        CypherProceduresHandler handler = cypherProceduresHandler();
+
+        UserFunctionSignature ownSignature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asFunctionSignature("legacyConflictFun() :: INT", "");
+        UserFunctionSignature otherSignature = new Signatures(CypherProceduresHandler.PREFIX)
+                .asFunctionSignature("legacyConflictFun() :: STRING", "");
+
+        assertTrue(handler.registerFunction(ownSignature, "RETURN 1 as answer", false, false, null));
+        testCallEventually(db, "RETURN custom.legacyConflictFun() as answer", row -> assertEquals(1L, row.get("answer")));
+
+        assertTrue(handler.registerFunction(otherSignature, "RETURN '2' as answer", false, false, "otherDb"));
+        testCallEventually(db, "RETURN custom.legacyConflictFun() as answer", row -> assertEquals(1L, row.get("answer")));
+
+        assertTrue(handler.registerFunction(otherSignature, "RETURN '2' as answer", false, false, "otherDb"));
+        assertTrue(handler.registerFunction(ownSignature, "RETURN 1 as answer", false, false, null));
+        testCallEventually(db, "RETURN custom.legacyConflictFun() as answer", row -> assertEquals(1L, row.get("answer")));
+
+        handler.registerFunction(ownSignature, null, false, false, null);
+        handler.registerFunction(otherSignature, null, false, false, "otherDb");
+    }
+
+    private CypherProceduresHandler cypherProceduresHandler() {
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle =
+                ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        return (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
+    }
+
+    // reads directly from the system db (bypassing `apoc.custom.show`, which validates that
+    // `databaseName` is a real, existing database via `SHOW DATABASES`)
+    private String statementOf(String databaseName, String name) {
+        try (Transaction tx = sysDb.beginTx()) {
+            return CypherHandlerNewProcedure.show(databaseName, tx)
+                    .filter(info -> info.name.equals(name))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("No custom procedure/function named " + name + " found for db " + databaseName))
+                    .statement;
+        }
     }
 
     private void functionsCreation() {

@@ -32,7 +32,6 @@ import static apoc.ExtendedSystemPropertyKeys.outputs;
 import static apoc.ExtendedSystemPropertyKeys.prefix;
 import static apoc.SystemPropertyKeys.database;
 import static apoc.SystemPropertyKeys.name;
-import static apoc.custom.CypherNewProcedures.ALL_DATABASES;
 import static apoc.custom.CypherProceduresUtil.getSringifiedName;
 import static apoc.custom.CypherProceduresUtil.qualifiedName;
 import static apoc.util.SystemDbUtil.getSystemNodes;
@@ -40,75 +39,60 @@ import static apoc.util.SystemDbUtil.withSystemDb;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class CypherHandlerNewProcedure {
-    private static final String ERROR_DIFFERENT_DB =
-            "%1$s `%2$s` is registered in another db (`%3$s`), it's not possible to register a %1$s with the same name in a different db.\n" +
-                    "If you want to use the same name you have to remove it via `%4$s` or different db or install it globally by putting null as the 3rd parameter, e.g. `%5$s`";
-    private static final String ERROR_GLOBAL_DB =
-            "%1$s `%2$s` is registered globally in all databases, it's not possible to register a %1$s with the same name in a specific database.\n" +
-                    "If you want to use the same name you have to remove it via `%3$s`";
+    private static final String ERROR_SIGNATURE_MISMATCH =
+            "%1$s `%2$s` is already registered in another db (`%3$s`) with an incompatible signature.\n" +
+                    "A %1$s with the same name can be installed into several databases only if its signature (inputs/outputs/mode) is identical in each.\n" +
+                    "If you want to use a different signature you have to remove the existing one via `%4$s` first.";
 
-    public static void checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(
+    /**
+     * A {@code databaseName} may already host this qualified name under a different, concrete database
+     * (or under {@link CypherNewProcedures#ALL_DATABASES}); that's fine as long as the signature matches,
+     * since the same name can now be installed independently into several databases. Only an incompatible
+     * signature (kernel-wide registration can only expose one signature per name) is rejected.
+     */
+    private static void checkSignatureCompatibleWithOtherDbs(
             Transaction tx,
             QualifiedName qualifiedName,
             String targetDatabaseName,
-            ExtendedSystemLabels procOrFunLabel) {
-        Node existingNode = tx.findNodes(ApocCypherProcedures,
+            ExtendedSystemLabels procOrFunLabel,
+            java.util.function.Predicate<Node> isCompatible) {
+        boolean isProcedure = procOrFunLabel.equals(Procedure);
+
+        tx.findNodes(ApocCypherProcedures,
                         name.name(), qualifiedName.name(),
                         prefix.name(), qualifiedName.namespace()
                 ).stream()
                 .filter(n -> n.hasLabel(procOrFunLabel))
+                .filter(n -> !targetDatabaseName.equals(n.getProperty(SystemPropertyKeys.database.name())))
                 .findFirst()
-                .orElse(null);
+                .ifPresent(existingNode -> {
+                    if (!isCompatible.test(existingNode)) {
+                        String existingDatabaseName = (String) existingNode.getProperty(SystemPropertyKeys.database.name());
+                        String stringifiedName = getSringifiedName(qualifiedName);
+                        String dropStatement = isProcedure
+                                ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', '" + existingDatabaseName + "')"
+                                : "CALL apoc.custom.dropFunction('" + stringifiedName + "', '" + existingDatabaseName + "')";
 
-        if (existingNode == null) {
-            return;
-        }
-        
-        String existingDatabaseName = (String) existingNode.getProperty(SystemPropertyKeys.database.name());
-
-        boolean isSameDb = targetDatabaseName.equals(existingDatabaseName);
-        
-        if (isSameDb) {
-            return;
-        }
-        
-        if (targetDatabaseName.equals(ALL_DATABASES)) {
-            existingNode.delete();
-            return;
-        }
-
-        String stringifiedName = getSringifiedName(qualifiedName);
-        boolean isProcedure = procOrFunLabel.equals(Procedure);
-        if (existingDatabaseName.equals(ALL_DATABASES)) {
-            String dropStatement = isProcedure
-                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', 'null')"
-                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', 'null')";
-            
-            throw new RuntimeException(
-                    String.format(ERROR_GLOBAL_DB, 
-                            procOrFunLabel, stringifiedName, dropStatement
-                    )
-            );
-        } else {
-            String dropStatement = isProcedure
-                    ? "CALL apoc.custom.dropProcedure('" + stringifiedName + "', '" + existingDatabaseName + "')"
-                    : "CALL apoc.custom.dropFunction('" + stringifiedName + "', '" + existingDatabaseName + "')";
-            String installStatement = isProcedure
-                    ? "CALL apoc.custom.installProcedure('<procedure signature>', '<procedure statement>', null)"
-                    : "CALL apoc.custom.installFunction('<function signature>', '<function statement>', null)";
-            
-            throw new RuntimeException(
-                    String.format(ERROR_DIFFERENT_DB,
-                            procOrFunLabel, stringifiedName, existingDatabaseName, dropStatement, installStatement
-                    )
-            );
-        }
+                        throw new RuntimeException(
+                                String.format(ERROR_SIGNATURE_MISMATCH,
+                                        procOrFunLabel, stringifiedName, existingDatabaseName, dropStatement
+                                )
+                        );
+                    }
+                });
     }
-    
+
     public static void installProcedure(String databaseName, ProcedureSignature signature, String statement) {
         withSystemDb(tx -> {
-            checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(tx, signature.name(), databaseName, Procedure);
-            
+            String serializedInputs = serializeSignatures(signature.inputSignature());
+            String serializedOutputs = serializeSignatures(signature.outputSignature());
+            String modeName = signature.mode().name();
+
+            checkSignatureCompatibleWithOtherDbs(tx, signature.name(), databaseName, Procedure, existingNode ->
+                    serializedInputs.equals(existingNode.getProperty(inputs.name()))
+                            && serializedOutputs.equals(existingNode.getProperty(outputs.name()))
+                            && modeName.equals(existingNode.getProperty(mode.name())));
+
             Node node = Util.mergeNode(tx, ApocCypherProcedures, Procedure,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),
@@ -116,9 +100,9 @@ public class CypherHandlerNewProcedure {
             );
             node.setProperty(description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(inputs.name(), serializeSignatures(signature.inputSignature()));
-            node.setProperty(outputs.name(), serializeSignatures(signature.outputSignature()));
-            node.setProperty(mode.name(), signature.mode().name());
+            node.setProperty(inputs.name(), serializedInputs);
+            node.setProperty(outputs.name(), serializedOutputs);
+            node.setProperty(mode.name(), modeName);
 
             setLastUpdate(tx, databaseName);
         });
@@ -126,8 +110,13 @@ public class CypherHandlerNewProcedure {
 
     public static void installFunction(String databaseName, UserFunctionSignature signature, String statement, boolean forceSingle) {
         withSystemDb(tx -> {
-            checkIfProcOrFuncExistsInAnotherDbAndDbNameIsNotAll(tx, signature.name(), databaseName, Function);
-            
+            String serializedInputs = serializeSignatures(signature.inputSignature());
+            String serializedOutput = signature.outputType().toString();
+
+            checkSignatureCompatibleWithOtherDbs(tx, signature.name(), databaseName, Function, existingNode ->
+                    serializedInputs.equals(existingNode.getProperty(inputs.name()))
+                            && serializedOutput.equals(existingNode.getProperty(output.name())));
+
             Node node = Util.mergeNode(tx, ApocCypherProcedures, Function,
                     Pair.of(database.name(), databaseName),
                     Pair.of(name.name(), signature.name().name()),
@@ -135,8 +124,8 @@ public class CypherHandlerNewProcedure {
             );
             node.setProperty(description.name(), signature.description().orElse(null));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
-            node.setProperty(inputs.name(), serializeSignatures(signature.inputSignature()));
-            node.setProperty(output.name(), signature.outputType().toString());
+            node.setProperty(inputs.name(), serializedInputs);
+            node.setProperty(output.name(), serializedOutput);
             node.setProperty(ExtendedSystemPropertyKeys.forceSingle.name(), forceSingle);
 
             setLastUpdate(tx, databaseName);
