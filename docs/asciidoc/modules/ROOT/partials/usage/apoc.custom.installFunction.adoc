@@ -1,9 +1,12 @@
 NOTE: Function, input and output names must have at least 2 characters.
 
+NOTE: `apoc.custom.installFunction` has to be executed against the `system` database (see the note above), otherwise it fails with an error such as `No write operations are allowed directly on this database. Writes must pass through the leader.`, even on a single-instance, non-clustered setup.
+
 Here is a simple example:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('answerFun() :: INT', 'RETURN 42 as answer')
 ----
 
@@ -25,6 +28,7 @@ Or you can also write in this way:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('answerFunMap() :: MAP', 'RETURN 42 as answer')
 ----
 
@@ -48,6 +52,7 @@ We can create the function `custom.double`, that doubles the provided value, by 
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction(
   'double(input::INT) :: INT',
   'RETURN $input*2 as answer'
@@ -74,6 +79,7 @@ For example, the following one creates a custom procedure in the `foo` database:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('foodb() :: INT', 'RETURN 42', 'foo')
 ----
 
@@ -81,6 +87,7 @@ Alternatively, we can pass `null` to install the function globally across all da
 If the function already exists locally, it will be overwritten by the global version, e.g.
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('foodb() :: INT', 'RETURN 42', null)
 ----
 
@@ -91,6 +98,7 @@ For example:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('forceSingleTrue(input::ANY) :: LIST OF INT',
   'RETURN 1',
   true
@@ -108,6 +116,7 @@ otherwise with false the result will be a singleton list:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installFunction('forceSingleFalse(input::ANY) :: LIST OF INT',
   'RETURN 1',
   false

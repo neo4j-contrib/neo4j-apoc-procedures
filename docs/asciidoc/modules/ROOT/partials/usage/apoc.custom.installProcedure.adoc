@@ -1,9 +1,12 @@
 NOTE: Procedure, input and output names must have at least 2 characters.
 
+NOTE: `apoc.custom.installProcedure` has to be executed against the `system` database (see the note above), otherwise it fails with an error such as `No write operations are allowed directly on this database. Writes must pass through the leader.`, even on a single-instance, non-clustered setup.
+
 Here is a simple example:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installProcedure('answerInteger() :: (answer::INT)', 'RETURN 42 as answer')
 ----
 
@@ -26,6 +29,7 @@ Or you can also write in this way:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installProcedure('answer() :: (row::MAP)', 'RETURN 42 as answer')
 ----
 
@@ -50,6 +54,7 @@ We can create the procedure `custom.powers` that returns a stream of the powers 
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installProcedure(
   'powers(input::INT, power::INT) :: (answer::INT)',
   'UNWIND range(0, $power) AS power
@@ -81,6 +86,7 @@ For example, the following one creates a custom procedure in the `foo` database:
 
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installProcedure('foodb() :: (row::INT)', 'RETURN 42 as row', 'foo')
 ----
 
@@ -88,6 +94,7 @@ Alternatively, we can pass `null` to install the procedure globally across all d
 If the procedure already exists locally, it will be overwritten by the global version, e.g.
 [source,cypher]
 ----
+:use system
 CALL apoc.custom.installProcedure('foodb() :: (row::INT)', 'RETURN 42 as row', null)
 ----
 
