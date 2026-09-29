@@ -69,6 +69,10 @@ apoc.aws.secret.key=<AWS Secret Access Key>
 
 Alternatively we can set them as `$config` parameters, i.e.: `{keyId: '<AWS Key ID>', secretKey:'<AWS Secret Access Key>'}`.
 
+IMPORTANT: The credentials configured via `apoc.conf` are only used to sign requests to an HTTPS AWS service endpoint, i.e. `https://bedrock.<region>.amazonaws.com` or `https://bedrock-runtime.<region>.amazonaws.com`.
+With any other `endpoint`, the `keyId` and `secretKey` (or the `Authorization` header) have to be passed explicitly via `$config`,
+otherwise the procedure fails, and no request is sent.
+
 Or also, we can put an Authorization header, by using the `header` parameter, 
 i.e. `{header: {Authorization: 'AWS4-HMAC-SHA256 <CredentialAndSignature..>',  ...other entries...} }`.
 

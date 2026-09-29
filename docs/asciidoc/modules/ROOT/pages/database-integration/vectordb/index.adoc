@@ -22,6 +22,8 @@ a configuration map with these optional parameters:
 | endpoint | endpoint key, 
     can be used to override the default endpoint created via the 1st parameter of the procedures,
     to handle potential endpoint changes.
+    If the 1st parameter is a key stored via `apoc.vectordb.configure` with credentials,
+    the endpoint must have the same scheme, host and port as the stored `host`, see <<vectordb_stored_credentials, below>>.
 | body | body HTTP request
 | jsonPath | To customize https://github.com/json-path/JsonPath[JSONPath] parsing of the response. The default is `null`.
 |===
@@ -66,11 +68,17 @@ Then `keyConfig` is the configuration name, `databaseName` is the database where
 
 and finally the `configMap`, that can have:
 
-- `host` is the host base name
+- `host` is the host base url, including the scheme (e.g. `https://my-host:6333`)
 - `credentialsValue` is the API key
 - `mapping` is a map that can be used by the `apoc.vectordb.\*.getAndUpdate` and `apoc.vectordb.*.queryAndUpdate` procedures
 
 NOTE:: this procedure is only executable by a user with admin permissions and against the system database
+
+[[vectordb_stored_credentials]]
+IMPORTANT: Stored credentials are only sent to the stored `host`.
+If a procedure is called with a stored key and an `endpoint` config with a different scheme, host or port than the stored `host`,
+or if no `host` is stored, the procedure fails, and no request is sent.
+To call a different host, pass the host and the credentials explicitly, e.g. via the `headers` config.
 
 For example:
 [source,cypher]
