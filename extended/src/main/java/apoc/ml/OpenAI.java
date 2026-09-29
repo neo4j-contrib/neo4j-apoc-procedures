@@ -3,6 +3,7 @@ package apoc.ml;
 import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.MapResult;
+import apoc.util.CredentialEndpointGuard;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
@@ -48,6 +49,9 @@ public class OpenAI {
     public URLAccessChecker urlAccessChecker;
 
     public static final String APOC_ML_OPENAI_URL = "apoc.ml.openai.url";
+    public static final String ERROR_UNTRUSTED_ENDPOINT = ("The API key configured via `%s` is only sent to the provider default endpoint " +
+            "or to the endpoint configured via `%s`. To use a different endpoint, pass an explicit API key.")
+            .formatted(APOC_OPENAI_KEY, APOC_ML_OPENAI_URL);
 
     public static class EmbeddingResult {
         public final long index;
@@ -62,6 +66,9 @@ public class OpenAI {
     }
 
     static Stream<Object> executeRequest(String apiKey, Map<String, Object> configuration, String path, String model, String key, Object inputs, String jsonPath, ApocConfig apocConfig, URLAccessChecker urlAccessChecker) throws JsonProcessingException, MalformedURLException {
+        String procedureApiKey = apiKey;
+        boolean usesServerApiKey = !configuration.containsKey(APIKEY_CONF_KEY)
+                && apocConfig.getString(APOC_OPENAI_KEY, null) != null;
         apiKey = (String) configuration.getOrDefault(APIKEY_CONF_KEY, apocConfig.getString(APOC_OPENAI_KEY, apiKey));
         boolean enableBackOffRetries = Util.toBoolean( configuration.get(ENABLE_BACK_OFF_RETRIES_CONF_KEY) );
         Integer backOffRetries = Util.toInteger(configuration.getOrDefault(BACK_OFF_RETRIES_CONF_KEY, 5));
@@ -86,15 +93,23 @@ public class OpenAI {
         OpenAIRequestHandler apiType = type.get();
 
         String sJsonPath = (String) configuration.getOrDefault(JSON_PATH_CONF_KEY, jsonPath);
-        headers.put("Content-Type", "application/json");
-        apiType.addApiKey(headers, apiKey);
-
-        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(configForPayload);
 
         // new URL(endpoint), path) can produce a wrong path, since endpoint can have for example embedding,
         // eg: https://my-resource.openai.azure.com/openai/deployments/apoc-embeddings-model
         // therefore is better to join the not-empty path pieces
         var url = apiType.getFullUrl(path, configuration, apocConfig);
+
+        if (usesServerApiKey && !CredentialEndpointGuard.isTrusted(url, apiType.getTrustedUrls(apocConfig))) {
+            if (StringUtils.isBlank(procedureApiKey)) {
+                throw new IllegalArgumentException(ERROR_UNTRUSTED_ENDPOINT);
+            }
+            apiKey = procedureApiKey;
+        }
+
+        headers.put("Content-Type", "application/json");
+        apiType.addApiKey(headers, apiKey);
+
+        String payload = JsonUtil.OBJECT_MAPPER.writeValueAsString(configForPayload);
         return ExtendedUtil.withBackOffRetries(
                 () -> JsonUtil.loadJson(url, headers, payload, sJsonPath, true, List.of(), urlAccessChecker),
                 enableBackOffRetries, backOffRetries, exponentialBackoff,

@@ -4,7 +4,9 @@ package apoc.ml;
 import apoc.ApocConfig;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,12 +31,24 @@ abstract class OpenAIRequestHandler {
     public abstract void addApiKey(Map<String, Object> headers, String apiKey);
 
     public String getEndpoint(Map<String, Object> procConfig, ApocConfig apocConfig) {
-        String url = (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY,
-                apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL)));
+        String url = (String) procConfig.getOrDefault(ENDPOINT_CONF_KEY, getConfiguredUrl(apocConfig));
         if (url == null) {
             return getDefaultUrl();
         }
         return url;
+    }
+
+    /**
+     * The endpoints a server-configured API key may be sent to
+     */
+    public List<String> getTrustedUrls(ApocConfig apocConfig) {
+        return Stream.of(getConfiguredUrl(apocConfig), defaultUrl)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private static String getConfiguredUrl(ApocConfig apocConfig) {
+        return apocConfig.getString(APOC_ML_OPENAI_URL, System.getProperty(APOC_ML_OPENAI_URL));
     }
 
     public String getFullUrl(String method, Map<String, Object> procConfig, ApocConfig apocConfig) {
