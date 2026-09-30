@@ -1,6 +1,7 @@
 package apoc.ml.aws;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class BedrockGetModelsConfig extends AWSConfig {
     public static final String DEFAULT_PATH = "foundation-models";
@@ -14,6 +15,11 @@ public class BedrockGetModelsConfig extends AWSConfig {
     String getDefaultEndpoint(Map<String, Object> config) {
         String path = (String) config.getOrDefault(PATH_GET, DEFAULT_PATH);
         return "https://bedrock.%s.amazonaws.com/%s".formatted(getRegion(), path);
+    }
+
+    @Override
+    Pattern getServiceHostPattern() {
+        return BedrockUtil.SERVICE_HOST_PATTERN;
     }
 
     @Override
