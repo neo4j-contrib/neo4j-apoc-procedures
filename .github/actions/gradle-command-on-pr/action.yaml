@@ -17,7 +17,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout branch from fork
-      uses: actions/checkout@v3
+      uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       with:
         persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
         repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
@@ -62,7 +62,7 @@ runs:
 
     - name: Add reaction on pushed changes
       if: ${{ success() && steps.git-check.outputs.modified == 'true' }}
-      uses: peter-evans/create-or-update-comment@v2
+      uses: peter-evans/create-or-update-comment@67dcc547d311b736a8e6c5c236542148a47adc3d # v2
       with:
         token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -71,7 +71,7 @@ runs:
 
     - name: Add reaction when no update is needed
       if: ${{ success() && steps.git-check.outputs.modified == 'false' }}
-      uses: peter-evans/create-or-update-comment@v2
+      uses: peter-evans/create-or-update-comment@67dcc547d311b736a8e6c5c236542148a47adc3d # v2
       with:
         token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -88,7 +88,7 @@ runs:
       env:
         GRADLE_COMMAND: ${{ inputs.gradle-command }}
       if: ${{ !success() }}
-      uses: peter-evans/create-or-update-comment@v2
+      uses: peter-evans/create-or-update-comment@67dcc547d311b736a8e6c5c236542148a47adc3d # v2
       with:
         token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -100,7 +100,7 @@ runs:
 
     - name: Report failure to original comment with a reaction
       if: ${{ !success() }}
-      uses: peter-evans/create-or-update-comment@v2
+      uses: peter-evans/create-or-update-comment@67dcc547d311b736a8e6c5c236542148a47adc3d # v2
       with:
         token: ${{ inputs.SERVICE_ACCOUNT_PAT }}
         repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -108,7 +108,7 @@ runs:
         reaction-type: '-1'
 
     - name: Go back to original branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
       with:
         repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
         ref: ${{ github.event.client_payload.pull_request.base.ref }}

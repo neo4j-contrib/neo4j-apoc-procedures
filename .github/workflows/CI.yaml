@@ -84,11 +84,18 @@ jobs:
       - name: Download neo4j 4.4 docker container
         if: matrix.project == 'core-it' ||  matrix.project == 'full-it' ||  matrix.project == 'core'
         run: |
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_ENTERPRISE_FOUR_FOUR_URL} -o ${ENTERPRISE_TAR} &
-          curl -s -L0 -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" -X GET ${DOCKER_COMMUNITY_FOUR_FOUR_URL} -o ${COMMUNITY_TAR} &
-          wait
-          docker load --input ${ENTERPRISE_TAR}
-          docker load --input ${COMMUNITY_TAR}
+          set -euo pipefail
+          df -h /
+          curl -fsSL --retry 3 --retry-delay 5 \
+            -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" \
+            -o "${ENTERPRISE_TAR}" "${DOCKER_ENTERPRISE_FOUR_FOUR_URL}"
+          curl -fsSL --retry 3 --retry-delay 5 \
+            -u "${TEAMCITY_USER}:${TEAMCITY_PASSWORD}" \
+            -o "${COMMUNITY_TAR}" "${DOCKER_COMMUNITY_FOUR_FOUR_URL}"
+          file "${ENTERPRISE_TAR}" "${COMMUNITY_TAR}"
+          docker load --input "${ENTERPRISE_TAR}"
+          docker load --input "${COMMUNITY_TAR}"
+          rm -f "${ENTERPRISE_TAR}" "${COMMUNITY_TAR}"
 
       - name: Run ${{ matrix.project }} tests
         uses: ./.github/actions/test-gradle-project
