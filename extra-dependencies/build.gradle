@@ -34,6 +34,9 @@ ext {
         exclude group: 'org.apache.commons', module: 'commons-text'
         exclude group: 'org.apache.commons', module: 'commons-codec'
 
+        // apache commons-io
+        exclude group: 'commons-io', module: 'commons-io'
+
         // jersey
         exclude group: 'com.sun.jersey', module: 'jersey-client'
         exclude group: 'com.sun.jersey', module: 'jersey-server'
