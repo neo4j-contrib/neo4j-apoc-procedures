@@ -3,6 +3,7 @@ package apoc.ml.aws;
 import apoc.util.Util;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class BedrockInvokeConfig extends AWSConfig {
     public static final String MODEL = "model";
@@ -21,6 +22,11 @@ public class BedrockInvokeConfig extends AWSConfig {
         return modelId == null
                 ? null
                 : String.format("https://bedrock-runtime.%s.amazonaws.com/model/%s/invoke", getRegion(), modelId);
+    }
+
+    @Override
+    Pattern getServiceHostPattern() {
+        return BedrockUtil.SERVICE_HOST_PATTERN;
     }
 
     @Override

@@ -1,7 +1,10 @@
 package apoc.ml.aws;
 
+import apoc.util.CredentialEndpointGuard;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.ExtendedApocConfig.APOC_AWS_KEY_ID;
@@ -12,6 +15,11 @@ public abstract class AWSConfig {
 
     abstract String getDefaultEndpoint(Map<String, Object> config);
     abstract String getDefaultMethod();
+
+    /**
+     * The AWS service hosts the server-configured credentials may be sent to
+     */
+    abstract Pattern getServiceHostPattern();
     
     public static final String HEADERS_KEY = "headers";
     public static final String BODY_KEY = "body";
@@ -19,6 +27,9 @@ public abstract class AWSConfig {
     public static final String SECRET_KEY = "secretKey";
     public static final String KEY_ID = "keyId";
     public static final String METHOD_KEY = "method";
+    public static final String ERROR_UNTRUSTED_ENDPOINT = ("The AWS credentials configured via `%s` and `%s` are only sent to the AWS service endpoint. " +
+            "To use a different endpoint, pass explicit `%s` and `%s`.")
+            .formatted(APOC_AWS_KEY_ID, APOC_AWS_SECRET_KEY, KEY_ID, SECRET_KEY);
 
     private final String keyId;
     private final String secretKey;
@@ -32,10 +43,7 @@ public abstract class AWSConfig {
     
     protected AWSConfig(Map<String, Object> config) {
         config = config == null ? Map.of() : config;
-        
-        this.keyId = apocConfig().getString(APOC_AWS_KEY_ID, (String) config.get(KEY_ID));
-        this.secretKey = apocConfig().getString(APOC_AWS_SECRET_KEY, (String) config.get(SECRET_KEY));
-        
+
         this.region = (String) config.getOrDefault(REGION_CONF_KEY, "us-east-1");
         this.endpoint = getEndpoint(config, getDefaultEndpoint(config));
         
@@ -44,6 +52,28 @@ public abstract class AWSConfig {
         
         this.headers = (Map<String, Object>) config.getOrDefault(HEADERS_KEY, new HashMap<>());
         this.body = (Map<String, Object>) config.getOrDefault(BODY_KEY, new HashMap<>());
+
+        String callerKeyId = (String) config.get(KEY_ID);
+        String callerSecretKey = (String) config.get(SECRET_KEY);
+        String serverKeyId = apocConfig().getString(APOC_AWS_KEY_ID, null);
+        String serverSecretKey = apocConfig().getString(APOC_AWS_SECRET_KEY, null);
+        boolean usesServerCredentials = serverKeyId != null || serverSecretKey != null;
+        boolean signsRequest = !headers.containsKey("Authorization");
+
+        if (usesServerCredentials && signsRequest && !isServiceEndpoint()) {
+            if (callerKeyId == null || callerSecretKey == null) {
+                throw new IllegalArgumentException(ERROR_UNTRUSTED_ENDPOINT);
+            }
+            this.keyId = callerKeyId;
+            this.secretKey = callerSecretKey;
+        } else {
+            this.keyId = serverKeyId != null ? serverKeyId : callerKeyId;
+            this.secretKey = serverSecretKey != null ? serverSecretKey : callerSecretKey;
+        }
+    }
+
+    private boolean isServiceEndpoint() {
+        return CredentialEndpointGuard.isHttpsHostMatching(endpoint, getServiceHostPattern());
     }
 
     private String getEndpoint(Map<String, Object> config, String defaultEndpoint) {

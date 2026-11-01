@@ -34,6 +34,10 @@ Since embeddings are a super set of the Openai ones,
 under-the-hood they leverage the apoc.ml.openai.* procedures,
 so we can also create an APOC config `apoc.ml.openai.url` instead of the `endpoint` config.
 
+NOTE: As with the `apoc.ml.openai.*` procedures, the API key configured via `apoc.openai.key` is only sent to the default endpoint or to the one configured via `apoc.ml.openai.url`.
+With any other `endpoint`, the API key has to be passed explicitly.
+See xref::ml/openai.adoc#openai_server_key_endpoint[here] for more details.
+
 
 == Generate Embeddings API
 

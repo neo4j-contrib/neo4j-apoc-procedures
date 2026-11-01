@@ -4,6 +4,7 @@ package apoc.vectordb;
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.SystemPropertyKeys;
 import apoc.util.CollectionUtils;
+import apoc.util.CredentialEndpointGuard;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,8 @@ import static apoc.vectordb.VectorMappingConfig.NO_FIELDS_ERROR_MSG;
 public class VectorDbUtil {
 
     public static final String ERROR_READONLY_MAPPING = "The mapping is not possible with this procedure, as it is read-only.";
+    public static final String ERROR_UNTRUSTED_ENDPOINT = "The credentials stored via `apoc.vectordb.configure` are only sent to the stored `host`. " +
+            "To use a different `endpoint`, pass the host and the credentials explicitly.";
 
     /**
      * we can configure the endpoint via config map or via hostOrKey parameter,
@@ -69,6 +72,11 @@ public class VectorDbUtil {
         // endpoint creation
         String endpoint = templateUrl.formatted(baseUrl, collection);
         getEndpoint(config, endpoint);
+
+        if (systemDbProps.containsKey(ExtendedSystemPropertyKeys.credentials.name())
+                && !CredentialEndpointGuard.isSameOrigin((String) config.get(ENDPOINT_KEY), baseUrl)) {
+            throw new RuntimeException(ERROR_UNTRUSTED_ENDPOINT);
+        }
 
         return config;
     }
