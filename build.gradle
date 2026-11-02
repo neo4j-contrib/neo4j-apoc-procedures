@@ -127,7 +127,11 @@ subprojects {
                     "--add-opens", "jdk.compiler/com.sun.tools.javac=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.source.doctree=ALL-UNNAMED",
                     "--add-opens", "jdk.compiler/com.sun.source.tree=ALL-UNNAMED",
-                    "--add-opens", "jdk.compiler/com.sun.source.util=ALL-UNNAMED" ]
+                    "--add-opens", "jdk.compiler/com.sun.source.util=ALL-UNNAMED",
+                    "-Duser.language=en", "-Duser.country=US" ]
+
+        // OS error texts such as "No such file or directory" come from native strerror and follow LC_MESSAGES
+        environment "LC_MESSAGES", "C"
 
         filter {
             setFailOnNoMatchingTests(false)
