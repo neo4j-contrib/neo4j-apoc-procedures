@@ -412,19 +412,20 @@ public class CustomNewProcedureMultiDbTest {
     }
 
     private static void checkCustomProcAndFunNotInstalled(String neo4jProc, String neo4jFun, Session otherSessionDb) {
-        try {
-            testCall(otherSessionDb, neo4jProc, r -> fail("Should fail due to not existing procedure "));
-        } catch (Exception e) {
-            String actualErrMsg = e.getMessage();
-            assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains("There is no procedure with the name"));
-        }
+        assertNotInstalled(otherSessionDb, neo4jProc, "There is no procedure with the name");
+        assertNotInstalled(otherSessionDb, neo4jFun, "Unknown function");
+    }
 
-        try {
-            testCall(otherSessionDb, neo4jFun, r -> fail("Should fail due to not existing function"));
-        } catch (Exception e) {
-            String actualErrMsg = e.getMessage();
-            assertTrue("Actual err. message is: " + actualErrMsg, actualErrMsg.contains("Unknown function"));
-        }
+    private static void assertNotInstalled(Session session, String query, String expectedErrMsg) {
+        assertEventually(() -> {
+                    try {
+                        testCall(session, query, r -> { });
+                        return false;
+                    } catch (Exception e) {
+                        return e.getMessage().contains(expectedErrMsg);
+                    }
+                },
+                (v) -> v, TIMEOUT, SECONDS);
     }
 
     private static void createDatabases() {
