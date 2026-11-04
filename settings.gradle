@@ -35,9 +35,13 @@ startParameter.excludedTaskNames = [
 
 // the :core:shadowJar should be used only for integration tests with both core and extended jars
 // e.g. StartupExtendedTest, where the core jar is created by executing `shadowJar` directly in the `apoc-core`
-// not when a `gradle shadow` or a `gradle build` is executed in this root project folder
+// not when a `gradle shadow` is executed in this root project folder
+// `test`, `check` and `build` also run the :extended-it tests, so they need the core jar as well
 gradle.settingsEvaluated {
-    if (!startParameter.taskNames.any { it.startsWith(":extended-it") }) {
+    def needsCoreJar = startParameter.taskNames.any {
+        it.contains("extended-it") || it.tokenize(":").last() in ["test", "check", "build"]
+    }
+    if (!needsCoreJar) {
         startParameter.excludedTaskNames.add(':core:shadowJar')
     }
 }
