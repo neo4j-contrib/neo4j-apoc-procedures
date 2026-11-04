@@ -13,11 +13,13 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 
-import static apoc.util.ExtendedTestContainerUtil.createPortBindingModifier;
 import static apoc.util.TestContainerUtil.*;
 
 /**
@@ -55,7 +57,6 @@ public class HdfsContainerBaseTest {
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("ENSURE_NAMENODE_DIR", "/tmp/hadoop-root/dfs/name")
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .withCreateContainerCmdModifier(createPortBindingModifier(8020, 9870))
                 .waitingFor(Wait.forListeningPort());
 
 
@@ -67,8 +68,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(9866, 9864));
+                .dependsOn(namenode);
 
         // ResourceManager
         resourcemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -79,8 +79,7 @@ public class HdfsContainerBaseTest {
                 .withEnv("CORE-SITE.XML_fs.defaultFS", hdfsUrl)
                 .withEnv("HDFS-SITE.XML_dfs.namenode.rpc-address", rpcAddress)
                 .withEnv("HADOOP_USER_NAME", "hadoop")
-                .dependsOn(namenode)
-                .withCreateContainerCmdModifier(createPortBindingModifier(8088, 8088));
+                .dependsOn(namenode);
 
         // NodeManager
         nodemanager = new GenericContainer<>(DockerImageName.parse(APACHE_HADOOP_IMAGE))
@@ -106,6 +105,8 @@ public class HdfsContainerBaseTest {
         
         neo4jContainer.setExposedPorts(List.of(7474, 7687));
 
+        copyApocJarToPlugins("apoc-core.test.jar.path");
+        copyApocJarToPlugins("apoc-extended.test.jar.path");
         ExtendedTestContainerUtil.addExtraDependencies();
         neo4jContainer.start();
         namenode.start();
@@ -116,6 +117,12 @@ public class HdfsContainerBaseTest {
 
         // waiting for hadoop container to be up and running
         Thread.sleep(20000);
+    }
+
+    private static void copyApocJarToPlugins(String jarPathProp) throws IOException {
+        Path jar = Path.of(System.getProperty(jarPathProp));
+        Files.createDirectories(pluginsFolder.toPath());
+        Files.copy(jar, pluginsFolder.toPath().resolve(jar.getFileName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @AfterClass
