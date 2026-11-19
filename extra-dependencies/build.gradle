@@ -108,7 +108,7 @@ ext {
 
 
 subprojects {
-    version = '2026.07.0'
+    version = '2026.10.2'
     group = 'org.neo4j.contrib'
 }
 

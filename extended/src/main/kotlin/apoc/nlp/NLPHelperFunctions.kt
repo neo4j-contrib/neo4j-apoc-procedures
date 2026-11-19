@@ -4,15 +4,12 @@ import org.neo4j.graphdb.Direction
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.RelationshipType
-import kotlin.streams.asStream
 
 object NLPHelperFunctions {
     fun mergeRelationship(sourceNode: Node, nodesAndScore: Pair<Node, Number>, relationshipType: RelationshipType, relProperty: String): Relationship {
-        val existingRelationships = sourceNode.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
-        val potentialRelationship = existingRelationships.filter { r -> r.endNode == nodesAndScore.first }.findFirst()
+        val relationship = findOutgoingRelationship(sourceNode, nodesAndScore.first, relationshipType)
 
-        return if(potentialRelationship.isPresent) {
-            val relationship = potentialRelationship.get()
+        return if(relationship != null) {
             if(nodesAndScore.second.toDouble() > (relationship.getProperty(relProperty) as Number).toDouble()) {
                 relationship.setProperty(relProperty, nodesAndScore.second)
             }
@@ -25,17 +22,14 @@ object NLPHelperFunctions {
     }
 
     fun mergeRelationship(sourceNode: Node, targetNode: Node, relationshipType: RelationshipType): Relationship {
-        val existingRelationships = sourceNode.getRelationships(Direction.OUTGOING, relationshipType).asSequence().asStream()
-        val potentialRelationship = existingRelationships.filter { r -> r.endNode == targetNode }.findFirst()
-
-        return if (potentialRelationship.isPresent) {
-            val relationship = potentialRelationship.get()
-            relationship
-        } else {
-            val relationship = sourceNode.createRelationshipTo(targetNode, relationshipType)
-            relationship
-        }
+        return findOutgoingRelationship(sourceNode, targetNode, relationshipType)
+            ?: sourceNode.createRelationshipTo(targetNode, relationshipType)
     }
+
+    private fun findOutgoingRelationship(sourceNode: Node, targetNode: Node, relationshipType: RelationshipType): Relationship? =
+        sourceNode.getRelationships(Direction.OUTGOING, relationshipType).use { relationships ->
+            relationships.firstOrNull { it.endNode == targetNode }
+        }
 
     fun entityRelationshipType(config: Map<String, Any>): RelationshipType {
         val selectedType = getSelectedType(config, listOf("writeRelationshipType", "relationshipType"), "ENTITY")

@@ -57,6 +57,10 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'testcontainers-chromadb', version: testContainersVersion
     testImplementation group: 'org.testcontainers', name: 'testcontainers-weaviate', version: testContainersVersion
     testImplementation group: 'org.testcontainers', name: 'testcontainers-milvus', version: testContainersVersion
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-mysql', version: testContainersVersion
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql', version: testContainersVersion
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-couchbase', version: testContainersVersion
+    testImplementation group: 'org.testcontainers', name: 'testcontainers-elasticsearch', version: testContainersVersion
     testImplementation group: 'org.apache.poi', name: 'poi', version: '5.1.0'
     testImplementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.1.0'
     testImplementation ('com.azure:azure-storage-blob:12.22.0') {
