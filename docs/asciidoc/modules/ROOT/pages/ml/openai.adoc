@@ -42,6 +42,22 @@ If present, they take precedence over the analogous APOC configs.
 | exponentialBackoff | If set to true, applies an exponential progression to the wait time between retries. If set to false, the wait time increases linearly. (default: false)
 |===
 
+[[openai_server_key_endpoint]]
+[IMPORTANT]
+====
+The API key configured via `apoc.openai.key` is only sent to a trusted endpoint,
+that is, the provider default one (e.g. `https://api.openai.com/v1` or `https://api.anthropic.com/v1`)
+or the one configured via `apoc.ml.openai.url`.
+The endpoint is compared by scheme, host and port, so a different `path` on the same host is allowed.
+
+If the `endpoint` or `path` config points somewhere else, the API key has to be passed explicitly,
+either via the `apiKey` procedure parameter or via the `apiKey` config.
+Otherwise, the procedure fails, and no request is sent.
+
+Therefore, if the server-configured API key has to be used with a provider without a default endpoint (e.g. Azure or HuggingFace),
+or via a proxy or a self-hosted endpoint, the endpoint has to be configured via `apoc.ml.openai.url` in `apoc.conf`.
+====
+
 
 Therefore, we can use the following procedures with the Open AI Services provided by Azure,
 pointing to the correct endpoints https://learn.microsoft.com/it-it/azure/ai-services/openai/reference[as explained in the documentation].
