@@ -46,10 +46,10 @@ import org.neo4j.values.virtual.VirtualValues;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -80,8 +80,25 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     private final GlobalProcedures globalProceduresRegistry;
     private final JobScheduler jobScheduler;
     private long lastUpdate;
-    private final Set<ProcedureSignature> registeredProcedureSignatures = Collections.synchronizedSet(new HashSet<>());
-    private final Set<UserFunctionSignature> registeredUserFunctionSignatures = Collections.synchronizedSet(new HashSet<>());
+
+    // per-instance bookkeeping of which db-key (concrete db name, or ALL_DATABASES) this db's handler
+    // last registered for a given signature, so restoreProceduresAndFunctions() can compute this db's own delta
+    private final Map<ProcedureSignature, String> registeredProcedures = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UserFunctionSignature, String> registeredUserFunctions = Collections.synchronizedMap(new HashMap<>());
+
+    // DBMS-wide (shared across every per-database CypherProceduresHandler instance, since they all register
+    // into the same singleton GlobalProcedures) registries of the live implementation per database for a given
+    // qualified name, so installing/removing a name in one database never touches another database's entry.
+    // Deliberately static: there is exactly one GlobalProcedures per DBMS/process in production. Whether the
+    // kernel-level dispatcher is actually registered is always re-checked against the live registry (see
+    // registerProcedureDispatcher/registerFunctionDispatcher) rather than tracked separately here, so a fresh
+    // GlobalProcedures instance (e.g. a DBMS restart within the same JVM, as in tests) still gets its dispatcher.
+    private static final Map<QualifiedName, Map<String, ProcEntry>> PROC_REGISTRY = new ConcurrentHashMap<>();
+    private static final Map<QualifiedName, Map<String, FuncEntry>> FUNC_REGISTRY = new ConcurrentHashMap<>();
+
+    private record ProcEntry(ProcedureSignature signature, String statement) {}
+    private record FuncEntry(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult) {}
+
     private static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
     private JobHandle restoreProceduresHandle;
 
@@ -157,23 +174,21 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
 
     public synchronized void restoreProceduresAndFunctions() {
         lastUpdate = System.currentTimeMillis();
-        Set<ProcedureSignature> currentProceduresToRemove = new HashSet<>(registeredProcedureSignatures);
-        Set<UserFunctionSignature> currentUserFunctionsToRemove = new HashSet<>(registeredUserFunctionSignatures);
+        Map<ProcedureSignature, String> proceduresToRemove = new HashMap<>(registeredProcedures);
+        Map<UserFunctionSignature, String> functionsToRemove = new HashMap<>(registeredUserFunctions);
 
         readSignatures().forEach(descriptor -> {
             descriptor.register();
             if (descriptor instanceof ProcedureDescriptor) {
-                ProcedureSignature signature = ((ProcedureDescriptor) descriptor).getSignature();
-                currentProceduresToRemove.remove(signature);
+                proceduresToRemove.remove(((ProcedureDescriptor) descriptor).getSignature());
             } else {
-                UserFunctionSignature signature = ((UserFunctionDescriptor) descriptor).getSignature();
-                currentUserFunctionsToRemove.remove(signature);
+                functionsToRemove.remove(((UserFunctionDescriptor) descriptor).getSignature());
             }
         });
 
-        // de-register removed procs/functions
-        currentProceduresToRemove.forEach(signature -> registerProcedure(signature, null, null));
-        currentUserFunctionsToRemove.forEach(this::registerFunction);
+        // de-register, for this db only, procs/functions no longer present for this db
+        proceduresToRemove.forEach((signature, dbKey) -> registerProcedure(signature, null, dbKey));
+        functionsToRemove.forEach((signature, dbKey) -> registerFunction(signature, null, false, false, dbKey));
 
         api.executeTransactionally("call db.clearQueryCaches()");
     }
@@ -252,6 +267,11 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
     }
 
     /**
+     * Installs (or, if {@code statement} is {@code null}, removes) the implementation for {@code databaseName}
+     * (or this handler's own database, when {@code databaseName} is {@code null}) without disturbing any other
+     * database's implementation of the same qualified name. The kernel-level {@link CallableProcedure} is
+     * registered at most once per qualified name; it dispatches, at call time, to whichever database's
+     * implementation matches the calling database (falling back to an {@link CypherNewProcedures#ALL_DATABASES} entry).
      *
      * @param signature
      * @param statement null indicates a removed procedure
@@ -259,42 +279,60 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
      */
     public boolean registerProcedure(ProcedureSignature signature, String statement, String databaseName) {
         QualifiedName name = signature.name();
+        String dbKey = databaseName == null ? api.databaseName() : databaseName;
         try {
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
-                    .anyMatch(s -> s.name().equals(name));
-            if (exists) {
-                // we deregister and remove possible homonyms signatures overridden/overloaded
-                ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
-                registeredProcedureSignatures.removeIf(i -> i.name().equals(signature.name()));
+            if (statement == null) {
+                Map<String, ProcEntry> remaining = PROC_REGISTRY.compute(name, (n, existing) -> {
+                    if (existing == null) return null;
+                    Map<String, ProcEntry> updated = new HashMap<>(existing);
+                    updated.remove(dbKey);
+                    return updated.isEmpty() ? null : Map.copyOf(updated);
+                });
+                registeredProcedures.remove(signature);
+                if (remaining == null) {
+                    unregisterProcedureIfPresent(name);
+                }
+                return true;
             }
 
-            final boolean isStatementNull = statement == null;
-            globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
-                @Override
-                public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
-                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
-                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
-                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
-                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
-                    } else {
-                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        Transaction tx = ctx.transaction();
-                        Result result = tx.execute(statement, params);
-                        resourceMonitor.registerCloseableResource(result);
+            ProcEntry previousOwnEntry = Optional.ofNullable(PROC_REGISTRY.get(name)).map(m -> m.get(dbKey)).orElse(null);
 
-                        List<FieldSignature> outputs = signature.outputSignature();
-                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
-                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
-
-                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
-                        return Iterators.asRawIterator(stream);
-                    }
-                }
+            PROC_REGISTRY.compute(name, (n, existing) -> {
+                Map<String, ProcEntry> updated = existing == null ? new HashMap<>() : new HashMap<>(existing);
+                updated.put(dbKey, new ProcEntry(signature, statement));
+                return Map.copyOf(updated);
             });
-            if (isStatementNull) {
-                registeredProcedureSignatures.remove(signature);
-            } else {
-                registeredProcedureSignatures.add(signature);
+            // drop this instance's bookkeeping for any stale (overloaded-away) signature of the same name,
+            // otherwise a later restoreProceduresAndFunctions() diff would "remove" using the stale signature
+            // and wipe out the dbKey entry this call just wrote
+            registeredProcedures.keySet().removeIf(sig -> sig.name().equals(name) && !sig.equals(signature));
+            registeredProcedures.put(signature, dbKey);
+
+            ProcedureSignature registeredSignature = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
+                    .filter(s -> s.name().equals(name))
+                    .findFirst()
+                    .orElse(null);
+            if (registeredSignature == null) {
+                // first time this name is ever registered
+                registerProcedureDispatcher(name, signature);
+            } else if (!registeredSignature.equals(signature)) {
+                // the kernel-exposed signature would need to change. Only allow this when dbKey itself is the
+                // db that currently owns that kernel signature (a legitimate overload of its own procedure) -
+                // otherwise this is a genuine cross-db signature conflict (most likely from data created before
+                // this compatibility check existed, e.g. via the deprecated apoc.custom.declareProcedure, or
+                // from an older APOC version): keep serving whichever db currently owns the registration instead
+                // of flip-flopping between the two on every install/refresh, which was the root cause of #4570.
+                if (previousOwnEntry != null && previousOwnEntry.signature().equals(registeredSignature)) {
+                    unregisterProcedureIfPresent(name);
+                    registerProcedureDispatcher(name, signature);
+                } else {
+                    log.error(String.format(
+                            "Cannot register procedure `%s` for database `%s`: an incompatible signature for this name " +
+                                    "is already registered for another database (registered: `%s`, this database wants: `%s`). " +
+                                    "A procedure name can be installed into multiple databases only with an identical signature. " +
+                                    "Drop the conflicting registration with apoc.custom.dropProcedure, or rename one of them.",
+                            name, dbKey, registeredSignature, signature));
+                }
             }
             return true;
         } catch (Exception e) {
@@ -303,64 +341,92 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
+    private void registerProcedureDispatcher(QualifiedName name, ProcedureSignature signature) throws ProcedureException {
+        globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
+                    @Override
+                    public ResourceRawIterator<AnyValue[], ProcedureException> apply(Context ctx, AnyValue[] input, ResourceMonitor resourceMonitor) throws ProcedureException {
+                        ProcEntry entry = resolveEntry(PROC_REGISTRY.get(name), ctx.graphDatabaseAPI().databaseName());
+                        if (entry == null) {
+                            final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
+                                    "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", name);
+                            throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                        }
+                        List<FieldSignature> inputSignature = entry.signature().inputSignature();
+                        Map<String, Object> params = params(input, inputSignature, ctx.valueMapper());
+                        Transaction tx = ctx.transaction();
+                        Result result = tx.execute(entry.statement(), params);
+                        resourceMonitor.registerCloseableResource(result);
+
+                        List<FieldSignature> outputs = entry.signature().outputSignature();
+                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
+                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
+
+                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
+                        return Iterators.asRawIterator(stream);
+                    }
+                });
+    }
+
     public boolean registerFunction(UserFunctionSignature signature) {
         return registerFunction(signature, null, false, false, null);
     }
 
     public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle, boolean mapResult, String databaseName) {
+        QualifiedName name = signature.name();
+        String dbKey = databaseName == null ? api.databaseName() : databaseName;
         try {
-            QualifiedName name = signature.name();
-            boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
-                    .anyMatch(s -> s.name().equals(name));
-            if (exists) {
-                // we deregister and remove possible homonyms signatures overridden/overloaded
-                ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
-                registeredUserFunctionSignatures.removeIf(i -> i.name().equals(signature.name()));
+            if (statement == null) {
+                Map<String, FuncEntry> remaining = FUNC_REGISTRY.compute(name, (n, existing) -> {
+                    if (existing == null) return null;
+                    Map<String, FuncEntry> updated = new HashMap<>(existing);
+                    updated.remove(dbKey);
+                    return updated.isEmpty() ? null : Map.copyOf(updated);
+                });
+                registeredUserFunctions.remove(signature);
+                if (remaining == null) {
+                    unregisterFunctionIfPresent(name);
+                }
+                return true;
             }
 
-            final boolean isStatementNull = statement == null;
-            globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
-                @Override
-                public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
-                    if (isStatementNull || isNotRegisteredInTheCorrectDb(ctx, databaseName)) {
-                        final String error = String.format("Unknown function '%s'", name);
-                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
-                    } else {
-                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                        AnyType outType = signature.outputType();
-                        Transaction tx = ctx.transaction();
-                        try (Result result = tx.execute(statement, params)) {
-//                resourceTracker.registerCloseableResource(result); // TODO
-                            if (!result.hasNext()) return Values.NO_VALUE;
-                            if (outType.equals(NTAny)) {
-                                return ValueUtils.of(result.stream().collect(Collectors.toList()));
-                            }
-                            List<String> cols = result.columns();
-                            if (cols.isEmpty()) return null;
-                            if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
-                                Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
-                                AnyType innerType = listType.innerType();
-                                if (isWrapped(innerType, mapResult))
-                                    return ValueUtils.of(result.stream().collect(Collectors.toList()));
-                                if (cols.size() == 1)
-                                    return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
-                            } else {
-                                Map<String, Object> row = result.next();
-                                if (isWrapped(outType, mapResult)) {
-                                    return ValueUtils.of(row);
-                                }
-                                if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
-                            }
-                            throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
-                        }
-                    }
+            FuncEntry previousOwnEntry = Optional.ofNullable(FUNC_REGISTRY.get(name)).map(m -> m.get(dbKey)).orElse(null);
 
-                }
+            FUNC_REGISTRY.compute(name, (n, existing) -> {
+                Map<String, FuncEntry> updated = existing == null ? new HashMap<>() : new HashMap<>(existing);
+                updated.put(dbKey, new FuncEntry(signature, statement, forceSingle, mapResult));
+                return Map.copyOf(updated);
             });
-            if (isStatementNull) {
-                registeredUserFunctionSignatures.remove(signature);
-            } else {
-                registeredUserFunctionSignatures.add(signature);
+            // drop this instance's bookkeeping for any stale (overloaded-away) signature of the same name,
+            // otherwise a later restoreProceduresAndFunctions() diff would "remove" using the stale signature
+            // and wipe out the dbKey entry this call just wrote
+            registeredUserFunctions.keySet().removeIf(sig -> sig.name().equals(name) && !sig.equals(signature));
+            registeredUserFunctions.put(signature, dbKey);
+
+            UserFunctionSignature registeredSignature = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
+                    .filter(s -> s.name().equals(name))
+                    .findFirst()
+                    .orElse(null);
+            if (registeredSignature == null) {
+                // first time this name is ever registered
+                registerFunctionDispatcher(name, signature);
+            } else if (!registeredSignature.equals(signature)) {
+                // the kernel-exposed signature would need to change. Only allow this when dbKey itself is the
+                // db that currently owns that kernel signature (a legitimate overload of its own function) -
+                // otherwise this is a genuine cross-db signature conflict (most likely from data created before
+                // this compatibility check existed, e.g. via the deprecated apoc.custom.declareFunction, or
+                // from an older APOC version): keep serving whichever db currently owns the registration instead
+                // of flip-flopping between the two on every install/refresh, which was the root cause of #4570.
+                if (previousOwnEntry != null && previousOwnEntry.signature().equals(registeredSignature)) {
+                    unregisterFunctionIfPresent(name);
+                    registerFunctionDispatcher(name, signature);
+                } else {
+                    log.error(String.format(
+                            "Cannot register function `%s` for database `%s`: an incompatible signature for this name " +
+                                    "is already registered for another database (registered: `%s`, this database wants: `%s`). " +
+                                    "A function name can be installed into multiple databases only with an identical signature. " +
+                                    "Drop the conflicting registration with apoc.custom.dropFunction, or rename one of them.",
+                            name, dbKey, registeredSignature, signature));
+                }
             }
             return true;
         } catch (Exception e) {
@@ -369,11 +435,67 @@ public class CypherProceduresHandler extends LifecycleAdapter implements Availab
         }
     }
 
-    private boolean isNotRegisteredInTheCorrectDb(Context ctx, String databaseName) {
-        if (ALL_DATABASES.equals(databaseName)) {
-            return false;
+    private void registerFunctionDispatcher(QualifiedName name, UserFunctionSignature signature) throws ProcedureException {
+        globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
+                    @Override
+                    public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
+                        FuncEntry entry = resolveEntry(FUNC_REGISTRY.get(name), ctx.graphDatabaseAPI().databaseName());
+                        if (entry == null) {
+                            final String error = String.format("Unknown function '%s'", name);
+                            throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                        }
+                        Map<String, Object> params = params(input, entry.signature().inputSignature(), ctx.valueMapper());
+                        AnyType outType = entry.signature().outputType();
+                        Transaction tx = ctx.transaction();
+                        try (Result result = tx.execute(entry.statement(), params)) {
+                            if (!result.hasNext()) return Values.NO_VALUE;
+                            if (outType.equals(NTAny)) {
+                                return ValueUtils.of(result.stream().collect(Collectors.toList()));
+                            }
+                            List<String> cols = result.columns();
+                            if (cols.isEmpty()) return null;
+                            if (!entry.forceSingle() && outType instanceof Neo4jTypes.ListType) {
+                                Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
+                                AnyType innerType = listType.innerType();
+                                if (isWrapped(innerType, entry.mapResult()))
+                                    return ValueUtils.of(result.stream().collect(Collectors.toList()));
+                                if (cols.size() == 1)
+                                    return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
+                            } else {
+                                Map<String, Object> row = result.next();
+                                if (isWrapped(outType, entry.mapResult())) {
+                                    return ValueUtils.of(row);
+                                }
+                                if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
+                            }
+                            throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
+                        }
+                    }
+                });
+    }
+
+    private void unregisterProcedureIfPresent(QualifiedName name) {
+        boolean exists = globalProceduresRegistry.getCurrentView().getAllProcedures(QueryLanguage.CYPHER_5)
+                .anyMatch(s -> s.name().equals(name));
+        if (exists) {
+            ProcedureHolderUtils.unregisterProcedure(name, globalProceduresRegistry);
         }
-        return !ctx.graphDatabaseAPI().databaseName().equals(api.databaseName());
+    }
+
+    private void unregisterFunctionIfPresent(QualifiedName name) {
+        boolean exists = globalProceduresRegistry.getCurrentView().getAllNonAggregatingFunctions(QueryLanguage.CYPHER_5)
+                .anyMatch(s -> s.name().equals(name));
+        if (exists) {
+            ProcedureHolderUtils.unregisterFunction(name, globalProceduresRegistry);
+        }
+    }
+
+    private static <E> E resolveEntry(Map<String, E> entries, String callingDatabase) {
+        if (entries == null) {
+            return null;
+        }
+        E entry = entries.get(callingDatabase);
+        return entry != null ? entry : entries.get(ALL_DATABASES);
     }
 
     /**
