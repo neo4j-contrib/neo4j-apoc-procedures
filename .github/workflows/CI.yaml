@@ -49,10 +49,19 @@ jobs:
         run: |
           echo "Current branch BRANCH_NAME=$BRANCH_NAME"
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
+          use_ci_live=false
           if [[ $BRANCH_NAME == "dev" ]]; then
-            echo "Running on dev branch and so pointing to ci-live repository in AWS CodeArtifact for CI artifacts"
-            CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_BUILD_SERVICE_LIVE_URL/maven/ci-live"
+            echo "Running on dev branch and so looking up the latest $neo4j_version_base build in the ci-live repository in AWS CodeArtifact"
             NEO4JVERSION=`aws --no-cli-pager codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }}  --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --status Published --query "versions[?starts_with(version, '$neo4j_version_base')].version | [0]" --output json | sed 's/"//g'`
+            if [[ -z "$NEO4JVERSION" || "$NEO4JVERSION" == "null" ]]; then
+              echo "No $neo4j_version_base build found in ci-live, falling back to the released version from release-live"
+            else
+              use_ci_live=true
+            fi
+          fi
+
+          if [[ $use_ci_live == "true" ]]; then
+            CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_BUILD_SERVICE_LIVE_URL/maven/ci-live"
             NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
             NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
             echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL" >> "$GITHUB_ENV"
@@ -131,10 +140,19 @@ jobs:
         run: |
           echo "Current branch BRANCH_NAME=$BRANCH_NAME"
           neo4j_version_base=$(grep -e "neo4jVersion = .*" build.gradle | cut -d '=' -f 2 | tr -d \'\" | tr -d ' ')
+          use_ci_live=false
           if [[ $BRANCH_NAME == "dev" ]]; then
-            echo "Running on dev branch and so pointing to ci-live repository in AWS CodeArtifact for CI artifacts"
-            CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_BUILD_SERVICE_LIVE_URL/maven/ci-live"
+            echo "Running on dev branch and so looking up the latest $neo4j_version_base build in the ci-live repository in AWS CodeArtifact"
             NEO4JVERSION=`aws --no-cli-pager codeartifact list-package-versions --domain build-service-live --domain-owner ${{ secrets.AWS_ACCOUNT_ID }}  --repository ci-live --format maven --namespace org.neo4j --package neo4j --sort-by PUBLISHED_TIME --status Published --query "versions[?starts_with(version, '$neo4j_version_base')].version | [0]" --output json | sed 's/"//g'`
+            if [[ -z "$NEO4JVERSION" || "$NEO4JVERSION" == "null" ]]; then
+              echo "No $neo4j_version_base build found in ci-live, falling back to the released version from release-live"
+            else
+              use_ci_live=true
+            fi
+          fi
+
+          if [[ $use_ci_live == "true" ]]; then
+            CODEARTIFACT_DOWNLOAD_URL="$CODEARTIFACT_BUILD_SERVICE_LIVE_URL/maven/ci-live"
             NEO4J_DOCKER_CE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-community-debian-nightly"
             NEO4J_DOCKER_EE_OVERRIDE="$ECR_NEO4J_DOCKER_URL/build-service/neo4j:$neo4j_version_base-enterprise-debian-nightly"
             echo "CODEARTIFACT_DOWNLOAD_URL=$CODEARTIFACT_DOWNLOAD_URL" >> "$GITHUB_ENV"
