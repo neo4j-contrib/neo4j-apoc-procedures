@@ -97,20 +97,44 @@ public class MongoTestBase {
 
     @Before
     public void before() {
-        Map<String, Object> numConnectionsMap = getNumConnections(mongo, commands);
-        System.out.println("numConnectionsMap = " + numConnectionsMap);
-        numConnections = (long) numConnectionsMap.get("current");
+        // connections of previously closed clients are released asynchronously on the server,
+        // so wait until the count is stable before taking the baseline
+        long previous = -1;
+        int stableReads = 0;
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+        while (true) {
+            Map<String, Object> numConnectionsMap = getNumConnections(mongo, commands);
+            long current = ((Number) numConnectionsMap.get("current")).longValue();
+            stableReads = current == previous ? stableReads + 1 : 0;
+            previous = current;
+            if (stableReads >= 2 || System.nanoTime() > deadline) {
+                System.out.println("numConnectionsMap = " + numConnectionsMap);
+                break;
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
+        numConnections = previous;
     }
 
     @After
     public void after() {
-        // the connections active before must be equal to the connections active after
-        assertEventually(() -> {
-            Map<String, Object> numConnectionsMap = getNumConnections(mongo, commands);
-            long numConnectionsAfter = (long) numConnectionsMap.get("current");
-            return numConnections == numConnectionsAfter;
-        },
-        v -> v, 30, TimeUnit.SECONDS);
+        // connections must not leak: after the test there can't be more than before.
+        // Fewer is fine, as connections not related to the test may be closed in the meantime
+        final long[] lastSeen = {-1};
+        try {
+            assertEventually(() -> {
+                lastSeen[0] = ((Number) getNumConnections(mongo, commands).get("current")).longValue();
+                return lastSeen[0] <= numConnections;
+            },
+            v -> v, 30, TimeUnit.SECONDS);
+        } catch (AssertionError e) {
+            throw new AssertionError("MongoDB connections before the test: %d, after: %d".formatted(numConnections, lastSeen[0]), e);
+        }
     }
 
     public static void createContainer(boolean withAuth, MongoVersion mongoVersion) {
