@@ -1,7 +1,7 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.export.util.ProgressReporter;
+import apoc.extended.export.util.ProgressReporter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
 

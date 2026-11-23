@@ -1,7 +1,7 @@
 package apoc.model;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.junit.*;
 import org.junit.rules.TestName;

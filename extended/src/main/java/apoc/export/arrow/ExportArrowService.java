@@ -19,9 +19,9 @@
 package apoc.export.arrow;
 
 import apoc.Pools;
-import apoc.result.ByteArrayResult;
-import apoc.result.ExportProgressInfo;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.result.ByteArrayResult;
+import apoc.extended.result.ExportProgressInfo;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.logging.Log;

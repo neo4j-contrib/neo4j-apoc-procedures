@@ -2,7 +2,7 @@ package apoc.ml.watson;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.JsonUtil;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;

@@ -296,7 +296,7 @@ object KafkaUtil {
 
     fun getName(db: GraphDatabaseService) = db.databaseName()
     
-    fun isWriteableInstance(db: GraphDatabaseAPI) = apoc.util.Util.isWriteableInstance(db)
+    fun isWriteableInstance(db: GraphDatabaseAPI) = apoc.extended.util.Util.isWriteableInstance(db)
 
     private fun clusterHasLeader(db: GraphDatabaseAPI): Boolean = try {
         db.execute("""

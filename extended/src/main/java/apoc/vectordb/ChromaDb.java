@@ -2,9 +2,9 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ListResult;
-import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.extended.result.ListResult;
+import apoc.extended.result.MapResult;
+import apoc.extended.util.CollectionUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.security.URLAccessChecker;

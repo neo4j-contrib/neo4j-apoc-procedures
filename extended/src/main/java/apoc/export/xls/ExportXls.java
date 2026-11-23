@@ -2,11 +2,11 @@ package apoc.export.xls;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.export.util.NodesAndRelsSubGraph;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.export.util.NodesAndRelsSubGraph;
+import apoc.extended.result.ExportProgressInfo;
 import apoc.util.MissingDependencyException;
-import apoc.util.Util;
-import org.neo4j.cypher.export.DatabaseSubGraph;
+import apoc.extended.util.Util;
+import apoc.extended.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;

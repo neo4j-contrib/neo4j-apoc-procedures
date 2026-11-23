@@ -6,7 +6,7 @@ import apoc.load.jdbc.Jdbc;
 import apoc.periodic.Periodic;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;

@@ -1,7 +1,7 @@
 package apoc.load.jdbc;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;

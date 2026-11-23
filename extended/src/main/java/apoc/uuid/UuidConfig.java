@@ -3,7 +3,7 @@ package apoc.uuid;
 import java.util.Collections;
 import java.util.Map;
 
-import static apoc.util.Util.toBoolean;
+import static apoc.extended.util.Util.toBoolean;
 
 public class UuidConfig {
 

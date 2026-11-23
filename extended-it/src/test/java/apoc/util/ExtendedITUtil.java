@@ -10,6 +10,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import apoc.extended.util.Util;
 
 public class ExtendedITUtil {
     public static final String EXTENDED_PATH = "../extended/";

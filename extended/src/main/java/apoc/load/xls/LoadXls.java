@@ -2,10 +2,10 @@ package apoc.load.xls;
 
 import apoc.Extended;
 import apoc.export.util.CountingInputStream;
-import apoc.meta.Types;
+import apoc.extended.meta.Types;
 import apoc.util.FileUtils;
 import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.security.URLAccessChecker;
@@ -26,10 +26,10 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.xls.ExportXlsHandler.XLS_MISSING_DEPS_ERROR;
 import static apoc.load.xls.LoadXlsHandler.getXlsSpliterator;
-import static apoc.util.DateParseUtil.dateParse;
+import static apoc.extended.util.DateParseUtil.dateParse;
 import static apoc.util.ExtendedUtil.dateFormat;
 import static apoc.util.ExtendedUtil.durationParse;
-import static apoc.util.Util.*;
+import static apoc.extended.util.Util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 

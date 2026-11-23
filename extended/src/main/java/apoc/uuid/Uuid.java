@@ -1,11 +1,11 @@
 package apoc.uuid;
 
-import static apoc.util.Util.quote;
+import static apoc.extended.util.Util.quote;
 
 import apoc.Extended;
 import apoc.ExtendedApocConfig;
 import apoc.Pools;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;

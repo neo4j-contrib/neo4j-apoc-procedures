@@ -4,7 +4,7 @@ import apoc.coll.Coll;
 import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;

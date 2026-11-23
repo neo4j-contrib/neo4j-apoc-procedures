@@ -2,7 +2,7 @@ package apoc.es;
 
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import org.junit.BeforeClass;

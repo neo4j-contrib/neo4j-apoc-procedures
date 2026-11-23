@@ -1,7 +1,7 @@
 package apoc.mongodb;
 
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.UrlResolver;
 import org.bson.types.ObjectId;
 import org.neo4j.logging.Log;

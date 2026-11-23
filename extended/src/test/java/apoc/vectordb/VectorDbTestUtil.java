@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static apoc.vectordb.VectorEmbeddingConfig.DEFAULT_METADATA;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

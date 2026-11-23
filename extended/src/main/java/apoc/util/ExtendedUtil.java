@@ -39,7 +39,9 @@ import java.util.stream.StreamSupport;
 
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatProperties;
 import static apoc.export.cypher.formatter.CypherFormatterUtils.formatToString;
-import static apoc.util.Util.getAllQueryProcs;
+import static apoc.extended.util.Util.getAllQueryProcs;
+import apoc.extended.util.Util;
+import apoc.extended.util.CollectionUtils;
 
 public class ExtendedUtil
 {

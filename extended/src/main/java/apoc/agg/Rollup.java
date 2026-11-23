@@ -2,7 +2,7 @@ package apoc.agg;
 
 import apoc.Extended;
 import apoc.util.ExtendedListUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;

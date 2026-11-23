@@ -2,7 +2,7 @@ package apoc.export.parquet;
 
 import apoc.Pools;
 import apoc.util.collection.Iterables;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;

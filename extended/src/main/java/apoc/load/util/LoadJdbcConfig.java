@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.DateTimeException;

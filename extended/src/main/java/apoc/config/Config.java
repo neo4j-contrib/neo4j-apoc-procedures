@@ -2,7 +2,7 @@ package apoc.config;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.collection.Iterators;
 import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;

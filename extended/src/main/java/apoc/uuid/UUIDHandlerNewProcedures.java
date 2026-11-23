@@ -1,8 +1,8 @@
 package apoc.uuid;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.util.Util;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;

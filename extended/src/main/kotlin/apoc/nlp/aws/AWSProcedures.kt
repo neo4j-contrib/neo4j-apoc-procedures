@@ -8,7 +8,7 @@ import apoc.nlp.NLPHelperFunctions.partition
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeWithMapResult
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.util.JsonUtil
 import com.amazonaws.services.comprehend.model.BatchDetectEntitiesResult
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult

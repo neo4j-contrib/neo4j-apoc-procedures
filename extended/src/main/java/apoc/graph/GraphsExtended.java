@@ -1,7 +1,7 @@
 package apoc.graph;
 
 import apoc.Extended;
-import apoc.result.GraphResult;
+import apoc.extended.result.GraphResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.collection.Iterables;

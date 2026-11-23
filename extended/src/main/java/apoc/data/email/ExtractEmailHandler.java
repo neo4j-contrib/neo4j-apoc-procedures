@@ -1,6 +1,6 @@
 package apoc.data.email;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import javax.mail.internet.*;
 import java.util.Map;

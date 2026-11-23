@@ -18,7 +18,7 @@ import static apoc.ml.RestAPIConfig.JSON_PATH_KEY;
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static apoc.util.UtilsExtendedTest.checkEnvVar;
 import static apoc.vectordb.VectorEmbeddingConfig.VECTOR_KEY;
 import static org.junit.Assert.assertNotNull;
@@ -88,7 +88,7 @@ public class PineconeCustomTest {
 
     /**
      * TODO: "method" is null as a workaround.
-     *  Since with `method: POST` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+     *  Since with `method: POST` the {@link apoc.extended.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
      *  that makes the request to respond 200 OK, but returns an empty result 
      */
     private static Map<String, Object> getConf() {

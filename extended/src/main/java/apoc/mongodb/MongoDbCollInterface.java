@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.bson.Document;
 
 import java.io.Closeable;

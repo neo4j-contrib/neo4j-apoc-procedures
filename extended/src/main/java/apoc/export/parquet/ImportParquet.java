@@ -2,10 +2,10 @@ package apoc.export.parquet;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.export.util.BatchTransaction;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
-import apoc.util.Util;
+import apoc.extended.export.util.BatchTransaction;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.result.ImportProgressInfo;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;

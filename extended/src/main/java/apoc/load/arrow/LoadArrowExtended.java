@@ -19,10 +19,10 @@
 package apoc.load.arrow;
 
 import apoc.Extended;
-import apoc.result.LoadDataMapResult;
+import apoc.extended.result.LoadDataMapResult;
 import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.DateMilliVector;

@@ -1,12 +1,12 @@
 package apoc.gephi;
 
 import apoc.Extended;
-import apoc.graph.GraphsUtils;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.graph.GraphsUtils;
+import apoc.extended.result.ExportProgressInfo;
 import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
 import apoc.util.UrlResolver;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.graphdb.Entity;

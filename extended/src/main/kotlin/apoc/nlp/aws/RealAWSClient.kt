@@ -1,6 +1,6 @@
 package apoc.nlp.aws
 
-import apoc.result.MapResult
+import apoc.extended.result.MapResult
 import apoc.util.JsonUtil
 import com.amazonaws.auth.*
 import com.amazonaws.services.comprehend.AmazonComprehendClientBuilder

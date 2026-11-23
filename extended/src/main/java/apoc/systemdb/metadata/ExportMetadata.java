@@ -1,9 +1,9 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemLabels;
-import apoc.SystemLabels;
-import apoc.SystemPropertyKeys;
-import apoc.export.util.ProgressReporter;
+import apoc.extended.SystemLabels;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.export.util.ProgressReporter;
 import apoc.systemdb.SystemDbConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;

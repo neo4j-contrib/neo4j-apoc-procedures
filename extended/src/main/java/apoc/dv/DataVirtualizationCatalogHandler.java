@@ -2,9 +2,9 @@ package apoc.dv;
 
 import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;

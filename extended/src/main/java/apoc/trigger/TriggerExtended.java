@@ -2,7 +2,7 @@ package apoc.trigger;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.coll.SetBackedList;
+import apoc.extended.coll.SetBackedList;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import org.neo4j.graphdb.GraphDatabaseService;

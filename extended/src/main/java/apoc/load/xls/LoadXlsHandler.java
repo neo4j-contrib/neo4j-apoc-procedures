@@ -13,7 +13,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
-import static apoc.util.Util.cleanUrl;
+import static apoc.extended.util.Util.cleanUrl;
 
 public class LoadXlsHandler {
 

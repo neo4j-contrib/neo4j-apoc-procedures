@@ -2,9 +2,9 @@ package apoc.load.jdbc;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
-import apoc.result.RowResult;
+import apoc.extended.result.RowResult;
 import org.apache.commons.codec.binary.Hex;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;

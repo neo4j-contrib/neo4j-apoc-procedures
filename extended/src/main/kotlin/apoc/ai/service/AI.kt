@@ -1,6 +1,6 @@
 package apoc.ai.service
 
-import apoc.result.MapResult
+import apoc.extended.result.MapResult
 
 interface AI {
     fun entities(data: Any, config: Map<String, Any?>): List<Map<String, Any?>>

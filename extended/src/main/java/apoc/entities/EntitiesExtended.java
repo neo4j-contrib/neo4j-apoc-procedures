@@ -1,12 +1,12 @@
 package apoc.entities;
 
 import apoc.Extended;
-import apoc.result.UpdatedNodeResult;
-import apoc.result.UpdatedRelationshipResult;
-import apoc.util.EntityUtil;
+import apoc.extended.result.UpdatedNodeResult;
+import apoc.extended.result.UpdatedRelationshipResult;
+import apoc.extended.util.EntityUtil;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;

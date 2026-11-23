@@ -17,7 +17,7 @@ import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
 import static apoc.ApocConfig.apocConfig;
 import static apoc.diff.DiffExtendedGraph.*;
 import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static org.junit.Assert.*;
 
 @Ignore

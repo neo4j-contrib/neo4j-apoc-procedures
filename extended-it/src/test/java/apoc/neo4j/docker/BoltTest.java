@@ -9,7 +9,7 @@ import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestContainerUtil;
 import apoc.util.TestContainerUtil.ApocPackage;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.*;
 import org.neo4j.driver.Session;
 import org.neo4j.graphdb.Entity;

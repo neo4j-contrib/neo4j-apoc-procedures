@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.MissingDependencyException;
 import apoc.util.FileUtils;
 

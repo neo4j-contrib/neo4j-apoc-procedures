@@ -3,7 +3,7 @@ package apoc.periodic;
 import apoc.Description;
 import apoc.Extended;
 import apoc.Pools;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;

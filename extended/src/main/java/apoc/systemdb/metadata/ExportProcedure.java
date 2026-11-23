@@ -1,9 +1,9 @@
 package apoc.systemdb.metadata;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import apoc.custom.CypherProceduresUtil;
-import apoc.export.util.ProgressReporter;
+import apoc.extended.export.util.ProgressReporter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;

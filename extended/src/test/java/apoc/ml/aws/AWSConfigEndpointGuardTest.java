@@ -28,7 +28,7 @@ import static apoc.ml.aws.BedrockInvokeConfig.MODEL;
 import static apoc.ml.aws.BedrockTestUtil.BEDROCK_CUSTOM_PROC;
 import static apoc.ml.aws.BedrockTestUtil.STABILITY_AI_BODY;
 import static apoc.util.ExtendedTestUtil.assertFails;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 

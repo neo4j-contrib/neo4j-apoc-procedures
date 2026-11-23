@@ -3,7 +3,7 @@ package apoc.uuid;
 import apoc.create.Create;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.AfterClass;

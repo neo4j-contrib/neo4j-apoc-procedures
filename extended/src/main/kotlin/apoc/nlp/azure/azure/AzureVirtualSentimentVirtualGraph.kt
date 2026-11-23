@@ -1,7 +1,7 @@
 package apoc.nlp.azure
 
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.result.VirtualNode
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship

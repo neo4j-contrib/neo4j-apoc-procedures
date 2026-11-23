@@ -4,7 +4,7 @@ import apoc.coll.Coll;
 import apoc.meta.Meta;
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;

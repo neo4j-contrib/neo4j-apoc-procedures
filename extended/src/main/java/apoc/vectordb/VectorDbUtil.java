@@ -2,11 +2,11 @@ package apoc.vectordb;
 
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.CollectionUtils;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.util.CollectionUtils;
 import apoc.util.CredentialEndpointGuard;
 import apoc.util.ExtendedMapUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -141,7 +141,7 @@ public class VectorDbUtil {
 
     /**
      * The "method" should be "GET", but is null as a workaround.
-     * Since with `method: POST` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+     * Since with `method: POST` the {@link apoc.extended.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
      * that makes the request to respond `405: Method Not Allowed` even if {@link HttpURLConnection#getRequestMethod()} is "GET".
      * In any case, by putting `body: null`, the request is still in GET  by default
      */

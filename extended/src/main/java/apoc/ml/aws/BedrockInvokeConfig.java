@@ -1,6 +1,6 @@
 package apoc.ml.aws;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import java.util.Map;
 import java.util.regex.Pattern;

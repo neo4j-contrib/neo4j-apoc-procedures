@@ -2,7 +2,7 @@ package apoc.s3;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import java.io.File;
 import java.net.URI;
 import org.testcontainers.containers.localstack.LocalStackContainer;

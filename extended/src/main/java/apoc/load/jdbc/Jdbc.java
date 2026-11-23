@@ -2,7 +2,7 @@ package apoc.load.jdbc;
 
 import apoc.Extended;
 import apoc.load.util.LoadJdbcConfig;
-import apoc.result.RowResult;
+import apoc.extended.result.RowResult;
 import apoc.util.MapUtil;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;

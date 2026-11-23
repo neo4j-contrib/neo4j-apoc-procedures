@@ -2,10 +2,10 @@ package apoc.redis;
 
 import apoc.Extended;
 import apoc.result.BooleanResult;
-import apoc.result.ListResult;
-import apoc.result.LongResult;
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
+import apoc.extended.result.ListResult;
+import apoc.extended.result.LongResult;
+import apoc.extended.result.MapResult;
+import apoc.extended.result.ObjectResult;
 import io.lettuce.core.ScriptOutputType;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;

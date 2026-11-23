@@ -1,10 +1,10 @@
 package apoc.bolt;
 
-import apoc.result.RowResult;
+import apoc.extended.result.RowResult;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.UriResolver;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Driver;

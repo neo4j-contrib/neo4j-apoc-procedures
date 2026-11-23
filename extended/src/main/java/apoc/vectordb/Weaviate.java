@@ -2,9 +2,9 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ListResult;
-import apoc.result.MapResult;
-import apoc.util.CollectionUtils;
+import apoc.extended.result.ListResult;
+import apoc.extended.result.MapResult;
+import apoc.extended.util.CollectionUtils;
 import apoc.util.UrlResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.ml.RestAPIConfig.METHOD_KEY;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static apoc.vectordb.VectorDb.executeRequest;
 import static apoc.vectordb.VectorDb.getEmbeddingResult;
 import static apoc.vectordb.VectorDb.getEmbeddingResultStream;
@@ -183,7 +183,7 @@ public class Weaviate {
         
         /**
          * TODO: we put method: null as a workaround, it should be "GET": https://weaviate.io/developers/weaviate/api/rest#tag/objects/get/objects/{className}/{id}
-         * Since with `method: GET` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+         * Since with `method: GET` the {@link apoc.extended.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
          * that makes the request to respond with an error 405 Method Not Allowed 
          */
         config.putIfAbsent(METHOD_KEY, null);

@@ -2,7 +2,7 @@ package apoc.vectordb;
 
 import apoc.ml.Prompt;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;

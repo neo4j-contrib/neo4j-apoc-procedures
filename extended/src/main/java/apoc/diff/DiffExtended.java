@@ -2,7 +2,7 @@ package apoc.diff;
 
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Description;

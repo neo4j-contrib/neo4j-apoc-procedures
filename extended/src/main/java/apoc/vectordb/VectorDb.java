@@ -2,13 +2,13 @@ package apoc.vectordb;
 
 import apoc.Extended;
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import apoc.ml.RestAPIConfig;
-import apoc.result.ObjectResult;
+import apoc.extended.result.ObjectResult;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.JsonUtil;
 import apoc.util.SystemDbUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;

@@ -18,7 +18,7 @@
  */
 package apoc.export.arrow;
 
-import apoc.meta.Types;
+import apoc.extended.meta.Types;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
 import org.neo4j.graphdb.GraphDatabaseService;

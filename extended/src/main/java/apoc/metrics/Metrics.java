@@ -2,7 +2,7 @@ package apoc.metrics;
 
 import apoc.Extended;
 import apoc.export.util.CountingReader;
-import apoc.load.CSVResult;
+import apoc.extended.load.CSVResult;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.*;
@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.util.ExtendedFileUtils.closeReaderSafely;
+import apoc.extended.util.Util;
 
 /**
  * @author moxious

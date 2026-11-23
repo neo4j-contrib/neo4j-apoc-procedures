@@ -1,8 +1,8 @@
 package apoc.custom;
 
 import apoc.ExtendedSystemPropertyKeys;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.kernel.api.procs.DefaultParameterValue;
 import org.neo4j.internal.kernel.api.procs.FieldSignature;

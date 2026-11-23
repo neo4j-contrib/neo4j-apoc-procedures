@@ -2,9 +2,9 @@ package apoc.dv;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.NodeResult;
-import apoc.result.PathResult;
-import apoc.result.VirtualPath;
+import apoc.extended.result.NodeResult;
+import apoc.extended.result.PathResult;
+import apoc.extended.result.VirtualPath;
 import apoc.result.VirtualRelationship;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.graphdb.GraphDatabaseService;

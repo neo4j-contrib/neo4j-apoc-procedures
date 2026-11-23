@@ -1,6 +1,6 @@
 package apoc.generate.relationship;
 
-import apoc.generate.config.InvalidConfigException;
+import apoc.extended.generate.config.InvalidConfigException;
 import apoc.generate.config.RelationshipGeneratorConfig;
 import org.apache.commons.lang3.tuple.Pair;
 

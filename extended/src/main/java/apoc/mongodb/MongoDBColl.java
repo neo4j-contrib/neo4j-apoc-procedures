@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;

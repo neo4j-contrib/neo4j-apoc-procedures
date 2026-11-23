@@ -8,7 +8,7 @@ import apoc.load.partial.LoadPartial;
 import apoc.load.xls.LoadXls;
 import apoc.util.GoogleCloudStorageContainerExtension;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.xml.XmlTestUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;

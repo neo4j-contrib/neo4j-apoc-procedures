@@ -1,9 +1,9 @@
 package apoc.nlp.azure
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.extended.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.result.VirtualNode
 import org.neo4j.graphdb.*
 import java.util.LinkedHashMap

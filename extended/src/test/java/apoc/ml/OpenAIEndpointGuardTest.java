@@ -21,7 +21,7 @@ import static apoc.ExtendedApocConfig.APOC_OPENAI_KEY;
 import static apoc.ml.OpenAI.ERROR_UNTRUSTED_ENDPOINT;
 import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static org.junit.Assert.assertEquals;
 
 /**

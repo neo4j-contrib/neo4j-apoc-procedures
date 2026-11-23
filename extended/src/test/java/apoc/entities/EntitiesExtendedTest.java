@@ -3,7 +3,7 @@ package apoc.entities;
 import apoc.create.Create;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;

@@ -2,7 +2,7 @@ package apoc.ml.sagemaker;
 
 import apoc.ml.aws.SageMaker;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.junit.Before;
 import org.junit.BeforeClass;
