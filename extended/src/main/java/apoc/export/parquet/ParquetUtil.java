@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-import static apoc.util.Util.labelStrings;
+import static apoc.extended.util.Util.labelStrings;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.ListLogicalTypeAnnotation;
 import static org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
@@ -43,7 +43,7 @@ public class ParquetUtil {
     public static String FIELD_TARGET_ID = "__target_id";
     public static String FIELD_TYPE = "__type";
 
-    public static String fromMetaType(apoc.meta.Types type) {
+    public static String fromMetaType(apoc.extended.meta.Types type) {
         switch (type) {
             case INTEGER:
                 return "LONG";
@@ -51,8 +51,8 @@ public class ParquetUtil {
                 return "DOUBLE";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
-                if (innerType == apoc.meta.Types.LIST || innerType == apoc.meta.Types.MAP ) {
+                final apoc.extended.meta.Types innerType = apoc.extended.meta.Types.from(inner);
+                if (innerType == apoc.extended.meta.Types.LIST || innerType == apoc.extended.meta.Types.MAP ) {
                     return "ANYARRAY";
                 }
                 return fromMetaType(innerType) + "ARRAY";

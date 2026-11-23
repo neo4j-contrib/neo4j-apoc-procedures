@@ -3,7 +3,7 @@ package apoc.load.jdbc;
 import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.junit.After;
 import org.junit.Assert;

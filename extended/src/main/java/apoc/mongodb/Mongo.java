@@ -1,8 +1,8 @@
 package apoc.mongodb;
 
 import apoc.Extended;
-import apoc.result.LongResult;
-import apoc.result.MapResult;
+import apoc.extended.result.LongResult;
+import apoc.extended.result.MapResult;
 import apoc.util.JsonUtil;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;

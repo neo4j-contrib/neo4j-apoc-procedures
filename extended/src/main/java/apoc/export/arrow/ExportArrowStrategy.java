@@ -74,7 +74,7 @@ public interface ExportArrowStrategy<IN, OUT> {
 
     Log getLogger();
 
-    static String fromMetaType(apoc.meta.Types type) {
+    static String fromMetaType(apoc.extended.meta.Types type) {
         switch (type) {
             case INTEGER:
                 return "Long";
@@ -82,8 +82,8 @@ public interface ExportArrowStrategy<IN, OUT> {
                 return "Double";
             case LIST:
                 String inner = type.toString().substring("LIST OF ".length()).trim();
-                final apoc.meta.Types innerType = apoc.meta.Types.from(inner);
-                if (innerType == apoc.meta.Types.LIST) {
+                final apoc.extended.meta.Types innerType = apoc.extended.meta.Types.from(inner);
+                if (innerType == apoc.extended.meta.Types.LIST) {
                     return "AnyArray";
                 }
                 return fromMetaType(innerType) + "Array";

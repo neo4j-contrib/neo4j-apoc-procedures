@@ -1,6 +1,6 @@
 package apoc.couchbase;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.couchbase.client.core.env.CompressionConfig;
 import com.couchbase.client.core.env.IoConfig;
 import com.couchbase.client.core.env.IoEnvironment;

@@ -1,7 +1,7 @@
 package apoc.ml;
 
 import apoc.ApocConfig;
-import apoc.result.ObjectResult;
+import apoc.extended.result.ObjectResult;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;

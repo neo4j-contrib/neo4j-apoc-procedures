@@ -3,7 +3,7 @@ package apoc.es;
 import apoc.es.ElasticSearch;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;

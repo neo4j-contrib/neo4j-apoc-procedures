@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 
 import static apoc.ApocConfig.apocConfig;
 import static apoc.load.partial.LoadPartialAws.getS3ObjectInputStream;
+import apoc.extended.util.Util;
 
 
 @Extended

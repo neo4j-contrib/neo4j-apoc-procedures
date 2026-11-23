@@ -5,7 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.ExtendedUtil;
 import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
@@ -19,13 +19,15 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import apoc.load.util.Results;
+import apoc.extended.load.util.Results;
 import static apoc.util.ExtendedFileUtils.closeReaderSafely;
-import static apoc.util.Util.cleanUrl;
+import static apoc.extended.util.Util.cleanUrl;
 import static java.util.Collections.emptyList;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import apoc.extended.load.CSVResult;
+import apoc.extended.load.Mapping;
 
 @Extended
 public class LoadCsv {

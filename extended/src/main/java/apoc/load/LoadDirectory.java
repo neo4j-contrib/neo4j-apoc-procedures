@@ -4,7 +4,7 @@ import apoc.ApocConfig;
 import apoc.Extended;
 import apoc.result.StringResult;
 import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;

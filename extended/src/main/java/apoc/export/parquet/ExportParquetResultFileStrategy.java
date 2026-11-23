@@ -1,8 +1,8 @@
 package apoc.export.parquet;
 
 import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.result.ExportProgressInfo;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;

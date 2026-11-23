@@ -9,7 +9,7 @@ import apoc.nlp.NLPHelperFunctions.verifyKeys
 import apoc.nlp.NLPHelperFunctions.verifyNodeProperty
 import apoc.nlp.NLPHelperFunctions.verifySource
 import apoc.result.NodeWithMapResult
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import org.neo4j.graphdb.Transaction
 import org.neo4j.logging.Log
 import org.neo4j.procedure.*

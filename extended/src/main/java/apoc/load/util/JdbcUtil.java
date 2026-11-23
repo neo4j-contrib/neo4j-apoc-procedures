@@ -1,6 +1,6 @@
 package apoc.load.util;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import us.fatehi.utility.datasource.DatabaseConnectionSource;
 import us.fatehi.utility.datasource.DatabaseConnectionSources;
 import us.fatehi.utility.datasource.MultiUseUserCredentials;

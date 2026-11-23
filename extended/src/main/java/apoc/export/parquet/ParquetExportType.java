@@ -1,12 +1,12 @@
 package apoc.export.parquet;
 
-import apoc.meta.Types;
-import apoc.util.Util;
+import apoc.extended.meta.Types;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterables;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;

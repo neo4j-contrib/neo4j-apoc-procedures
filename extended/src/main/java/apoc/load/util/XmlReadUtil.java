@@ -1,14 +1,14 @@
 package apoc.load.util;
 
-import apoc.export.util.BatchTransaction;
+import apoc.extended.export.util.BatchTransaction;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.CompressionAlgo;
 import apoc.util.FileUtils;
 import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;

@@ -5,7 +5,7 @@ import apoc.kafka.consumer.StreamsEventConsumer
 import apoc.kafka.consumer.kafka.KafkaEventSink
 import apoc.kafka.utils.KafkaUtil
 import apoc.kafka.utils.KafkaUtil.checkEnabled
-import apoc.util.QueueBasedSpliterator
+import apoc.extended.util.QueueBasedSpliterator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

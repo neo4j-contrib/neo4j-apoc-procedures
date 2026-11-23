@@ -2,7 +2,7 @@ package apoc.es;
 
 
 import apoc.util.UrlResolver;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

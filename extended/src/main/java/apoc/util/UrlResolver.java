@@ -1,5 +1,7 @@
 package apoc.util;
 
+import apoc.extended.util.Util;
+
 /**
  * @author mh
  * @since 29.05.16

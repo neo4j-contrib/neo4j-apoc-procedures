@@ -1,7 +1,7 @@
 package apoc.algo;
 
 import apoc.Extended;
-import apoc.result.WeightedPathResult;
+import apoc.extended.result.WeightedPathResult;
 import org.neo4j.graphalgo.BasicEvaluationContext;
 import org.neo4j.graphalgo.CommonEvaluators;
 import org.neo4j.graphalgo.GraphAlgoFactory;
@@ -16,7 +16,8 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
-import static apoc.algo.PathFindingUtils.buildPathExpander;
+import static apoc.extended.algo.PathFindingUtils.buildPathExpander;
+import apoc.extended.algo.PathFindingUtils;
 
 @Extended
 public class PathFindingExtended {

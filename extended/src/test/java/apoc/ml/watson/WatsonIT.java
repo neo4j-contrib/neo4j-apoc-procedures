@@ -1,7 +1,7 @@
 package apoc.ml.watson;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;

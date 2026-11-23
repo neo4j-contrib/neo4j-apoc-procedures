@@ -1,7 +1,7 @@
 package apoc.redis;
 
 import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;

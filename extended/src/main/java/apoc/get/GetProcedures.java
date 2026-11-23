@@ -1,8 +1,8 @@
 package apoc.get;
 
 import apoc.Extended;
-import apoc.result.NodeResult;
-import apoc.result.RelationshipResult;
+import apoc.extended.result.NodeResult;
+import apoc.extended.result.RelationshipResult;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.procedure.Context;
@@ -11,6 +11,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
+import apoc.extended.get.Get;
 
 @Extended
 public class GetProcedures {

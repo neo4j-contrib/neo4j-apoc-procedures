@@ -2,7 +2,7 @@ package apoc.custom;
 
 import apoc.ExtendedSystemLabels;
 import apoc.RegisterComponentFactory;
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import apoc.cypher.Cypher;
 import apoc.schema.Schemas;
 import apoc.util.StatusCodeMatcher;

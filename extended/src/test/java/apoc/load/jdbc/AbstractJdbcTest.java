@@ -1,6 +1,6 @@
 package apoc.load.jdbc;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;

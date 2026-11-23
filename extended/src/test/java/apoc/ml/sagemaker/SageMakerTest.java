@@ -2,7 +2,7 @@ package apoc.ml.sagemaker;
 
 import apoc.ml.aws.SageMaker;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.AfterClass;

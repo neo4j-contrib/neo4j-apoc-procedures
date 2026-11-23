@@ -1,9 +1,9 @@
 package apoc.es;
 
 import apoc.Extended;
-import apoc.load.LoadJsonUtils;
-import apoc.result.LoadDataMapResult;
-import apoc.util.Util;
+import apoc.extended.load.LoadJsonUtils;
+import apoc.extended.result.LoadDataMapResult;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -116,7 +116,7 @@ public class ElasticSearch {
                                     @Name(value = "query", defaultValue = "null") Object query,
                                     @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         /* Conceptually payload should be null, but we have to put "" instead,
-           as the `apoc.util.Util.writePayload` method has an `if (payload == null) return;`
+           as the `apoc.extended.util.Util.writePayload` method has an `if (payload == null) return;`
            but we need to add the `con.setDoOutput(true);`, placed right after that condition.
            Otherwise, an error `Cannot write to a URLConnection if doOutput=false - call setDoOutput(true)` will be thrown
         */

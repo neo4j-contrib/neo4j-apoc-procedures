@@ -1,7 +1,7 @@
 package apoc.bolt;
 
 import apoc.Extended;
-import apoc.result.RowResult;
+import apoc.extended.result.RowResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;

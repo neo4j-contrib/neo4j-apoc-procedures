@@ -1,10 +1,10 @@
 package apoc.export.parquet;
 
 import apoc.Pools;
-import apoc.result.ByteArrayResult;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
-import apoc.util.Util;
+import apoc.extended.result.ByteArrayResult;
+import apoc.extended.util.QueueBasedSpliterator;
+import apoc.extended.util.QueueUtil;
+import apoc.extended.util.Util;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;

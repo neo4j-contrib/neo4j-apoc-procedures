@@ -1,7 +1,7 @@
 package apoc.custom;
 
 import apoc.RegisterComponentFactory;
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.AfterClass;

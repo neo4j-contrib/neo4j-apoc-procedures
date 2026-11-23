@@ -1,6 +1,6 @@
 package apoc.nlp
 
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Transaction
 

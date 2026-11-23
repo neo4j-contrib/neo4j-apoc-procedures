@@ -3,7 +3,7 @@ package apoc.vectordb;
 import apoc.ml.Prompt;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;

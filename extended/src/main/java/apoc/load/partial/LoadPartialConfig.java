@@ -1,7 +1,7 @@
 package apoc.load.partial;
 
 import apoc.util.CompressionConfig;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import java.util.Collections;
 import java.util.Map;

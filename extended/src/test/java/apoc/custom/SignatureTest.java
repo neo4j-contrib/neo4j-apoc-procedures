@@ -1,6 +1,6 @@
 package apoc.custom;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.junit.Test;

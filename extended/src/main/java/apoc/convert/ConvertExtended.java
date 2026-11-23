@@ -1,7 +1,7 @@
 package apoc.convert;
 
 import apoc.Extended;
-import apoc.meta.Types;
+import apoc.extended.meta.Types;
 import apoc.util.collection.Iterables;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
@@ -19,8 +19,8 @@ import static apoc.convert.ConvertExtendedUtil.MAPPING_KEY;
 import static apoc.convert.ConvertExtendedUtil.getYamlFactory;
 import static apoc.convert.ConvertExtendedUtil.parse;
 import static apoc.util.ExtendedUtil.toValidYamlValue;
-import static apoc.util.Util.labelStrings;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.labelStrings;
+import static apoc.extended.util.Util.map;
 
 @Extended
 public class ConvertExtended {

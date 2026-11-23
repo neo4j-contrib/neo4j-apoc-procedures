@@ -5,8 +5,8 @@ import apoc.ExtendedApocConfig;
 import apoc.ExtendedSystemLabels;
 import apoc.ExtendedSystemPropertyKeys;
 import apoc.Pools;
-import apoc.SystemPropertyKeys;
-import apoc.util.Util;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterables;
 import org.apache.commons.lang3.tuple.Pair;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -43,6 +43,7 @@ import static apoc.ExtendedSystemPropertyKeys.propertyName;
 import static apoc.util.SystemDbUtil.getLastUpdate;
 import static apoc.uuid.Uuid.setExistingNodes;
 import static apoc.uuid.UuidConfig.*;
+import apoc.extended.uuid.UuidUtil;
 
 public class UuidHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 

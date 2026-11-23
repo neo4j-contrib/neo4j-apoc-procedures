@@ -1,10 +1,10 @@
 package apoc.nlp.gcp
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.extended.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
 import apoc.result.NodeValueErrorMapResult
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.result.VirtualNode
 import org.apache.commons.text.WordUtils
 import org.neo4j.graphdb.*

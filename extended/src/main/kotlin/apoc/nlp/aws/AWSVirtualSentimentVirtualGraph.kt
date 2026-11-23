@@ -1,7 +1,7 @@
 package apoc.nlp.aws
 
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectSentimentResult
 import org.apache.commons.text.WordUtils

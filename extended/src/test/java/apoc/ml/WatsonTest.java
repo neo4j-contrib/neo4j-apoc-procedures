@@ -2,7 +2,7 @@ package apoc.ml;
 
 import apoc.ml.watson.Watson;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

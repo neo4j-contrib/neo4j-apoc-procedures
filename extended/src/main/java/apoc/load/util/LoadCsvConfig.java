@@ -1,13 +1,14 @@
 package apoc.load.util;
 
-import apoc.load.Mapping;
+import apoc.extended.load.Mapping;
 import apoc.util.CompressionConfig;
 
 import java.util.*;
 
-import static apoc.util.Util.parseCharFromConfig;
+import static apoc.extended.util.Util.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import apoc.extended.load.util.Results;
 
 public class LoadCsvConfig extends CompressionConfig {
 

@@ -2,8 +2,8 @@ package apoc.ml;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
+import apoc.extended.result.MapResult;
+import apoc.extended.result.ObjectResult;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

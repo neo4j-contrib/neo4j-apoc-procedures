@@ -4,7 +4,7 @@ import apoc.create.Create;
 import apoc.periodic.Periodic;
 import apoc.util.FileUtils;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;

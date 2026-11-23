@@ -1,7 +1,7 @@
 package apoc.ml.aws;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;

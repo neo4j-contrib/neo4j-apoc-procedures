@@ -18,8 +18,8 @@
  */
 package apoc.export.arrow;
 
-import apoc.result.ByteArrayResult;
-import apoc.util.Util;
+import apoc.extended.result.ByteArrayResult;
+import apoc.extended.util.Util;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.dictionary.DictionaryProvider;

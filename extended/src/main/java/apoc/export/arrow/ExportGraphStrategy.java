@@ -18,11 +18,11 @@
  */
 package apoc.export.arrow;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterables;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.Schema;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;

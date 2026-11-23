@@ -20,7 +20,7 @@ import static apoc.util.TestContainerUtil.createEnterpriseDB;
 import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestContainerUtil.testCallEmpty;
 import static apoc.util.TestContainerUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static apoc.util.WeaviateTestUtil.ADMIN_AUTHORIZATION;
 import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
 import static apoc.util.WeaviateTestUtil.COLLECTION_NAME;

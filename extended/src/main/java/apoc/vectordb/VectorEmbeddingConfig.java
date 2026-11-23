@@ -1,7 +1,7 @@
 package apoc.vectordb;
 
 import apoc.ml.RestAPIConfig;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import java.util.Map;
 

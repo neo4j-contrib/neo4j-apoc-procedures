@@ -2,13 +2,13 @@ package apoc.diff;
 
 import apoc.Extended;
 import apoc.export.util.FormatUtils;
-import apoc.export.util.NodesAndRelsSubGraph;
+import apoc.extended.export.util.NodesAndRelsSubGraph;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.cypher.export.CypherResultSubGraph;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.neo4j.cypher.export.CypherResultSubGraph;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -27,7 +27,7 @@ import java.util.stream.StreamSupport;
 
 import static apoc.diff.DiffExtended.getPropertiesDiffering;
 import static apoc.util.ExtendedUtil.withDb;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 
 @Extended
 public class DiffExtendedGraph {

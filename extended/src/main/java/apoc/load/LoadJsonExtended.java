@@ -19,7 +19,7 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.result.LoadDataMapResult;
+import apoc.extended.result.LoadDataMapResult;
 import apoc.util.CompressionAlgo;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.kernel.api.QueryLanguage;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.load.LoadJsonUtils.loadJsonStream;
+import static apoc.extended.load.LoadJsonUtils.loadJsonStream;
 import static apoc.util.CompressionConfig.COMPRESSION;
 
 @Extended

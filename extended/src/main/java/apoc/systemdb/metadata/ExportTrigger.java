@@ -1,7 +1,7 @@
 package apoc.systemdb.metadata;
 
-import apoc.SystemPropertyKeys;
-import apoc.export.util.ProgressReporter;
+import apoc.extended.SystemPropertyKeys;
+import apoc.extended.export.util.ProgressReporter;
 import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.tuple.Pair;

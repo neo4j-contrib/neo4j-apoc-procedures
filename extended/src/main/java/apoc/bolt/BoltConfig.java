@@ -1,6 +1,6 @@
 package apoc.bolt;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.SessionConfig;

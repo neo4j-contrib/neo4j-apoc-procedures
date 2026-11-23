@@ -3,7 +3,7 @@ package apoc.generate;
 import apoc.generate.config.BasicGeneratorConfig;
 import apoc.generate.config.DistributionBasedConfig;
 import apoc.generate.config.GeneratorConfiguration;
-import apoc.generate.config.InvalidConfigException;
+import apoc.extended.generate.config.InvalidConfigException;
 import apoc.generate.node.NodeCreator;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.RelationshipCreator;

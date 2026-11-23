@@ -19,7 +19,7 @@
 package apoc.export.arrow;
 
 import apoc.Pools;
-import apoc.export.util.ProgressReporter;
+import apoc.extended.export.util.ProgressReporter;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;

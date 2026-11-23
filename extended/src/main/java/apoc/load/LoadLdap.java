@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.unboundid.ldap.sdk.*;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchScope;

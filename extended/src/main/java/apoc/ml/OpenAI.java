@@ -2,12 +2,12 @@ package apoc.ml;
 
 import apoc.ApocConfig;
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.CredentialEndpointGuard;
 import apoc.util.ExtendedMapUtils;
 import apoc.util.ExtendedUtil;
 import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.security.URLAccessChecker;

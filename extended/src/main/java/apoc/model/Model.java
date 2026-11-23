@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import static apoc.load.util.JdbcUtil.getConnection;
 import static apoc.load.util.JdbcUtil.getUrlOrKey;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 
 @Extended
 public class Model {

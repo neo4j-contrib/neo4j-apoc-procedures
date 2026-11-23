@@ -8,9 +8,9 @@ import java.util.stream.Stream;
 
 import apoc.Description;
 import apoc.Extended;
-import apoc.result.MapResult;
+import apoc.extended.result.MapResult;
 import apoc.util.JsonUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.security.URLAccessChecker;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;

@@ -1,7 +1,7 @@
 package apoc.map;
 
 import apoc.Extended;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;

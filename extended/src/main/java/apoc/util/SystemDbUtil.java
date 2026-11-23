@@ -1,6 +1,6 @@
 package apoc.util;
 
-import apoc.SystemPropertyKeys;
+import apoc.extended.SystemPropertyKeys;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -13,8 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.SystemPropertyKeys.database;
+import static apoc.extended.SystemPropertyKeys.database;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import apoc.extended.util.Util;
 
 public class SystemDbUtil {
     public static final String NON_SYS_DB_ERROR = "The procedure should be executed against a system database.";

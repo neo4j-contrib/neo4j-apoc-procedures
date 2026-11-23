@@ -1,12 +1,12 @@
 package apoc.export.parquet;
 
 import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.result.ExportProgressInfo;
 import apoc.util.FileUtils;
-import apoc.util.QueueBasedSpliterator;
-import apoc.util.QueueUtil;
-import apoc.util.Util;
+import apoc.extended.util.QueueBasedSpliterator;
+import apoc.extended.util.QueueUtil;
+import apoc.extended.util.Util;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
 import org.apache.parquet.schema.MessageType;

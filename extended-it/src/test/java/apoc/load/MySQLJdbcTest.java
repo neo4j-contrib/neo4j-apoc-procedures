@@ -6,7 +6,7 @@ import apoc.load.jdbc.Analytics;
 import apoc.load.jdbc.Jdbc;
 import apoc.util.s3.MySQLContainerExtension;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.s3.MySQLContainerExtension;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

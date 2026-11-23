@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.ml.RestAPIConfig.HEADERS_KEY;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static apoc.vectordb.VectorDbTestUtil.EntityType.FALSE;
 import static apoc.vectordb.VectorDbTestUtil.assertBerlinResult;
 import static apoc.vectordb.VectorDbTestUtil.assertLondonResult;

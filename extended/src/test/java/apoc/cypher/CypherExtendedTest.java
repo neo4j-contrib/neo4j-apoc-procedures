@@ -2,7 +2,7 @@ package apoc.cypher;
 
 import apoc.text.Strings;
 import apoc.util.TestUtil;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.Utils;
 import apoc.util.collection.Iterators;
 import org.apache.commons.io.FileUtils;
@@ -38,7 +38,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallCount;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;

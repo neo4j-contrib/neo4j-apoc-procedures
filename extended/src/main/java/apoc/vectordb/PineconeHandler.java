@@ -49,7 +49,7 @@ public class PineconeHandler implements VectorDbHandler {
 
         /**
          * "method" should be "GET", but is null as a workaround.
-         *  Since with `method: POST` the {@link apoc.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
+         *  Since with `method: POST` the {@link apoc.extended.util.Util#openUrlConnection(URL, Map)} has a `setChunkedStreamingMode`
          *  that makes the request to respond 200 OK, but returns an empty result 
          */
         @Override

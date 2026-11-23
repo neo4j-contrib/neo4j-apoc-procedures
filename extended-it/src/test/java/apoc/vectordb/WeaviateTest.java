@@ -25,7 +25,7 @@ import static apoc.util.ExtendedTestUtil.assertFails;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.map;
 import static apoc.util.WeaviateTestUtil.ADMIN_AUTHORIZATION;
 import static apoc.util.WeaviateTestUtil.ADMIN_HEADER_CONF;
 import static apoc.util.WeaviateTestUtil.ADMIN_KEY;

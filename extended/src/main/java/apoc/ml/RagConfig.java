@@ -1,6 +1,6 @@
 package apoc.ml;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 

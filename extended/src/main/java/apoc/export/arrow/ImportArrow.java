@@ -2,11 +2,11 @@ package apoc.export.arrow;
 
 import apoc.Extended;
 import apoc.Pools;
-import apoc.export.util.BatchTransaction;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ImportProgressInfo;
+import apoc.extended.export.util.BatchTransaction;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.result.ImportProgressInfo;
 import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.FieldVector;

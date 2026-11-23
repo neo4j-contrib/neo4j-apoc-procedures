@@ -19,13 +19,13 @@
 package apoc.export.arrow;
 
 import apoc.Pools;
-import apoc.export.util.ProgressReporter;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.result.ExportProgressInfo;
 import apoc.util.collection.Iterables;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.types.pojo.Schema;
-import org.neo4j.cypher.export.SubGraph;
+import apoc.extended.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;

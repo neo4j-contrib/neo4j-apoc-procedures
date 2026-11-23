@@ -1,6 +1,6 @@
 package apoc.hadoop;
 
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;

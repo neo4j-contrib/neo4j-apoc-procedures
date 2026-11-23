@@ -1,7 +1,7 @@
 package apoc;
 
 import apoc.load.jdbc.Jdbc;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import apoc.util.collection.Iterators;
 import org.neo4j.annotations.service.ServiceProvider;
 import org.neo4j.kernel.extension.ExtensionFactory;

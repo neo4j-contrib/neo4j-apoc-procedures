@@ -1,7 +1,7 @@
 package apoc.export.parquet;
 
 import apoc.util.MissingDependencyException;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 
 import java.util.Collections;
 import java.util.Map;

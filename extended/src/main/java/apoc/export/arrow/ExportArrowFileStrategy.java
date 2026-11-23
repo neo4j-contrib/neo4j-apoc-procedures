@@ -19,11 +19,11 @@
 package apoc.export.arrow;
 
 import apoc.convert.ConvertUtils;
-import apoc.export.util.ProgressReporter;
-import apoc.meta.Types;
-import apoc.result.ExportProgressInfo;
+import apoc.extended.export.util.ProgressReporter;
+import apoc.extended.meta.Types;
+import apoc.extended.result.ExportProgressInfo;
 import apoc.util.FileUtils;
-import apoc.util.Util;
+import apoc.extended.util.Util;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.dictionary.DictionaryProvider;
@@ -51,8 +51,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.Util.labelStrings;
-import static apoc.util.Util.map;
+import static apoc.extended.util.Util.labelStrings;
+import static apoc.extended.util.Util.map;
 
 public interface ExportArrowFileStrategy<IN> extends ExportArrowStrategy<IN, Stream<ExportProgressInfo>> {
 

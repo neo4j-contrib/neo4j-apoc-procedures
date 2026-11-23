@@ -1,9 +1,9 @@
 package apoc.nlp.aws
 
-import apoc.graph.document.builder.DocumentToGraph
+import apoc.extended.graph.document.builder.DocumentToGraph
 import apoc.nlp.NLPHelperFunctions
 import apoc.nlp.NLPVirtualGraph
-import apoc.result.VirtualGraph
+import apoc.extended.result.VirtualGraph
 import apoc.result.VirtualNode
 import com.amazonaws.services.comprehend.model.BatchDetectKeyPhrasesResult
 import org.neo4j.graphdb.Label
